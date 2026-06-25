@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Brote design tokens (BUILD_SPEC §2.3).
+ * Semantic colors are RGB triplets so Tailwind's `rgb(var(--x) / <alpha>)`
+ * pattern works. Light is the default; `.dark` is applied by next-themes and is
+ * the default on the immersive home/3D screens.
+ */
+:root {
+  /* --font-display / --font-sans are injected by next/font on <html>. */
+
+  /* Light theme */
+  --bg: 247 245 239; /* brote-cream */
+  --surface: 255 255 255; /* brote-cream-soft */
+  --surface-2: 241 239 231;
+  --fg: 12 26 19; /* brote-ink */
+  --muted: 234 231 222;
+  --muted-fg: 92 104 96;
+  --border: 226 223 213;
+  --ring: 31 181 122; /* brote-green */
+  --primary: 31 181 122;
+  --primary-fg: 255 255 255;
+
+  color-scheme: light;
+}
+
+.dark {
+  /* Dark theme */
+  --bg: 12 26 19; /* brote-ink */
+  --surface: 22 38 29; /* brote-ink-soft */
+  --surface-2: 28 48 36;
+  --fg: 247 245 239; /* brote-cream */
+  --muted: 34 53 43;
+  --muted-fg: 159 176 166;
+  --border: 37 56 45;
+  --ring: 31 181 122;
+  --primary: 31 181 122;
+  --primary-fg: 8 18 13;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Prevent the bottom nav from being overlapped by mobile browser chrome. */
+    overscroll-behavior-y: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Tabular numerals for all point counters / leaderboards (§2.4). */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Accessible, on-brand focus ring everywhere. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Slightly green-tinted, slim scrollbars. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border));
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer utilities {
+  /* Safe-area helpers for the bottom tab bar + sheets. */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .h-safe-bottom {
+    height: env(safe-area-inset-bottom);
+  }
+
+  /* Hide scrollbars on horizontal carousels while keeping scroll. */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Shimmer used by skeleton loaders. */
+  .skeleton {
+    @apply relative overflow-hidden bg-muted;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--surface) / 0.45),
+      transparent
+    );
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Respect reduced-motion: neutralize big animations (§2.5). Functionality stays. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

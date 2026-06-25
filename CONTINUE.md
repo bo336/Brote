@@ -22,13 +22,13 @@
 ## ▶ NEXT EXACT TASK
 *(The very next thing to do. Update this every session.)*
 
-> **START HERE:** Nothing built yet. Begin at BUILD_SPEC §18 step 1 — scaffold Next.js 14 (App Router) + TypeScript (strict) + Tailwind with the design tokens from §2, create `lib/brand.ts`, set up `next-intl` (es active, en scaffolded), the authenticated app shell with the bottom tab bar, and the core `components/ui/` primitives + theme (light/dark). Get the project to a clean `npm run dev` with an on-brand empty shell before moving to Supabase wiring (step 2).
+> **START HERE:** Step 1 (Scaffold) is DONE and builds cleanly (`npm run build` ✓, `tsc --noEmit` ✓). Now doing **Step 2 — Supabase wiring**: client/server SSR helpers, auth (Google + magic link), middleware-protected routes, profiles trigger, generated DB types. The Supabase project already exists: **Brote** ref `abnnjszxlwovpnazmbnu` (org `cxjojvrlvjxkkofcaqsq`, us-west-2). After wiring auth, do Step 3 (schema migrations + seed) via the Supabase MCP `apply_migration`.
 
 ---
 
 ## BUILD PROGRESS (mirrors BUILD_SPEC §18)
 
-- [ ] **1. Scaffold** — Next/TS/Tailwind, tokens (§2), brand.ts, i18n, app shell, bottom nav, theme, core ui/ components.
+- [x] **1. Scaffold** — Next 14/TS strict/Tailwind, tokens (§2), brand.ts, i18n (next-intl, es active + en), app shell (TopBar + BottomTabBar + desktop Sidebar), light/dark theme, core ui/ primitives (Button, Card, Pill, Sheet, Tabs, Toast, Avatar, Switch, Progress, Skeleton, EmptyState), brand components (Pip mascot, PointsBadge, StreakFlame, RankBadge, Logo), 5 pages + /instalar + /notificaciones. Clean build. **Decisions:** Next 14.2.35 + React 18 (most stable for react-three-fiber v8); next-intl WITHOUT url-locale routing (locale via NEXT_LOCALE cookie); theme via next-themes (dark default).
 - [ ] **2. Supabase wiring** — client/server helpers, auth (Google + magic link), profiles trigger, protected routes, generated DB types.
 - [ ] **3. Schema & RLS & seed** — all migrations (§4: enums, tables, indexes, views, RPCs incl. `complete_activity`), then `seed.sql` (§14: ranks, 13 domains, 153 activities, titles, badges, challenges, projects, news feeds, Pip copy).
 - [ ] **4. Core loop** — Hoy + Daily Set + `complete_activity` + points/streak/rank update + reward animations; onboarding (ends on first daily action).
