@@ -15,6 +15,7 @@ export interface ProfileSummary {
   streakFreezes: number;
   equippedTitle: string | null;
   mundoState: MundoState | null;
+  interests: string[];
   onboardingCompleted: boolean;
   language: 'es' | 'en';
 }

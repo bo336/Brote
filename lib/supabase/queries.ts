@@ -21,6 +21,7 @@ interface ProfileQueryRow {
   last_streak_date: string | null;
   streak_freezes: number;
   mundo_state: unknown;
+  interests: string[] | null;
   onboarding_completed: boolean;
   language: string;
   equipped_title: { name_es: string } | null;
@@ -41,7 +42,7 @@ export async function getSessionData(): Promise<SessionData> {
     supabase
       .from('profiles')
       .select(
-        'id, username, display_name, avatar_url, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, onboarding_completed, language, equipped_title:titles(name_es)',
+        'id, username, display_name, avatar_url, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, interests, onboarding_completed, language, equipped_title:titles(name_es)',
       )
       .eq('id', user.id)
       .maybeSingle(),
@@ -69,6 +70,7 @@ export async function getSessionData(): Promise<SessionData> {
     streakFreezes: row.streak_freezes ?? 0,
     equippedTitle: (row.equipped_title as { name_es: string } | null)?.name_es ?? null,
     mundoState: parseMundoState(row.mundo_state),
+    interests: row.interests ?? [],
     onboardingCompleted: row.onboarding_completed ?? false,
     language: (row.language as 'es' | 'en') ?? 'es',
   };
