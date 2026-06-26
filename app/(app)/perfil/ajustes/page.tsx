@@ -16,7 +16,9 @@ import { useSettings } from '@/stores/settings';
 import { createClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/(auth)/auth/actions';
 import { exportMyData, deleteMyAccount } from '@/lib/api/profile';
+import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, pushSupported } from '@/lib/api/push';
 import { toast } from '@/stores/toast';
+import { useEffect } from 'react';
 
 const NOTIF_KEYS = [
   { key: 'streak', label: 'notifStreak' },
@@ -38,6 +40,27 @@ export default function AjustesPage() {
   const [prefs, setPrefs] = useState<Record<string, boolean>>({ streak: true, challenges: true, projects: true, news: false });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pushOn, setPushOn] = useState(false);
+
+  useEffect(() => {
+    if (pushSupported()) isPushSubscribed().then(setPushOn);
+  }, []);
+
+  async function togglePush(on: boolean) {
+    if (on) {
+      if (!profile?.id) return;
+      const res = await subscribeToPush(profile.id);
+      if (res.ok) {
+        setPushOn(true);
+        toast.success('Notificaciones activadas');
+      } else {
+        toast.error('No se pudo activar', res.error);
+      }
+    } else {
+      await unsubscribeFromPush();
+      setPushOn(false);
+    }
+  }
 
   async function setLanguage(lang: 'es' | 'en') {
     document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000`;
@@ -121,6 +144,10 @@ export default function AjustesPage() {
       {/* Notifications */}
       <Section title={t('notifications')}>
         <Card className="divide-y divide-border">
+          <div className="flex items-center justify-between p-3.5">
+            <span className="text-small font-medium">{t('notifPush')}</span>
+            <Switch checked={pushOn} onCheckedChange={togglePush} />
+          </div>
           {NOTIF_KEYS.map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between p-3.5">
               <span className="text-small">{t(label)}</span>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { ToastProvider } from '@/components/ui/toast';
 import { RewardLayer } from '@/components/rewards/RewardLayer';
+import { ServiceWorker } from '@/components/pwa/ServiceWorker';
 
 /**
  * Global client providers: theme (light/dark/system), server-state cache,
@@ -37,6 +38,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <ToastProvider>
           {children}
           <RewardLayer />
+          <ServiceWorker />
         </ToastProvider>
       </QueryClientProvider>
     </ThemeProvider>

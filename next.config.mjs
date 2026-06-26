@@ -1,6 +1,16 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import withSerwistInit from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin('./lib/i18n/request.ts');
+
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  register: false, // registered manually by components/pwa/ServiceWorker
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === 'development',
+  additionalPrecacheEntries: [{ url: '/offline.html', revision: '1' }],
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -20,4 +30,4 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSerwist(withNextIntl(nextConfig));

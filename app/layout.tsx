@@ -33,11 +33,25 @@ export const metadata: Metadata = {
     title: BRAND.name,
   },
   formatDetection: { telephone: false },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+  },
   openGraph: {
     title: `${BRAND.name} — ${BRAND.tagline}`,
     description: BRAND.description,
     type: 'website',
     locale: 'es_AR',
+    images: [{ url: '/og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: BRAND.description,
+    images: ['/og.png'],
   },
 };
 
