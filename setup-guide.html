@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guía de configuración · Brote</title>
+    <style>
+      :root {
+        --green: #1fb57a; --deep: #0e7a52; --ink: #0c1a13; --cream: #f7f5ef;
+        --sun: #ffb23e; --muted: #5c6860; --border: #e2dfd5; --card: #fff;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--cream); color: var(--ink); font-family: system-ui, -apple-system, sans-serif; line-height: 1.55; }
+      header { background: var(--ink); color: var(--cream); padding: 40px 20px; text-align: center; }
+      header h1 { margin: 0 0 6px; font-size: 2rem; }
+      header p { margin: 0; color: #9fb0a6; }
+      main { max-width: 820px; margin: 0 auto; padding: 24px 20px 80px; }
+      .intro { background: #1fb57a14; border: 1px solid #1fb57a40; border-radius: 16px; padding: 16px 18px; margin: 24px 0; }
+      .step { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; margin: 16px 0; box-shadow: 0 2px 10px -4px #0f3c2820; }
+      .step h2 { margin: 0 0 4px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+      .num { background: var(--green); color: #08120d; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; flex: none; }
+      .step .why { color: var(--muted); font-size: .92rem; margin: 0 0 10px 40px; }
+      ol, ul { margin: 0 0 0 40px; padding-left: 18px; }
+      li { margin: 6px 0; }
+      code { background: #16261d; color: #d7f5e6; padding: 2px 7px; border-radius: 6px; font-size: .85em; word-break: break-all; }
+      .pill { display: inline-block; background: var(--sun); color: var(--ink); font-weight: 700; font-size: .72rem; padding: 2px 9px; border-radius: 999px; vertical-align: middle; }
+      .kv { background: #f1efe7; border-radius: 10px; padding: 10px 12px; margin: 8px 0 8px 40px; font-size: .86rem; }
+      a { color: var(--deep); font-weight: 600; }
+      .done { color: var(--green); font-weight: 700; }
+      footer { text-align: center; color: var(--muted); padding: 30px; font-size: .85rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🌱 Configurar Brote</h1>
+      <p>Todo gratis. Seguí estos pasos en orden — sin terminal.</p>
+    </header>
+    <main>
+      <div class="intro">
+        <strong>Buenas noticias:</strong> el código, la base de datos (Supabase) y las
+        funciones de IA ya están creados y cargados. Solo faltan unas claves y permisos
+        que se configuran haciendo clic en paneles. <span class="done">La app funciona
+        incluso sin todo esto</span> (con respaldos), pero completalo para tener IA,
+        login con Google y notificaciones.
+      </div>
+
+      <p style="margin-left:0"><strong>Datos de tu proyecto Supabase</strong></p>
+      <div class="kv">
+        Proyecto: <code>Brote</code> · Ref: <code>abnnjszxlwovpnazmbnu</code><br />
+        URL: <code>https://abnnjszxlwovpnazmbnu.supabase.co</code>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">1</span> Subir el código a GitHub</h2>
+        <p class="why">Para que Vercel lo pueda importar y publicar.</p>
+        <ol>
+          <li>Creá un repositorio nuevo en GitHub (privado está bien).</li>
+          <li>Subí esta carpeta (o conectá la rama actual).</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">2</span> Publicar en Vercel <span class="pill">hosting gratis</span></h2>
+        <p class="why">Vercel hostea la web en un dominio gratuito <code>*.vercel.app</code>.</p>
+        <ol>
+          <li>Entrá a <a href="https://vercel.com/new" target="_blank">vercel.com/new</a> e importá el repo de GitHub.</li>
+          <li>En <em>Environment Variables</em>, pegá las del archivo <code>.env.example</code> (ver pasos 3–6 para los valores).</li>
+          <li>Deploy. Anotá tu URL final, ej: <code>https://brote.vercel.app</code>.</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">3</span> Login con Google <span class="pill">opcional</span></h2>
+        <p class="why">El login por correo (enlace mágico) ya funciona sin configurar nada. Esto agrega "Continuar con Google".</p>
+        <ol>
+          <li>En Supabase → <strong>Authentication → Providers → Google</strong>, activalo.</li>
+          <li>Creá credenciales OAuth en <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> y pegá el Client ID/Secret.</li>
+          <li>En <strong>Authentication → URL Configuration</strong> agregá tus redirect URLs:
+            <br /><code>https://TU-APP.vercel.app/auth/callback</code> y <code>http://localhost:3000/auth/callback</code>.</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">4</span> Clave de IA (Google Gemini) <span class="pill">gratis</span></h2>
+        <p class="why">Verifica fotos, recomienda acciones y resume noticias. Sin esto, la app usa respaldos automáticos.</p>
+        <ol>
+          <li>Conseguí una clave gratis en <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.</li>
+          <li>En Supabase → <strong>Edge Functions → Secrets</strong>, agregá:
+            <div class="kv"><code>GEMINI_API_KEY</code> = tu clave</div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">5</span> Notificaciones push (VAPID) <span class="pill">opcional</span></h2>
+        <p class="why">Permiten avisar "tu racha está por terminar", etc.</p>
+        <ol>
+          <li>Generá las claves: en la carpeta del proyecto corré <code>npm run vapid</code> (te da una pública y una privada).</li>
+          <li>Agregá en <strong>Vercel → Environment Variables</strong>:
+            <div class="kv"><code>NEXT_PUBLIC_VAPID_PUBLIC_KEY</code> = clave pública</div>
+          </li>
+          <li>Agregá en <strong>Supabase → Edge Functions → Secrets</strong>:
+            <div class="kv">
+              <code>NEXT_PUBLIC_VAPID_PUBLIC_KEY</code> = clave pública<br />
+              <code>VAPID_PRIVATE_KEY</code> = clave privada<br />
+              <code>VAPID_SUBJECT</code> = <code>mailto:tu@correo.com</code>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">6</span> Clave de servicio para tareas automáticas <span class="pill">opcional</span></h2>
+        <p class="why">Para que se actualicen las noticias y se envíen las push automáticamente (cron).</p>
+        <ol>
+          <li>En Supabase → <strong>Project Settings → API</strong> copiá la <code>service_role</code> key (¡es secreta!).</li>
+          <li>Pegala en <strong>Vercel → Environment Variables</strong>:
+            <div class="kv"><code>SUPABASE_SERVICE_ROLE_KEY</code> = service_role key</div>
+          </li>
+          <li>Guardala también en <strong>Supabase → Vault</strong> (Database → Vault → New secret):
+            <div class="kv">Nombre: <code>service_role_key</code> · Valor: la misma key</div>
+            Esto habilita el cron de noticias y el disparo de notificaciones push.
+          </li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">7</span> Confirmar los buckets de Storage <span class="pill">ya creados</span></h2>
+        <p class="why">Para fotos de verificación, imágenes de proyectos y avatares.</p>
+        <ul>
+          <li><code>avatars</code> y <code>projects</code>: públicos ✅</li>
+          <li><code>verifications</code>: privado 🔒</li>
+        </ul>
+        <p style="margin-left:40px; color:var(--muted)">Ya se crearon por migración — solo verificá en <strong>Storage</strong> que estén así.</p>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">✓</span> Variables de entorno (resumen)</h2>
+        <div class="kv">
+          <strong>Vercel:</strong><br />
+          <code>NEXT_PUBLIC_SUPABASE_URL</code> = https://abnnjszxlwovpnazmbnu.supabase.co<br />
+          <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> = (Settings → API → anon)<br />
+          <code>SUPABASE_SERVICE_ROLE_KEY</code> = (paso 6)<br />
+          <code>NEXT_PUBLIC_VAPID_PUBLIC_KEY</code> = (paso 5)<br />
+          <code>NEXT_PUBLIC_APP_URL</code> = https://TU-APP.vercel.app<br />
+          <code>NEXT_PUBLIC_APP_TZ</code> = America/Argentina/Buenos_Aires<br />
+          <code>CRON_SECRET</code> = (cualquier texto secreto, opcional)<br /><br />
+          <strong>Supabase → Edge Functions → Secrets:</strong><br />
+          <code>GEMINI_API_KEY</code>, <code>VAPID_PRIVATE_KEY</code>,
+          <code>NEXT_PUBLIC_VAPID_PUBLIC_KEY</code>, <code>VAPID_SUBJECT</code>
+        </div>
+      </div>
+
+      <footer>Hecho con 🌱 — Brote · Hacé crecer tu mundo.</footer>
+    </main>
+  </body>
+</html>
