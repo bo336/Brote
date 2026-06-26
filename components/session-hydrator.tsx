@@ -10,12 +10,20 @@ import type { ProfileSummary } from '@/lib/types';
  * here. Until auth is wired, rendering with no `profile` leaves the store empty
  * and the UI shows neutral zero-state values.
  */
-export function SessionHydrator({ profile }: { profile?: ProfileSummary | null }) {
+export function SessionHydrator({
+  profile,
+  unread = 0,
+}: {
+  profile?: ProfileSummary | null;
+  unread?: number;
+}) {
   const setProfile = useSession((s) => s.setProfile);
+  const setUnread = useSession((s) => s.setUnread);
 
   useEffect(() => {
     if (profile) setProfile(profile);
-  }, [profile, setProfile]);
+    setUnread(unread);
+  }, [profile, unread, setProfile, setUnread]);
 
   return null;
 }
