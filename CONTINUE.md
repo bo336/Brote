@@ -22,7 +22,24 @@
 ## ▶ NEXT EXACT TASK
 *(The very next thing to do. Update this every session.)*
 
-> **START HERE:** Steps 1–4 DONE and building cleanly. Core loop validated against the LIVE DB (simulated authed user, rolled back): complete_activity awards points/streak/rank/mundo/domain-points correctly (200 XP → Semilla II, etc.), award_verified grants base+25%+first-time (tree → 1350 XP → Brote I). Now doing **Step 6 — Activity Catalog**: `/acciones` real Para Vos (content-based scorer in `lib/recommendations.ts`), "Nuevas esta semana" (is_featured), browse by 13 domains with filters/search, ActivityCard with lock badges, `/acciones/[slug]` detail with complete/photo-verify flow (photo upload to `verifications` bucket → complete_activity status=pending). **Now Step 15 — Polish**: README.md (run/deploy/architecture), setup-guide.html (owner dashboard steps: Supabase Google OAuth + redirect URLs, Vercel import + env vars, Gemini key, VAPID `npm run vapid`, Vault service_role_key for cron/push, Storage bucket confirm), robots.txt + sitemap, finalize SEO/OG, sweep empty/error states + reduced-motion/a11y, responsive desktop check, run get_advisors (security+perf) once more + fix. Then Step 16 acceptance: verify §19 boxes, final clean `npm run build`. .env.example already complete.
+> **START HERE:** Steps 1–4 DONE and building cleanly. Core loop validated against the LIVE DB (simulated authed user, rolled back): complete_activity awards points/streak/rank/mundo/domain-points correctly (200 XP → Semilla II, etc.), award_verified grants base+25%+first-time (tree → 1350 XP → Brote I). Now doing **Step 6 — Activity Catalog**: `/acciones` real Para Vos (content-based scorer in `lib/recommendations.ts`), "Nuevas esta semana" (is_featured), browse by 13 domains with filters/search, ActivityCard with lock badges, `/acciones/[slug]` detail with complete/photo-verify flow (photo upload to `verifications` bucket → complete_activity status=pending). > ✅ **BUILD COMPLETE — all 16 steps of BUILD_SPEC §18 done.** The app builds
+> clean, the live Supabase DB (17 migrations) + seed + 4 edge functions are
+> deployed, and core flows are validated. Remaining is OWNER-ONLY dashboard
+> config (see setup-guide.html): Google OAuth, GEMINI_API_KEY, VAPID keys, Vercel
+> import + env, Vault service_role_key. The app already works with graceful
+> fallbacks before those are set. **Next session (if any): deploy to Vercel and
+> walk a real signed-in user through onboarding → daily action → catalog photo.**
+
+### §19 acceptance snapshot
+Core loop/gamification ✓ (153+ activities, 11×5 ranks, titles/badges, points all
+server-side in complete_activity — validated). AI ✓ (verify/recommend/news
+deployed w/ fallbacks; news tested). Sections ✓ (Proyectos rank-gated CRUD+map,
+Ranking global/barrio/amigos/dominio+weekly, Perfil impact+globe+logros+stats+
+objetivos+ajustes, challenges). Tu Mundo 3D ✓ (grows w/ rank/streak, day-night,
+lazy + low-detail fallback, impact globe). PWA ✓ (installable, prominent install
+banner, /instalar, offline shell, Web Push). Quality ✓ (mobile-first responsive,
+AA focus rings, skeletons, Pip empty states, RLS every table, no client secrets,
+clean build).
 
 ---
 
@@ -42,8 +59,8 @@
 - [x] **12. Scheduled jobs** — `daily_maintenance()` SQL fn (streak reset/freeze+dim mundo+notify, daily challenge rotation, weekly featured rotation Mondays, goal rollover, weekly_scores snapshot, stale-pending auto-approve) — TESTED live. pg_cron+pg_net enabled; jobs `brote-daily-maintenance` (00:05 BA) + `brote-refresh-news` (8h, uses Vault service_role_key — OWNER ACTION) registered + active. vercel.json + /api/cron/{maintenance,refresh-news} fallback (CRON_SECRET-guarded). recommend-activities cold-start triggered at onboarding finish. Migrations 0013+0014.
 - [x] **13. PWA** — brand icons (192/256/384/512/maskable/apple-touch/badge + og) via scripts/gen-icons.mjs (sharp); manifest verified; @serwist/next SW (precache shell+fonts+icons, runtimeCaching defaultCache, /offline.html fallback, push + notificationclick handlers) wired into next.config; ServiceWorker register component (prod); InstallBanner + /instalar already built (standalone-hide). Web Push: lib/api/push (subscribe→push_subscriptions w/ VAPID public key) + toggle in ajustes. Owner: run `npm run vapid`, set NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY.
 - [x] **14. Notifications** — real `/notificaciones` center (fetch + mark-all-read on open + clears top-bar badge), Realtime INSERT subscription in SessionHydrator (live unread badge + toast). Push trigger `notify_push()` on notifications insert → send-push via pg_net (respects notification_prefs, Vault key — owner action). Migration 0015 (realtime publication + trigger). In-app inserts already in complete_activity/award_verified/daily_maintenance/complete_goal/notify.
-- [ ] **15. Polish** — reduced-motion, a11y, skeletons, empty/error states (Pip voice), perf pass, responsive desktop, SEO/OG, README + setup-guide.html.
-- [ ] **16. Acceptance pass** — verify every box in BUILD_SPEC §19; clean `npm run build`.
+- [x] **15. Polish** — README.md + setup-guide.html (owner steps), robots.ts + sitemap.ts, OG/twitter + og.png, reduced-motion (globals.css) + focus-visible a11y + skeletons + Pip-voice empty states throughout. **Security:** migration 0016 revoked default PUBLIC EXECUTE that left point-granting internals anon-callable (verified closed). Perf: FK covering indexes (0017).
+- [x] **16. Acceptance pass** — `tsc --noEmit` ✓, `npm run build` ✓ (26 routes), dev server smoke test ✓ (login renders es, / → 307 login, /instalar 200, no runtime errors). Core RPCs validated live (complete_activity, award_verified, project RPCs, daily_maintenance). 4 edge fns deployed; refresh-news produced 12 real items. See §19 checklist in CONTINUE below.
 
 ---
 
