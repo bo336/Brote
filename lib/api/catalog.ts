@@ -17,6 +17,13 @@ export async function fetchCatalog(): Promise<ActivityRow[]> {
   return (data ?? []) as ActivityRow[];
 }
 
+/** Cached Gemini recommendations for the current user (BUILD_SPEC §10.2). */
+export async function fetchMyRecommendations(): Promise<{ slug: string; reason: string }[]> {
+  const supabase = createClient();
+  const { data } = await supabase.rpc('get_my_recommendations');
+  return (data ?? []) as { slug: string; reason: string }[];
+}
+
 export async function fetchActivityBySlug(slug: string): Promise<ActivityRow | null> {
   const supabase = createClient();
   const { data, error } = await supabase.from('activities').select('*').eq('slug', slug).maybeSingle();

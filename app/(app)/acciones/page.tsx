@@ -11,7 +11,9 @@ import { Pip } from '@/components/pip/Pip';
 import { ActivityCard } from '@/components/acciones/ActivityCard';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
+import { useQuery } from '@tanstack/react-query';
 import { useCatalog, useCatalogCompletions, useDomainPoints } from '@/hooks/use-catalog';
+import { fetchMyRecommendations } from '@/lib/api/catalog';
 import { scoreActivities } from '@/lib/recommendations';
 import { DOMAINS } from '@/lib/domains';
 import { cn } from '@/lib/utils/cn';
@@ -25,6 +27,12 @@ export default function AccionesPage() {
   const catalog = useCatalog();
   const completions = useCatalogCompletions(profile?.id);
   const domainPointsQ = useDomainPoints(profile?.id);
+  const recsQ = useQuery({
+    queryKey: ['ai-recs', profile?.id],
+    queryFn: fetchMyRecommendations,
+    enabled: !!profile?.id,
+    staleTime: 30 * 60_000,
+  });
 
   const [search, setSearch] = useState('');
   const [domain, setDomain] = useState<string | null>(null);
@@ -43,13 +51,26 @@ export default function AccionesPage() {
 
   const scored = useMemo(() => {
     if (!catalog.data) return [];
-    return scoreActivities(catalog.data, {
+    const base = scoreActivities(catalog.data, {
       interests: profile?.interests ?? [],
       totalXp: profile?.totalXp ?? 0,
       domainPoints: domainPointsQ.data ?? {},
       completedIds,
     });
-  }, [catalog.data, profile?.interests, profile?.totalXp, domainPointsQ.data, completedIds]);
+    // Blend the cached Gemini layer on top of the content-based score (§10.2):
+    // boost AI-recommended slugs and surface their reason. Inert until recs exist.
+    const recs = recsQ.data ?? [];
+    if (recs.length === 0) return base;
+    const order = new Map(recs.map((r, i) => [r.slug, { rank: i, reason: r.reason }]));
+    return base
+      .map((s) => {
+        const ai = order.get(s.activity.slug);
+        return ai && !completedIds.has(s.activity.id)
+          ? { ...s, score: s.score + 1000 - ai.rank, reason: ai.reason || s.reason }
+          : s;
+      })
+      .sort((a, b) => b.score - a.score);
+  }, [catalog.data, profile?.interests, profile?.totalXp, domainPointsQ.data, completedIds, recsQ.data]);
 
   const featured = useMemo(() => (catalog.data ?? []).filter((a) => a.is_featured), [catalog.data]);
 
