@@ -17,6 +17,25 @@ export async function fetchCatalog(): Promise<ActivityRow[]> {
   return (data ?? []) as ActivityRow[];
 }
 
+/** Best-effort cold-start trigger of the recommendations Edge Function (§10.2). */
+export async function triggerRecommendations(): Promise<void> {
+  try {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!url || !session) return;
+    await fetch(`${url}/functions/v1/recommend-activities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: '{}',
+    });
+  } catch {
+    /* ignore — content-based feed handles it */
+  }
+}
+
 /** Cached Gemini recommendations for the current user (BUILD_SPEC §10.2). */
 export async function fetchMyRecommendations(): Promise<{ slug: string; reason: string }[]> {
   const supabase = createClient();

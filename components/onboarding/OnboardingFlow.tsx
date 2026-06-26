@@ -16,6 +16,7 @@ import { DailyActionRow } from '@/components/acciones/DailyActionRow';
 import { cn } from '@/lib/utils/cn';
 import { createClient } from '@/lib/supabase/client';
 import { completeActivity } from '@/lib/api/activities';
+import { triggerRecommendations } from '@/lib/api/catalog';
 import { celebrateCompletion } from '@/lib/rewards';
 import { toast } from '@/stores/toast';
 import { saveOnboardingProfile, finishOnboarding } from '@/app/onboarding/actions';
@@ -96,6 +97,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
     } catch (e) {
       // Even if it was already done, proceed — onboarding shouldn't get stuck.
     }
+    void triggerRecommendations(); // cold-start AI recs (best-effort)
     startTransition(async () => {
       await finishOnboarding();
       router.push('/');
