@@ -2,66 +2,75 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronDown, Sparkles, AlertTriangle } from 'lucide-react';
 import { MundoHeroFallback } from '@/components/mundo/MundoHeroFallback';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
 import { Pip } from '@/components/pip/Pip';
 import { ProgressBar } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/stores/session';
 import { greetingKey } from '@/lib/utils/dates';
-import { toast } from '@/stores/toast';
+import { isStreakAtRisk } from '@/lib/streak';
+import { useDailySet, useTodayCompletions, useDailyPool, useCompleteActivity } from '@/hooks/use-daily-set';
+import { fetchDailyChallenge } from '@/lib/api/home';
+import type { ActivityRow } from '@/lib/supabase/rows';
 
-/**
- * Hoy / Home — the daily hub (BUILD_SPEC §8.3). This scaffold renders the real
- * layout and design system; the Daily Set and reward loop are wired to
- * `complete_activity` in step 4. Demo rows use local state to show the UX.
- */
 export default function HoyPage() {
   const t = useTranslations('home');
   const tp = useTranslations('pip');
   const tc = useTranslations('common');
   const profile = useSession((s) => s.profile);
 
+  const dailySet = useDailySet();
+  const completions = useTodayCompletions();
+  const pool = useDailyPool();
+  const complete = useCompleteActivity();
+  const challenge = useQuery({ queryKey: ['daily-challenge'], queryFn: fetchDailyChallenge, staleTime: 5 * 60_000 });
+
+  const [showMore, setShowMore] = useState(false);
+
   const greeting = useMemo(() => {
     const key = greetingKey();
-    return key === 'morning'
-      ? t('greetingMorning')
-      : key === 'afternoon'
-        ? t('greetingAfternoon')
-        : key === 'evening'
-          ? t('greetingEvening')
-          : t('greetingNight');
+    return t(
+      key === 'morning'
+        ? 'greetingMorning'
+        : key === 'afternoon'
+          ? 'greetingAfternoon'
+          : key === 'evening'
+            ? 'greetingEvening'
+            : 'greetingNight',
+    );
   }, [t]);
 
-  // Demo daily set (replaced by the personalized set in step 4).
-  const [set, setSet] = useState([
-    { id: '1', title: 'Ducha corta (≤5 min)', domain: 'agua', points: 50, done: false },
-    { id: '2', title: 'Caminá un trayecto en vez de ir en auto', domain: 'movilidad', points: 150, done: false },
-    { id: '3', title: 'Comé una comida sin carne hoy', domain: 'alimentacion', points: 150, done: false },
-    { id: '4', title: 'Separá bien tus residuos hoy', domain: 'residuos', points: 50, done: false },
-  ]);
+  const set = dailySet.data ?? [];
+  const done = completions.data ?? new Set<string>();
+  const doneCount = set.filter((a) => done.has(a.id)).length;
+  const allDone = set.length > 0 && doneCount === set.length;
 
-  const doneCount = set.filter((s) => s.done).length;
-  const allDone = doneCount === set.length;
+  const atRisk = isStreakAtRisk(profile?.lastStreakDate ?? null, profile?.currentStreak ?? 0);
 
-  function complete(id: string, points: number) {
-    setSet((prev) => prev.map((s) => (s.id === id ? { ...s, done: true } : s)));
-    toast.points(points);
+  // Extra daily actions not already in today's set.
+  const extra = (pool.data ?? []).filter((a) => !set.some((s) => s.id === a.id));
+
+  function onComplete(a: ActivityRow) {
+    if (done.has(a.id) || complete.isPending) return;
+    complete.mutate({ activityId: a.id });
   }
 
   return (
     <div className="space-y-6">
       {/* Greeting + Pip */}
       <div className="flex items-center gap-3">
-        <Pip size={52} mood="happy" />
+        <Pip size={52} mood={atRisk ? 'worried' : 'happy'} />
         <div>
           <h1 className="font-display text-h1 font-bold leading-tight">
             {greeting}
-            {profile?.displayName ? `, ${profile.displayName}` : ''}
+            {profile?.displayName ? `, ${profile.displayName.split(' ')[0]}` : ''}
           </h1>
           <p className="text-small text-muted-foreground">{tp('homeGreeting')}</p>
         </div>
@@ -69,16 +78,38 @@ export default function HoyPage() {
 
       {/* Tu Mundo hero */}
       <Link href="/perfil" className="block" aria-label={t('tapWorld')}>
-        <MundoHeroFallback mundo={profile?.mundoState} height={236} />
+        <MundoHeroFallback mundo={profile?.mundoState} pipMood={atRisk ? 'worried' : 'happy'} height={236} />
       </Link>
+
+      {/* Streak at risk */}
+      {atRisk && (
+        <Card className="flex items-center gap-3 border-brote-coral/40 bg-brote-coral/5 p-3.5">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-brote-coral" />
+          <div>
+            <p className="text-small font-semibold">{t('streakRiskTitle')}</p>
+            <p className="text-caption text-muted-foreground">{t('streakRiskBody')}</p>
+          </div>
+        </Card>
+      )}
 
       {/* Daily Set */}
       <section aria-labelledby="daily-set">
         <SectionHeader
           title={t('dailySetTitle')}
-          subtitle={t('dailyProgress', { done: doneCount, total: set.length })}
+          subtitle={
+            dailySet.isLoading
+              ? t('dailySetSubtitle')
+              : t('dailyProgress', { done: doneCount, total: set.length })
+          }
         />
-        {allDone ? (
+
+        {dailySet.isLoading ? (
+          <div className="space-y-2">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-[68px] w-full" />
+            ))}
+          </div>
+        ) : allDone ? (
           <Card className="flex items-center gap-3 p-4">
             <Pip size={48} mood="celebrating" />
             <div>
@@ -88,38 +119,62 @@ export default function HoyPage() {
           </Card>
         ) : (
           <div className="space-y-2">
-            <ProgressBar value={doneCount / set.length} className="mb-2" />
-            {set.map((s) => (
+            <ProgressBar value={set.length ? doneCount / set.length : 0} className="mb-2" />
+            {set.map((a) => (
               <DailyActionRow
-                key={s.id}
-                title={s.title}
-                domain={s.domain}
-                points={s.points}
-                done={s.done}
-                onComplete={() => complete(s.id, s.points)}
+                key={a.id}
+                title={a.title_es}
+                domain={a.domain_slug}
+                points={a.base_points}
+                done={done.has(a.id)}
+                onComplete={() => onComplete(a)}
               />
             ))}
           </div>
         )}
-        <div className="mt-3 text-center">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/acciones">{t('moreDaily')} <ChevronRight className="h-4 w-4" /></Link>
+
+        {/* más acciones diarias */}
+        <div className="mt-3">
+          <Button variant="ghost" size="sm" block onClick={() => setShowMore((v) => !v)}>
+            {t('moreDaily')}
+            <ChevronDown className={`h-4 w-4 transition-transform ${showMore ? 'rotate-180' : ''}`} />
           </Button>
+          {showMore && (
+            <div className="mt-2 space-y-2">
+              {extra.map((a) => (
+                <DailyActionRow
+                  key={a.id}
+                  title={a.title_es}
+                  domain={a.domain_slug}
+                  points={a.base_points}
+                  done={done.has(a.id)}
+                  onComplete={() => onComplete(a)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Reto del día */}
       <section>
         <SectionHeader title={t('retoTitle')} />
-        <Card className="flex items-center gap-3 p-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-brote-sun/15 text-brote-sun">
-            <Sparkles className="h-6 w-6" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">Sumá 2 acciones de Agua hoy</p>
-            <p className="text-small text-muted-foreground tnum">0/2 · +300 pts</p>
-          </div>
-        </Card>
+        {challenge.data ? (
+          <Card className="flex items-center gap-3 p-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-brote-sun/15 text-brote-sun">
+              <Sparkles className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{challenge.data.challenge.title_es}</p>
+              <p className="text-small text-muted-foreground tnum">
+                {challenge.data.progress}/{challenge.data.challenge.target_value} · +
+                {challenge.data.challenge.reward_points} pts
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <Skeleton className="h-[80px] w-full" />
+        )}
       </section>
 
       {/* Para Vos peek */}
@@ -133,11 +188,16 @@ export default function HoyPage() {
             </Button>
           }
         />
-        <Card className="flex items-center gap-3 p-4">
-          <Pip size={44} />
-          <p className="text-small text-muted-foreground">
-            Cuando inicies sesión te armo recomendaciones según tus intereses. 🌱
-          </p>
+        <Card className="flex items-center justify-between gap-3 p-4">
+          <div className="flex items-center gap-3">
+            <Pip size={44} />
+            <p className="text-small text-muted-foreground">Acciones más grandes, elegidas para vos.</p>
+          </div>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/acciones">
+              {tc('seeMore')} <ChevronRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </Card>
       </section>
     </div>

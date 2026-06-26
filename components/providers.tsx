@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { ToastProvider } from '@/components/ui/toast';
+import { RewardLayer } from '@/components/rewards/RewardLayer';
 
 /**
  * Global client providers: theme (light/dark/system), server-state cache,
@@ -33,7 +34,10 @@ export function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+          <RewardLayer />
+        </ToastProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

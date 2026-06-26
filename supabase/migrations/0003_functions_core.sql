@@ -40,7 +40,7 @@ end $$;
 
 -- ── Deterministic "Tu Mundo" state (BUILD_SPEC §9.5) — mirrors lib/mundo.ts ──
 create or replace function brote_compute_mundo(p_xp bigint, p_streak int, p_domain_points jsonb)
-returns jsonb language plpgsql stable as $$
+returns jsonb language plpgsql stable set search_path = public as $$
 declare
   v_tier      int;
   v_elements  text[] := '{}';
@@ -65,15 +65,15 @@ declare
     '10', jsonb_build_array('globe'),
     '11', jsonb_build_array('golden')
   );
-  t int;
-  el jsonb;
+  t  int;
+  el text;
 begin
   v_tier := (brote_get_rank(p_xp)->>'tier')::int;
 
   for t in 1..v_tier loop
     if tier_map ? t::text then
-      for el in select * from jsonb_array_elements_text(tier_map->t::text) loop
-        v_elements := array_append(v_elements, el #>> '{}');
+      for el in select value from jsonb_array_elements_text(tier_map->t::text) as value loop
+        v_elements := array_append(v_elements, el);
       end loop;
     end if;
   end loop;

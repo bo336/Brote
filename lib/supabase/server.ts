@@ -2,7 +2,6 @@ import 'server-only';
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Database } from './database.types';
 
 /**
  * Server Supabase client bound to the request cookies (BUILD_SPEC §8.1).
@@ -12,7 +11,7 @@ import type { Database } from './database.types';
 export function createClient() {
   const cookieStore = cookies();
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -39,7 +38,7 @@ export function createClient() {
 export function createServiceClient() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
-  return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     cookies: { getAll: () => [], setAll: () => {} },
   });
 }
