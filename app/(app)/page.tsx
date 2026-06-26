@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, Sparkles, AlertTriangle } from 'lucide-react';
-import { MundoHeroFallback } from '@/components/mundo/MundoHeroFallback';
+import { Mundo } from '@/components/mundo/Mundo';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -78,7 +78,7 @@ export default function HoyPage() {
 
       {/* Tu Mundo hero */}
       <Link href="/perfil" className="block" aria-label={t('tapWorld')}>
-        <MundoHeroFallback mundo={profile?.mundoState} pipMood={atRisk ? 'worried' : 'happy'} height={236} />
+        <Mundo mundo={profile?.mundoState} height={236} />
       </Link>
 
       {/* Streak at risk */}

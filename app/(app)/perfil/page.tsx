@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
-import { MundoHeroFallback } from '@/components/mundo/MundoHeroFallback';
+import { Mundo } from '@/components/mundo/Mundo';
 import { SectionHeader } from '@/components/ui/section';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/stores/session';
@@ -52,7 +52,7 @@ export default function PerfilPage() {
 
       <section>
         <SectionHeader title="Tu mundo" />
-        <MundoHeroFallback mundo={profile?.mundoState} height={260} />
+        <Mundo mundo={profile?.mundoState} height={260} />
       </section>
 
       <div className="grid grid-cols-2 gap-2.5">

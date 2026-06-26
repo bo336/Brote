@@ -11,7 +11,7 @@ import { BARRIOS } from '@/lib/data/barrios';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
 import { DomainIcon } from '@/components/icons/DomainIcon';
-import { MundoHeroFallback } from '@/components/mundo/MundoHeroFallback';
+import { Mundo } from '@/components/mundo/Mundo';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
 import { cn } from '@/lib/utils/cn';
 import { createClient } from '@/lib/supabase/client';
@@ -245,7 +245,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('mundoTitle')} subtitle={t('mundoBody')} />
                 <div className="mt-5">
-                  <MundoHeroFallback height={260} />
+                  <Mundo height={260} />
                 </div>
                 <Spacer />
                 <Button block variant="primary" onClick={() => setStep(5)}>
