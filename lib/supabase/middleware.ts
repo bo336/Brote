@@ -2,9 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /** Routes that don't require authentication. */
-const PUBLIC_PREFIXES = ['/auth', '/instalar', '/_next', '/api/public'];
-/** Routes that an authenticated but un-onboarded user may still visit. */
-const ONBOARDING_PATH = '/onboarding';
+const PUBLIC_PREFIXES = ['/auth', '/instalar', '/offline', '/_next', '/api/public'];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
@@ -12,7 +10,8 @@ function isPublic(pathname: string): boolean {
 
 /**
  * Refreshes the Supabase session on every request and gates app routes
- * (BUILD_SPEC §8.1). Returns the response with refreshed auth cookies.
+ * (BUILD_SPEC §8.1). Any redirect we issue MUST carry over the refreshed auth
+ * cookies, otherwise the session never stabilizes and the app redirect-loops.
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   let response = NextResponse.next({ request });
@@ -41,19 +40,22 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   const { pathname } = request.nextUrl;
 
-  if (!user && !isPublic(pathname)) {
-    // Unauthenticated → send to login, preserving where they were headed.
+  /** Build a redirect that preserves any refreshed auth cookies from `response`. */
+  const redirectTo = (path: string, search = ''): NextResponse => {
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
-    url.searchParams.set('next', pathname);
-    return NextResponse.redirect(url);
+    url.pathname = path;
+    url.search = search;
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
+
+  if (!user && !isPublic(pathname)) {
+    return redirectTo('/auth/login', `?next=${encodeURIComponent(pathname)}`);
   }
 
   if (user && pathname === '/auth/login') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.search = '';
-    return NextResponse.redirect(url);
+    return redirectTo('/');
   }
 
   return response;
