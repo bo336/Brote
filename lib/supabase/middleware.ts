@@ -33,10 +33,18 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     },
   );
 
-  // IMPORTANT: getUser() (not getSession) revalidates the token server-side.
+  // Best-effort token refresh (rotates + writes fresh cookies). We deliberately
+  // IGNORE its result for gating: it's a cross-region network call that can flake
+  // on the free tier, and a transient failure must NOT log a valid user out.
+  await supabase.auth.getUser().catch(() => undefined);
+
+  // Gate on the LOCAL session (decoded from cookies, no network) so the auth
+  // decision is reliable. Data is still protected by RLS on every query, which
+  // validates the JWT server-side regardless.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const isAuthenticated = !!session;
 
   const { pathname } = request.nextUrl;
 
@@ -54,7 +62,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   // bounce signed-in users away from /auth/login here — that bounce, combined
   // with a transient getUser() miss, is what produced the redirect loop. The
   // login page handles the "already signed in" case itself.
-  if (!user && !isPublic(pathname)) {
+  if (!isAuthenticated && !isPublic(pathname)) {
     return redirectTo('/auth/login', `?next=${encodeURIComponent(pathname)}`);
   }
 
