@@ -50,12 +50,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return redirect;
   };
 
+  // Single auth gate: send signed-out users to login. We intentionally do NOT
+  // bounce signed-in users away from /auth/login here — that bounce, combined
+  // with a transient getUser() miss, is what produced the redirect loop. The
+  // login page handles the "already signed in" case itself.
   if (!user && !isPublic(pathname)) {
     return redirectTo('/auth/login', `?next=${encodeURIComponent(pathname)}`);
-  }
-
-  if (user && pathname === '/auth/login') {
-    return redirectTo('/');
   }
 
   return response;
