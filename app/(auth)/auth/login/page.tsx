@@ -1,24 +1,31 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Mail, Sparkles } from 'lucide-react';
+import { Mail, Sparkles, ArrowRight } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { signInWithOtp, signInWithGoogle, type AuthActionState } from '../actions';
+import {
+  signInWithOtp,
+  signInWithPassword,
+  signUpWithPassword,
+  signInWithGoogle,
+  type AuthActionState,
+} from '../actions';
 
+type Mode = 'signin' | 'signup' | 'magic';
 const initialState: AuthActionState = { ok: false };
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="primary" block loading={pending}>
-      <Mail className="h-4 w-4" />
       {label}
+      <ArrowRight className="h-4 w-4" />
     </Button>
   );
 }
@@ -35,11 +42,10 @@ function LoginInner() {
   const t = useTranslations('auth');
   const params = useSearchParams();
   const next = params.get('next') ?? '/';
-  const [state, formAction] = useFormState(signInWithOtp, initialState);
+  const [mode, setMode] = useState<Mode>('signin');
 
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 py-10">
-      {/* ambient brand glow */}
       <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
 
       <div className="z-10 w-full max-w-sm">
@@ -50,55 +56,119 @@ function LoginInner() {
         </div>
 
         <Card className="space-y-4 p-5">
-          {state.sent ? (
-            <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-                <Sparkles className="h-6 w-6" />
-              </span>
-              <p className="text-body font-medium">{t('magicSent', { email: state.email ?? '' })}</p>
-            </div>
-          ) : (
-            <>
-              <form action={signInWithGoogle.bind(null, next)}>
-                <Button type="submit" variant="secondary" block>
-                  <GoogleGlyph />
-                  {t('google')}
-                </Button>
-              </form>
+          <form action={signInWithGoogle.bind(null, next)}>
+            <Button type="submit" variant="secondary" block>
+              <GoogleGlyph />
+              {t('google')}
+            </Button>
+          </form>
 
-              <div className="flex items-center gap-3 py-1">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-caption text-muted-foreground">{t('orEmail')}</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-caption text-muted-foreground">{t('orEmail')}</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
 
-              <form action={formAction} className="space-y-3">
-                <input type="hidden" name="next" value={next} />
-                <div>
-                  <label htmlFor="email" className="sr-only">
-                    {t('emailLabel')}
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    required
-                    placeholder={t('emailPlaceholder')}
-                    className="w-full rounded-button border border-border bg-surface-2 px-4 py-3 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-                {state.error && <p className="text-small text-brote-coral">{state.error}</p>}
-                <SubmitButton label={t('magicLink')} />
-              </form>
-            </>
-          )}
+          {/* Keyed so form state resets when the mode changes. */}
+          <AuthForm key={mode} mode={mode} next={next} onSwitch={setMode} />
         </Card>
 
         <p className="mt-5 text-center text-caption text-muted-foreground">{t('terms')}</p>
       </div>
     </main>
+  );
+}
+
+function AuthForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch: (m: Mode) => void }) {
+  const t = useTranslations('auth');
+  const action = mode === 'signin' ? signInWithPassword : mode === 'signup' ? signUpWithPassword : signInWithOtp;
+  const [state, formAction] = useFormState(action, initialState);
+
+  if (state.sent) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <Sparkles className="h-6 w-6" />
+        </span>
+        <p className="text-body font-medium">
+          {mode === 'signup'
+            ? t('signupConfirm', { email: state.email ?? '' })
+            : t('magicSent', { email: state.email ?? '' })}
+        </p>
+      </div>
+    );
+  }
+
+  const submitLabel = mode === 'signin' ? t('signIn') : mode === 'signup' ? t('signUp') : t('magicLink');
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <input type="hidden" name="next" value={next} />
+
+      <div>
+        <label htmlFor="email" className="sr-only">
+          {t('emailLabel')}
+        </label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            required
+            placeholder={t('emailPlaceholder')}
+            className="w-full rounded-button border border-border bg-surface-2 py-3 pl-9 pr-4 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+      </div>
+
+      {mode !== 'magic' && (
+        <div>
+          <label htmlFor="password" className="sr-only">
+            {t('passwordLabel')}
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            required
+            minLength={6}
+            placeholder={t('passwordPlaceholder')}
+            className="w-full rounded-button border border-border bg-surface-2 px-4 py-3 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+      )}
+
+      {state.error && <p className="text-small text-brote-coral">{state.error}</p>}
+
+      <SubmitButton label={submitLabel} />
+
+      <div className="flex flex-col items-center gap-1.5 pt-1 text-center text-small">
+        {mode === 'signin' && (
+          <>
+            <button type="button" onClick={() => onSwitch('signup')} className="font-medium text-primary">
+              {t('createAccountCta')}
+            </button>
+            <button type="button" onClick={() => onSwitch('magic')} className="text-muted-foreground">
+              {t('useMagic')}
+            </button>
+          </>
+        )}
+        {mode === 'signup' && (
+          <button type="button" onClick={() => onSwitch('signin')} className="font-medium text-primary">
+            {t('haveAccountCta')}
+          </button>
+        )}
+        {mode === 'magic' && (
+          <button type="button" onClick={() => onSwitch('signin')} className="text-muted-foreground">
+            {t('usePassword')}
+          </button>
+        )}
+      </div>
+    </form>
   );
 }
 
