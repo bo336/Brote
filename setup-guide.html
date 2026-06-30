@@ -70,18 +70,33 @@
       </div>
 
       <div class="step">
-        <h2><span class="num">3</span> Login con Google <span class="pill">opcional</span></h2>
-        <p class="why">El login por correo (enlace mágico) ya funciona sin configurar nada. Esto agrega "Continuar con Google".</p>
+        <h2><span class="num">3</span> URLs de redirección <span class="pill">importante</span></h2>
+        <p class="why">Esto es lo que hace que los correos (confirmación / enlace mágico) apunten a tu web real y no a <code>localhost</code>.</p>
         <ol>
-          <li>En Supabase → <strong>Authentication → Providers → Google</strong>, activalo.</li>
-          <li>Creá credenciales OAuth en <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> y pegá el Client ID/Secret.</li>
-          <li>En <strong>Authentication → URL Configuration</strong> agregá tus redirect URLs:
-            <br /><code>https://TU-APP.vercel.app/auth/callback</code> y <code>http://localhost:3000/auth/callback</code>.</li>
+          <li>En Supabase → <strong>Authentication → URL Configuration</strong>:
+            <div class="kv">
+              <strong>Site URL:</strong> <code>https://TU-APP.vercel.app</code><br />
+              <strong>Redirect URLs</strong> (agregá ambas):<br />
+              <code>https://TU-APP.vercel.app/**</code><br />
+              <code>http://localhost:3000/**</code> <span style="color:var(--muted)">(para desarrollo local)</span>
+            </div>
+          </li>
+          <li>En <strong>Vercel → Environment Variables</strong>, poné <code>NEXT_PUBLIC_APP_URL</code> = <code>https://TU-APP.vercel.app</code>. La app usa esto para armar los links de los correos.</li>
+          <li><em>Login con email + contraseña y enlace mágico ya funcionan.</em> Si querés que el alta sea instantánea sin confirmar correo, en <strong>Authentication → Providers → Email</strong> desactivá <em>"Confirm email"</em>.</li>
         </ol>
       </div>
 
       <div class="step">
-        <h2><span class="num">4</span> Clave de IA (Google Gemini) <span class="pill">gratis</span></h2>
+        <h2><span class="num">4</span> Login con Google <span class="pill">opcional</span></h2>
+        <p class="why">Agrega el botón "Continuar con Google" (el login por correo ya anda sin esto).</p>
+        <ol>
+          <li>En Supabase → <strong>Authentication → Providers → Google</strong>, activalo.</li>
+          <li>Creá credenciales OAuth en <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> y pegá el Client ID/Secret. Usá como redirect el que te muestra Supabase.</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h2><span class="num">5</span> Clave de IA (Google Gemini) <span class="pill">gratis</span></h2>
         <p class="why">Verifica fotos, recomienda acciones y resume noticias. Sin esto, la app usa respaldos automáticos.</p>
         <ol>
           <li>Conseguí una clave gratis en <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.</li>
@@ -92,7 +107,7 @@
       </div>
 
       <div class="step">
-        <h2><span class="num">5</span> Notificaciones push (VAPID) <span class="pill">opcional</span></h2>
+        <h2><span class="num">6</span> Notificaciones push (VAPID) <span class="pill">opcional</span></h2>
         <p class="why">Permiten avisar "tu racha está por terminar", etc.</p>
         <ol>
           <li>Generá las claves: en la carpeta del proyecto corré <code>npm run vapid</code> (te da una pública y una privada).</li>
@@ -110,7 +125,7 @@
       </div>
 
       <div class="step">
-        <h2><span class="num">6</span> Clave de servicio para tareas automáticas <span class="pill">opcional</span></h2>
+        <h2><span class="num">7</span> Clave de servicio para tareas automáticas <span class="pill">opcional</span></h2>
         <p class="why">Para que se actualicen las noticias y se envíen las push automáticamente (cron).</p>
         <ol>
           <li>En Supabase → <strong>Project Settings → API</strong> copiá la <code>service_role</code> key (¡es secreta!).</li>
@@ -125,7 +140,7 @@
       </div>
 
       <div class="step">
-        <h2><span class="num">7</span> Confirmar los buckets de Storage <span class="pill">ya creados</span></h2>
+        <h2><span class="num">8</span> Confirmar los buckets de Storage <span class="pill">ya creados</span></h2>
         <p class="why">Para fotos de verificación, imágenes de proyectos y avatares.</p>
         <ul>
           <li><code>avatars</code> y <code>projects</code>: públicos ✅</li>
