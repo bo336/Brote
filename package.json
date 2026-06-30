@@ -10,7 +10,7 @@
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "gen:types": "supabase gen types typescript --project-id abnnjszxlwovpnazmbnu > lib/supabase/database.types.ts",
+    "gen:types": "supabase gen types typescript --project-id swdwulouasdnyorfhrjt > lib/supabase/database.types.ts",
     "vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
