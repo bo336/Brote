@@ -33,9 +33,14 @@ interface ProfileQueryRow {
  */
 export async function getSessionData(): Promise<SessionData> {
   const supabase = createClient();
+  // Middleware already validated + refreshed the session via getUser() on this
+  // request; here we just read it locally (no extra auth round-trip) to get the
+  // user id. This avoids a second cross-region call and the getUser() flakiness
+  // that caused redirect loops.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { profile: null, unread: 0 };
 
   const [profRes, notifRes] = await Promise.all([

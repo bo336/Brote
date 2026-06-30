@@ -28,7 +28,12 @@ export function SessionHydrator({
 
   useEffect(() => {
     if (!profile?.id) return;
-    const supabase = createClient();
+    let supabase: ReturnType<typeof createClient>;
+    try {
+      supabase = createClient();
+    } catch {
+      return; // never let a client-init issue crash the app shell
+    }
     const channel = supabase
       .channel(`notif:${profile.id}`)
       .on(
