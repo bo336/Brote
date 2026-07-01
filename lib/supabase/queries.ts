@@ -58,9 +58,21 @@ export async function getSessionData(): Promise<SessionData> {
       .eq('read', false),
   ]);
 
+  // A failed query (timeout, connection-pool limit, transient network blip)
+  // is NOT the same as "not logged in" — never bounce an authenticated user
+  // to /auth/login because a query hiccuped. Let the error boundary handle it
+  // with a retry instead of silently signing them out.
+  if (profRes.error) {
+    throw new Error(`Failed to load profile: ${profRes.error.message}`);
+  }
+
   const row = profRes.data as ProfileQueryRow | null;
   const count = notifRes.count;
-  if (!row) return { profile: null, unread: 0 };
+  if (!row) {
+    // Session is valid but the profile row doesn't exist yet (e.g. the
+    // signup trigger hasn't finished). Also not "logged out" — surface it.
+    throw new Error('Profile not found for authenticated user');
+  }
 
   const profile: ProfileSummary = {
     id: row.id,

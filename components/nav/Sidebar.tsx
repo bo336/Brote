@@ -26,6 +26,7 @@ export function Sidebar() {
               <li key={item.key}>
                 <Link
                   href={item.href}
+                  prefetch={false}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'flex items-center gap-3 rounded-button px-3 py-2.5 text-body font-medium transition-colors',
