@@ -28,6 +28,7 @@ export function BottomTabBar() {
               <li key={item.key} className="relative -mt-6">
                 <Link
                   href={item.href}
+                  prefetch={false}
                   onClick={() => haptic('light')}
                   aria-label={t(item.key)}
                   aria-current={active ? 'page' : undefined}
@@ -53,6 +54,7 @@ export function BottomTabBar() {
             <li key={item.key}>
               <Link
                 href={item.href}
+                prefetch={false}
                 onClick={() => haptic('light')}
                 aria-current={active ? 'page' : undefined}
                 className="relative flex min-w-14 flex-col items-center gap-0.5 px-2 py-2"

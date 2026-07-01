@@ -49,14 +49,15 @@ export function TopBar() {
 
         <div className="flex items-center gap-1.5">
           <StreakFlame count={streak} atRisk={atRisk} size="sm" />
-          <Link href="/perfil" aria-label={`${tn('streakLabel')} · ${totalXp}`} className="hidden xs:flex">
+          <Link href="/perfil" prefetch={false} aria-label={`${tn('streakLabel')} · ${totalXp}`} className="hidden xs:flex">
             <PointsBadge value={totalXp} size="sm" animate />
           </Link>
-          <Link href="/perfil" aria-label="Rango" className="ml-0.5">
+          <Link href="/perfil" prefetch={false} aria-label="Rango" className="ml-0.5">
             <RankBadge totalXp={totalXp} size={36} />
           </Link>
           <Link
             href="/notificaciones"
+            prefetch={false}
             aria-label={tn('notifications')}
             className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           >
