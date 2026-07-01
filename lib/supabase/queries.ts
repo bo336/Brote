@@ -47,7 +47,7 @@ export async function getSessionData(): Promise<SessionData> {
     supabase
       .from('profiles')
       .select(
-        'id, username, display_name, avatar_url, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, interests, onboarding_completed, language, equipped_title:titles(name_es)',
+        'id, username, display_name, avatar_url, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
       )
       .eq('id', user.id)
       .maybeSingle(),
