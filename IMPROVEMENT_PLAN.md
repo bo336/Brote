@@ -7,7 +7,7 @@
 ## CURRENT STATE
 - **Phase:** F1 nearly done → next big block is F3 (exceptional three.js world rewrite, folding in F1.4 micro-growth + F2 Mundo Infinito model — do together to avoid rewriting the canvas twice)
 - **Last done:** Cities everywhere (lib/data/cities.ts + select+Otra in onboarding, city_leaderboard RPC live [0008], ranking "Mi ciudad" tab, profile displays city, onboarding saves city + reframed compra question replaces diet). Ranks ladder screen at /perfil/rangos linked from profile. Typecheck clean.
-- **Next up (in order):** (1) F3+F2+F1.4 combined: rewrite lib/mundo.ts to Mundo Infinito model + complete_activity growth migration + exceptional MundoCanvas (procedural trees/flowers/rocks, wind shader, water, birds/butterflies/fireflies, day/night, pop-in growth, biomes, archipelago). (2) F1.6b strip photo UI in acciones/[slug]. (3) settings: add city editor (perfil/ajustes has NO location field today). (4) F1.7 repo SQL parity for live migrations 0007+0008. (5) F1.9 algorithms (news scoring v2, daily-set v2, para-vos score). (6) F4 AI (pip-chat). (7) F5, F6 QA, F7 OPERACIONES.html.
+- **Next up (in order):** (1) **F3+F2.3 THE CANVAS**: rewrite components/mundo/MundoCanvas.tsx (+Mundo.tsx overlay) — exceptional procedural three.js: organic island, layered trees, petal flowers, instanced grass w/ wind shader, pond water shader, birds/butterflies/fireflies, clouds, day/night tint, growth pop-in; elements placed per worldGrowth (deterministic golden-angle spiral); biome themes via biomeFor(worldIndex); growth bar + biome name + world № overlay; world-completed ceremony (rewards store event kind 'worldComplete' + confetti modal); celebrate world_completed from payload. (2) F1.6b strip photo UI in acciones/[slug]. (3) settings city editor (perfil/ajustes has NO location field). (4) F1.7 repo SQL parity for live migrations 0007-0009. (5) F1.9 algorithms. (6) F4 AI (pip-chat). (7) F5, F6 QA, F7 OPERACIONES.html.
 - **Leftovers noted:** projects create form still uses BARRIOS list (fine — projects are physical meetups, but consider city field); `lib/data/barrios.ts` kept only for that form.
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
@@ -91,8 +91,8 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [ ] A4 Infinite-loop balancing: world growth-cost curve tuned (see F2), recurring/weekly cooldowns verified, challenge rotation non-repeating (already), seasonal challenge auto-regeneration when expired (extend daily_maintenance).
 
 ### F2 — Mundo Infinito v2
-- [ ] F2.1 `lib/mundo.ts` v2 model (worldIndex/growth/biomes, procedural themes, growth costs)
-- [ ] F2.2 DB: `complete_activity` computes world growth + world-complete ceremony event; migration for recompute of existing users
+- [x] F2.1 `lib/mundo.ts` v2 model: worldGoal (40×1.55^n), worldProgressFromCompletions (pure fn of lifetime completions — stateless/corruption-proof), 6 hand-designed biomes + procedural themes beyond (biomeFor), MundoState extended (completions/worldIndex/worldGrowth/worldGoal), parseMundoState back-compat
+- [x] F2.2 DB (live 0009): brote_world_goal/brote_world_progress/brote_mundo_for(uid); brote_compute_mundo 4-arg; complete_activity v3 detects world completion → notification + `world_completed` in payload; complete_goal/auto_approve/daily_maintenance recompute via brote_mundo_for; all profiles backfilled. Verified: w(40)=world2, w(500)=world5 153/231; SQL==TS math.
 - [ ] F2.3 Mundo UI: growth bar, biome themes, archipelago swipe between completed worlds, Semilla Estelar ceremony (confetti + modal)
 - [ ] F2.4 Home hero: "tu mundo creció" micro-feedback per completion (element pop-in animation)
 
