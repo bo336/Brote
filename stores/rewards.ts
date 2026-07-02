@@ -6,7 +6,8 @@ export type RewardEvent =
   | { id: string; kind: 'title'; name: string; rarity: string }
   | { id: string; kind: 'badge'; name: string; rarity: string }
   | { id: string; kind: 'sessionBonus'; points: number }
-  | { id: string; kind: 'firstAction' };
+  | { id: string; kind: 'firstAction' }
+  | { id: string; kind: 'worldComplete'; completedIndex: number; newIndex: number };
 
 /** Distributive Omit so each union member keeps its discriminant-specific props. */
 type DistributiveOmit<T, K extends keyof any> = T extends unknown ? Omit<T, K> : never;

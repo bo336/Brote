@@ -50,6 +50,14 @@ export function celebrateCompletion(result: CompleteActivityResult) {
   if (total > 0) toast.points(total);
 
   const events: Parameters<typeof enqueue>[0] = [];
+  // World completion leads the queue — it's the flagship moment.
+  if (result.world_completed) {
+    events.push({
+      kind: 'worldComplete',
+      completedIndex: result.world_completed.completed_index,
+      newIndex: result.world_completed.new_index,
+    });
+  }
   if (result.first_time) events.push({ kind: 'firstAction' });
   if (result.rank_up && result.new_rank_slug) events.push({ kind: 'rankUp', rankSlug: result.new_rank_slug });
   for (const tt of result.new_titles ?? []) events.push({ kind: 'title', name: tt.name_es, rarity: tt.rarity });

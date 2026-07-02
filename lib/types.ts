@@ -44,5 +44,7 @@ export interface CompleteActivityResult {
   completions_count: number;
   /** Challenges newly completed by this action (already rewarded server-side). */
   challenges_completed: { title_es: string; reward_points: number; type: string }[];
+  /** Set when this completion finished a world (Mundo Infinito ceremony). */
+  world_completed: { completed_index: number; new_index: number } | null;
   mundo_delta: { liveliness?: number; new_elements?: string[] } | null;
 }

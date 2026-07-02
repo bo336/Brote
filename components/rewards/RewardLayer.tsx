@@ -7,6 +7,7 @@ import { Pip } from '@/components/pip/Pip';
 import { Confetti } from './Confetti';
 import { useRewards, type RewardEvent } from '@/stores/rewards';
 import { RANK_BY_SLUG } from '@/lib/ranks';
+import { biomeFor } from '@/lib/mundo';
 import { haptic } from '@/lib/utils/haptics';
 import { formatPoints } from '@/lib/points';
 
@@ -21,7 +22,7 @@ export function RewardLayer() {
   useEffect(() => {
     if (!event) return;
     haptic('success');
-    const ms = event.kind === 'rankUp' ? 4200 : 2600;
+    const ms = event.kind === 'rankUp' || event.kind === 'worldComplete' ? 4200 : 2600;
     const id = setTimeout(next, ms);
     return () => clearTimeout(id);
   }, [event, next]);
@@ -39,7 +40,7 @@ export function RewardLayer() {
           role="dialog"
           aria-live="assertive"
         >
-          <Confetti count={event.kind === 'rankUp' ? 40 : 20} />
+          <Confetti count={event.kind === 'rankUp' || event.kind === 'worldComplete' ? 40 : 20} />
           <RewardContent event={event} />
         </motion.div>
       )}
@@ -49,6 +50,30 @@ export function RewardLayer() {
 
 function RewardContent({ event }: { event: RewardEvent }) {
   const t = useTranslations('rewards');
+
+  if (event.kind === 'worldComplete') {
+    const newBiome = biomeFor(event.newIndex);
+    return (
+      <motion.div
+        className="relative z-10 flex flex-col items-center px-8 text-center"
+        initial={{ scale: 0.6, y: 30 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 240, damping: 18 }}
+      >
+        <Pip size={140} mood="celebrating" aura />
+        <p className="mt-4 text-small font-semibold uppercase tracking-widest text-brote-sun">
+          ¡Mundo {event.completedIndex} completo! 🌍
+        </p>
+        <h2 className="mt-1 font-display text-display-xl font-extrabold" style={{ color: newBiome.accent }}>
+          {newBiome.name}
+        </h2>
+        <p className="mt-2 max-w-xs text-balance text-small text-white/80">
+          Tu mundo floreció por completo y despertó un bioma nuevo. Cada acción lo hace crecer.
+        </p>
+        <p className="mt-6 text-caption text-white/50">Tocá para continuar</p>
+      </motion.div>
+    );
+  }
 
   if (event.kind === 'rankUp') {
     const rank = RANK_BY_SLUG[event.rankSlug];
