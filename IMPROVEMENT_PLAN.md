@@ -5,10 +5,10 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1 nearly done → next big block is F3 (exceptional three.js world rewrite, folding in F1.4 micro-growth + F2 Mundo Infinito model — do together to avoid rewriting the canvas twice)
-- **Last done:** Cities everywhere (lib/data/cities.ts + select+Otra in onboarding, city_leaderboard RPC live [0008], ranking "Mi ciudad" tab, profile displays city, onboarding saves city + reframed compra question replaces diet). Ranks ladder screen at /perfil/rangos linked from profile. Typecheck clean.
-- **Next up (in order):** (1) **F3+F2.3 THE CANVAS**: rewrite components/mundo/MundoCanvas.tsx (+Mundo.tsx overlay) — exceptional procedural three.js: organic island, layered trees, petal flowers, instanced grass w/ wind shader, pond water shader, birds/butterflies/fireflies, clouds, day/night tint, growth pop-in; elements placed per worldGrowth (deterministic golden-angle spiral); biome themes via biomeFor(worldIndex); growth bar + biome name + world № overlay; world-completed ceremony (rewards store event kind 'worldComplete' + confetti modal); celebrate world_completed from payload. (2) F1.6b strip photo UI in acciones/[slug]. (3) settings city editor (perfil/ajustes has NO location field). (4) F1.7 repo SQL parity for live migrations 0007-0009. (5) F1.9 algorithms. (6) F4 AI (pip-chat). (7) F5, F6 QA, F7 OPERACIONES.html.
-- **Leftovers noted:** projects create form still uses BARRIOS list (fine — projects are physical meetups, but consider city field); `lib/data/barrios.ts` kept only for that form.
+- **Phase:** F1+F2+F3 core DONE (canvas shipped) → next: F1.9 algorithms, then F4 AI
+- **Last done:** THE CANVAS shipped — full procedural three.js world (organic island, wind-shader instanced grass, layered swaying trees, petal flowers, pond shader, birds/butterflies/fireflies/clouds, campfire at 60%, snow/palms/dunes per biome, ACES, pop-in growth, biome sky + "Mundo N · biome" chip + growth bar overlay, worldComplete full-screen ceremony). Photo UI stripped (trust model complete). Settings got "Tu perfil" section (name + city select+Otra). Repo SQL parity: supabase/migrations/0018 mirrors live 0007-0009. Typecheck + build clean.
+- **Next up (in order):** (1) F1.9 algorithms: A1 news scoring v2 (recency decay × interest × user-domain affinity), A2 daily-set anti-repetition + effort mix, A3 para-vos content score, A4 seasonal challenge auto-regen in daily_maintenance. (2) F4 AI: pip-chat edge function + floating Pip chat UI (needs user's GEMINI_API_KEY), surface recommend-activities, weekly recap. (3) F5 engagement/monetization. (4) F6 QA sweep (incl. visual check of canvas with a test account, streak time-travel test, news pipeline Vault key). (5) F7 OPERACIONES.html.
+- **Leftovers noted:** projects create form still uses BARRIOS list (fine — physical meetups); `lib/data/barrios.ts` kept only for that. lib/api/catalog.ts uploadVerificationPhoto/triggerVerification now unused (dormant infra, remove in F6 cleanup). Canvas not yet visually verified in browser (F6.3 with test account).
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
 
@@ -80,9 +80,10 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F1.1 Cities: `lib/data/cities.ts` + onboarding select+Otra; `city_leaderboard` RPC (live 0008); ranking "Mi ciudad" tab; profile pages show city; compra question replaces diet. (Settings city editor pending — settings has no location field.)
 - [ ] F1.4 World v1.5: per-completion micro-growth rendered from `completions_count` (deterministic scatter) so EVERY task visibly adds something (bridge until F2)
 - [x] F1.5 Ranks screen: /perfil/rangos (full ladder, thresholds, unlocks, progress, "estás acá") linked from profile
-- [ ] F1.6b Remove photo UI from activity detail (`[slug]/page.tsx`), keep infra dormant
-- [ ] F1.7 Repo parity: mirror live SQL changes into `supabase/migrations/` + seed
-- [ ] F1.8 Commit + merge + deploy + smoke test
+- [x] F1.6b Photo UI removed (activity detail + ActivityCard pill); infra dormant
+- [x] F1.7 Repo parity: supabase/migrations/0018 mirrors live 0007-0009
+- [x] F1.x Settings "Tu perfil": display name + city (select + Otra) editor
+- [ ] F1.8 Merge → deploy → smoke test (pending user merge)
 
 ### F1.9 — Algorithms deep-pass (user: "go further than bugs")
 - [ ] A1 News scoring v2: recency decay (half-life 48h) × interest_score × user-domain affinity (their domain_points) × source diversity penalty — ranked feed per user, not global order.
@@ -93,14 +94,13 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 ### F2 — Mundo Infinito v2
 - [x] F2.1 `lib/mundo.ts` v2 model: worldGoal (40×1.55^n), worldProgressFromCompletions (pure fn of lifetime completions — stateless/corruption-proof), 6 hand-designed biomes + procedural themes beyond (biomeFor), MundoState extended (completions/worldIndex/worldGrowth/worldGoal), parseMundoState back-compat
 - [x] F2.2 DB (live 0009): brote_world_goal/brote_world_progress/brote_mundo_for(uid); brote_compute_mundo 4-arg; complete_activity v3 detects world completion → notification + `world_completed` in payload; complete_goal/auto_approve/daily_maintenance recompute via brote_mundo_for; all profiles backfilled. Verified: w(40)=world2, w(500)=world5 153/231; SQL==TS math.
-- [ ] F2.3 Mundo UI: growth bar, biome themes, archipelago swipe between completed worlds, Semilla Estelar ceremony (confetti + modal)
-- [ ] F2.4 Home hero: "tu mundo creció" micro-feedback per completion (element pop-in animation)
+- [x] F2.3 Mundo UI: growth bar + biome chip overlay, biome themes, world-complete full-screen ceremony (archipelago swipe between completed worlds → deferred to F5 polish)
+- [x] F2.4 Home hero: per-completion element pop-in (damped-spring PopIn on newest spiral element)
 
-### F3 — 3D & animation overhaul (BLOCKED ON: user picks B1 option / provides GLBs)
-- [ ] F3.1 Asset list + prompts doc (`docs/3D_ASSETS.md`): every model needed (trees ×3 stages, flowers ×4, bushes, rocks, pond, bird, butterfly, Pip stages, fire/fogata, per-biome sets)
-- [ ] F3.2 GLB pipeline: `public/models/`, gltf-transform compression script, drei useGLTF + suspense fallbacks
-- [ ] F3.3 Animations: wind vertex shader (foliage), particle fire + flicker light, bird flight paths, butterflies, water shader, clouds, day/night tint, growth pop-in
-- [ ] F3.4 Performance: instancing for repeated elements, `dpr` clamp, visibility pause, mobile budget < 60k tris
+### F3 — 3D & animation overhaul (pure procedural three.js — DONE, polish ongoing)
+- [x] F3.3 Animations: wind vertex shader (instanced grass), swaying trees/flowers, layered flickering campfire + point light, flap-winged birds, butterflies, pond ripple shader + lilies, drifting clouds, fireflies (night), day/night lighting, growth pop-in, blinking squash-stretch Pip
+- [x] F3.x Terrain/dressing: organic displaced island + floating root-rocks, palms/dunes/snow per biome, ACES tone mapping, biome-tinted hemisphere
+- [ ] F3.4 Performance pass (F6): instanced flowers/bushes if needed, visibility pause, mobile fps check
 
 ### F4 — AI layer
 - [ ] F4.1 `pip-chat` edge function (Gemini streaming, user context injection, rate limit via app_state)

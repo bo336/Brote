@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Camera, Check, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Lock } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Pill } from '@/components/ui/pill';
 import { Card } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { lockLabel } from '@/lib/recommendations';
 import { formatPoints } from '@/lib/points';
 import { activityDescription, activityInstructions } from '@/lib/activity-copy';
 import { useSession } from '@/stores/session';
-import { fetchActivityBySlug, uploadVerificationPhoto, triggerVerification } from '@/lib/api/catalog';
+import { fetchActivityBySlug } from '@/lib/api/catalog';
 import { useCatalogCompletions } from '@/hooks/use-catalog';
 import { completeActivity } from '@/lib/api/activities';
 import { celebrateCompletion } from '@/lib/rewards';
@@ -28,6 +28,10 @@ import type { Impact } from '@/lib/points';
 const EFFORT_ES = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' } as const;
 const IMPACT_ES = { low: 'Bajo', medium: 'Medio', high: 'Alto' } as const;
 
+/**
+ * Activity detail. Trust-based completion model: no photo verification —
+ * every action is marked done on the user's honor (IMPROVEMENT_PLAN F1.6).
+ */
 export default function ActivityDetailPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
@@ -35,7 +39,6 @@ export default function ActivityDetailPage() {
   const tc = useTranslations('common');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
   const activityQ = useQuery({
@@ -54,7 +57,7 @@ export default function ActivityDetailPage() {
     qc.invalidateQueries({ queryKey: ['domain-points'] });
   }
 
-  async function doHonor() {
+  async function doComplete() {
     if (!a || busy) return;
     setBusy(true);
     try {
@@ -63,24 +66,6 @@ export default function ActivityDetailPage() {
       invalidate();
     } catch (e) {
       toast.error('Ups', e instanceof Error ? e.message : 'No se pudo completar');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onPhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!a || !file || !profile?.id || busy) return;
-    setBusy(true);
-    try {
-      const path = await uploadVerificationPhoto(profile.id, file);
-      const result = await completeActivity(a.id, path);
-      celebrateCompletion(result); // shows "verificando…"
-      triggerVerification(a.id);
-      invalidate();
-    } catch (err) {
-      toast.error('No se pudo subir', err instanceof Error ? err.message : 'Probá de nuevo');
     } finally {
       setBusy(false);
     }
@@ -108,9 +93,7 @@ export default function ActivityDetailPage() {
   }
 
   const domain = getDomain(a.domain_slug);
-  const isPhoto = a.verification === 'photo_ai';
   const isDone = completion?.status === 'honor' || completion?.status === 'verified';
-  const isPending = completion?.status === 'pending';
 
   return (
     <div className="space-y-5 pb-4">
@@ -133,11 +116,6 @@ export default function ActivityDetailPage() {
           )}
           <Pill size="sm">{EFFORT_ES[a.effort]}</Pill>
           <Pill size="sm">Impacto {IMPACT_ES[a.impact]}</Pill>
-          {isPhoto && (
-            <Pill size="sm" className="text-brote-green">
-              <Camera className="h-3 w-3" /> Verificada
-            </Pill>
-          )}
         </div>
         <span className="mt-3 font-display text-display-l font-extrabold text-brote-sun tnum">
           +{formatPoints(a.base_points)}
@@ -185,19 +163,8 @@ export default function ActivityDetailPage() {
           <Button block variant="secondary" disabled>
             <Check className="h-4 w-4" /> {t('alreadyDone')}
           </Button>
-        ) : isPending ? (
-          <Button block variant="secondary" disabled>
-            <Loader2 className="h-4 w-4 animate-spin" /> {t('verifying')}
-          </Button>
-        ) : isPhoto ? (
-          <>
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPhotoSelected} />
-            <Button block variant="primary" loading={busy} onClick={() => fileRef.current?.click()}>
-              <Camera className="h-4 w-4" /> {t('uploadVerify')}
-            </Button>
-          </>
         ) : (
-          <Button block variant="primary" loading={busy} onClick={doHonor}>
+          <Button block variant="primary" loading={busy} onClick={doComplete}>
             <Check className="h-4 w-4" /> {t('markDone')}
           </Button>
         )}

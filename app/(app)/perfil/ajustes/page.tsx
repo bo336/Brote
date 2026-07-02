@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Sheet } from '@/components/ui/sheet';
 import { ThemeSegmented } from '@/components/ui/theme-toggle';
 import { BRAND } from '@/lib/brand';
+import { CITIES, OTHER_CITY } from '@/lib/data/cities';
 import { useSession } from '@/stores/session';
 import { useSettings } from '@/stores/settings';
 import { createClient } from '@/lib/supabase/client';
@@ -34,8 +35,32 @@ export default function AjustesPage() {
   const tcm = useTranslations('common');
   const router = useRouter();
   const profile = useSession((s) => s.profile);
+  const setProfile = useSession((s) => s.setProfile);
   const detailMode = useSettings((s) => s.detailMode);
   const setDetailMode = useSettings((s) => s.setDetailMode);
+
+  const knownCity = !profile?.city || (CITIES as readonly string[]).includes(profile.city);
+  const [citySel, setCitySel] = useState<string>(profile?.city ? (knownCity ? profile.city : OTHER_CITY) : '');
+  const [cityOther, setCityOther] = useState<string>(knownCity ? '' : (profile?.city ?? ''));
+  const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  async function saveProfile() {
+    if (!profile?.id || savingProfile) return;
+    const city = (citySel === OTHER_CITY ? cityOther : citySel).trim();
+    setSavingProfile(true);
+    const { error } = await createClient()
+      .from('profiles')
+      .update({ display_name: displayName.trim() || null, city: city || null })
+      .eq('id', profile.id);
+    setSavingProfile(false);
+    if (error) {
+      toast.error('No se pudo guardar', error.message);
+      return;
+    }
+    setProfile({ ...profile, displayName: displayName.trim() || null, city: city || null });
+    toast.success('Perfil actualizado');
+  }
 
   const [prefs, setPrefs] = useState<Record<string, boolean>>({ streak: true, challenges: true, projects: true, news: false });
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -111,6 +136,51 @@ export default function AjustesPage() {
         <ArrowLeft className="h-4 w-4" /> {tp('title')}
       </Link>
       <h1 className="font-display text-h1 font-bold">{t('title')}</h1>
+
+      {/* Profile: name + city */}
+      <Section title="Tu perfil">
+        <Card className="space-y-3 p-4">
+          <label className="block">
+            <span className="mb-1.5 block text-small font-medium">Nombre</span>
+            <input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Tu nombre o apodo"
+              className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-small font-medium">Ciudad</span>
+            <select
+              value={citySel}
+              onChange={(e) => setCitySel(e.target.value)}
+              className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
+            >
+              <option value="" disabled>
+                Elegí tu ciudad
+              </option>
+              {CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+              <option value={OTHER_CITY}>Otra…</option>
+            </select>
+            {citySel === OTHER_CITY && (
+              <input
+                value={cityOther}
+                onChange={(e) => setCityOther(e.target.value)}
+                placeholder="Escribí tu ciudad"
+                className="mt-2 w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
+              />
+            )}
+            <span className="mt-1 block text-caption text-muted-foreground">Se usa para tu ranking local.</span>
+          </label>
+          <Button variant="primary" size="sm" loading={savingProfile} onClick={saveProfile}>
+            Guardar cambios
+          </Button>
+        </Card>
+      </Section>
 
       {/* Language */}
       <Section title={t('language')}>
