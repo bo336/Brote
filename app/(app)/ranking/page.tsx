@@ -18,7 +18,7 @@ import { DOMAINS } from '@/lib/domains';
 import {
   fetchGlobalLeaderboard,
   fetchWeeklyLeaderboard,
-  fetchNeighborhoodLeaderboard,
+  fetchCityLeaderboard,
   fetchFriendLeaderboard,
   fetchMyPosition,
   addFriendByUsername,
@@ -71,10 +71,10 @@ export default function RankingPage() {
     queryFn: period === 'historico' ? fetchGlobalLeaderboard : fetchWeeklyLeaderboard,
     refetchInterval: 60_000,
   });
-  const barrioQ = useQuery({
-    queryKey: ['lb-barrio', profile?.neighborhood],
-    queryFn: () => fetchNeighborhoodLeaderboard(profile!.neighborhood!),
-    enabled: !!profile?.neighborhood,
+  const cityQ = useQuery({
+    queryKey: ['lb-city', profile?.city],
+    queryFn: () => fetchCityLeaderboard(profile!.city!),
+    enabled: !!profile?.city,
   });
   const friendsQ = useQuery({
     queryKey: ['lb-friends', myId],
@@ -103,7 +103,7 @@ export default function RankingPage() {
         <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
           <TabsList>
             <TabsTrigger value="global">{t('global')}</TabsTrigger>
-            <TabsTrigger value="barrio">{t('barrio')}</TabsTrigger>
+            <TabsTrigger value="ciudad">{t('ciudad')}</TabsTrigger>
             <TabsTrigger value="amigos">{t('amigos')}</TabsTrigger>
             <TabsTrigger value="dominio">{t('porDominio')}</TabsTrigger>
           </TabsList>
@@ -131,12 +131,12 @@ export default function RankingPage() {
           <List query={globalQ} metric={period === 'semana' ? 'xp' : 'total_xp'} myId={myId} emptyMessage="Todavía no hay nadie en el ranking. ¡Sé el primero!" />
         </TabsContent>
 
-        <TabsContent value="barrio">
-          {profile?.neighborhood ? (
-            <List query={barrioQ} myId={myId} emptyMessage="Sé la primera persona de tu barrio en sumar puntos." />
+        <TabsContent value="ciudad">
+          {profile?.city ? (
+            <List query={cityQ} myId={myId} emptyMessage="Sé la primera persona de tu ciudad en sumar puntos." />
           ) : (
             <EmptyState
-              message="Elegí tu barrio en tu perfil para ver el ranking local."
+              message="Elegí tu ciudad en tu perfil para ver el ranking local."
               action={
                 <Button variant="secondary" asChild>
                   <Link href="/perfil/ajustes">Ir a ajustes</Link>

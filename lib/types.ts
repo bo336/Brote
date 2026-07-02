@@ -7,6 +7,7 @@ export interface ProfileSummary {
   username: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  city: string | null;
   neighborhood: string | null;
   totalXp: number;
   currentStreak: number;
@@ -15,6 +16,10 @@ export interface ProfileSummary {
   streakFreezes: number;
   equippedTitle: string | null;
   mundoState: MundoState | null;
+  /** Lifetime scoring completions — drives per-completion world micro-growth. */
+  completionsCount?: number;
+  /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
+  context?: Record<string, unknown> | null;
   interests: string[];
   onboardingCompleted: boolean;
   language: 'es' | 'en';
@@ -35,5 +40,13 @@ export interface CompleteActivityResult {
   session_bonus: number;
   first_time: boolean;
   status: 'honor' | 'pending' | 'verified' | 'rejected';
+  /** Fresh server-computed world state (authoritative — replaces optimistic client recompute). */
+  mundo: MundoState | null;
+  /** Lifetime scoring completions — drives per-completion world micro-growth. */
+  completions_count: number;
+  /** Challenges newly completed by this action (already rewarded server-side). */
+  challenges_completed: { title_es: string; reward_points: number; type: string }[];
+  /** Set when this completion finished a world (Mundo Infinito ceremony). */
+  world_completed: { completed_index: number; new_index: number } | null;
   mundo_delta: { liveliness?: number; new_elements?: string[] } | null;
 }

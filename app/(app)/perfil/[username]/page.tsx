@@ -22,6 +22,7 @@ interface PublicProfile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  city: string | null;
   neighborhood: string | null;
   total_xp: number;
   current_streak: number;
@@ -76,7 +77,7 @@ export default function PublicProfilePage() {
             <h1 className="truncate font-display text-h1 font-bold">{p.display_name ?? p.username}</h1>
             <p className="text-small text-muted-foreground">
               {p.username ? `@${p.username}` : ''}
-              {p.neighborhood ? ` · ${p.neighborhood}` : ''}
+              {p.city ? ` · ${p.city}` : p.neighborhood ? ` · ${p.neighborhood}` : ''}
             </p>
             {p.title_es && <p className="text-caption font-medium text-primary">{p.title_es}</p>}
           </div>

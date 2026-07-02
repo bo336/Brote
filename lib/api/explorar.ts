@@ -139,7 +139,16 @@ export async function uploadProjectImage(userId: string, file: File): Promise<st
   return supabase.storage.from('projects').getPublicUrl(path).data.publicUrl;
 }
 
-/** News feed, personalized by interest match + interest score + recency (§8.5). */
+/**
+ * News feed, personalized per user (IMPROVEMENT_PLAN A1):
+ *   score = quality × recencyDecay × (1 + affinity)
+ * - quality: the AI/heuristic interest_score (0-100).
+ * - recencyDecay: exponential half-life of 48h (a 4-day-old piece is worth ~25%
+ *   of a fresh one), floored so a sparse feed still surfaces older gems.
+ * - affinity: graded overlap between the item's domain tags and the user's
+ *   interests (first match counts full, extra matches add a little).
+ * Then a greedy source-diversity re-rank so one outlet never floods the top.
+ */
 export async function fetchNews(interests: string[]): Promise<NewsRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -150,15 +159,37 @@ export async function fetchNews(interests: string[]): Promise<NewsRow[]> {
     .limit(60);
   if (error) throw error;
   const rows = (data ?? []) as NewsRow[];
-  // Personalized blend: interest-domain match + interest_score + recency.
-  return rows
-    .map((n) => {
-      const match = n.domain_tags.some((d) => interests.includes(d)) ? 30 : 0;
-      const recency = n.published_at ? Math.max(0, 20 - (Date.now() - new Date(n.published_at).getTime()) / 86400000) : 0;
-      return { n, score: match + n.interest_score * 0.5 + recency };
-    })
-    .sort((a, b) => b.score - a.score)
-    .map((x) => x.n);
+  const interestSet = new Set(interests);
+
+  const scored = rows.map((n) => {
+    const ageHours = n.published_at ? Math.max(0, (Date.now() - new Date(n.published_at).getTime()) / 3_600_000) : 96;
+    const recency = Math.max(0.05, Math.pow(0.5, ageHours / 48));
+    const matches = n.domain_tags.filter((d) => interestSet.has(d)).length;
+    const affinity = matches === 0 ? 0 : 0.6 + Math.min(2, matches - 1) * 0.15;
+    return { n, score: Math.max(1, n.interest_score) * recency * (1 + affinity) };
+  });
+
+  // Greedy pick with a per-source repetition penalty (0.7^timesPicked).
+  const out: NewsRow[] = [];
+  const bySource = new Map<string, number>();
+  const pool = [...scored];
+  while (pool.length > 0) {
+    let bestIdx = 0;
+    let bestEff = -1;
+    for (let i = 0; i < pool.length; i++) {
+      const src = pool[i]!.n.source ?? '';
+      const eff = pool[i]!.score * Math.pow(0.7, bySource.get(src) ?? 0);
+      if (eff > bestEff) {
+        bestEff = eff;
+        bestIdx = i;
+      }
+    }
+    const picked = pool.splice(bestIdx, 1)[0]!;
+    const src = picked.n.source ?? '';
+    bySource.set(src, (bySource.get(src) ?? 0) + 1);
+    out.push(picked.n);
+  }
+  return out;
 }
 
 export async function fetchNewsItem(id: string): Promise<NewsRow | null> {

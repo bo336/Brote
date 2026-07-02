@@ -53,6 +53,8 @@ export function useCompleteActivity() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: KEYS.done });
+      // Challenge progress is recomputed server-side on every completion.
+      qc.invalidateQueries({ queryKey: ['daily-challenge'] });
     },
   });
 }

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brote — Cómo funciona solo (Operaciones)</title>
+<style>
+  :root{
+    --bg:#0C1A13; --surface:#12241A; --surface2:#1A3324; --border:#27472f;
+    --text:#F7F5EF; --muted:#9FB0A6; --green:#1FB57A; --sun:#F4A62A; --coral:#FF6B5E; --aqua:#2DB4D4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,'Segoe UI',sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:2.2rem;line-height:1.2;margin:0 0 6px}
+  h2{font-size:1.35rem;margin:48px 0 12px;color:var(--green)}
+  h3{font-size:1.05rem;margin:22px 0 6px}
+  p{margin:8px 0;color:var(--text)}
+  .sub{color:var(--muted);font-size:1.05rem;margin-bottom:28px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin:14px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+  code{background:var(--surface2);border-radius:6px;padding:2px 7px;font-size:.88em;color:#c9e8d6}
+  .ok{color:var(--green);font-weight:700}
+  .warn{color:var(--sun);font-weight:700}
+  .pill{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 12px;font-size:.8rem;color:var(--muted);margin-right:6px}
+  ul{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .muted{color:var(--muted)}
+  .accent{border-left:4px solid var(--green);padding-left:16px}
+  .accent.sun{border-color:var(--sun)}
+  .accent.aqua{border-color:var(--aqua)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🌱 Brote — Cómo funciona solo</h1>
+<p class="sub">Guía de operaciones: qué corre automáticamente, por qué los usuarios nunca se quedan sin contenido, y lo (poquísimo) que depende de vos.</p>
+
+<div class="card accent">
+  <strong>Resumen ejecutivo:</strong> la app es <span class="ok">autónoma</span>. Todo el mantenimiento diario, la rotación de contenido, las noticias, los retos, las rachas y el mundo infinito corren con cron jobs dentro de la base de datos (pg_cron) y funciones edge — sin servidores tuyos, sin scripts manuales, sin claves que renovar. Tu única tarea recurrente: <em>ninguna</em>.
+</div>
+
+<h2>1. Los relojes automáticos (cron jobs)</h2>
+<p>Viven <strong>dentro de Postgres</strong> (Supabase pg_cron). Si Vercel se cae, esto sigue corriendo. Además hay un respaldo en Vercel Cron por redundancia.</p>
+<table>
+  <tr><th>Job</th><th>Cuándo</th><th>Qué hace</th></tr>
+  <tr><td><code>brote-daily-maintenance</code></td><td>Todos los días 00:05 (hora AR)</td><td>Rachas (resetea o consume protector + notificación) · renueva ventanas de retos · rota el reto del día · rota destacadas (lunes) · cierra objetivos cumplidos · snapshot del ranking semanal (lunes)</td></tr>
+  <tr><td><code>brote-refresh-news</code></td><td>Cada 8 horas</td><td>Lee 6 feeds RSS ambientales (Mongabay, Guardian, Grist, Yale e360, UNEP…), resume y puntúa cada nota, publica en Novedades y archiva lo de +30 días</td></tr>
+  <tr><td><code>brote-weekly-recap</code></td><td>Lunes 10:00 (hora AR)</td><td>Notificación personal "Tu semana en Brote" con acciones, puntos y racha reales de cada usuario activo</td></tr>
+</table>
+<p class="muted">Los crons se autentican con la clave pública (anon) de la app — no hay secretos que configurar ni expirar.</p>
+
+<h2>2. Por qué el contenido nunca se agota</h2>
+<div class="grid">
+  <div class="card">
+    <h3>🌍 Mundo Infinito</h3>
+    <p>El costo de cada mundo crece ~1.55× (40, 62, 96, 149, 231…). Hay 6 biomas diseñados y, después, <strong>biomas generados proceduralmente</strong> a partir del número de mundo: paletas, nombres y decorado infinitos. No existe un "último nivel".</p>
+  </div>
+  <div class="card">
+    <h3>🏆 Retos con ventanas rodantes</h3>
+    <p>Los retos diarios renuevan su ventana <strong>cada 24 h</strong>, los semanales cada lunes y los de temporada se regeneran solos al vencer. El progreso se resetea por ventana, así que <strong>todos los retos son repetibles para siempre</strong>.</p>
+  </div>
+  <div class="card">
+    <h3>✅ 168 acciones que rotan</h3>
+    <p>Las diarias eligen 5 por día (sin repetir lo de los últimos 3 días, mínimo 3 fáciles, una por tema). Las de catálogo tienen cooldowns (20 h recurrentes, 7 días semanales) — vuelven solas. Dos "destacadas" rotan cada lunes.</p>
+  </div>
+  <div class="card">
+    <h3>📰 Noticias frescas</h3>
+    <p>Cada 8 h entran notas nuevas; lo viejo (+30 días) se archiva automáticamente. El feed se ordena <em>por usuario</em>: calidad × frescura (vida media 48 h) × afinidad con sus intereses, con variedad de fuentes.</p>
+  </div>
+  <div class="card">
+    <h3>🔥 Rachas justas</h3>
+    <p>Si alguien falta un día con protector, la racha sobrevive y el protector se consume (con aviso). Sin protector, se pierde con un mensaje amable. Verificado con tests de "viaje en el tiempo" sobre la lógica real.</p>
+  </div>
+  <div class="card">
+    <h3>🏅 55 escalones de progresión</h3>
+    <p>11 rangos × 5 divisiones hasta 1.000.000 pts (Gaia sigue con divisiones cosméticas infinitas). Títulos y medallas se otorgan automáticamente al cumplir requisitos.</p>
+  </div>
+</div>
+
+<h2>3. La capa de IA (con red de seguridad)</h2>
+<div class="card accent aqua">
+  <p><strong>Pip Chat</strong> (el coach conversacional), los <strong>resúmenes de noticias</strong> y las <strong>recomendaciones personalizadas</strong> usan Gemini (gratis). La regla de oro del diseño: <strong>si la IA falla o no hay clave, nada se rompe</strong>:</p>
+  <ul>
+    <li>Pip responde frases simpáticas pregrabadas.</li>
+    <li>Las noticias usan resumen heurístico (título + extracto + etiquetado por palabras clave).</li>
+    <li>Las recomendaciones caen al puntaje de contenido (intereses + contexto personal), que corre siempre.</li>
+  </ul>
+  <p>Límites que te protegen del abuso: Pip Chat tiene tope de <strong>30 mensajes por usuario por día</strong>; las noticias procesan máximo 2 notas por feed por corrida.</p>
+</div>
+
+<h2>4. Lo único que depende de vos</h2>
+<table>
+  <tr><th>Acción</th><th>Frecuencia</th><th>Estado</th></tr>
+  <tr><td>Pegar <code>GEMINI_API_KEY</code> en Supabase → Edge Functions → Secrets (activa la IA real de Pip y los resúmenes con IA)</td><td>Una sola vez</td><td class="warn">Pendiente</td></tr>
+  <tr><td>Claves VAPID para notificaciones push (correr <code>npm run vapid</code> y pegar las 2 claves en Vercel + Secrets)</td><td>Una sola vez</td><td class="warn">Pendiente</td></tr>
+  <tr><td>Mergear PRs cuando haya cambios de código</td><td>Cuando desarrolles</td><td class="ok">Normal</td></tr>
+  <tr><td>Todo lo demás (rachas, retos, noticias, mundos, rankings, recaps)</td><td>—</td><td class="ok">Automático</td></tr>
+</table>
+
+<h2>5. Dónde mirar si algo anda raro</h2>
+<ul>
+  <li><strong>Web caída / errores 500:</strong> Vercel → proyecto <code>brote-ft7m</code> → Logs. Cada deploy nuevo sale de mergear a <code>main</code>.</li>
+  <li><strong>Datos / crons:</strong> Supabase → proyecto <code>swdwulouasdnyorfhrjt</code> (São Paulo) → Database → Cron Jobs (ver últimas corridas) y Logs.</li>
+  <li><strong>Funciones edge</strong> (pip-chat, refresh-news, send-push, recommend-activities): Supabase → Edge Functions → Logs.</li>
+  <li><strong>Salud general de la base:</strong> Supabase → Advisors (seguridad y performance) — hoy sin errores críticos.</li>
+</ul>
+
+<h2>6. Arquitectura en una línea</h2>
+<div class="card">
+  <p><span class="pill">Next.js 14 en Vercel</span><span class="pill">Supabase São Paulo (Postgres + Auth + RLS)</span><span class="pill">pg_cron + pg_net</span><span class="pill">4+1 Edge Functions (Deno)</span><span class="pill">Gemini 1.5 Flash</span><span class="pill">three.js procedural</span><span class="pill">PWA instalable</span></p>
+  <p class="muted">Toda la lógica de puntos/rachas/retos/mundos vive en funciones SQL <code>SECURITY DEFINER</code> dentro de la base — el cliente nunca puede trucar puntos. El mundo 3D es 100% procedural y determinístico: el mismo estado dibuja el mismo mundo en cualquier dispositivo, sin assets externos que hostear.</p>
+</div>
+
+<h2>7. Costos hoy</h2>
+<div class="card accent sun">
+  <p><strong>$0/mes.</strong> Vercel Hobby + Supabase Free + Gemini Free cubren el estadio actual. Los límites que primero se sentirán con tracción real: 500 MB de base y pausa por inactividad de 7 días en Supabase Free (el tráfico de los crons cada 8 h la mantiene activa), y 50k usuarios activos de auth. El upgrade natural es Supabase Pro (USD 25/mes) recién cuando haya usuarios reales.</p>
+</div>
+
+<p class="muted" style="margin-top:40px">Generado como parte del plan de mejora — actualizá este archivo si cambiás crons o dependencias. Última actualización: julio 2026.</p>
+</div>
+</body>
+</html>

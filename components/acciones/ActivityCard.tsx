@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Lock, Camera, Check, Sparkles } from 'lucide-react';
+import { Lock, Check, Sparkles } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Pill } from '@/components/ui/pill';
 import { getDomain } from '@/lib/domains';
@@ -53,11 +53,6 @@ export function ActivityCard({ activity, locked, completed, reason }: ActivityCa
           )}
           <Pill size="sm">{EFFORT_ES[activity.effort]}</Pill>
           <Pill size="sm">Impacto {IMPACT_ES[activity.impact]}</Pill>
-          {activity.verification === 'photo_ai' && (
-            <Pill size="sm" className="text-brote-green">
-              <Camera className="h-3 w-3" /> Foto
-            </Pill>
-          )}
           {completed && (
             <Pill size="sm" className="border-brote-green/40 text-brote-green">
               <Check className="h-3 w-3" /> Hecha

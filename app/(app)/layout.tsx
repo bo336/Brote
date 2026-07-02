@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/nav/Sidebar';
 import { TopBar } from '@/components/nav/TopBar';
 import { BottomTabBar } from '@/components/nav/BottomTabBar';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
+import { PipChat } from '@/components/pip/PipChat';
 import { SessionHydrator } from '@/components/session-hydrator';
 import { getSessionData } from '@/lib/supabase/queries';
 
@@ -27,6 +28,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-28 pt-4 lg:pb-10">{children}</main>
         <BottomTabBar />
       </div>
+      <PipChat />
       <SessionHydrator profile={profile} unread={unread} />
     </div>
   );

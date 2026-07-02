@@ -17,10 +17,10 @@ export async function fetchWeeklyLeaderboard(): Promise<LeaderboardEntry[]> {
   return (data ?? []) as LeaderboardEntry[];
 }
 
-export async function fetchNeighborhoodLeaderboard(neighborhood: string): Promise<LeaderboardEntry[]> {
+export async function fetchCityLeaderboard(city: string): Promise<LeaderboardEntry[]> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc('neighborhood_leaderboard', {
-    p_neighborhood: neighborhood,
+  const { data, error } = await supabase.rpc('city_leaderboard', {
+    p_city: city,
     p_limit: 100,
   });
   if (error) throw error;

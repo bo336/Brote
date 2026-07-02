@@ -14,20 +14,24 @@ export function celebrateCompletion(result: CompleteActivityResult) {
   const { applyCompletion, profile, setProfile } = useSession.getState();
   const { enqueue } = useRewards.getState();
 
-  // Optimistic session + world update (server already persisted precise state).
+  // Session + world update — prefer the authoritative server-computed mundo
+  // (returned by complete_activity); fall back to a local recompute.
   if (result.status !== 'pending') {
     applyCompletion({ totalXp: result.new_total, streak: result.streak });
     const p = useSession.getState().profile;
     if (p) {
       setProfile({
         ...p,
-        mundoState: computeMundoState({
-          totalXp: result.new_total,
-          currentStreak: result.streak,
-          domainPoints: p.mundoState?.dominantDomain
-            ? { [p.mundoState.dominantDomain]: 1 }
-            : undefined,
-        }),
+        completionsCount: result.completions_count ?? p.completionsCount,
+        mundoState:
+          result.mundo ??
+          computeMundoState({
+            totalXp: result.new_total,
+            currentStreak: result.streak,
+            domainPoints: p.mundoState?.dominantDomain
+              ? { [p.mundoState.dominantDomain]: 1 }
+              : undefined,
+          }),
       });
     }
   }
@@ -46,10 +50,28 @@ export function celebrateCompletion(result: CompleteActivityResult) {
   if (total > 0) toast.points(total);
 
   const events: Parameters<typeof enqueue>[0] = [];
+  // World completion leads the queue — it's the flagship moment.
+  if (result.world_completed) {
+    events.push({
+      kind: 'worldComplete',
+      completedIndex: result.world_completed.completed_index,
+      newIndex: result.world_completed.new_index,
+    });
+  }
   if (result.first_time) events.push({ kind: 'firstAction' });
   if (result.rank_up && result.new_rank_slug) events.push({ kind: 'rankUp', rankSlug: result.new_rank_slug });
   for (const tt of result.new_titles ?? []) events.push({ kind: 'title', name: tt.name_es, rarity: tt.rarity });
   for (const bb of result.new_badges ?? []) events.push({ kind: 'badge', name: bb.name_es, rarity: bb.rarity });
   if (result.daily_set_complete) events.push({ kind: 'sessionBonus', points: result.session_bonus || 200 });
   if (events.length) enqueue(events);
+
+  // Challenge completions (rewarded server-side) get their own celebration.
+  for (const ch of result.challenges_completed ?? []) {
+    toast.show({
+      variant: 'default',
+      glyph: '🏆',
+      title: '¡Reto completado!',
+      description: `${ch.title_es} · +${ch.reward_points} pts`,
+    });
+  }
 }

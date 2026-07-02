@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Check } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { DOMAINS } from '@/lib/domains';
-import { BARRIOS } from '@/lib/data/barrios';
+import { CITIES, OTHER_CITY } from '@/lib/data/cities';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
 import { DomainIcon } from '@/components/icons/DomainIcon';
@@ -30,7 +30,8 @@ interface Ctx {
   auto: boolean;
   bici: boolean;
   mascota: boolean;
-  diet: 'never' | 'sometimes' | 'often' | null;
+  /** How they usually shop for food — personalizes seasonal/local recs. */
+  compra: 'super' | 'mixto' | 'local' | null;
 }
 
 export function OnboardingFlow({ initialName }: { initialName: string }) {
@@ -39,9 +40,10 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [name, setName] = useState(initialName);
-  const [barrio, setBarrio] = useState('');
+  const [city, setCity] = useState('');
+  const [otherCity, setOtherCity] = useState('');
   const [interests, setInterests] = useState<Set<string>>(new Set());
-  const [ctx, setCtx] = useState<Ctx>({ balcon: false, jardin: false, auto: false, bici: false, mascota: false, diet: null });
+  const [ctx, setCtx] = useState<Ctx>({ balcon: false, jardin: false, auto: false, bici: false, mascota: false, compra: null });
   const [firstAction, setFirstAction] = useState<ActivityRow | null>(null);
   const [actionDone, setActionDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -68,10 +70,11 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   }
 
   function persist() {
+    const resolvedCity = city === OTHER_CITY ? otherCity : city;
     startTransition(async () => {
       await saveOnboardingProfile({
         displayName: name,
-        neighborhood: barrio,
+        city: resolvedCity,
         interests: Array.from(interests),
         context: ctx as unknown as Record<string, unknown>,
       });
@@ -161,19 +164,31 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                       autoFocus
                     />
                   </Field>
-                  <Field label={t('barrioLabel')} help={t('barrioHelp')}>
-                    <input
-                      value={barrio}
-                      onChange={(e) => setBarrio(e.target.value)}
-                      placeholder={t('barrioPlaceholder')}
-                      list="barrios"
+                  <Field label={t('cityLabel')} help={t('cityHelp')}>
+                    <select
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
                       className={inputCls}
-                    />
-                    <datalist id="barrios">
-                      {BARRIOS.map((b) => (
-                        <option key={b} value={b} />
+                    >
+                      <option value="" disabled>
+                        {t('cityPlaceholder')}
+                      </option>
+                      {CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
                       ))}
-                    </datalist>
+                      <option value={OTHER_CITY}>{t('cityOther')}</option>
+                    </select>
+                    {city === OTHER_CITY && (
+                      <input
+                        value={otherCity}
+                        onChange={(e) => setOtherCity(e.target.value)}
+                        placeholder={t('cityOtherPlaceholder')}
+                        className={`${inputCls} mt-2`}
+                        autoFocus
+                      />
+                    )}
                   </Field>
                 </div>
                 <Spacer />
@@ -223,11 +238,11 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                     </Chip>
                   ))}
                 </div>
-                <p className="mt-6 mb-2 text-small font-medium">{t('dietQuestion')}</p>
+                <p className="mt-6 mb-2 text-small font-medium">{t('compraQuestion')}</p>
                 <div className="flex gap-2">
-                  {(['never', 'sometimes', 'often'] as const).map((d) => (
-                    <Chip key={d} active={ctx.diet === d} onClick={() => setCtx((c) => ({ ...c, diet: d }))}>
-                      {t(`diet${d[0]!.toUpperCase()}${d.slice(1)}` as never)}
+                  {(['super', 'mixto', 'local'] as const).map((d) => (
+                    <Chip key={d} active={ctx.compra === d} onClick={() => setCtx((c) => ({ ...c, compra: d }))}>
+                      {t(`compra${d[0]!.toUpperCase()}${d.slice(1)}` as never)}
                     </Chip>
                   ))}
                 </div>
