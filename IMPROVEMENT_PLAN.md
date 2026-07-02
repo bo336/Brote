@@ -5,9 +5,10 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1 (quick fixes) — in progress
-- **Last done:** Plan written. Live migration 0007 applied (challenge progress in complete_activity + trust model + food reframe). Client wired: types + rewards use server `mundo`/`completions_count`, challenge-complete toasts, reto card refetches. Typecheck clean.
-- **Next up:** F1.1 cities UI (lib/data/cities.ts + onboarding + ranking + profile), F1.4 per-completion micro-growth in MundoCanvas, F1.5 ranks screen, F1.6b remove photo UI, F1.7 repo SQL parity, F1.8 deploy+smoke.
+- **Phase:** F1 nearly done → next big block is F3 (exceptional three.js world rewrite, folding in F1.4 micro-growth + F2 Mundo Infinito model — do together to avoid rewriting the canvas twice)
+- **Last done:** Cities everywhere (lib/data/cities.ts + select+Otra in onboarding, city_leaderboard RPC live [0008], ranking "Mi ciudad" tab, profile displays city, onboarding saves city + reframed compra question replaces diet). Ranks ladder screen at /perfil/rangos linked from profile. Typecheck clean.
+- **Next up (in order):** (1) F3+F2+F1.4 combined: rewrite lib/mundo.ts to Mundo Infinito model + complete_activity growth migration + exceptional MundoCanvas (procedural trees/flowers/rocks, wind shader, water, birds/butterflies/fireflies, day/night, pop-in growth, biomes, archipelago). (2) F1.6b strip photo UI in acciones/[slug]. (3) settings: add city editor (perfil/ajustes has NO location field today). (4) F1.7 repo SQL parity for live migrations 0007+0008. (5) F1.9 algorithms (news scoring v2, daily-set v2, para-vos score). (6) F4 AI (pip-chat). (7) F5, F6 QA, F7 OPERACIONES.html.
+- **Leftovers noted:** projects create form still uses BARRIOS list (fine — projects are physical meetups, but consider city field); `lib/data/barrios.ts` kept only for that form.
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
 
@@ -34,7 +35,13 @@ Auth (fixed), core loop (complete_activity RPC awards XP/streak/titles/badges), 
 
 ## B. PRODUCT DECISIONS (recommendations — confirm or override)
 
-### B1. 3D pipeline (USER DECISION NEEDED — pick one, then F3 unblocks)
+### B1. 3D pipeline — DECIDED (user, 2026-07-01): pure three.js, procedural, EXCEPTIONAL
+No external models. We craft everything in code at professional quality (Monument Valley / Alto's Odyssey lane):
+- **Geometry:** layered procedural trees (trunk lathe + 3-5 foliage blobs w/ vertex jitter), petal-built flowers, rocks from displaced icosahedrons, instanced grass w/ curved blades — NOT bare cones.
+- **Materials/light:** gradient sky dome, hemisphere + key light w/ soft shadows, ACES tone mapping, subtle rim, per-biome palettes with HSL variance per instance.
+- **Motion:** wind vertex shader (foliage + grass sway, gusts), GPU fire particles + flickering light, birds on bezier paths, butterflies, pond water shader (fresnel + moving normals), drifting clouds, fireflies at night, day/night tint from local hour, element "pop-in" spring on growth.
+- **Perf:** InstancedMesh everywhere, dpr clamp [1,2], demand frameloop when idle option, <60k tris mobile budget.
+(original options A/B/C discarded)
 The current world is code-drawn primitives. To get "realistic & beautiful" we load real 3D models (GLB) instead:
 - **Option A (recommended): AI-generated models.** Meshy.ai or Tripo3D (free tiers) — you type prompts (I'll write them all: "stylized low-poly jacaranda tree, vibrant, game asset"…), download GLB, drop in `public/models/`. I handle compression (gltf-transform/meshopt), loading (drei `useGLTF`), and ALL animation in code. Best quality/effort ratio, consistent style via shared prompt suffix.
 - **Option B: free CC0 packs** (Quaternius Ultimate Nature, Kenney, Poly Pizza). Zero cost, instant, proven style; slightly less unique.
@@ -70,12 +77,18 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F1.6a DB: all `photo_ai` activities → `honor` (trust model), UI photo flow removal pending (F1.6b)
 - [x] F1.2a DB: food activities + challenges reframed to seasonal/local/artisanal (live)
 - [x] F1.3b Client: `CompleteActivityResult` type + `celebrateCompletion` uses server `mundo` + challenge-complete toast; reto del día card refetches
-- [ ] F1.1 Cities: `lib/data/cities.ts` (AR provinces + main cities + "Otra…" free text); onboarding step swap; profile/settings; ranking tab "Ciudad" (new `city_leaderboard` RPC); projects filter. Keep `neighborhood` column but stop surfacing it.
+- [x] F1.1 Cities: `lib/data/cities.ts` + onboarding select+Otra; `city_leaderboard` RPC (live 0008); ranking "Mi ciudad" tab; profile pages show city; compra question replaces diet. (Settings city editor pending — settings has no location field.)
 - [ ] F1.4 World v1.5: per-completion micro-growth rendered from `completions_count` (deterministic scatter) so EVERY task visibly adds something (bridge until F2)
-- [ ] F1.5 Ranks screen: full tier list (11 ranks, thresholds, "estás acá", what unlocks) — from /perfil and /ranking
+- [x] F1.5 Ranks screen: /perfil/rangos (full ladder, thresholds, unlocks, progress, "estás acá") linked from profile
 - [ ] F1.6b Remove photo UI from activity detail (`[slug]/page.tsx`), keep infra dormant
 - [ ] F1.7 Repo parity: mirror live SQL changes into `supabase/migrations/` + seed
 - [ ] F1.8 Commit + merge + deploy + smoke test
+
+### F1.9 — Algorithms deep-pass (user: "go further than bugs")
+- [ ] A1 News scoring v2: recency decay (half-life 48h) × interest_score × user-domain affinity (their domain_points) × source diversity penalty — ranked feed per user, not global order.
+- [ ] A2 Daily-set selection v2: interest-weighted + anti-repetition memory (avoid last 3 days' picks) + effort mix guarantee (≥3 easy) + domain rotation.
+- [ ] A3 Catalog "Para vos" content-based score: interests ∩ domain + effort match from context + impact bias + cooldown-aware, blended with cached Gemini recs.
+- [ ] A4 Infinite-loop balancing: world growth-cost curve tuned (see F2), recurring/weekly cooldowns verified, challenge rotation non-repeating (already), seasonal challenge auto-regeneration when expired (extend daily_maintenance).
 
 ### F2 — Mundo Infinito v2
 - [ ] F2.1 `lib/mundo.ts` v2 model (worldIndex/growth/biomes, procedural themes, growth costs)

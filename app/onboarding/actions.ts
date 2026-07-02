@@ -4,12 +4,12 @@ import { createClient } from '@/lib/supabase/server';
 
 export interface OnboardingProfileInput {
   displayName: string;
-  neighborhood: string;
+  city: string;
   interests: string[];
   context: Record<string, unknown>;
 }
 
-/** Persist onboarding answers (name, barrio, interests, context). */
+/** Persist onboarding answers (name, city, interests, context). */
 export async function saveOnboardingProfile(input: OnboardingProfileInput): Promise<{ ok: boolean; error?: string }> {
   const supabase = createClient();
   const {
@@ -21,7 +21,7 @@ export async function saveOnboardingProfile(input: OnboardingProfileInput): Prom
     .from('profiles')
     .update({
       display_name: input.displayName.trim() || null,
-      neighborhood: input.neighborhood.trim() || null,
+      city: input.city.trim() || 'Buenos Aires',
       interests: input.interests,
       context: input.context,
     })

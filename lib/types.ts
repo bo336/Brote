@@ -7,6 +7,7 @@ export interface ProfileSummary {
   username: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  city: string | null;
   neighborhood: string | null;
   totalXp: number;
   currentStreak: number;

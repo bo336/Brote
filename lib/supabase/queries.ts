@@ -14,6 +14,7 @@ interface ProfileQueryRow {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  city: string | null;
   neighborhood: string | null;
   total_xp: number | string;
   current_streak: number;
@@ -47,7 +48,7 @@ export async function getSessionData(): Promise<SessionData> {
     supabase
       .from('profiles')
       .select(
-        'id, username, display_name, avatar_url, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
+        'id, username, display_name, avatar_url, city, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
       )
       .eq('id', user.id)
       .maybeSingle(),
@@ -79,6 +80,7 @@ export async function getSessionData(): Promise<SessionData> {
     username: row.username,
     displayName: row.display_name,
     avatarUrl: row.avatar_url,
+    city: row.city,
     neighborhood: row.neighborhood,
     totalXp: Number(row.total_xp ?? 0),
     currentStreak: row.current_streak ?? 0,

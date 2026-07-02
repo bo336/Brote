@@ -43,18 +43,26 @@ export default function PerfilPage() {
             <h1 className="truncate font-display text-h1 font-bold">{profile?.displayName ?? 'Tu perfil'}</h1>
             <p className="text-small text-muted-foreground">
               {profile?.username ? `@${profile.username}` : 'Sin usuario'}
-              {profile?.neighborhood ? ` · ${profile.neighborhood}` : ''}
+              {profile?.city ? ` · ${profile.city}` : ''}
             </p>
             {profile?.equippedTitle && <p className="text-caption font-medium text-primary">{profile.equippedTitle}</p>}
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
-          <RankBadge totalXp={xp} variant="full" size={56} />
+          <Link href="/perfil/rangos" aria-label="Ver todos los rangos" className="transition-transform hover:-translate-y-0.5">
+            <RankBadge totalXp={xp} variant="full" size={56} />
+          </Link>
           <div className="flex flex-col items-end gap-1">
             <PointsBadge value={xp} />
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
+        <Link
+          href="/perfil/rangos"
+          className="mt-3 block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Ver todos los rangos y qué desbloquean →
+        </Link>
       </Card>
 
       <section>
