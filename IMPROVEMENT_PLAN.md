@@ -5,9 +5,10 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1+F1.9+F2+F3 DONE → next: F4 AI layer
-- **Last done:** Algorithms pass shipped (live 0010 = repo 0019): news scoring v2 (exp decay + affinity + source diversity), daily-set v2 (anti-repetition + effort mix), para-vos v2 (personal context signals + effort ramp), CRITICAL rolling-challenge-windows fix (challenges never expire-and-die anymore; all 18 verified alive). profile.context now in session.
-- **Next up (in order):** (1) F4 AI: `pip-chat` edge function (Gemini streaming, graceful no-key fallback) + floating Pip chat UI on all screens; deploy now, lights up when user pastes GEMINI_API_KEY (Supabase → Edge Functions → Secrets). Weekly AI recap cron. recommend-activities already blended in acciones. (2) F5 engagement/monetization. (3) F6 QA sweep (visual canvas check w/ test account, streak time-travel test, news pipeline Vault key or keyless rewire, mobile perf). (4) F7 OPERACIONES.html.
+- **Phase:** F1+F1.9+F2+F3 DONE, F4 core DONE (Pip Chat live w/ fallback) → next: F4.4 recap, F5, F6 QA, F7
+- **Last done:** Algorithms pass (live 0010 = repo 0019) + Pip Chat shipped: pip-chat edge function deployed (context-aware Gemini persona, 30/day limit, graceful fallbacks) + floating chat UI in app shell. Build clean.
+- **Next up (in order):** (1) F4.4 weekly AI recap (extend a cron → notification). (2) F5 engagement/monetization (Semillas + Brote+ paywall design; needs payment provider decision). (3) F6 QA sweep: visual canvas check w/ test account (preview browser), streak time-travel SQL test, news pipeline (Vault `service_role_key` OR keyless rewire — news table is EMPTY until fixed), mobile perf, click-through, advisors re-run, delete old paused project. (4) F7 OPERACIONES.html.
+- **USER ACTIONS PENDING:** GEMINI_API_KEY secret (F4.5) → Pip Chat lights up; merge branch → deploy.
 - **Leftovers noted:** projects create form still uses BARRIOS list (fine — physical meetups); `lib/data/barrios.ts` kept only for that. lib/api/catalog.ts uploadVerificationPhoto/triggerVerification now unused (dormant infra, remove in F6 cleanup). Canvas not yet visually verified in browser (F6.3 with test account).
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
@@ -103,11 +104,11 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [ ] F3.4 Performance pass (F6): instanced flowers/bushes if needed, visibility pause, mobile fps check
 
 ### F4 — AI layer
-- [ ] F4.1 `pip-chat` edge function (Gemini streaming, user context injection, rate limit via app_state)
-- [ ] F4.2 Pip floating button + chat sheet UI (all app screens)
-- [ ] F4.3 Wire recommend-activities into Acciones (reasons visible) + cron to refresh weekly
+- [x] F4.1 `pip-chat` edge function DEPLOYED (Gemini 1.5-flash, full user-context persona in rioplatense, 30 msg/day rate limit via app_state, playful fallbacks when no key/error — never breaks). Repo mirror in supabase/functions/pip-chat.
+- [x] F4.2 PipChat UI: floating Pip FAB (bottom-right, above tab bar) → chat sheet with suggestion chips, typing dots, message bubbles; mounted in (app) layout.
+- [x] F4.3 recommend-activities already blended into Acciones scoring (pre-existing wiring confirmed + reasons surface).
 - [ ] F4.4 Weekly AI recap (cron → notification + profile card)
-- [ ] F4.5 GEMINI_API_KEY: set as edge function secret (USER: get free key at aistudio.google.com)
+- [ ] F4.5 **USER ACTION**: GEMINI_API_KEY → Supabase dashboard → Edge Functions → Secrets → add `GEMINI_API_KEY` (free key from aistudio.google.com). Until then Pip answers with canned fallbacks.
 
 ### F5 — Engagement & monetization
 - [ ] F5.1 Semillas currency (earn via challenges/goals) + cosmetics shop (world decorations)
