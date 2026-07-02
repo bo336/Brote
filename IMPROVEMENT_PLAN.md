@@ -5,9 +5,9 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1+F2+F3 core DONE (canvas shipped) → next: F1.9 algorithms, then F4 AI
-- **Last done:** THE CANVAS shipped — full procedural three.js world (organic island, wind-shader instanced grass, layered swaying trees, petal flowers, pond shader, birds/butterflies/fireflies/clouds, campfire at 60%, snow/palms/dunes per biome, ACES, pop-in growth, biome sky + "Mundo N · biome" chip + growth bar overlay, worldComplete full-screen ceremony). Photo UI stripped (trust model complete). Settings got "Tu perfil" section (name + city select+Otra). Repo SQL parity: supabase/migrations/0018 mirrors live 0007-0009. Typecheck + build clean.
-- **Next up (in order):** (1) F1.9 algorithms: A1 news scoring v2 (recency decay × interest × user-domain affinity), A2 daily-set anti-repetition + effort mix, A3 para-vos content score, A4 seasonal challenge auto-regen in daily_maintenance. (2) F4 AI: pip-chat edge function + floating Pip chat UI (needs user's GEMINI_API_KEY), surface recommend-activities, weekly recap. (3) F5 engagement/monetization. (4) F6 QA sweep (incl. visual check of canvas with a test account, streak time-travel test, news pipeline Vault key). (5) F7 OPERACIONES.html.
+- **Phase:** F1+F1.9+F2+F3 DONE → next: F4 AI layer
+- **Last done:** Algorithms pass shipped (live 0010 = repo 0019): news scoring v2 (exp decay + affinity + source diversity), daily-set v2 (anti-repetition + effort mix), para-vos v2 (personal context signals + effort ramp), CRITICAL rolling-challenge-windows fix (challenges never expire-and-die anymore; all 18 verified alive). profile.context now in session.
+- **Next up (in order):** (1) F4 AI: `pip-chat` edge function (Gemini streaming, graceful no-key fallback) + floating Pip chat UI on all screens; deploy now, lights up when user pastes GEMINI_API_KEY (Supabase → Edge Functions → Secrets). Weekly AI recap cron. recommend-activities already blended in acciones. (2) F5 engagement/monetization. (3) F6 QA sweep (visual canvas check w/ test account, streak time-travel test, news pipeline Vault key or keyless rewire, mobile perf). (4) F7 OPERACIONES.html.
 - **Leftovers noted:** projects create form still uses BARRIOS list (fine — physical meetups); `lib/data/barrios.ts` kept only for that. lib/api/catalog.ts uploadVerificationPhoto/triggerVerification now unused (dormant infra, remove in F6 cleanup). Canvas not yet visually verified in browser (F6.3 with test account).
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
@@ -85,11 +85,11 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F1.x Settings "Tu perfil": display name + city (select + Otra) editor
 - [ ] F1.8 Merge → deploy → smoke test (pending user merge)
 
-### F1.9 — Algorithms deep-pass (user: "go further than bugs")
-- [ ] A1 News scoring v2: recency decay (half-life 48h) × interest_score × user-domain affinity (their domain_points) × source diversity penalty — ranked feed per user, not global order.
-- [ ] A2 Daily-set selection v2: interest-weighted + anti-repetition memory (avoid last 3 days' picks) + effort mix guarantee (≥3 easy) + domain rotation.
-- [ ] A3 Catalog "Para vos" content-based score: interests ∩ domain + effort match from context + impact bias + cooldown-aware, blended with cached Gemini recs.
-- [ ] A4 Infinite-loop balancing: world growth-cost curve tuned (see F2), recurring/weekly cooldowns verified, challenge rotation non-repeating (already), seasonal challenge auto-regeneration when expired (extend daily_maintenance).
+### F1.9 — Algorithms deep-pass — DONE (live migration 0010 = repo 0019)
+- [x] A1 News scoring v2: quality × exp recency decay (48h half-life, floor 0.05) × graded interest affinity, then greedy source-diversity re-rank (0.7^picks penalty per source).
+- [x] A2 ensure_daily_set v2: anti-repetition (last 3 days of sets), one per domain, ≥3 easy of 5 guaranteed, interest-weighted, seeded-stable per day.
+- [x] A3 "Para vos" v2: personal-context signals (balcón/jardín/bici/auto/mascota/compra-local → slug keywords + personalized reasons) + effort ramp by rank tier (newbies easy, veterans stretch). profile.context now loaded in getSessionData.
+- [x] A4 **CRITICAL FIX** rolling challenge windows: seeded challenges had fixed ends_at → ALL progress silently stopped once expired. daily_maintenance now refreshes windows (daily=24h each run, weekly=Mondays or self-heal, seasonal=regenerate 21d when expired) + resets user_challenges per window (repeatable). Expired windows revived immediately; verified all 18 alive.
 
 ### F2 — Mundo Infinito v2
 - [x] F2.1 `lib/mundo.ts` v2 model: worldGoal (40×1.55^n), worldProgressFromCompletions (pure fn of lifetime completions — stateless/corruption-proof), 6 hand-designed biomes + procedural themes beyond (biomeFor), MundoState extended (completions/worldIndex/worldGrowth/worldGoal), parseMundoState back-compat

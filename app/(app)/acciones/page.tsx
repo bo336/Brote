@@ -56,6 +56,7 @@ export default function AccionesPage() {
       totalXp: profile?.totalXp ?? 0,
       domainPoints: domainPointsQ.data ?? {},
       completedIds,
+      personal: profile?.context ?? null,
     });
     // Blend the cached Gemini layer on top of the content-based score (§10.2):
     // boost AI-recommended slugs and surface their reason. Inert until recs exist.
@@ -70,7 +71,7 @@ export default function AccionesPage() {
           : s;
       })
       .sort((a, b) => b.score - a.score);
-  }, [catalog.data, profile?.interests, profile?.totalXp, domainPointsQ.data, completedIds, recsQ.data]);
+  }, [catalog.data, profile?.interests, profile?.totalXp, profile?.context, domainPointsQ.data, completedIds, recsQ.data]);
 
   const featured = useMemo(() => (catalog.data ?? []).filter((a) => a.is_featured), [catalog.data]);
 

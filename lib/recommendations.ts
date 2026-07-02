@@ -6,7 +6,7 @@
  * blended on top). Pure + deterministic given its inputs.
  */
 import type { ActivityRow } from '@/lib/supabase/rows';
-import { meetsRank, RANK_BY_SLUG } from '@/lib/ranks';
+import { meetsRank, getRank, RANK_BY_SLUG } from '@/lib/ranks';
 import { getDomainName, type DomainSlug } from '@/lib/domains';
 
 export interface ScoreContext {
@@ -16,7 +16,19 @@ export interface ScoreContext {
   domainPoints: Partial<Record<DomainSlug, number>>;
   /** activity ids the user has already completed (honor/verified). */
   completedIds: Set<string>;
+  /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
+  personal?: Record<string, unknown> | null;
 }
+
+/** Personal-context signal: slug keywords that make an activity "for THIS user". */
+const PERSONAL_SIGNALS: { key: string; test: (v: unknown) => boolean; words: string[]; reason: string }[] = [
+  { key: 'jardin', test: Boolean, words: ['jardin', 'compost', 'cesped', 'cantero', 'estanque', 'mantillo', 'nativas', 'arbol'], reason: 'Porque tenés jardín' },
+  { key: 'balcon', test: Boolean, words: ['balcon', 'maceta', 'huerta', 'hierba'], reason: 'Porque tenés balcón' },
+  { key: 'bici', test: Boolean, words: ['bici'], reason: 'Porque andás en bici' },
+  { key: 'auto', test: Boolean, words: ['auto', 'neumatico', 'compartido', 'vuelo'], reason: 'Para tu auto' },
+  { key: 'mascota', test: Boolean, words: ['mascota', 'gato', 'refugio', 'transito'], reason: 'Porque tenés mascota' },
+  { key: 'compra', test: (v) => v === 'local', words: ['feria', 'granel', 'local', 'productor', 'estacion'], reason: 'Porque comprás local' },
+];
 
 export interface ScoredActivity {
   activity: ActivityRow;
@@ -47,12 +59,33 @@ function scoreOne(a: ActivityRow, ctx: ScoreContext): { score: number; reason: s
   if (ctx.completedIds.has(a.id)) score -= 30;
   else score += 8;
 
+  // Personal context: "porque tenés balcón" beats any generic signal.
+  if (ctx.personal) {
+    for (const sig of PERSONAL_SIGNALS) {
+      if (sig.test(ctx.personal[sig.key]) && sig.words.some((w) => a.slug.includes(w))) {
+        score += 30;
+        if (!reason) reason = sig.reason;
+        break;
+      }
+    }
+  }
+
   // Impact weighting (impact honesty — real impact ranks higher).
   score += IMPACT_WEIGHT[a.impact] * 5;
 
-  // Effort fit: surface easy wins + a few stretch goals; mildly favor easy/medium.
-  if (a.effort === 'easy') score += 6;
-  else if (a.effort === 'medium') score += 4;
+  // Effort ramp by progression: newcomers get easy wins, veterans get stretch.
+  const tier = getRank(ctx.totalXp).tier;
+  if (tier <= 2) {
+    if (a.effort === 'easy') score += 8;
+    else if (a.effort === 'medium') score += 2;
+    else score -= 6;
+  } else if (tier <= 5) {
+    if (a.effort === 'easy') score += 4;
+    else if (a.effort === 'medium') score += 6;
+  } else {
+    if (a.effort === 'medium') score += 4;
+    else if (a.effort === 'hard') score += 8;
+  }
 
   // Freshness: featured ("nuevas esta semana") gets a boost.
   if (a.is_featured) {

@@ -18,6 +18,8 @@ export interface ProfileSummary {
   mundoState: MundoState | null;
   /** Lifetime scoring completions — drives per-completion world micro-growth. */
   completionsCount?: number;
+  /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
+  context?: Record<string, unknown> | null;
   interests: string[];
   onboardingCompleted: boolean;
   language: 'es' | 'en';
