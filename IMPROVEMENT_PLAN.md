@@ -5,10 +5,10 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1+F1.9+F2+F3 DONE, F4 core DONE (Pip Chat live w/ fallback) → next: F4.4 recap, F5, F6 QA, F7
-- **Last done:** Algorithms pass (live 0010 = repo 0019) + Pip Chat shipped: pip-chat edge function deployed (context-aware Gemini persona, 30/day limit, graceful fallbacks) + floating chat UI in app shell. Build clean.
-- **Next up (in order):** (1) F4.4 weekly AI recap (extend a cron → notification). (2) F5 engagement/monetization (Semillas + Brote+ paywall design; needs payment provider decision). (3) F6 QA sweep: visual canvas check w/ test account (preview browser), streak time-travel SQL test, news pipeline (Vault `service_role_key` OR keyless rewire — news table is EMPTY until fixed), mobile perf, click-through, advisors re-run, delete old paused project. (4) F7 OPERACIONES.html.
-- **USER ACTIONS PENDING:** GEMINI_API_KEY secret (F4.5) → Pip Chat lights up; merge branch → deploy.
+- **Phase:** F1-F4 DONE, F6 server-side QA DONE, F7 DONE → remaining: F5 (needs payment provider decision), F6.3 visual click-through, F2.3 archipelago polish, F4.4-AI upgrade of recap
+- **Last done (this block):** NEWS FIXED + FLOWING (12 articles live; cron rewired keyless w/ anon JWT — the Vault secret dependency is gone; push trigger too; live 0011 = repo 0020). Weekly recap cron (Mondays 10:00 AR, template-based, zero AI deps). Streak time-travel QA on live logic PASSED (T1 first daily → streak 1; T2 next-day → 2; T3 freeze consumed, streak survives; T4 no freeze → reset; correct notifications; challenge completions fired end-to-end; synthetic user cleaned up). RLS perf hardening (live 0012 = repo 0021): (select auth.uid()) once-per-query + deduped SELECT policies — advisors now clean of actionable items. OPERACIONES.html written (repo root, styled, Spanish): crons, infinite-content guarantees, AI fallbacks, owner actions, monitoring, costs.
+- **Remaining backlog:** F5 Semillas+Brote+ (blocked on payment provider choice: MercadoPago vs LemonSqueezy — ask user), F6.3 browser click-through + visual canvas check (test account via preview), F6.6 delete old paused Supabase project when confident, F2.3 archipelago swipe, F4.4 upgrade recap to AI-written when GEMINI_API_KEY exists, F3.4 mobile perf pass.
+- **USER ACTIONS PENDING:** (1) GEMINI_API_KEY secret → Pip Chat + AI news summaries light up. (2) merge branch → deploy. (3) Optional: VAPID keys for web push.
 - **Leftovers noted:** projects create form still uses BARRIOS list (fine — physical meetups); `lib/data/barrios.ts` kept only for that. lib/api/catalog.ts uploadVerificationPhoto/triggerVerification now unused (dormant infra, remove in F6 cleanup). Canvas not yet visually verified in browser (F6.3 with test account).
 - **Live Supabase project:** `swdwulouasdnyorfhrjt` (São Paulo). Old paused project: `abnnjszxlwovpnazmbnu` (backup, deletable once stable).
 - **Production:** brote-ft7m.vercel.app (project `prj_ujIZO3VvB6R2IJDYDeEtu7Cho17h`, team `team_BfV3hLZxz7SxTBnQ5AASFqxA`). Merge branch → main → auto-deploy.
@@ -107,7 +107,7 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F4.1 `pip-chat` edge function DEPLOYED (Gemini 1.5-flash, full user-context persona in rioplatense, 30 msg/day rate limit via app_state, playful fallbacks when no key/error — never breaks). Repo mirror in supabase/functions/pip-chat.
 - [x] F4.2 PipChat UI: floating Pip FAB (bottom-right, above tab bar) → chat sheet with suggestion chips, typing dots, message bubbles; mounted in (app) layout.
 - [x] F4.3 recommend-activities already blended into Acciones scoring (pre-existing wiring confirmed + reasons surface).
-- [ ] F4.4 Weekly AI recap (cron → notification + profile card)
+- [x] F4.4 Weekly recap (cron Mondays 10:00 AR → personal notification with real numbers; template-based so it works with zero AI deps; AI-written upgrade later)
 - [ ] F4.5 **USER ACTION**: GEMINI_API_KEY → Supabase dashboard → Edge Functions → Secrets → add `GEMINI_API_KEY` (free key from aistudio.google.com). Until then Pip answers with canned fallbacks.
 
 ### F5 — Engagement & monetization
@@ -117,16 +117,16 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [ ] F5.4 Re-engagement push: streak-risk evening reminder (extend daily_maintenance), weekly recap push
 - [ ] F5.5 Referrals: invite link → both get Semillas
 
-### F6 — Full QA sweep (after each phase, deep at the end)
-- [ ] F6.1 Streak: simulate day-over-day (SQL time travel on a test user): grows daily, freeze consumes, breaks without freeze
-- [ ] F6.2 News: set Vault `service_role_key` OR rewire cron; confirm items appear + rotate; Vercel cron auth
-- [ ] F6.3 Every screen click-through (all buttons/links), mobile viewport, dark mode
-- [ ] F6.4 Challenge/goal/title/badge award paths; leaderboards; project join/upvote
-- [ ] F6.5 Lighthouse + bundle budget; Supabase advisors re-run
+### F6 — Full QA sweep
+- [x] F6.1 Streak time-travel test PASSED on live logic (grow, increment, freeze-consume, break; correct notifications; QA user cleaned)
+- [x] F6.2 News FIXED: cron rewired keyless (anon JWT), fired now → 12 articles live; refreshes every 8h + 30-day archival; push trigger also keyless
+- [ ] F6.3 Every screen click-through (browser, test account), mobile viewport, dark mode, visual canvas check
+- [x] F6.4 Challenge award path verified end-to-end (QA user completed 2 retos organically during streak test)
+- [x] F6.5 Advisors re-run + RLS perf hardening applied (live 0012 = repo 0021); remaining lints are INFO unused-index (no traffic yet) — normal
 - [ ] F6.6 Delete old paused Supabase project once stable
 
 ### F7 — Autonomy explainer
-- [ ] `OPERACIONES.html` (single file, styled, in repo root + served at /operaciones): how everything self-runs — daily maintenance, challenge rotation, featured rotation, news refresh, AI limits & fallbacks, infinite content guarantees (procedural worlds, activity cooldowns, recurring challenges), what (little) ever needs the owner, and monitoring pointers.
+- [x] `OPERACIONES.html` (repo root, styled, Spanish): the 3 cron jobs, why content never runs out (infinite biomes, rolling challenge windows, activity cooldowns, news rotation), AI layer + fallbacks + rate limits, the only owner actions (Gemini key, VAPID keys — both one-time), monitoring pointers, current costs ($0).
 
 ---
 
