@@ -23,6 +23,7 @@ interface ProfileQueryRow {
   streak_freezes: number;
   mundo_state: unknown;
   context: Record<string, unknown> | null;
+  pip_style: { body?: string; hat?: string } | null;
   interests: string[] | null;
   onboarding_completed: boolean;
   language: string;
@@ -49,7 +50,7 @@ export async function getSessionData(): Promise<SessionData> {
     supabase
       .from('profiles')
       .select(
-        'id, username, display_name, avatar_url, city, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, context, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
+        'id, username, display_name, avatar_url, city, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, context, pip_style, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
       )
       .eq('id', user.id)
       .maybeSingle(),
@@ -91,6 +92,7 @@ export async function getSessionData(): Promise<SessionData> {
     equippedTitle: (row.equipped_title as { name_es: string } | null)?.name_es ?? null,
     mundoState: parseMundoState(row.mundo_state),
     context: row.context ?? null,
+    pipStyle: row.pip_style ?? null,
     interests: row.interests ?? [],
     onboardingCompleted: row.onboarding_completed ?? false,
     language: (row.language as 'es' | 'en') ?? 'es',

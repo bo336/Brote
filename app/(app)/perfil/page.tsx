@@ -57,12 +57,20 @@ export default function PerfilPage() {
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
-        <Link
-          href="/perfil/rangos"
-          className="mt-3 block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Ver todos los rangos y qué desbloquean →
-        </Link>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link
+            href="/perfil/rangos"
+            className="block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Los rangos →
+          </Link>
+          <Link
+            href="/perfil/pip"
+            className="block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Personalizá a Pip 🌱
+          </Link>
+        </div>
       </Card>
 
       <section>

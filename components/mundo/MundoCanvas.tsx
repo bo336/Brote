@@ -24,6 +24,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Float } from '@react-three/drei';
+import { EffectComposer, N8AO, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { biomeFor, type MundoState } from '@/lib/mundo';
 
@@ -184,6 +185,34 @@ function rockTexture(): THREE.CanvasTexture {
   }, [1.4, 1.4]);
 }
 
+/**
+ * Grass TUFT with alpha — 8 painted blades per quad. Instanced criss-cross
+ * quads with this texture read as a continuous meadow instead of separate
+ * blade blocks (the v4.5 "no more lego" fix).
+ */
+function grassTuftTexture(): THREE.CanvasTexture {
+  return makeTexture('grassTuft', 128, (ctx, s, rng) => {
+    ctx.clearRect(0, 0, s, s);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 9; i++) {
+      const baseX = s * 0.5 + (rng() - 0.5) * s * 0.42;
+      const tipX = baseX + (rng() - 0.5) * s * 0.5;
+      const tipY = s * (0.04 + rng() * 0.3);
+      const midX = (baseX + tipX) / 2 + (rng() - 0.5) * s * 0.16;
+      const grad = ctx.createLinearGradient(0, s, 0, tipY);
+      grad.addColorStop(0, 'rgba(105,115,95,0.95)');
+      grad.addColorStop(0.6, 'rgba(190,200,170,0.95)');
+      grad.addColorStop(1, 'rgba(235,240,215,0.9)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.6 + rng() * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(baseX, s);
+      ctx.quadraticCurveTo(midX, s * 0.55, tipX, tipY);
+      ctx.stroke();
+    }
+  });
+}
+
 /** Soft radial disc — sprites: shadows, mist, sun, clouds, sparkles. */
 function softDiscTexture(): THREE.CanvasTexture {
   return makeTexture('soft', 128, (ctx, s) => {
@@ -271,7 +300,7 @@ function SkyDome({ top, horizon, sunDir, night }: { top: string; horizon: string
   }, [top, horizon, sunDir, night, uniforms]);
   return (
     <mesh scale={[1, 1, 1]}>
-      <sphereGeometry args={[11, 24, 16]} />
+      <sphereGeometry args={[34, 24, 16]} />
       <shaderMaterial
         ref={matRef}
         side={THREE.BackSide}
@@ -867,24 +896,29 @@ function Kayak({ accent }: { accent: string }) {
 
 // ── Flora ───────────────────────────────────────────────────────────────────
 
-/** Curved grass blade geometry (base at y=0, unit height, vertex-darkened base). */
-const bladeGeo = (() => {
+/** Crossed-quad tuft geometry (two planes at 90°, base at y=0). */
+const tuftGeo = (() => {
   let cached: THREE.BufferGeometry | null = null;
   return () => {
     if (cached) return cached;
-    const g = new THREE.PlaneGeometry(0.032, 1, 1, 4);
-    g.translate(0, 0.5, 0);
-    const pos = g.attributes.position as THREE.BufferAttribute;
-    const colors: number[] = [];
-    for (let i = 0; i < pos.count; i++) {
-      const y = pos.getY(i);
-      pos.setX(i, pos.getX(i) * (1 - y * 0.7)); // taper to a point
-      pos.setZ(i, y * y * 0.22); // bend
-      const shade = 0.5 + y * 0.55;
-      colors.push(shade, shade, shade);
-    }
-    g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    g.computeVertexNormals();
+    const a = new THREE.PlaneGeometry(0.3, 0.22);
+    a.translate(0, 0.11, 0);
+    const b = a.clone();
+    b.rotateY(Math.PI / 2);
+    // Manual merge (avoid pulling BufferGeometryUtils).
+    const g = new THREE.BufferGeometry();
+    const posA = a.attributes.position!.array as Float32Array;
+    const posB = b.attributes.position!.array as Float32Array;
+    const uvA = a.attributes.uv!.array as Float32Array;
+    const uvB = b.attributes.uv!.array as Float32Array;
+    const norA = a.attributes.normal!.array as Float32Array;
+    const norB = b.attributes.normal!.array as Float32Array;
+    const idxA = Array.from(a.index!.array);
+    const idxB = Array.from(b.index!.array).map((i) => i + posA.length / 3);
+    g.setAttribute('position', new THREE.Float32BufferAttribute([...posA, ...posB], 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute([...uvA, ...uvB], 2));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute([...norA, ...norB], 3));
+    g.setIndex([...idxA, ...idxB]);
     cached = g;
     return cached;
   };
@@ -895,14 +929,19 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
   const shaderRef = useRef<{ uniforms: { uTime: { value: number } } } | null>(null);
 
   const material = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, roughness: 0.9 });
+    const mat = new THREE.MeshStandardMaterial({
+      map: grassTuftTexture(),
+      alphaTest: 0.35,
+      side: THREE.DoubleSide,
+      roughness: 0.92,
+    });
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
       shader.vertexShader = `uniform float uTime;\n${shader.vertexShader}`.replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
         {
-          float hf = position.y; // 0 at base → 1 at tip
+          float hf = clamp(position.y / 0.22, 0.0, 1.0); // 0 base → 1 tip
           vec3 ipos = vec3(0.0);
           #ifdef USE_INSTANCING
             ipos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
@@ -939,9 +978,9 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
       const x = cl.x + Math.cos(a) * rr;
       const z = cl.z + Math.sin(a) * rr;
       if (Math.hypot(x, z) > ISLAND_R - 0.18) continue;
-      const h = 0.1 + rng() * 0.13;
       dummy.position.set(x, 0, z);
-      dummy.scale.set(0.8 + rng() * 0.5, h, 0.8 + rng() * 0.5);
+      const s = 0.72 + rng() * 0.75;
+      dummy.scale.set(s, 0.7 + rng() * 0.8, s);
       dummy.rotation.y = rng() * Math.PI;
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -956,7 +995,74 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
     if (shaderRef.current) shaderRef.current.uniforms.uTime.value = clock.elapsedTime * (0.6 + liveliness * 0.7);
   });
 
-  return <instancedMesh ref={meshRef} args={[bladeGeo(), material, count]} frustumCulled={false} />;
+  return <instancedMesh ref={meshRef} args={[tuftGeo(), material, count]} frustumCulled={false} />;
+}
+
+/** Root skirt: a flattened dark mound that blends a trunk into the soil. */
+function RootSkirt({ r = 0.16, seed = 1 }: { r?: number; seed?: number }) {
+  const tex = useMemo(() => grassFieldTexture(), []);
+  return (
+    <mesh receiveShadow geometry={blobGeometry(1, 1, 0.2, 600 + seed)} position={[0, 0.005, 0]} scale={[r, r * 0.28, r]}>
+      <meshStandardMaterial map={tex} color="#5d7a4a" roughness={1} />
+    </mesh>
+  );
+}
+
+/** Ground cover: pebbles + moss patches that break the "placed on top" look. */
+function GroundCover({ ground, leafDeep }: { ground: string; leafDeep: string }) {
+  const pebbleRef = useRef<THREE.InstancedMesh>(null);
+  const mossRef = useRef<THREE.InstancedMesh>(null);
+  const rockTex = useMemo(() => rockTexture(), []);
+  const folTex = useMemo(() => foliageTexture(), []);
+  const P = 110;
+  const M = 46;
+  useEffect(() => {
+    const dummy = new THREE.Object3D();
+    const c = new THREE.Color();
+    const rng = mulberry32(8080);
+    for (let i = 0; i < P; i++) {
+      const a = rng() * Math.PI * 2;
+      const r = Math.sqrt(rng()) * (ISLAND_R - 0.25);
+      const s = 0.02 + rng() * 0.045;
+      dummy.position.set(Math.cos(a) * r, s * 0.4, Math.sin(a) * r);
+      dummy.scale.set(s, s * 0.7, s);
+      dummy.rotation.set(rng() * 3, rng() * 3, 0);
+      dummy.updateMatrix();
+      pebbleRef.current?.setMatrixAt(i, dummy.matrix);
+      c.copy(vary('#8f8578', rng, 0.02, 0.06, 0.14));
+      pebbleRef.current?.setColorAt(i, c);
+    }
+    for (let i = 0; i < M; i++) {
+      const a = rng() * Math.PI * 2;
+      const r = Math.sqrt(rng()) * (ISLAND_R - 0.4);
+      const s = 0.12 + rng() * 0.22;
+      dummy.position.set(Math.cos(a) * r, 0.012 + rng() * 0.004, Math.sin(a) * r);
+      dummy.scale.set(s, 1, s * (0.7 + rng() * 0.5));
+      dummy.rotation.set(-Math.PI / 2, 0, rng() * Math.PI);
+      dummy.updateMatrix();
+      mossRef.current?.setMatrixAt(i, dummy.matrix);
+      c.copy(vary(leafDeep, rng, 0.03, 0.1, 0.12));
+      mossRef.current?.setColorAt(i, c);
+    }
+    [pebbleRef, mossRef].forEach((ref) => {
+      if (ref.current) {
+        ref.current.instanceMatrix.needsUpdate = true;
+        if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
+      }
+    });
+  }, [ground, leafDeep]);
+  return (
+    <group>
+      <instancedMesh ref={pebbleRef} args={[undefined, undefined, P]} frustumCulled={false} receiveShadow>
+        <icosahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial map={rockTex} roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={mossRef} args={[undefined, undefined, M]} frustumCulled={false} receiveShadow>
+        <circleGeometry args={[1, 10]} />
+        <meshStandardMaterial map={folTex} transparent opacity={0.85} roughness={1} depthWrite={false} />
+      </instancedMesh>
+    </group>
+  );
 }
 
 /** Canopy material with high-frequency leaf flutter. One per color per tree. */
@@ -1054,6 +1160,7 @@ function Tree({
           <meshStandardMaterial color="#f2f6f8" roughness={0.7} />
         </mesh>
       )}
+      <RootSkirt r={0.22} seed={seed} />
       <BlobShadow r={0.42 * scale} />
     </SwayGroup>
   );
@@ -1065,6 +1172,7 @@ function Sapling({ position, leaf, seed }: { position: [number, number, number];
     <SwayGroup position={position} phase={seed % 5} amp={0.05} speed={1.4}>
       <Trunk h={0.32} seed={seed} />
       <mesh castShadow geometry={blobGeometry(0.15, 2, 0.22, seed + 3)} position={[0, 0.42, 0]} material={mat} />
+      <RootSkirt r={0.1} seed={seed} />
       <BlobShadow r={0.14} opacity={0.2} />
     </SwayGroup>
   );
@@ -1554,7 +1662,8 @@ function Scene({
   const initialGrowth = useRef(growth);
   const newestIndex = growth > initialGrowth.current ? growth - 1 : -1;
 
-  const grassCount = Math.round(620 + mundo.liveliness * 380);
+  // Tuft count (each tuft ≈ 9 painted blades → reads as a continuous meadow).
+  const grassCount = Math.round(1150 + mundo.liveliness * 650);
   const flowersPlaced = items.filter((it) => it.kind === 'flower').length;
 
   const sunAngle = dayT * Math.PI * 2;
@@ -1613,6 +1722,7 @@ function Scene({
 
       <Island ground={ground} night={night} />
       <GrassField count={grassCount} color={grass} liveliness={mundo.liveliness} />
+      <GroundCover ground={ground} leafDeep={leafDeep} />
       <ConiferForest leafDeep={leafDeep} pct={pct} worldIndex={worldIndex} snow={biome.features.snow} />
 
       <group scale={0.78}>
@@ -1734,6 +1844,13 @@ export default function MundoCanvas({
       }}
     >
       <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} onCare={onCare} />
+      {/* v4.5: screen-space ambient occlusion is what makes separate meshes
+          read as ONE cohesive scene (contact darkening where things meet),
+          plus a whisper of bloom for the sky/fire/fireflies. */}
+      <EffectComposer multisampling={0}>
+        <N8AO aoRadius={0.6} intensity={3.5} distanceFalloff={0.8} quality="performance" halfRes />
+        <Bloom intensity={0.22} luminanceThreshold={0.82} mipmapBlur />
+      </EffectComposer>
     </Canvas>
   );
 }
