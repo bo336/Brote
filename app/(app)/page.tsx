@@ -78,7 +78,7 @@ export default function HoyPage() {
 
       {/* Tu Mundo hero */}
       <Link href="/perfil" className="block" aria-label={t('tapWorld')}>
-        <Mundo mundo={profile?.mundoState} height={236} />
+        <Mundo mundo={profile?.mundoState} height={320} />
       </Link>
 
       {/* Streak at risk */}

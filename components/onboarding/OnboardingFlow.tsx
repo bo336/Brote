@@ -262,7 +262,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('mundoTitle')} subtitle={t('mundoBody')} />
                 <div className="mt-5">
-                  <Mundo height={260} />
+                  <Mundo height={280} interactive={false} />
                 </div>
                 <Spacer />
                 <Button block variant="primary" onClick={() => setStep(5)}>
