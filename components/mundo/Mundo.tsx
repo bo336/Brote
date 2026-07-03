@@ -1,12 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MundoHeroFallback } from './MundoHeroFallback';
 import { Pip } from '@/components/pip/Pip';
 import { useSettings, shouldRender3D } from '@/stores/settings';
+import { useSession } from '@/stores/session';
 import { isNight, dayProgress } from '@/lib/utils/dates';
 import { computeMundoState, biomeFor, type MundoState } from '@/lib/mundo';
+import { createClient } from '@/lib/supabase/client';
+import { useTodayCompletions, useCompleteActivity } from '@/hooks/use-daily-set';
+import { haptic } from '@/lib/utils/haptics';
 import { cn } from '@/lib/utils/cn';
 
 // Lazily import the 3D canvas so three.js never blocks first paint (§9.1).
@@ -25,19 +30,34 @@ interface MundoProps {
   className?: string;
   /** Hide the biome/growth overlay (e.g. tiny embeds). */
   hideOverlay?: boolean;
+  /** Enable the in-world "Regá tu mundo" daily action (default on). */
+  interactive?: boolean;
+}
+
+/** Fetch the id of the in-world watering daily action once. */
+async function fetchCuidaMundoId(): Promise<string | null> {
+  const { data } = await createClient().from('activities').select('id').eq('slug', 'cuida-tu-mundo').maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
 }
 
 /**
- * "Tu Mundo" — renders the full 3D world on capable devices, or the flat
- * illustrated fallback (also the loading skeleton) on weak devices / reduced
- * motion (BUILD_SPEC §9.1). Deterministic from `mundo_state`. Shows the
- * Mundo Infinito overlay: biome name, world number and growth progress.
+ * "Tu Mundo" — the professional-grade 3D world with the Mundo Infinito overlay
+ * (biome name, world number, growth) and the in-world watering interaction.
+ * Falls back to a flat illustration on weak devices / reduced motion.
  */
-export function Mundo({ mundo, height = 240, className, hideOverlay = false }: MundoProps) {
+export function Mundo({ mundo, height = 300, className, hideOverlay = false, interactive = true }: MundoProps) {
   const detailMode = useSettings((s) => s.detailMode);
+  const profile = useSession((s) => s.profile);
   const [mounted, setMounted] = useState(false);
   const [night, setNight] = useState(false);
   const [dayT, setDayT] = useState(0.5);
+  const [watering, setWatering] = useState(false);
+  const wateringTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cuidaId = useQuery({ queryKey: ['cuida-mundo-id'], queryFn: fetchCuidaMundoId, staleTime: Infinity, enabled: interactive });
+  const todayDone = useTodayCompletions();
+  const complete = useCompleteActivity();
+  const alreadyWatered = !!cuidaId.data && !!todayDone.data?.has(cuidaId.data);
 
   useEffect(() => {
     setMounted(true);
@@ -47,8 +67,19 @@ export function Mundo({ mundo, height = 240, className, hideOverlay = false }: M
     };
     tick();
     const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      if (wateringTimer.current) clearTimeout(wateringTimer.current);
+    };
   }, []);
+
+  function onWater() {
+    if (!cuidaId.data || alreadyWatered || complete.isPending) return;
+    haptic('medium');
+    setWatering(true);
+    wateringTimer.current = setTimeout(() => setWatering(false), 2600);
+    complete.mutate({ activityId: cuidaId.data });
+  }
 
   const state = mundo ?? computeMundoState({ totalXp: 0, currentStreak: 0, completionsCount: 0 });
   const want3D = mounted && shouldRender3D(detailMode);
@@ -68,6 +99,7 @@ export function Mundo({ mundo, height = 240, className, hideOverlay = false }: M
   const growth = state.worldGrowth ?? 0;
   const goal = state.worldGoal ?? 40;
   const pct = Math.min(100, Math.round((growth / Math.max(1, goal)) * 100));
+  const showWater = interactive && !!profile && !!cuidaId.data;
 
   return (
     <div
@@ -86,7 +118,7 @@ export function Mundo({ mundo, height = 240, className, hideOverlay = false }: M
         </div>
       )}
 
-      <MundoCanvas mundo={state} night={night} dayT={dayT} />
+      <MundoCanvas mundo={state} night={night} dayT={dayT} watering={watering} />
 
       {!hideOverlay && (
         <>
@@ -95,6 +127,27 @@ export function Mundo({ mundo, height = 240, className, hideOverlay = false }: M
             <span className="text-caption font-bold text-white/95">Mundo {state.worldIndex ?? 1}</span>
             <span className="text-caption text-white/70">· {biome.name}</span>
           </div>
+
+          {/* Regá tu mundo — the in-world daily care action */}
+          {showWater && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onWater();
+              }}
+              disabled={alreadyWatered || complete.isPending}
+              aria-label={alreadyWatered ? 'Tu mundo ya está regado hoy' : 'Regá tu mundo (+50 pts)'}
+              className={cn(
+                'absolute right-3 top-3 flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-caption font-bold backdrop-blur-sm transition-all',
+                alreadyWatered
+                  ? 'bg-black/25 text-white/60'
+                  : 'bg-white/90 text-brote-ink shadow-soft-lg hover:scale-105 active:scale-95',
+              )}
+            >
+              {alreadyWatered ? '✓ Regado hoy' : watering ? '💧 Regando…' : '💧 Regar +50'}
+            </button>
+          )}
 
           {/* Growth bar */}
           <div className="pointer-events-none absolute inset-x-3 bottom-3">

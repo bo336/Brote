@@ -67,7 +67,7 @@ export default function PerfilPage() {
 
       <section>
         <SectionHeader title="Tu mundo" />
-        <Mundo mundo={profile?.mundoState} height={260} />
+        <Mundo mundo={profile?.mundoState} height={320} />
       </section>
 
       {/* Impacto / handprint */}

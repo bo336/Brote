@@ -125,6 +125,37 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F6.5 Advisors re-run + RLS perf hardening applied (live 0012 = repo 0021); remaining lints are INFO unused-index (no traffic yet) — normal
 - [ ] F6.6 Delete old paused Supabase project once stable
 
+### F8 — "Juego profesional" 3D v3 — SHIPPED (2026-07-02)
+- [x] F8.1 Procedural texture engine (grassField/bark/foliage/rock/softDisc canvas textures, map+bump, biome-tinted)
+- [x] F8.2 Atmosphere: sky-dome shader w/ sun glow, fog, sun/moon sprite, dual key+fill lights, 2048 shadows
+- [x] F8.3 Terrain v3: mounds, radial lush→dirt cap, mountains w/ snow caps (world 2+/4+), blob shadows everywhere
+- [x] F8.4 Water v2: glinting foam-edged pond + river + waterfall over the rim + drifting mist
+- [x] F8.5 Flora v3: curved-blade clustered grass (240-460 instanced, gust shader), curved textured trunks, fluttering canopies
+- [x] F8.6 Life: kayak w/ paddler on pond (world 3+); birds/butterflies/fireflies/campfire kept
+- [x] F8.7 Interactivity: tap sparkles, zoom (4.2-8.5), "💧 Regar +50" in-world daily action w/ rain FX — VERIFIED end-to-end in browser (growth 20/62→21/62 live)
+- [x] F8.8 Canvas sizes: home/profile 320, onboarding 280 (non-interactive)
+- [x] F8.9 Visual verification loop ran: dev server + QA account (visual-qa@brote.dev / VisualQA2026!, uid …0002 — KEEP for future checks); caught+fixed a REAL shader-compile-storm freeze (customProgramCacheKey now shared: 'brote-canopy'/'brote-grass'). Full pixel screenshot pending user opening the preview window (browser pauses rendering while occluded — not an app issue).
+- [ ] F8.10 NEXT VISUAL PASS: user eyeballs the world → iterate on art direction (colors/composition/detail) per feedback; skier on snowy mountains; per-biome ambient audio (optional).
+
+### F9 — Avatares personalizados (Snapchat-style, adapted)
+Pragmatic path (researched): full Bitmoji-style human avatars = months of art. On-brand adaptation in 2 phases:
+- [ ] F9.1 **Pip personalizable** (phase 1): body color palettes, hojas/sombreros/anteojos/mochilas accessories — rendered in the existing layered SVG Pip AND the 3D Pip; items earned via Semillas/logros (= monetization hook). Data: profiles.pip_style jsonb.
+- [ ] F9.2 **Avatar humano por capas** (phase 2): SVG layer builder (skin/hair/eyes/outfit, ~8 options each = thousands of combos), shown in perfil/ranking/proyectos. No external SDK needed.
+
+### F10 — Research-driven features (competitive synthesis: Duolingo/Forest/Finch/Strava/BeReal)
+- [ ] F10.1 **Ligas semanales** (Duolingo's #1 retention loop): weekly cohorts of ~20 by XP, promotion/relegation between Semilla→Gaia divisions. Uses existing weekly_scores.
+- [ ] F10.2 **Compartir tu mundo** (viral engine): canvas-render world snapshot card (world + stats + streak) → Web Share API → IG/WhatsApp stories. "Spotify Wrapped" moment weekly.
+- [ ] F10.3 **Visitar mundos**: tap friends in ranking → view their 3D world read-only (public mundo_state already exists via get_public_profile).
+- [ ] F10.4 **Muro del proyecto** (social proof): completions feed per project + photo moments (opt-in).
+- [ ] F10.5 **Metas con amigos** (Forest-style co-op): shared weekly goal, both lose progress if either misses — social accountability.
+
+### F11 — Monetization & habit engine (docs/MONETIZACION.md + implementation)
+- [x] F11.1 docs/MONETIZACION.md written (Brote+ freemium, Semillas, rewarded-only ads, sponsored B2B retos, Hook-model habit engine, metrics)
+- [ ] F11.2 Semillas ledger + cosmetics shop (Pip accessories/biome skins) — spend path for F9
+- [ ] F11.3 Brote+ (MercadoPago AR + LemonSqueezy global): 2× freezes, exclusive biomes/accessories, ligas premium badge, AI recaps
+- [ ] F11.4 Rewarded ads ONLY (opt-in video → streak freeze / Semillas; never banners — they kill eco-brand trust)
+- [ ] F11.5 Sponsored challenges B2B (schema ready: sponsor_name/logo)
+
 ### F7 — Autonomy explainer
 - [x] `OPERACIONES.html` (repo root, styled, Spanish): the 3 cron jobs, why content never runs out (infinite biomes, rolling challenge windows, activity cooldowns, news rotation), AI layer + fallbacks + rate limits, the only owner actions (Gemini key, VAPID keys — both one-time), monitoring pointers, current costs ($0).
 
