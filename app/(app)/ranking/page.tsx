@@ -20,9 +20,12 @@ import {
   fetchWeeklyLeaderboard,
   fetchCityLeaderboard,
   fetchFriendLeaderboard,
+  fetchWeeklyLeague,
   fetchMyPosition,
   addFriendByUsername,
 } from '@/lib/api/ranking';
+import { Avatar } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils/cn';
 import type { LeaderboardEntry } from '@/lib/supabase/rows';
 import { toast } from '@/stores/toast';
 
@@ -82,6 +85,12 @@ export default function RankingPage() {
     enabled: !!myId,
   });
   const myPosQ = useQuery({ queryKey: ['my-pos', myId], queryFn: () => fetchMyPosition(myId!), enabled: !!myId });
+  const leagueQ = useQuery({
+    queryKey: ['weekly-league', myId],
+    queryFn: () => fetchWeeklyLeague(myId!),
+    enabled: !!myId,
+    refetchInterval: 60_000,
+  });
 
   async function onAddFriend() {
     if (!friendName.trim() || addingFriend) return;
@@ -99,15 +108,73 @@ export default function RankingPage() {
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="global">
+      <Tabs defaultValue="liga">
         <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
           <TabsList>
+            <TabsTrigger value="liga">Liga</TabsTrigger>
             <TabsTrigger value="global">{t('global')}</TabsTrigger>
             <TabsTrigger value="ciudad">{t('ciudad')}</TabsTrigger>
             <TabsTrigger value="amigos">{t('amigos')}</TabsTrigger>
             <TabsTrigger value="dominio">{t('porDominio')}</TabsTrigger>
           </TabsList>
         </div>
+
+        <TabsContent value="liga" className="space-y-3">
+          {leagueQ.isLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-[56px] w-full" />
+              ))}
+            </div>
+          ) : leagueQ.data ? (
+            <>
+              <Card className="flex items-center justify-between bg-primary/5 p-4">
+                <div>
+                  <p className="font-display text-h3 font-bold">{leagueQ.data.league}</p>
+                  <p className="text-caption text-muted-foreground">
+                    Se renueva cada lunes · Top 5 suben de liga
+                  </p>
+                </div>
+                <span className="rounded-pill bg-primary/15 px-3 py-1 text-small font-bold text-primary tnum">
+                  #{leagueQ.data.my_pos}
+                </span>
+              </Card>
+              <div className="space-y-1.5">
+                {leagueQ.data.rows.map((r) => {
+                  const isMe = r.user_id === myId;
+                  const promote = r.pos <= 5;
+                  const relegate = leagueQ.data!.rows.length >= 15 && r.pos > leagueQ.data!.rows.length - 3;
+                  return (
+                    <div
+                      key={r.user_id}
+                      className={cn(
+                        'flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
+                        promote && 'border-brote-green/40 bg-brote-green/5',
+                        relegate && 'border-brote-coral/30 bg-brote-coral/5',
+                        isMe && 'ring-2 ring-primary',
+                      )}
+                    >
+                      <span className={cn('w-6 text-center text-small font-bold tnum', promote ? 'text-brote-green' : relegate ? 'text-brote-coral' : 'text-muted-foreground')}>
+                        {r.pos}
+                      </span>
+                      <Avatar name={r.display_name} src={r.avatar_url} size={34} />
+                      <span className="min-w-0 flex-1 truncate text-small font-medium">
+                        {r.display_name ?? r.username ?? 'Alguien'}
+                        {isMe && <span className="text-muted-foreground"> (vos)</span>}
+                      </span>
+                      <span className="text-small font-bold text-brote-sun tnum">+{r.xp}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-center text-caption text-muted-foreground">
+                Sumá puntos esta semana para subir en tu liga 🌱
+              </p>
+            </>
+          ) : (
+            <EmptyState message="No pudimos cargar tu liga. Probá de nuevo." />
+          )}
+        </TabsContent>
 
         <TabsContent value="global" className="space-y-3">
           <div className="flex items-center justify-between">

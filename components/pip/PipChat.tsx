@@ -82,7 +82,7 @@ export function PipChat() {
             aria-label="Hablar con Pip"
             className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-surface shadow-soft-lg ring-1 ring-border lg:bottom-6"
           >
-            <Pip size={44} mood="happy" />
+            <Pip size={44} mood="happy" pipStyle={profile.pipStyle} />
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
               ✦
             </span>
@@ -105,7 +105,7 @@ export function PipChat() {
           >
             {/* Header */}
             <div className="flex items-center gap-2.5 border-b border-border bg-surface px-4 py-3">
-              <Pip size={36} mood="happy" />
+              <Pip size={36} mood="happy" pipStyle={profile.pipStyle} />
               <div className="flex-1">
                 <p className="font-display text-body font-bold leading-tight">Pip</p>
                 <p className="text-caption text-muted-foreground">Tu eco-coach · con IA ✦</p>

@@ -20,6 +20,8 @@ export interface ProfileSummary {
   completionsCount?: number;
   /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
   context?: Record<string, unknown> | null;
+  /** Pip avatar customization (body palette + hat). */
+  pipStyle?: { body?: string; hat?: string } | null;
   interests: string[];
   onboardingCompleted: boolean;
   language: 'es' | 'en';

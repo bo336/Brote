@@ -41,6 +41,31 @@ export async function fetchDomainLeaderboard(domain: string): Promise<Leaderboar
   return (data ?? []) as LeaderboardEntry[];
 }
 
+export interface WeeklyLeague {
+  league: string;
+  group_index: number;
+  my_pos: number;
+  week_start: string;
+  rows: {
+    pos: number;
+    user_id: string;
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    rank_slug: string;
+    division: number;
+    xp: number;
+  }[];
+}
+
+/** Duolingo-style weekly league: your cohort of 20 ranked by this week's XP. */
+export async function fetchWeeklyLeague(userId: string): Promise<WeeklyLeague> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('weekly_league', { p_uid: userId });
+  if (error) throw error;
+  return data as WeeklyLeague;
+}
+
 export async function fetchMyPosition(userId: string): Promise<number> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc('get_user_global_position', { p_uid: userId });

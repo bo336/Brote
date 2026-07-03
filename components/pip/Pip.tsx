@@ -4,6 +4,24 @@ import { cn } from '@/lib/utils/cn';
 
 export type PipMood = 'happy' | 'celebrating' | 'sleepy' | 'worried' | 'neutral';
 
+/** Avatar customization payload (profiles.pip_style). */
+export interface PipStyle {
+  body?: string;
+  hat?: string;
+}
+
+/** Body palettes (F9.1): key → [body, bodyDeep, leaf, leafDeep]. */
+export const PIP_PALETTES: Record<string, [string, string, string, string]> = {
+  clasico: ['#9CC93B', '#6FBF73', '#1FB57A', '#0E7A52'],
+  cielo: ['#7EC8E3', '#4FA3C7', '#2DB4D4', '#1E88A8'],
+  coral: ['#FF8A76', '#E86A5A', '#FF6B5E', '#C74A3E'],
+  lavanda: ['#B99AE8', '#9A7BD0', '#B07CD6', '#8A5CB8'],
+  sol: ['#FFD27A', '#F4A62A', '#FFB23E', '#E8950E'],
+  noche: ['#7B8AF5', '#5B6CF0', '#6FBF73', '#0E7A52'],
+};
+
+export const PIP_HATS = ['ninguno', 'brotecito', 'flor', 'gorro', 'corona'] as const;
+
 interface PipProps {
   size?: number;
   mood?: PipMood;
@@ -11,6 +29,8 @@ interface PipProps {
   aura?: boolean;
   /** Golden Gaia variant. */
   golden?: boolean;
+  /** Avatar customization (body palette + hat). */
+  pipStyle?: PipStyle | null;
   className?: string;
   /** Subtle idle bob animation. */
   animate?: boolean;
@@ -21,11 +41,13 @@ interface PipProps {
  * glowing creature with one expressive leaf and large warm eyes. Authored as an
  * inline SVG so it themes with the brand and needs no paid assets.
  */
-export function Pip({ size = 96, mood = 'happy', aura, golden, className, animate = true }: PipProps) {
-  const body = golden ? '#FFD27A' : '#9CC93B';
-  const bodyDeep = golden ? '#F4A62A' : '#6FBF73';
-  const leaf = golden ? '#FFB23E' : '#1FB57A';
-  const leafDeep = golden ? '#E8950E' : '#0E7A52';
+export function Pip({ size = 96, mood = 'happy', aura, golden, pipStyle, className, animate = true }: PipProps) {
+  const palette = (!golden && pipStyle?.body && PIP_PALETTES[pipStyle.body]) || null;
+  const body = golden ? '#FFD27A' : palette ? palette[0] : '#9CC93B';
+  const bodyDeep = golden ? '#F4A62A' : palette ? palette[1] : '#6FBF73';
+  const leaf = golden ? '#FFB23E' : palette ? palette[2] : '#1FB57A';
+  const leafDeep = golden ? '#E8950E' : palette ? palette[3] : '#0E7A52';
+  const hat = pipStyle?.hat && pipStyle.hat !== 'ninguno' ? pipStyle.hat : null;
 
   return (
     <div
@@ -112,6 +134,37 @@ export function Pip({ size = 96, mood = 'happy', aura, golden, className, animat
           <path d="M52 88 q 8 -6 16 0" stroke="#0C1A13" strokeWidth="3" strokeLinecap="round" fill="none" />
         ) : (
           <path d="M52 84 q 8 8 16 0" stroke="#0C1A13" strokeWidth="3" strokeLinecap="round" fill="none" />
+        )}
+
+        {/* hats (F9.1 accessories) */}
+        {hat === 'brotecito' && (
+          <g>
+            <rect x="58" y="30" width="4" height="10" rx="2" fill={leafDeep} />
+            <path d="M60 30 C 52 22, 44 24, 42 16 C 52 15, 59 20, 60 30 Z" fill={leaf} />
+            <path d="M60 30 C 68 22, 76 24, 78 16 C 68 15, 61 20, 60 30 Z" fill={leaf} />
+          </g>
+        )}
+        {hat === 'flor' && (
+          <g>
+            {[0, 1, 2, 3, 4].map((i) => {
+              const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+              return <circle key={i} cx={60 + Math.cos(a) * 8} cy={32 + Math.sin(a) * 8} r="5.5" fill="#FF8FA3" />;
+            })}
+            <circle cx="60" cy="32" r="4.5" fill="#FFD87A" />
+          </g>
+        )}
+        {hat === 'gorro' && (
+          <g>
+            <path d="M38 44 C 40 26, 80 26, 82 44 L 82 48 L 38 48 Z" fill="#E8638C" />
+            <rect x="36" y="44" width="48" height="7" rx="3.5" fill="#fff" opacity="0.9" />
+            <circle cx="60" cy="24" r="5" fill="#fff" />
+          </g>
+        )}
+        {hat === 'corona' && (
+          <g>
+            <path d="M42 42 L 46 28 L 54 38 L 60 24 L 66 38 L 74 28 L 78 42 Z" fill="#FFD24A" stroke="#E8A80E" strokeWidth="2" strokeLinejoin="round" />
+            <circle cx="60" cy="24" r="2.6" fill="#FF6B5E" />
+          </g>
         )}
       </svg>
     </div>

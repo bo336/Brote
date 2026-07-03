@@ -66,7 +66,7 @@ export default function HoyPage() {
     <div className="space-y-6">
       {/* Greeting + Pip */}
       <div className="flex items-center gap-3">
-        <Pip size={52} mood={atRisk ? 'worried' : 'happy'} />
+        <Pip size={52} mood={atRisk ? 'worried' : 'happy'} pipStyle={profile?.pipStyle} />
         <div>
           <h1 className="font-display text-h1 font-bold leading-tight">
             {greeting}
