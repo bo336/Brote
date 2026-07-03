@@ -355,7 +355,7 @@ function Island({ ground, night }: { ground: string; night: boolean }) {
   const capTex = useMemo(() => grassFieldTexture(), []);
   const rockTex = useMemo(() => rockTexture(), []);
   const sideGeo = useMemo(() => {
-    const geo = new THREE.CylinderGeometry(2.42, 2.52, 0.36, 48, 1, true);
+    const geo = new THREE.CylinderGeometry(ISLAND_R + 0.02, ISLAND_R + 0.14, 0.4, 56, 1, true);
     const rng = mulberry32(42);
     const pos = geo.attributes.position as THREE.BufferAttribute;
     const v = new THREE.Vector3();
@@ -374,27 +374,28 @@ function Island({ ground, night }: { ground: string; night: boolean }) {
     <group>
       {/* Grass cap with radial lush→dirt texture. */}
       <mesh receiveShadow position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[2.44, 48]} />
+        <circleGeometry args={[ISLAND_R + 0.04, 56]} />
         <meshStandardMaterial map={capTex} bumpMap={capTex} bumpScale={0.035} color={ground} roughness={0.95} />
       </mesh>
       {/* Gentle interior mounds for relief. */}
       {[
-        [-0.9, -0.35, 0.55],
-        [0.7, 0.9, 0.45],
-        [-0.2, 1.3, 0.38],
+        [-1.3, -0.5, 0.8],
+        [1.0, 1.3, 0.65],
+        [-0.3, 1.9, 0.55],
+        [2.1, 0.4, 0.5],
       ].map(([x, z, r], i) => (
         <mesh key={i} receiveShadow geometry={blobGeometry(1, 1, 0.12, 90 + i)} position={[x!, -0.02, z!]} scale={[r!, r! * 0.22, r!]}>
           <meshStandardMaterial map={capTex} bumpMap={capTex} bumpScale={0.03} color={ground} roughness={0.95} />
         </mesh>
       ))}
       {/* Dirt side wall + soil mass below. */}
-      <mesh geometry={sideGeo} position={[0, -0.17, 0]}>
+      <mesh geometry={sideGeo} position={[0, -0.19, 0]}>
         <meshStandardMaterial map={rockTex} bumpMap={rockTex} bumpScale={0.05} color="#7a5a39" roughness={1} />
       </mesh>
-      <mesh geometry={soilGeo} position={[0, -0.98, 0]} scale={[2.35, 1.05, 2.35]}>
+      <mesh geometry={soilGeo} position={[0, -1.3, 0]} scale={[3.3, 1.4, 3.3]}>
         <meshStandardMaterial map={rockTex} bumpMap={rockTex} bumpScale={0.06} color="#6e4f33" roughness={1} />
       </mesh>
-      <mesh geometry={soilGeo} position={[0.2, -1.8, -0.1]} scale={[1.15, 0.75, 1.15]}>
+      <mesh geometry={soilGeo} position={[0.3, -2.4, -0.15]} scale={[1.6, 1.0, 1.6]}>
         <meshStandardMaterial map={rockTex} color="#5d4229" roughness={1} />
       </mesh>
       {[0, 1, 2].map((i) => (
@@ -437,16 +438,16 @@ function Mountain({
 }) {
   const tex = useMemo(() => rockTexture(), []);
   const geo = useMemo(() => {
-    const g = new THREE.ConeGeometry(0.8, 1.45, 8, 4);
+    const g = new THREE.ConeGeometry(1.15, 2.1, 9, 5);
     const rng = mulberry32(seed);
     const pos = g.attributes.position as THREE.BufferAttribute;
     const v = new THREE.Vector3();
     for (let i = 0; i < pos.count; i++) {
       v.fromBufferAttribute(pos, i);
-      if (v.y < 0.6) {
+      if (v.y < 0.9) {
         pos.setX(i, v.x * (1 + (rng() - 0.5) * 0.4));
         pos.setZ(i, v.z * (1 + (rng() - 0.5) * 0.4));
-        pos.setY(i, v.y + (rng() - 0.5) * 0.1);
+        pos.setY(i, v.y + (rng() - 0.5) * 0.14);
       }
     }
     g.computeVertexNormals();
@@ -454,15 +455,247 @@ function Mountain({
   }, [seed]);
   return (
     <group position={position} scale={scale}>
-      <mesh castShadow receiveShadow geometry={geo} position={[0, 0.72, 0]}>
+      <mesh castShadow receiveShadow geometry={geo} position={[0, 1.04, 0]}>
         <meshStandardMaterial map={tex} bumpMap={tex} bumpScale={0.08} color="#8d8175" roughness={1} flatShading />
       </mesh>
       {snow && (
-        <mesh geometry={blobGeometry(0.3, 1, 0.3, seed + 5)} position={[0, 1.28, 0]} scale={[1, 0.55, 1]}>
+        <mesh geometry={blobGeometry(0.42, 1, 0.3, seed + 5)} position={[0, 1.88, 0]} scale={[1, 0.55, 1]}>
           <meshStandardMaterial color="#f4f8fa" roughness={0.6} />
         </mesh>
       )}
-      <BlobShadow r={0.85 * scale} opacity={0.3} />
+      <BlobShadow r={1.2 * scale} opacity={0.3} />
+    </group>
+  );
+}
+
+/**
+ * Dense conifer forest ring (the diorama backbone) — 4 instanced draws total.
+ * Density grows with world progress so a young world is a clearing and a
+ * finished one is a forest.
+ */
+function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; pct: number; worldIndex: number; snow: boolean }) {
+  const trunkRef = useRef<THREE.InstancedMesh>(null);
+  const tierRefs = [useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null)];
+  const snowRef = useRef<THREE.InstancedMesh>(null);
+  const MAXN = 48;
+  const count = Math.min(MAXN, 12 + Math.round(pct * 30) + Math.min(6, worldIndex));
+
+  useEffect(() => {
+    const rng = mulberry32(4000 + worldIndex * 17);
+    const dummy = new THREE.Object3D();
+    const c = new THREE.Color();
+    const placed: { x: number; z: number; s: number }[] = [];
+    let guard = 0;
+    while (placed.length < count && guard++ < 400) {
+      const a = rng() * Math.PI * 2;
+      const r = 2.45 + rng() * 0.8;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      if (Math.hypot(x - POND_POS[0], z - POND_POS[1]) < POND_R + 0.5) continue;
+      if (MOUNTAIN_POS.some(([mx, mz]) => Math.hypot(x - mx, z - mz) < 1.1)) continue;
+      if (placed.some((p) => Math.hypot(x - p.x, z - p.z) < 0.42)) continue;
+      placed.push({ x, z, s: 0.75 + rng() * 0.65 });
+    }
+    const cRng = mulberry32(999);
+    placed.forEach((p, i) => {
+      // Trunk
+      if (trunkRef.current) {
+        dummy.position.set(p.x, 0.22 * p.s, p.z);
+        dummy.scale.setScalar(p.s);
+        dummy.rotation.set(0, cRng() * Math.PI, 0);
+        dummy.updateMatrix();
+        trunkRef.current.setMatrixAt(i, dummy.matrix);
+      }
+      // Three stacked foliage tiers
+      const tierY = [0.62, 1.05, 1.42];
+      const tierS = [1, 0.74, 0.48];
+      tierRefs.forEach((ref, t) => {
+        if (!ref.current) return;
+        dummy.position.set(p.x, tierY[t]! * p.s, p.z);
+        dummy.scale.set(p.s * tierS[t]!, p.s * tierS[t]!, p.s * tierS[t]!);
+        dummy.rotation.set(0, cRng() * Math.PI, 0);
+        dummy.updateMatrix();
+        ref.current.setMatrixAt(i, dummy.matrix);
+        c.copy(vary(leafDeep, cRng, 0.03, 0.1, 0.12));
+        ref.current.setColorAt(i, c);
+      });
+      // Snow tip
+      if (snowRef.current) {
+        dummy.position.set(p.x, 1.68 * p.s, p.z);
+        dummy.scale.setScalar(snow ? p.s * 0.3 : 0.0001);
+        dummy.updateMatrix();
+        snowRef.current.setMatrixAt(i, dummy.matrix);
+      }
+    });
+    // Hide unused instances
+    for (let i = placed.length; i < MAXN; i++) {
+      dummy.position.set(0, -50, 0);
+      dummy.scale.setScalar(0.0001);
+      dummy.updateMatrix();
+      trunkRef.current?.setMatrixAt(i, dummy.matrix);
+      tierRefs.forEach((ref) => ref.current?.setMatrixAt(i, dummy.matrix));
+      snowRef.current?.setMatrixAt(i, dummy.matrix);
+    }
+    [trunkRef, ...tierRefs, snowRef].forEach((ref) => {
+      if (ref.current) {
+        ref.current.instanceMatrix.needsUpdate = true;
+        if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, leafDeep, worldIndex, snow]);
+
+  const barkTex = useMemo(() => barkTexture(), []);
+  const folTex = useMemo(() => foliageTexture(), []);
+  return (
+    <group>
+      <instancedMesh ref={trunkRef} args={[undefined, undefined, MAXN]} castShadow frustumCulled={false}>
+        <cylinderGeometry args={[0.05, 0.09, 0.5, 6]} />
+        <meshStandardMaterial map={barkTex} color="#7a5a3c" roughness={1} />
+      </instancedMesh>
+      {tierRefs.map((ref, t) => (
+        <instancedMesh key={t} ref={ref} args={[undefined, undefined, MAXN]} castShadow frustumCulled={false}>
+          <coneGeometry args={[0.52 - t * 0.02, 0.78, 8]} />
+          <meshStandardMaterial map={folTex} bumpMap={folTex} bumpScale={0.03} roughness={0.9} />
+        </instancedMesh>
+      ))}
+      <instancedMesh ref={snowRef} args={[undefined, undefined, MAXN]} frustumCulled={false}>
+        <coneGeometry args={[0.5, 0.4, 8]} />
+        <meshStandardMaterial color="#f2f7f9" roughness={0.6} />
+      </instancedMesh>
+    </group>
+  );
+}
+
+/** Wooden plank bridge over the river. */
+function Bridge() {
+  const barkTex = useMemo(() => barkTexture(), []);
+  const dir = useMemo(() => new THREE.Vector2(POND_POS[0], POND_POS[1]).normalize(), []);
+  const angle = Math.atan2(dir.y, dir.x);
+  const mid = 3.08; // over the river, near the rim
+  return (
+    <group rotation={[0, -angle, 0]} position={[0, 0, 0]}>
+      <group position={[mid, 0.05, 0]}>
+        {[-2, -1, 0, 1, 2].map((i) => (
+          <mesh key={i} castShadow position={[i * 0.085, 0.02 + Math.cos(i * 0.6) * 0.035, 0]} rotation={[0, 0, i * 0.09]}>
+            <boxGeometry args={[0.085, 0.025, 0.52]} />
+            <meshStandardMaterial map={barkTex} color="#9a7448" roughness={0.95} />
+          </mesh>
+        ))}
+        {[-0.22, 0.22].map((z, i) => (
+          <mesh key={i} castShadow position={[0, 0.1, z]}>
+            <boxGeometry args={[0.46, 0.02, 0.03]} />
+            <meshStandardMaterial map={barkTex} color="#8a6840" roughness={0.95} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
+/** Grazing deer — body, legs, neck/head with a gentle head-bob. */
+function Deer({ position, rotY = 0, seed }: { position: [number, number, number]; rotY?: number; seed: number }) {
+  const head = useRef<THREE.Group>(null);
+  const rng = useMemo(() => mulberry32(seed), [seed]);
+  const phase = useMemo(() => rng() * 6, [rng]);
+  useFrame(({ clock }) => {
+    if (head.current) head.current.rotation.x = 0.5 + Math.max(0, Math.sin(clock.elapsedTime * 0.5 + phase)) * 0.55;
+  });
+  const fur = '#b07a4a';
+  return (
+    <group position={position} rotation={[0, rotY, 0]} scale={0.62}>
+      <mesh castShadow position={[0, 0.42, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <capsuleGeometry args={[0.13, 0.3, 4, 8]} />
+        <meshStandardMaterial color={fur} roughness={0.9} />
+      </mesh>
+      {[[-0.14, 0.1], [0.14, 0.1], [-0.14, -0.1], [0.14, -0.1]].map(([x, z], i) => (
+        <mesh key={i} castShadow position={[x!, 0.17, z!]}>
+          <cylinderGeometry args={[0.022, 0.018, 0.34, 5]} />
+          <meshStandardMaterial color="#96633a" roughness={0.9} />
+        </mesh>
+      ))}
+      <group ref={head} position={[0.26, 0.52, 0]}>
+        <mesh castShadow position={[0.05, 0.14, 0]} rotation={[0, 0, -0.5]}>
+          <capsuleGeometry args={[0.045, 0.16, 4, 8]} />
+          <meshStandardMaterial color={fur} roughness={0.9} />
+        </mesh>
+        <mesh castShadow position={[0.13, 0.24, 0]}>
+          <capsuleGeometry args={[0.05, 0.08, 4, 8]} />
+          <meshStandardMaterial color={fur} roughness={0.9} />
+        </mesh>
+        {[-0.05, 0.05].map((z, i) => (
+          <mesh key={i} position={[0.1, 0.32, z]} rotation={[z * 6, 0, 0]}>
+            <coneGeometry args={[0.02, 0.07, 4]} />
+            <meshStandardMaterial color="#96633a" />
+          </mesh>
+        ))}
+      </group>
+      <mesh position={[-0.28, 0.46, 0]} rotation={[0, 0, 0.7]}>
+        <coneGeometry args={[0.025, 0.08, 4]} />
+        <meshStandardMaterial color="#f5efe0" />
+      </mesh>
+      <BlobShadow r={0.32} opacity={0.25} />
+    </group>
+  );
+}
+
+/** Duck drifting on the pond. */
+function Duck({ seed }: { seed: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const rng = useMemo(() => mulberry32(seed), [seed]);
+  const p = useMemo(() => ({ r: 0.2 + rng() * 0.35, sp: 0.25 + rng() * 0.2, ph: rng() * 6 }), [rng]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * p.sp + p.ph;
+    if (ref.current) {
+      ref.current.position.set(POND_POS[0] + Math.cos(t) * p.r, 0.035 + Math.sin(clock.elapsedTime * 2 + p.ph) * 0.006, POND_POS[1] + Math.sin(t) * p.r * 0.8);
+      ref.current.rotation.y = -t + Math.PI / 2;
+    }
+  });
+  return (
+    <group ref={ref} scale={0.5}>
+      <mesh castShadow scale={[1.35, 0.75, 0.9]}>
+        <sphereGeometry args={[0.09, 10, 8]} />
+        <meshStandardMaterial color="#7d5a36" roughness={0.8} />
+      </mesh>
+      <mesh position={[0.09, 0.09, 0]}>
+        <sphereGeometry args={[0.05, 10, 8]} />
+        <meshStandardMaterial color="#2e5d3a" roughness={0.6} />
+      </mesh>
+      <mesh position={[0.15, 0.08, 0]} rotation={[0, 0, -1.35]}>
+        <coneGeometry args={[0.018, 0.05, 4]} />
+        <meshStandardMaterial color="#e8a33d" />
+      </mesh>
+    </group>
+  );
+}
+
+/** Cozy cabin — appears once the world is half grown. */
+function Cabin({ position, rotY = 0.6 }: { position: [number, number, number]; rotY?: number }) {
+  const barkTex = useMemo(() => barkTexture(), []);
+  const rockTex = useMemo(() => rockTexture(), []);
+  return (
+    <group position={position} rotation={[0, rotY, 0]} scale={0.85}>
+      <mesh castShadow position={[0, 0.22, 0]}>
+        <boxGeometry args={[0.62, 0.44, 0.5]} />
+        <meshStandardMaterial map={barkTex} bumpMap={barkTex} bumpScale={0.04} color="#a07a4e" roughness={0.95} />
+      </mesh>
+      <mesh castShadow position={[0, 0.55, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <boxGeometry args={[0.5, 0.5, 0.58]} />
+        <meshStandardMaterial map={foliageTexture()} color="#4d7a4a" roughness={1} />
+      </mesh>
+      <mesh position={[0.18, 0.68, 0.1]}>
+        <boxGeometry args={[0.09, 0.3, 0.09]} />
+        <meshStandardMaterial map={rockTex} color="#8d8175" roughness={1} />
+      </mesh>
+      <mesh position={[0, 0.2, 0.253]}>
+        <boxGeometry args={[0.14, 0.26, 0.01]} />
+        <meshStandardMaterial color="#4a3620" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.2, 0.26, 0.253]}>
+        <boxGeometry args={[0.12, 0.12, 0.008]} />
+        <meshStandardMaterial color="#ffe9a8" emissive="#c99b3f" emissiveIntensity={0.6} />
+      </mesh>
+      <BlobShadow r={0.5} opacity={0.3} />
     </group>
   );
 }
@@ -486,14 +719,17 @@ function usePondShader(color: string) {
   return { matRef, uniforms };
 }
 
-const POND_POS: [number, number] = [1.18, -0.92];
+/** World scale (v4 "diorama"): a significantly bigger island. */
+export const ISLAND_R = 3.4;
+const POND_POS: [number, number] = [1.72, -1.34];
+const POND_R = 0.85;
 
 function Pond({ color }: { color: string }) {
   const { matRef, uniforms } = usePondShader(color);
   return (
     <group position={[POND_POS[0], 0.02, POND_POS[1]]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.66, 32]} />
+        <circleGeometry args={[POND_R, 36]} />
         <shaderMaterial
           ref={matRef}
           transparent
@@ -535,8 +771,8 @@ function Waterfall({ color }: { color: string }) {
     return v;
   }, []);
   const angle = Math.atan2(dir.y, dir.x);
-  const start = 1.42; // just past the pond edge along dir
-  const end = 2.46; // island rim
+  const start = 2.85; // just past the pond edge along dir
+  const end = ISLAND_R + 0.06; // island rim
   const mid = (start + end) / 2;
   const riverLen = end - start;
   const { matRef: riverMat, uniforms: riverU } = usePondShader(color);
@@ -605,7 +841,7 @@ function Kayak({ accent }: { accent: string }) {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 0.45;
     if (ref.current) {
-      const r = 0.34;
+      const r = 0.48;
       ref.current.position.set(POND_POS[0] + Math.cos(t) * r, 0.045 + Math.sin(clock.elapsedTime * 2.2) * 0.008, POND_POS[1] + Math.sin(t) * r * 0.75);
       ref.current.rotation.y = -t + Math.PI / 2;
     }
@@ -636,7 +872,7 @@ const bladeGeo = (() => {
   let cached: THREE.BufferGeometry | null = null;
   return () => {
     if (cached) return cached;
-    const g = new THREE.PlaneGeometry(0.05, 1, 1, 4);
+    const g = new THREE.PlaneGeometry(0.032, 1, 1, 4);
     g.translate(0, 0.5, 0);
     const pos = g.attributes.position as THREE.BufferAttribute;
     const colors: number[] = [];
@@ -691,19 +927,19 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
     const dummy = new THREE.Object3D();
     const c = new THREE.Color();
     // Patchy clusters read more natural than uniform scatter.
-    const clusters = Array.from({ length: 14 }).map(() => {
+    const clusters = Array.from({ length: 24 }).map(() => {
       const a = rng() * Math.PI * 2;
-      const r = Math.sqrt(rng()) * 1.9;
+      const r = Math.sqrt(rng()) * 2.9;
       return { x: Math.cos(a) * r, z: Math.sin(a) * r };
     });
     for (let i = 0; i < count; i++) {
       const cl = clusters[i % clusters.length]!;
       const a = rng() * Math.PI * 2;
-      const rr = rng() * rng() * 0.55;
+      const rr = rng() * rng() * 0.6;
       const x = cl.x + Math.cos(a) * rr;
       const z = cl.z + Math.sin(a) * rr;
-      if (Math.hypot(x, z) > 2.25) continue;
-      const h = 0.16 + rng() * 0.2;
+      if (Math.hypot(x, z) > ISLAND_R - 0.18) continue;
+      const h = 0.1 + rng() * 0.13;
       dummy.position.set(x, 0, z);
       dummy.scale.set(0.8 + rng() * 0.5, h, 0.8 + rng() * 0.5);
       dummy.rotation.y = rng() * Math.PI;
@@ -944,7 +1180,7 @@ function Bird({ seed }: { seed: number }) {
   const wingL = useRef<THREE.Mesh>(null);
   const wingR = useRef<THREE.Mesh>(null);
   const rng = useMemo(() => mulberry32(seed), [seed]);
-  const p = useMemo(() => ({ r: 1.6 + rng() * 0.6, h: 1.7 + rng() * 0.5, sp: 0.32 + rng() * 0.18, ph: rng() * 6 }), [rng]);
+  const p = useMemo(() => ({ r: 2.3 + rng() * 0.9, h: 2.2 + rng() * 0.6, sp: 0.32 + rng() * 0.18, ph: rng() * 6 }), [rng]);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * p.sp + p.ph;
     if (ref.current) {
@@ -983,7 +1219,7 @@ function Butterfly({ seed, accent }: { seed: number; accent: string }) {
   const wL = useRef<THREE.Mesh>(null);
   const wR = useRef<THREE.Mesh>(null);
   const rng = useMemo(() => mulberry32(seed), [seed]);
-  const base = useMemo(() => ({ x: (rng() - 0.5) * 3, z: (rng() - 0.5) * 3, p: rng() * 6 }), [rng]);
+  const base = useMemo(() => ({ x: (rng() - 0.5) * 4.4, z: (rng() - 0.5) * 4.4, p: rng() * 6 }), [rng]);
   const color = useMemo(() => vary(accent, rng, 0.1, 0.1, 0.1), [accent, rng]);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime + base.p;
@@ -1091,7 +1327,7 @@ function Campfire({ position }: { position: [number, number, number] }) {
 }
 
 /** Tap feedback: a short-lived burst of rising sparkles. */
-function SparkleBurst({ at, onDone }: { at: THREE.Vector3; onDone: () => void }) {
+function SparkleBurst({ at, onDone, tone = 'spark' }: { at: THREE.Vector3; onDone: () => void; tone?: 'spark' | 'heart' }) {
   const tex = useMemo(() => softDiscTexture(), []);
   const refs = useRef<(THREE.Sprite | null)[]>([]);
   const start = useRef<number | null>(null);
@@ -1123,7 +1359,13 @@ function SparkleBurst({ at, onDone }: { at: THREE.Vector3; onDone: () => void })
           }}
           position={[at.x, at.y, at.z]}
         >
-          <spriteMaterial map={tex} color={i % 3 === 0 ? '#FFE9A0' : '#b8ffd9'} transparent depthWrite={false} toneMapped={false} />
+          <spriteMaterial
+            map={tex}
+            color={tone === 'heart' ? (i % 2 === 0 ? '#ff8fb3' : '#ff5f8a') : i % 3 === 0 ? '#FFE9A0' : '#b8ffd9'}
+            transparent
+            depthWrite={false}
+            toneMapped={false}
+          />
         </sprite>
       ))}
     </group>
@@ -1138,7 +1380,7 @@ function Rain({ active }: { active: boolean }) {
     const rng = mulberry32(777);
     return Array.from({ length: COUNT }).map(() => {
       const a = rng() * Math.PI * 2;
-      const r = Math.sqrt(rng()) * 2.1;
+      const r = Math.sqrt(rng()) * (ISLAND_R - 0.3);
       return { x: Math.cos(a) * r, z: Math.sin(a) * r, phase: rng() * 3, speed: 2.6 + rng() * 1.6 };
     });
   }, []);
@@ -1232,8 +1474,8 @@ interface GrowthItem {
 const GOLDEN_ANGLE = 2.399963;
 const MAX_RENDERED = 110;
 const MOUNTAIN_POS: [number, number][] = [
-  [-1.5, -1.25],
-  [-0.85, -1.8],
+  [-2.15, -1.8],
+  [-1.2, -2.55],
 ];
 
 function growthItems(worldIndex: number, growth: number, goal: number, hasPond: boolean, hasMountain: boolean): GrowthItem[] {
@@ -1244,12 +1486,12 @@ function growthItems(worldIndex: number, growth: number, goal: number, hasPond: 
     const i = Math.floor(k * step);
     const rng = mulberry32(worldIndex * 100003 + i * 97 + 13);
     let angle = i * GOLDEN_ANGLE + rng() * 0.3;
-    const radius = 0.62 + 1.5 * Math.sqrt((i + 0.5) / goal);
+    const radius = 0.85 + 2.15 * Math.sqrt((i + 0.5) / goal);
     let x = Math.cos(angle) * radius;
     let z = Math.sin(angle) * radius;
     const blocked = () =>
-      (hasPond && Math.hypot(x - POND_POS[0], z - POND_POS[1]) < 0.85) ||
-      (hasMountain && MOUNTAIN_POS.some(([mx, mz]) => Math.hypot(x - mx, z - mz) < 0.8));
+      (hasPond && Math.hypot(x - POND_POS[0], z - POND_POS[1]) < POND_R + 0.28) ||
+      (hasMountain && MOUNTAIN_POS.some(([mx, mz]) => Math.hypot(x - mx, z - mz) < 1.05));
     for (let tries = 0; tries < 3 && blocked(); tries++) {
       angle += 1.1;
       x = Math.cos(angle) * radius;
@@ -1275,7 +1517,19 @@ function growthItems(worldIndex: number, growth: number, goal: number, hasPond: 
 
 // ── Scene ───────────────────────────────────────────────────────────────────
 
-function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boolean; dayT: number; watering: boolean }) {
+function Scene({
+  mundo,
+  night,
+  dayT,
+  watering,
+  onCare,
+}: {
+  mundo: MundoState;
+  night: boolean;
+  dayT: number;
+  watering: boolean;
+  onCare?: () => void;
+}) {
   const biome = biomeFor(mundo.worldIndex ?? 1);
   const golden = mundo.palette === 'golden';
   const tint = (hex: string) => (golden ? `#${new THREE.Color(hex).lerp(new THREE.Color('#E8B54A'), 0.45).getHexString()}` : hex);
@@ -1300,7 +1554,7 @@ function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boo
   const initialGrowth = useRef(growth);
   const newestIndex = growth > initialGrowth.current ? growth - 1 : -1;
 
-  const grassCount = Math.round(240 + mundo.liveliness * 220);
+  const grassCount = Math.round(620 + mundo.liveliness * 380);
   const flowersPlaced = items.filter((it) => it.kind === 'flower').length;
 
   const sunAngle = dayT * Math.PI * 2;
@@ -1309,53 +1563,63 @@ function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boo
     [sunAngle],
   );
 
-  // Tap sparkles.
-  const [bursts, setBursts] = useState<{ id: number; at: THREE.Vector3 }[]>([]);
+  // Tap sparkles + care hearts.
+  const [bursts, setBursts] = useState<{ id: number; at: THREE.Vector3; tone: 'spark' | 'heart' }[]>([]);
   const burstId = useRef(0);
   function onTap(e: ThreeEvent<PointerEvent>) {
     e.stopPropagation();
     const id = ++burstId.current;
-    setBursts((b) => [...b.slice(-3), { id, at: e.point.clone() }]);
+    setBursts((b) => [...b.slice(-3), { id, at: e.point.clone(), tone: 'spark' }]);
+  }
+  function onCareTap(e: ThreeEvent<PointerEvent>) {
+    e.stopPropagation();
+    const id = ++burstId.current;
+    setBursts((b) => [...b.slice(-3), { id, at: e.point.clone(), tone: 'heart' }]);
+    onCare?.();
   }
 
-  const horizon = night ? '#16261D' : biome.skyHorizon;
+  // Night is MOONLIT, never a black blob: cool tint but everything readable.
+  const horizon = night ? '#31514a' : biome.skyHorizon;
 
   return (
     <>
-      <fog attach="fog" args={[horizon, 8.5, 15]} />
-      <SkyDome top={night ? '#0b1f3a' : biome.skyTop} horizon={horizon} sunDir={sunPos} night={night} />
+      <fog attach="fog" args={[horizon, 11, 22]} />
+      <SkyDome top={night ? '#17335c' : biome.skyTop} horizon={horizon} sunDir={sunPos} night={night} />
       <SunSprite pos={[sunPos.x * 1.6, sunPos.y * 1.6, sunPos.z * 1.6]} night={night} />
 
-      <ambientLight intensity={night ? 0.38 : 0.5} color={night ? '#9fb0d6' : '#fff6e8'} />
+      <ambientLight intensity={night ? 0.62 : 0.55} color={night ? '#b8cbe8' : '#fff6e8'} />
       <directionalLight
         castShadow
         position={sunPos.toArray()}
-        intensity={night ? 0.25 : 1.45}
-        color={night ? '#aebfe0' : '#ffedc9'}
+        intensity={night ? 0.7 : 1.5}
+        color={night ? '#cfdcf5' : '#ffedc9'}
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0004}
         shadow-camera-near={1}
-        shadow-camera-far={14}
-        shadow-camera-left={-4.5}
-        shadow-camera-right={4.5}
-        shadow-camera-top={4.5}
-        shadow-camera-bottom={-4.5}
+        shadow-camera-far={18}
+        shadow-camera-left={-5.5}
+        shadow-camera-right={5.5}
+        shadow-camera-top={5.5}
+        shadow-camera-bottom={-5.5}
       />
-      <directionalLight position={[-sunPos.x, 2.4, -sunPos.z]} intensity={night ? 0.08 : 0.22} color={night ? '#31456e' : '#bfe0ff'} />
-      <hemisphereLight intensity={night ? 0.26 : 0.5} color={night ? '#2a3a5a' : biome.skyTop} groundColor={ground} />
+      <directionalLight position={[-sunPos.x, 3, -sunPos.z]} intensity={night ? 0.18 : 0.24} color={night ? '#41598a' : '#bfe0ff'} />
+      <hemisphereLight intensity={night ? 0.42 : 0.55} color={night ? '#3c5580' : biome.skyTop} groundColor={ground} />
 
       {/* Tap target: invisible disc over the island. */}
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onTap} visible={false}>
-        <circleGeometry args={[2.5, 24]} />
+        <circleGeometry args={[ISLAND_R + 0.1, 24]} />
         <meshBasicMaterial />
       </mesh>
 
       <Island ground={ground} night={night} />
       <GrassField count={grassCount} color={grass} liveliness={mundo.liveliness} />
+      <ConiferForest leafDeep={leafDeep} pct={pct} worldIndex={worldIndex} snow={biome.features.snow} />
 
-      <Float speed={2} rotationIntensity={0} floatIntensity={0.2}>
-        <Pip3D golden={golden} aura={mundo.unlockedCosmetics.includes('guardian_aura')} />
-      </Float>
+      <group scale={0.78}>
+        <Float speed={2} rotationIntensity={0} floatIntensity={0.2}>
+          <Pip3D golden={golden} aura={mundo.unlockedCosmetics.includes('guardian_aura')} />
+        </Float>
+      </group>
 
       {/* Terrain features */}
       {showMountain && <Mountain position={[MOUNTAIN_POS[0]![0]!, 0, MOUNTAIN_POS[0]![1]!]} seed={41} snow={biome.features.snow || worldIndex >= 5} />}
@@ -1364,25 +1628,32 @@ function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boo
         <>
           <Pond color={tint(biome.water)} />
           <Waterfall color={tint(biome.water)} />
+          <Bridge />
+          <Duck seed={81} />
+          {growth >= 8 && <Duck seed={82} />}
+          {growth >= 12 && <Deer position={[POND_POS[0] - 1.15, 0, POND_POS[1] + 0.55]} rotY={0.7} seed={71} />}
+          {growth >= 24 && <Deer position={[POND_POS[0] - 0.7, 0, POND_POS[1] + 1.15]} rotY={-0.4} seed={72} />}
           {worldIndex >= 3 && <Kayak accent={accent} />}
         </>
       )}
+      {pct >= 0.5 && <Cabin position={[-0.4, 0, -2.3]} />}
       {biome.features.palms && (
         <>
-          <Palm position={[-1.55, 0, 0.95]} leaf={leaf} seed={21} />
-          <Palm position={[1.75, 0, 0.55]} leaf={leaf} seed={22} />
+          <Palm position={[-2.2, 0, 1.35]} leaf={leaf} seed={21} />
+          <Palm position={[2.45, 0, 0.8]} leaf={leaf} seed={22} />
         </>
       )}
       {biome.features.dunes && (
         <>
-          <Dune position={[-1.2, 0.02, -1.2]} ground={ground} seed={31} />
-          <Dune position={[0.6, 0.02, 1.55]} ground={ground} seed={32} />
+          <Dune position={[-1.7, 0.02, -1.7]} ground={ground} seed={31} />
+          <Dune position={[0.85, 0.02, 2.2]} ground={ground} seed={32} />
         </>
       )}
 
-      {/* Growth: one element per completion */}
+      {/* Growth: one element per completion. Trees/bushes accept care taps. */}
       {items.map((it) => {
         const pos: [number, number, number] = [it.x, 0, it.z];
+        const careable = it.kind === 'tree' || it.kind === 'bush' || it.kind === 'sapling';
         const el =
           it.kind === 'flower' ? (
             <Flower position={pos} accent={accent} seed={it.seed} />
@@ -1393,16 +1664,16 @@ function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boo
           ) : it.kind === 'sapling' ? (
             <Sapling position={pos} leaf={leaf} seed={it.seed} />
           ) : (
-            <Tree position={pos} scale={0.78 + (it.seed % 5) * 0.07} leaf={leaf} leafDeep={leafDeep} seed={it.seed} snow={biome.features.snow} />
+            <Tree position={pos} scale={1.15 + (it.seed % 5) * 0.09} leaf={leaf} leafDeep={leafDeep} seed={it.seed} snow={biome.features.snow} />
           );
         return (
           <PopIn key={`${worldIndex}-${it.index}`} active={it.index === newestIndex}>
-            {el}
+            {careable ? <group onPointerDown={onCareTap}>{el}</group> : el}
           </PopIn>
         );
       })}
 
-      {pct >= 0.6 && <Campfire position={[-0.95, 0, -0.55]} />}
+      {pct >= 0.6 && <Campfire position={[-1.35, 0, -0.8]} />}
 
       {/* Fauna & atmosphere */}
       <CloudPuffs night={night} />
@@ -1414,20 +1685,24 @@ function Scene({ mundo, night, dayT, watering }: { mundo: MundoState; night: boo
       {/* FX */}
       <Rain active={watering} />
       {bursts.map((b) => (
-        <SparkleBurst key={b.id} at={b.at} onDone={() => setBursts((all) => all.filter((x) => x.id !== b.id))} />
+        <SparkleBurst key={b.id} at={b.at} tone={b.tone} onDone={() => setBursts((all) => all.filter((x) => x.id !== b.id))} />
       ))}
 
-      <ContactShadows position={[0, 0.005, 0]} opacity={0.35} scale={7.5} blur={2.4} far={3.2} />
+      <ContactShadows position={[0, 0.005, 0]} opacity={0.35} scale={10.5} blur={2.4} far={3.6} />
+      {/* Free videogame-style camera: orbit + pan + zoom (gently clamped). */}
       <OrbitControls
-        enablePan={false}
+        enablePan
+        panSpeed={0.7}
         enableZoom
-        minDistance={4.2}
-        maxDistance={8.5}
+        minDistance={3.4}
+        maxDistance={13}
         autoRotate
-        autoRotateSpeed={0.4}
-        minPolarAngle={Math.PI * 0.24}
-        maxPolarAngle={Math.PI * 0.47}
-        target={[0, 0.45, 0]}
+        autoRotateSpeed={0.35}
+        enableDamping
+        dampingFactor={0.08}
+        minPolarAngle={Math.PI * 0.16}
+        maxPolarAngle={Math.PI * 0.49}
+        target={[0, 0.5, 0]}
       />
     </>
   );
@@ -1438,24 +1713,27 @@ export default function MundoCanvas({
   night,
   dayT,
   watering = false,
+  onCare,
 }: {
   mundo: MundoState;
   night: boolean;
   dayT: number;
   watering?: boolean;
+  /** Called when the user taps a tree/bush (care touch — server grants slow growth). */
+  onCare?: () => void;
 }) {
   return (
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [0, 2.5, 6.2], fov: 34 }}
+      camera={{ position: [0, 3.3, 8.6], fov: 35 }}
       gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.08;
+        gl.toneMappingExposure = 1.14;
       }}
     >
-      <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} />
+      <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} onCare={onCare} />
     </Canvas>
   );
 }

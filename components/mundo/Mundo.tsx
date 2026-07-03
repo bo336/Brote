@@ -48,11 +48,14 @@ async function fetchCuidaMundoId(): Promise<string | null> {
 export function Mundo({ mundo, height = 300, className, hideOverlay = false, interactive = true }: MundoProps) {
   const detailMode = useSettings((s) => s.detailMode);
   const profile = useSession((s) => s.profile);
+  const setProfile = useSession((s) => s.setProfile);
   const [mounted, setMounted] = useState(false);
   const [night, setNight] = useState(false);
   const [dayT, setDayT] = useState(0.5);
   const [watering, setWatering] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const wateringTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const careBusy = useRef(false);
 
   const cuidaId = useQuery({ queryKey: ['cuida-mundo-id'], queryFn: fetchCuidaMundoId, staleTime: Infinity, enabled: interactive });
   const todayDone = useTodayCompletions();
@@ -81,6 +84,28 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
     complete.mutate({ activityId: cuidaId.data });
   }
 
+  // Care touch (tap a tree/bush): server grants up to +5 slow growth per day,
+  // no points. Fire-and-forget; hearts always show so it always feels alive.
+  async function onCare() {
+    if (!profile || careBusy.current) return;
+    careBusy.current = true;
+    haptic('light');
+    try {
+      const { data } = await createClient().rpc('care_world');
+      const res = data as { granted?: boolean; mundo?: MundoState } | null;
+      if (res?.granted && res.mundo) {
+        const p = useSession.getState().profile;
+        if (p) setProfile({ ...p, mundoState: { ...p.mundoState, ...res.mundo } as MundoState });
+      }
+    } catch {
+      /* silent — caring is best-effort */
+    } finally {
+      setTimeout(() => {
+        careBusy.current = false;
+      }, 600);
+    }
+  }
+
   const state = mundo ?? computeMundoState({ totalXp: 0, currentStreak: 0, completionsCount: 0 });
   const want3D = mounted && shouldRender3D(detailMode);
 
@@ -103,8 +128,12 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
 
   return (
     <div
-      className={cn('relative w-full overflow-hidden rounded-card border border-border', className)}
-      style={{ height, background: sky }}
+      className={cn(
+        'relative w-full overflow-hidden border border-border',
+        fullscreen ? 'fixed inset-0 z-[80] rounded-none' : 'rounded-card',
+        className,
+      )}
+      style={{ height: fullscreen ? '100dvh' : height, background: sky }}
     >
       {night && (
         <div className="pointer-events-none absolute inset-0 opacity-70">
@@ -118,7 +147,24 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
         </div>
       )}
 
-      <MundoCanvas mundo={state} night={night} dayT={dayT} watering={watering} />
+      <MundoCanvas mundo={state} night={night} dayT={dayT} watering={watering} onCare={interactive && profile ? onCare : undefined} />
+
+      {/* Diorama finish: subtle tilt-shift blur bands + vignette. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[14%]"
+        style={{ backdropFilter: 'blur(1.6px)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)', maskImage: 'linear-gradient(to bottom, black, transparent)' }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[12%]"
+        style={{ backdropFilter: 'blur(1.4px)', WebkitMaskImage: 'linear-gradient(to top, black, transparent)', maskImage: 'linear-gradient(to top, black, transparent)' }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,0.16) 100%)' }}
+      />
 
       {!hideOverlay && (
         <>
@@ -127,6 +173,20 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
             <span className="text-caption font-bold text-white/95">Mundo {state.worldIndex ?? 1}</span>
             <span className="text-caption text-white/70">· {biome.name}</span>
           </div>
+
+          {/* Fullscreen toggle */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              haptic('light');
+              setFullscreen((f) => !f);
+            }}
+            aria-label={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
+            className="absolute bottom-16 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105"
+          >
+            {fullscreen ? '✕' : '⛶'}
+          </button>
 
           {/* Regá tu mundo — the in-world daily care action */}
           {showWater && (
