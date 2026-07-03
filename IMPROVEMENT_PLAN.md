@@ -135,7 +135,9 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F8.7 Interactivity: tap sparkles, zoom (4.2-8.5), "💧 Regar +50" in-world daily action w/ rain FX — VERIFIED end-to-end in browser (growth 20/62→21/62 live)
 - [x] F8.8 Canvas sizes: home/profile 320, onboarding 280 (non-interactive)
 - [x] F8.9 Visual verification loop ran: dev server + QA account (visual-qa@brote.dev / VisualQA2026!, uid …0002 — KEEP for future checks); caught+fixed a REAL shader-compile-storm freeze (customProgramCacheKey now shared: 'brote-canopy'/'brote-grass'). Full pixel screenshot pending user opening the preview window (browser pauses rendering while occluded — not an app issue).
-- [ ] F8.10 NEXT VISUAL PASS: user eyeballs the world → iterate on art direction (colors/composition/detail) per feedback; skier on snowy mountains; per-biome ambient audio (optional).
+- [x] F8.10 v4 "DIORAMA" PASS (user feedback 2026-07-03: too dark at night, sparse, small, wants photo-diorama style + free camera + fullscreen + no-points care interactions):
+  island 2.4→3.4 (+45%), dense instanced CONIFER FOREST ring that densifies with world pct (4 draw calls), wooden BRIDGE over the river, grazing DEER (growth 12+/24+), drifting DUCKS, cozy CABIN at 50%, finer denser grass (620-1000 blades), trees +45% taller, Pip 0.78×, moonlit-readable NIGHT (never a black blob), free camera (pan+orbit+zoom 3.4-13 w/ damping), FULLSCREEN toggle (⛶), tilt-shift blur bands + vignette (diorama finish), CARE TOUCHES: tapping trees/bushes → hearts + care_world() RPC (live 0014 = repo 0022): +1 growth each, max 5/day, ZERO points; complete_activity folds bonus_growth into world math. Verified in browser: world renders, chip/growth/fullscreen/water present, care 21→22 growth. Dev-cache corruption (.next) diagnosed+cleared during verification (tooling, not app).
+- [ ] F8.11 NEXT: user eyeballs v4 (screenshots blocked while preview window occluded) → art iteration; skier; ambient audio (optional).
 
 ### F9 — Avatares personalizados (Snapchat-style, adapted)
 Pragmatic path (researched): full Bitmoji-style human avatars = months of art. On-brand adaptation in 2 phases:
