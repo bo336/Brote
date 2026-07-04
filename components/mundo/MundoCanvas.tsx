@@ -213,6 +213,27 @@ function grassTuftTexture(): THREE.CanvasTexture {
   });
 }
 
+/**
+ * Foliage CARD (v5): an alpha texture of overlapping leaf clumps. Dozens of
+ * these small quads per canopy replace smooth cones/blobs with the foam-like
+ * miniature-diorama silhouette of the reference art.
+ */
+function foliageCardTexture(): THREE.CanvasTexture {
+  return makeTexture('folCard', 128, (ctx, s, rng) => {
+    ctx.clearRect(0, 0, s, s);
+    for (let i = 0; i < 46; i++) {
+      const cx = s * 0.5 + (rng() - 0.5) * s * 0.72;
+      const cy = s * 0.5 + (rng() - 0.5) * s * 0.72;
+      if (Math.hypot(cx - s / 2, cy - s / 2) > s * 0.44) continue;
+      const v = Math.round(150 + rng() * 105);
+      ctx.fillStyle = `rgba(${v},${v},${v},${0.75 + rng() * 0.25})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 5 + rng() * 9, 4 + rng() * 7, rng() * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
 /** Soft radial disc — sprites: shadows, mist, sun, clouds, sparkles. */
 function softDiscTexture(): THREE.CanvasTexture {
   return makeTexture('soft', 128, (ctx, s) => {
@@ -504,15 +525,17 @@ function Mountain({
  */
 function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; pct: number; worldIndex: number; snow: boolean }) {
   const trunkRef = useRef<THREE.InstancedMesh>(null);
-  const tierRefs = [useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null)];
+  const cardRef = useRef<THREE.InstancedMesh>(null);
   const snowRef = useRef<THREE.InstancedMesh>(null);
   const MAXN = 48;
+  const CARDS_PER = 26;
   const count = Math.min(MAXN, 12 + Math.round(pct * 30) + Math.min(6, worldIndex));
 
   useEffect(() => {
     const rng = mulberry32(4000 + worldIndex * 17);
     const dummy = new THREE.Object3D();
     const c = new THREE.Color();
+    const base = new THREE.Color(leafDeep);
     const placed: { x: number; z: number; s: number }[] = [];
     let guard = 0;
     while (placed.length < count && guard++ < 400) {
@@ -523,49 +546,60 @@ function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; 
       if (Math.hypot(x - POND_POS[0], z - POND_POS[1]) < POND_R + 0.5) continue;
       if (MOUNTAIN_POS.some(([mx, mz]) => Math.hypot(x - mx, z - mz) < 1.1)) continue;
       if (placed.some((p) => Math.hypot(x - p.x, z - p.z) < 0.42)) continue;
-      placed.push({ x, z, s: 0.75 + rng() * 0.65 });
+      placed.push({ x, z, s: 0.8 + rng() * 0.75 });
     }
     const cRng = mulberry32(999);
     placed.forEach((p, i) => {
-      // Trunk
       if (trunkRef.current) {
-        dummy.position.set(p.x, 0.22 * p.s, p.z);
+        dummy.position.set(p.x, 0.3 * p.s, p.z);
         dummy.scale.setScalar(p.s);
         dummy.rotation.set(0, cRng() * Math.PI, 0);
         dummy.updateMatrix();
         trunkRef.current.setMatrixAt(i, dummy.matrix);
       }
-      // Three stacked foliage tiers
-      const tierY = [0.62, 1.05, 1.42];
-      const tierS = [1, 0.74, 0.48];
-      tierRefs.forEach((ref, t) => {
-        if (!ref.current) return;
-        dummy.position.set(p.x, tierY[t]! * p.s, p.z);
-        dummy.scale.set(p.s * tierS[t]!, p.s * tierS[t]!, p.s * tierS[t]!);
-        dummy.rotation.set(0, cRng() * Math.PI, 0);
+      // Foliage: a cloud of leaf-cluster cards filling a cone volume —
+      // jagged organic silhouette instead of smooth "straight line" cones.
+      for (let k = 0; k < CARDS_PER; k++) {
+        const idx = i * CARDS_PER + k;
+        const hf = k / CARDS_PER; // 0 bottom → 1 top
+        const y = (0.45 + hf * 1.25) * p.s;
+        const maxR = 0.62 * (1 - hf * 0.82) * p.s;
+        const aa = cRng() * Math.PI * 2;
+        const rr = Math.sqrt(cRng()) * maxR;
+        dummy.position.set(p.x + Math.cos(aa) * rr, y, p.z + Math.sin(aa) * rr);
+        const cs = (0.34 + cRng() * 0.3) * p.s;
+        dummy.scale.set(cs, cs * (0.75 + cRng() * 0.4), cs);
+        dummy.rotation.set((cRng() - 0.5) * 0.9, cRng() * Math.PI * 2, (cRng() - 0.5) * 0.9);
         dummy.updateMatrix();
-        ref.current.setMatrixAt(i, dummy.matrix);
-        c.copy(vary(leafDeep, cRng, 0.03, 0.1, 0.12));
-        ref.current.setColorAt(i, c);
-      });
-      // Snow tip
+        cardRef.current?.setMatrixAt(idx, dummy.matrix);
+        // Height-graded color: dark shaded base → sunlit top, plus jitter.
+        c.copy(base);
+        const hsl = { h: 0, s: 0, l: 0 };
+        c.getHSL(hsl);
+        c.setHSL(
+          (hsl.h + (cRng() - 0.5) * 0.03 + 1) % 1,
+          THREE.MathUtils.clamp(hsl.s + (cRng() - 0.5) * 0.1, 0, 1),
+          THREE.MathUtils.clamp(hsl.l * (0.72 + hf * 0.55) + (cRng() - 0.5) * 0.05, 0, 1),
+        );
+        cardRef.current?.setColorAt(idx, c);
+      }
       if (snowRef.current) {
-        dummy.position.set(p.x, 1.68 * p.s, p.z);
-        dummy.scale.setScalar(snow ? p.s * 0.3 : 0.0001);
+        dummy.position.set(p.x, 1.72 * p.s, p.z);
+        dummy.scale.setScalar(snow ? p.s * 0.28 : 0.0001);
         dummy.updateMatrix();
         snowRef.current.setMatrixAt(i, dummy.matrix);
       }
     });
-    // Hide unused instances
+    // Hide unused instances.
     for (let i = placed.length; i < MAXN; i++) {
       dummy.position.set(0, -50, 0);
       dummy.scale.setScalar(0.0001);
       dummy.updateMatrix();
       trunkRef.current?.setMatrixAt(i, dummy.matrix);
-      tierRefs.forEach((ref) => ref.current?.setMatrixAt(i, dummy.matrix));
       snowRef.current?.setMatrixAt(i, dummy.matrix);
+      for (let k = 0; k < CARDS_PER; k++) cardRef.current?.setMatrixAt(i * CARDS_PER + k, dummy.matrix);
     }
-    [trunkRef, ...tierRefs, snowRef].forEach((ref) => {
+    [trunkRef, cardRef, snowRef].forEach((ref) => {
       if (ref.current) {
         ref.current.instanceMatrix.needsUpdate = true;
         if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
@@ -575,19 +609,17 @@ function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; 
   }, [count, leafDeep, worldIndex, snow]);
 
   const barkTex = useMemo(() => barkTexture(), []);
-  const folTex = useMemo(() => foliageTexture(), []);
+  const cardTex = useMemo(() => foliageCardTexture(), []);
   return (
     <group>
       <instancedMesh ref={trunkRef} args={[undefined, undefined, MAXN]} castShadow frustumCulled={false}>
-        <cylinderGeometry args={[0.05, 0.09, 0.5, 6]} />
+        <cylinderGeometry args={[0.045, 0.1, 0.7, 6]} />
         <meshStandardMaterial map={barkTex} color="#7a5a3c" roughness={1} />
       </instancedMesh>
-      {tierRefs.map((ref, t) => (
-        <instancedMesh key={t} ref={ref} args={[undefined, undefined, MAXN]} castShadow frustumCulled={false}>
-          <coneGeometry args={[0.52 - t * 0.02, 0.78, 8]} />
-          <meshStandardMaterial map={folTex} bumpMap={folTex} bumpScale={0.03} roughness={0.9} />
-        </instancedMesh>
-      ))}
+      <instancedMesh ref={cardRef} args={[undefined, undefined, MAXN * CARDS_PER]} castShadow frustumCulled={false}>
+        <planeGeometry args={[1, 1]} />
+        <meshStandardMaterial map={cardTex} alphaTest={0.42} side={THREE.DoubleSide} roughness={0.9} />
+      </instancedMesh>
       <instancedMesh ref={snowRef} args={[undefined, undefined, MAXN]} frustumCulled={false}>
         <coneGeometry args={[0.5, 0.4, 8]} />
         <meshStandardMaterial color="#f2f7f9" roughness={0.6} />
@@ -694,6 +726,115 @@ function Duck({ seed }: { seed: number }) {
         <coneGeometry args={[0.018, 0.05, 4]} />
         <meshStandardMaterial color="#e8a33d" />
       </mesh>
+    </group>
+  );
+}
+
+/** Winding dirt path: cabin → centre → bridge (organizes the composition). */
+function DirtPath() {
+  const tex = useMemo(() => rockTexture(), []);
+  const geo = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.55, 0.03, -1.95),
+      new THREE.Vector3(-0.45, 0.03, -0.7),
+      new THREE.Vector3(0.35, 0.03, 0.35),
+      new THREE.Vector3(1.35, 0.03, -0.6),
+      new THREE.Vector3(2.3, 0.03, -1.72),
+    ]);
+    const g = new THREE.TubeGeometry(curve, 40, 0.15, 6, false);
+    g.scale(1, 0.16, 1);
+    return g;
+  }, []);
+  return (
+    <mesh geometry={geo} receiveShadow>
+      <meshStandardMaterial map={tex} bumpMap={tex} bumpScale={0.03} color="#b28d5e" roughness={1} />
+    </mesh>
+  );
+}
+
+/** Tree stump with growth rings. */
+function Stump({ position }: { position: [number, number, number] }) {
+  const bark = useMemo(() => barkTexture(), []);
+  return (
+    <group position={position}>
+      <mesh castShadow position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.09, 0.11, 0.12, 8]} />
+        <meshStandardMaterial map={bark} color="#8a6844" roughness={1} />
+      </mesh>
+      <mesh position={[0, 0.121, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.085, 12]} />
+        <meshStandardMaterial color="#c9a879" roughness={0.9} />
+      </mesh>
+      <BlobShadow r={0.13} opacity={0.22} />
+    </group>
+  );
+}
+
+/** Mossy fallen log. */
+function FallenLog({ position, rotY = 0.8 }: { position: [number, number, number]; rotY?: number }) {
+  const bark = useMemo(() => barkTexture(), []);
+  return (
+    <group position={position} rotation={[0, rotY, 0]}>
+      <mesh castShadow position={[0, 0.07, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.08, 0.09, 0.7, 8]} />
+        <meshStandardMaterial map={bark} color="#7a5a3c" roughness={1} />
+      </mesh>
+      <mesh geometry={blobGeometry(0.09, 1, 0.3, 55)} position={[0.12, 0.14, 0]} scale={[1.4, 0.5, 1]}>
+        <meshStandardMaterial color="#4d7a3a" roughness={1} />
+      </mesh>
+      <BlobShadow r={0.3} opacity={0.22} />
+    </group>
+  );
+}
+
+/** Little red mushroom cluster. */
+function Mushrooms({ position }: { position: [number, number, number] }) {
+  const rng = useMemo(() => mulberry32(303), []);
+  const shrooms = useMemo(
+    () =>
+      [0, 1, 2].map(() => ({
+        x: (rng() - 0.5) * 0.16,
+        z: (rng() - 0.5) * 0.16,
+        s: 0.5 + rng() * 0.6,
+      })),
+    [rng],
+  );
+  return (
+    <group position={position}>
+      {shrooms.map((m, i) => (
+        <group key={i} position={[m.x, 0, m.z]} scale={m.s}>
+          <mesh castShadow position={[0, 0.035, 0]}>
+            <cylinderGeometry args={[0.016, 0.022, 0.07, 6]} />
+            <meshStandardMaterial color="#f0e6d2" roughness={0.8} />
+          </mesh>
+          <mesh castShadow position={[0, 0.075, 0]} scale={[1, 0.62, 1]}>
+            <sphereGeometry args={[0.045, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial color="#d0543a" roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
+      <BlobShadow r={0.1} opacity={0.18} />
+    </group>
+  );
+}
+
+/** Rustic fence run near the cabin. */
+function Fence({ position, rotY = 0 }: { position: [number, number, number]; rotY?: number }) {
+  const bark = useMemo(() => barkTexture(), []);
+  return (
+    <group position={position} rotation={[0, rotY, 0]}>
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} castShadow position={[i * 0.28, 0.1, 0]}>
+          <cylinderGeometry args={[0.016, 0.02, 0.2, 5]} />
+          <meshStandardMaterial map={bark} color="#8a6a44" roughness={1} />
+        </mesh>
+      ))}
+      {[0.14, 0.06].map((y, i) => (
+        <mesh key={i} castShadow position={[0.42, y, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.011, 0.011, 0.9, 4]} />
+          <meshStandardMaterial map={bark} color="#96744c" roughness={1} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -1138,16 +1279,54 @@ function Tree({
   const matA = useCanopyMaterial(leafColor);
   const matB = useCanopyMaterial(deepColor);
   const blobs = useMemo(() => {
-    const n = 4 + Math.floor(rng() * 3);
+    const n = 3 + Math.floor(rng() * 2);
     return Array.from({ length: n }).map((_, i) => ({
-      x: (rng() - 0.5) * 0.56,
-      y: 0.85 + rng() * 0.5,
-      z: (rng() - 0.5) * 0.56,
-      r: 0.26 + rng() * 0.28,
+      x: (rng() - 0.5) * 0.5,
+      y: 0.85 + rng() * 0.45,
+      z: (rng() - 0.5) * 0.5,
+      r: 0.24 + rng() * 0.24,
       deep: i % 2 === 1,
       geoSeed: seed * 7 + i,
     }));
   }, [rng, seed]);
+
+  // v5 foliage-card shell: leaf-cluster quads over the blob core give the
+  // foam-like miniature silhouette (no more smooth "block" canopies).
+  const cardRef = useRef<THREE.InstancedMesh>(null);
+  const CARDS = 20;
+  const cardTex = useMemo(() => foliageCardTexture(), []);
+  useEffect(() => {
+    const mesh = cardRef.current;
+    if (!mesh) return;
+    const cRng = mulberry32(seed * 13 + 5);
+    const dummy = new THREE.Object3D();
+    const c = new THREE.Color();
+    const baseA = new THREE.Color(leafColor);
+    const baseB = new THREE.Color(deepColor);
+    for (let k = 0; k < CARDS; k++) {
+      // Sample a point on a squashed sphere shell around the canopy centre.
+      const theta = cRng() * Math.PI * 2;
+      const phi = Math.acos(2 * cRng() - 1);
+      const R = 0.42 + cRng() * 0.16;
+      dummy.position.set(
+        Math.sin(phi) * Math.cos(theta) * R,
+        1.02 + Math.cos(phi) * R * 0.75,
+        Math.sin(phi) * Math.sin(theta) * R,
+      );
+      const cs = 0.3 + cRng() * 0.26;
+      dummy.scale.set(cs, cs * (0.8 + cRng() * 0.35), cs);
+      dummy.rotation.set((cRng() - 0.5) * 1.1, cRng() * Math.PI * 2, (cRng() - 0.5) * 1.1);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(k, dummy.matrix);
+      c.copy(cRng() > 0.5 ? baseA : baseB);
+      const hsl = { h: 0, s: 0, l: 0 };
+      c.getHSL(hsl);
+      c.setHSL(hsl.h, hsl.s, THREE.MathUtils.clamp(hsl.l * (0.8 + (dummy.position.y - 0.6) * 0.45), 0, 1));
+      mesh.setColorAt(k, c);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [seed, leafColor, deepColor]);
 
   return (
     <SwayGroup position={position} scale={scale} phase={seed % 7} amp={0.016} speed={0.85}>
@@ -1155,6 +1334,10 @@ function Tree({
       {blobs.map((b, i) => (
         <mesh key={i} castShadow geometry={blobGeometry(b.r, 2, 0.2, b.geoSeed)} position={[b.x, b.y, b.z]} material={b.deep ? matB : matA} />
       ))}
+      <instancedMesh ref={cardRef} args={[undefined, undefined, CARDS]} castShadow frustumCulled={false}>
+        <planeGeometry args={[1, 1]} />
+        <meshStandardMaterial map={cardTex} alphaTest={0.42} side={THREE.DoubleSide} roughness={0.9} />
+      </instancedMesh>
       {snow && (
         <mesh geometry={blobGeometry(0.32, 1, 0.25, seed + 999)} position={[0, 1.42, 0]} scale={[1, 0.45, 1]}>
           <meshStandardMaterial color="#f2f6f8" roughness={0.7} />
@@ -1746,7 +1929,17 @@ function Scene({
           {worldIndex >= 3 && <Kayak accent={accent} />}
         </>
       )}
-      {pct >= 0.5 && <Cabin position={[-0.4, 0, -2.3]} />}
+      <DirtPath />
+      <Stump position={[0.95, 0, 1.95]} />
+      <FallenLog position={[-2.0, 0, 0.7]} rotY={0.9} />
+      {growth >= 6 && <Mushrooms position={[1.5, 0, 1.1]} />}
+      {growth >= 14 && <Mushrooms position={[-0.7, 0, -1.4]} />}
+      {pct >= 0.5 && (
+        <>
+          <Cabin position={[-0.4, 0, -2.3]} />
+          <Fence position={[-1.15, 0, -1.95]} rotY={0.35} />
+        </>
+      )}
       {biome.features.palms && (
         <>
           <Palm position={[-2.2, 0, 1.35]} leaf={leaf} seed={21} />
@@ -1837,16 +2030,16 @@ export default function MundoCanvas({
       shadows
       dpr={[1, 2]}
       camera={{ position: [0, 3.3, 8.6], fov: 35 }}
-      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+      // preserveDrawingBuffer → the world can be captured for share cards.
+      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.14;
       }}
     >
       <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} onCare={onCare} />
-      {/* v4.5: screen-space ambient occlusion is what makes separate meshes
-          read as ONE cohesive scene (contact darkening where things meet),
-          plus a whisper of bloom for the sky/fire/fireflies. */}
+      {/* AO fuses separate meshes into ONE cohesive scene (contact darkening),
+          bloom lifts fire/fireflies/sun. */}
       <EffectComposer multisampling={0}>
         <N8AO aoRadius={0.6} intensity={3.5} distanceFalloff={0.8} quality="performance" halfRes />
         <Bloom intensity={0.22} luminanceThreshold={0.82} mipmapBlur />

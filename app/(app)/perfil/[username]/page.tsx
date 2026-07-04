@@ -94,7 +94,7 @@ export default function PublicProfilePage() {
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Su mundo</h2>
-        <Mundo mundo={parseMundoState(p.mundo_state)} height={240} />
+        <Mundo mundo={parseMundoState(p.mundo_state)} height={300} interactive={false} />
       </section>
     </div>
   );
