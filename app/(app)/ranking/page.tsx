@@ -144,16 +144,8 @@ export default function RankingPage() {
                   const isMe = r.user_id === myId;
                   const promote = r.pos <= 5;
                   const relegate = leagueQ.data!.rows.length >= 15 && r.pos > leagueQ.data!.rows.length - 3;
-                  return (
-                    <div
-                      key={r.user_id}
-                      className={cn(
-                        'flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
-                        promote && 'border-brote-green/40 bg-brote-green/5',
-                        relegate && 'border-brote-coral/30 bg-brote-coral/5',
-                        isMe && 'ring-2 ring-primary',
-                      )}
-                    >
+                  const inner = (
+                    <>
                       <span className={cn('w-6 text-center text-small font-bold tnum', promote ? 'text-brote-green' : relegate ? 'text-brote-coral' : 'text-muted-foreground')}>
                         {r.pos}
                       </span>
@@ -161,8 +153,25 @@ export default function RankingPage() {
                       <span className="min-w-0 flex-1 truncate text-small font-medium">
                         {r.display_name ?? r.username ?? 'Alguien'}
                         {isMe && <span className="text-muted-foreground"> (vos)</span>}
+                        {!isMe && r.username && <span className="text-caption text-muted-foreground"> · visitar 🌍</span>}
                       </span>
                       <span className="text-small font-bold text-brote-sun tnum">+{r.xp}</span>
+                    </>
+                  );
+                  const cls = cn(
+                    'flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
+                    promote && 'border-brote-green/40 bg-brote-green/5',
+                    relegate && 'border-brote-coral/30 bg-brote-coral/5',
+                    isMe && 'ring-2 ring-primary',
+                  );
+                  // Visiting worlds (F10.3): tap a rival to walk their island.
+                  return !isMe && r.username ? (
+                    <Link key={r.user_id} href={`/perfil/${r.username}`} className={cn(cls, 'transition-transform hover:-translate-y-0.5')}>
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div key={r.user_id} className={cls}>
+                      {inner}
                     </div>
                   );
                 })}

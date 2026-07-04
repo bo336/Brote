@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pip, PIP_PALETTES, PIP_HATS, type PipStyle } from '@/components/pip/Pip';
+import { Pip, PIP_PALETTES, PIP_HATS, PIP_GLASSES, PIP_PATTERNS, type PipStyle } from '@/components/pip/Pip';
 import { useSession } from '@/stores/session';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/stores/toast';
@@ -27,6 +27,24 @@ const HAT_NAMES: Record<string, string> = {
   flor: 'Flor',
   gorro: 'Gorro',
   corona: 'Corona',
+  hongo: 'Honguito',
+  mono: 'Moño',
+  vincha: 'Vincha',
+  estrella: 'Estrella',
+};
+
+const GLASSES_NAMES: Record<string, string> = {
+  ninguno: 'Sin anteojos',
+  redondos: 'Redondos',
+  sol: 'De sol',
+  corazones: 'Corazones',
+};
+
+const PATTERN_NAMES: Record<string, string> = {
+  ninguno: 'Liso',
+  pecas: 'Pecas',
+  lunares: 'Lunares',
+  rayitas: 'Rayitas',
 };
 
 /**
@@ -116,6 +134,58 @@ export default function PipCustomizerPage() {
               >
                 <Pip size={52} mood="happy" animate={false} pipStyle={{ body: style.body, hat }} />
                 <span className="text-caption font-medium">{HAT_NAMES[hat]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Glasses */}
+      <section>
+        <h2 className="mb-2 font-display text-h3 font-bold">Anteojos</h2>
+        <div className="grid grid-cols-4 gap-2.5">
+          {PIP_GLASSES.map((g) => {
+            const active = (style.glasses ?? 'ninguno') === g;
+            return (
+              <button
+                key={g}
+                onClick={() => {
+                  haptic('light');
+                  setStyle((s) => ({ ...s, glasses: g }));
+                }}
+                className={cn(
+                  'flex flex-col items-center gap-1 rounded-card border p-2.5 transition-all',
+                  active ? 'border-primary bg-primary/10' : 'border-border bg-surface',
+                )}
+              >
+                <Pip size={46} mood="happy" animate={false} pipStyle={{ body: style.body, glasses: g }} />
+                <span className="text-caption font-medium">{GLASSES_NAMES[g]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Body pattern */}
+      <section>
+        <h2 className="mb-2 font-display text-h3 font-bold">Estampa</h2>
+        <div className="grid grid-cols-4 gap-2.5">
+          {PIP_PATTERNS.map((p) => {
+            const active = (style.pattern ?? 'ninguno') === p;
+            return (
+              <button
+                key={p}
+                onClick={() => {
+                  haptic('light');
+                  setStyle((s) => ({ ...s, pattern: p }));
+                }}
+                className={cn(
+                  'flex flex-col items-center gap-1 rounded-card border p-2.5 transition-all',
+                  active ? 'border-primary bg-primary/10' : 'border-border bg-surface',
+                )}
+              >
+                <Pip size={46} mood="happy" animate={false} pipStyle={{ body: style.body, pattern: p }} />
+                <span className="text-caption font-medium">{PATTERN_NAMES[p]}</span>
               </button>
             );
           })}

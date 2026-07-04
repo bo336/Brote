@@ -54,6 +54,10 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
   const [dayT, setDayT] = useState(0.5);
   const [watering, setWatering] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  /** Preview override: users who open the app at night can still see the day look. */
+  const [timeMode, setTimeMode] = useState<'auto' | 'day' | 'night'>('auto');
+  const [sharing, setSharing] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const wateringTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const careBusy = useRef(false);
 
@@ -108,6 +112,72 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
 
   const state = mundo ?? computeMundoState({ totalXp: 0, currentStreak: 0, completionsCount: 0 });
   const want3D = mounted && shouldRender3D(detailMode);
+  const effNight = timeMode === 'auto' ? night : timeMode === 'night';
+
+  /** Capture the live world + compose a branded share card (F10.2). */
+  async function shareWorld() {
+    if (sharing) return;
+    const canvas = wrapRef.current?.querySelector('canvas');
+    if (!canvas) return;
+    setSharing(true);
+    haptic('medium');
+    try {
+      const W = 1080;
+      const H = 1350;
+      const card = document.createElement('canvas');
+      card.width = W;
+      card.height = H;
+      const ctx = card.getContext('2d')!;
+      // World shot (cover-fit into the top ~76%).
+      const shotH = Math.round(H * 0.76);
+      const scale = Math.max(W / canvas.width, shotH / canvas.height);
+      const dw = canvas.width * scale;
+      const dh = canvas.height * scale;
+      ctx.fillStyle = '#0C1A13';
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(canvas, (W - dw) / 2, (shotH - dh) / 2, dw, dh);
+      // Bottom brand band.
+      const grad = ctx.createLinearGradient(0, shotH - 140, 0, H);
+      grad.addColorStop(0, 'rgba(12,26,19,0)');
+      grad.addColorStop(0.35, 'rgba(12,26,19,0.96)');
+      grad.addColorStop(1, '#0C1A13');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, shotH - 140, W, H - shotH + 140);
+      const b = biomeFor(state.worldIndex ?? 1);
+      ctx.fillStyle = '#F7F5EF';
+      ctx.font = 'bold 64px system-ui, sans-serif';
+      ctx.fillText(`Mundo ${state.worldIndex ?? 1} · ${b.name}`, 64, shotH + 60);
+      ctx.fillStyle = '#9FB0A6';
+      ctx.font = '44px system-ui, sans-serif';
+      const growthTxt = `🌱 ${state.worldGrowth ?? 0}/${state.worldGoal ?? 40}`;
+      const streakTxt = profile?.currentStreak ? ` · 🔥 ${profile.currentStreak} días` : '';
+      ctx.fillText(growthTxt + streakTxt, 64, shotH + 130);
+      ctx.fillStyle = '#1FB57A';
+      ctx.font = 'bold 48px system-ui, sans-serif';
+      ctx.fillText('🌱 Brote', 64, H - 72);
+      ctx.fillStyle = '#9FB0A6';
+      ctx.font = '36px system-ui, sans-serif';
+      ctx.fillText('Hacé crecer tu mundo · brote-ft7m.vercel.app', 64, H - 24);
+
+      const blob: Blob | null = await new Promise((res) => card.toBlob(res, 'image/png'));
+      if (!blob) return;
+      const file = new File([blob], 'mi-mundo-brote.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Mi mundo en Brote 🌱' });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mi-mundo-brote.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      /* user cancelled share — fine */
+    } finally {
+      setSharing(false);
+    }
+  }
 
   if (!want3D) {
     return <MundoHeroFallback mundo={mundo} height={height} className={className} />;
@@ -115,7 +185,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
 
   const golden = state.palette === 'golden';
   const biome = biomeFor(state.worldIndex ?? 1);
-  const sky = night
+  const sky = effNight
     ? 'linear-gradient(180deg, #0b1f3a 0%, #16261D 75%)'
     : golden
       ? 'linear-gradient(180deg, #FFE3A8 0%, #FFC36B 60%, #BfE6C8 100%)'
@@ -128,6 +198,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
 
   return (
     <div
+      ref={wrapRef}
       className={cn(
         'relative w-full overflow-hidden border border-border',
         fullscreen ? 'fixed inset-0 z-[80] rounded-none' : 'rounded-card',
@@ -135,7 +206,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
       )}
       style={{ height: fullscreen ? '100dvh' : height, background: sky }}
     >
-      {night && (
+      {effNight && (
         <div className="pointer-events-none absolute inset-0 opacity-70">
           {Array.from({ length: 16 }).map((_, i) => (
             <span
@@ -147,7 +218,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
         </div>
       )}
 
-      <MundoCanvas mundo={state} night={night} dayT={dayT} watering={watering} onCare={interactive && profile ? onCare : undefined} />
+      <MundoCanvas mundo={state} night={effNight} dayT={effNight ? dayT : 0.35} watering={watering} onCare={interactive && profile ? onCare : undefined} />
 
       {/* Diorama finish: subtle tilt-shift blur bands + vignette. */}
       <div
@@ -174,7 +245,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
             <span className="text-caption text-white/70">· {biome.name}</span>
           </div>
 
-          {/* Fullscreen toggle */}
+          {/* Right-side control column: fullscreen / day-night preview / share */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -187,6 +258,32 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
           >
             {fullscreen ? '✕' : '⛶'}
           </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              haptic('light');
+              setTimeMode((m) => (m === 'auto' ? (effNight ? 'day' : 'night') : m === 'day' ? 'night' : 'day'));
+            }}
+            aria-label="Cambiar día y noche"
+            className="absolute bottom-[6.9rem] right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105"
+          >
+            {effNight ? '☀️' : '🌙'}
+          </button>
+          {interactive && profile && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void shareWorld();
+              }}
+              disabled={sharing}
+              aria-label="Compartir tu mundo"
+              className="absolute bottom-[9.7rem] right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105 disabled:opacity-50"
+            >
+              {sharing ? '…' : '📤'}
+            </button>
+          )}
 
           {/* Regá tu mundo — the in-world daily care action */}
           {showWater && (
