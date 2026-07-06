@@ -401,11 +401,11 @@ function SunSprite({ pos, night }: { pos: [number, number, number]; night: boole
 
 // ── Terrain ─────────────────────────────────────────────────────────────────
 
-function Island({ ground, night }: { ground: string; night: boolean }) {
+function Island({ ground, night, R }: { ground: string; night: boolean; R: number }) {
   const capTex = useMemo(() => grassFieldTexture(), []);
   const rockTex = useMemo(() => rockTexture(), []);
   const sideGeo = useMemo(() => {
-    const geo = new THREE.CylinderGeometry(ISLAND_R + 0.02, ISLAND_R + 0.14, 0.4, 56, 1, true);
+    const geo = new THREE.CylinderGeometry(R + 0.02, R + 0.14, 0.4, 56, 1, true);
     const rng = mulberry32(42);
     const pos = geo.attributes.position as THREE.BufferAttribute;
     const v = new THREE.Vector3();
@@ -417,14 +417,35 @@ function Island({ ground, night }: { ground: string; night: boolean }) {
     }
     geo.computeVertexNormals();
     return geo;
-  }, []);
+  }, [R]);
+  // Ground with real RELIEF: gentle interior undulation, never a flat disc.
+  const capGeo = useMemo(() => {
+    const geo = new THREE.CircleGeometry(R + 0.04, 56, 0, Math.PI * 2);
+    // CircleGeometry is flat in XY (rotated later); displace Z as "height".
+    const g2 = new THREE.CircleGeometry(R + 0.04, 72);
+    const pos = g2.attributes.position as THREE.BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const d = Math.hypot(x, y);
+      if (d < R - 0.35) {
+        const h =
+          Math.sin(x * 1.7 + 1.3) * Math.cos(y * 1.4 + 0.6) * 0.045 +
+          Math.sin(x * 3.7) * Math.sin(y * 3.1) * 0.02;
+        pos.setZ(i, h * Math.min(1, (R - 0.35 - d) * 2));
+      }
+    }
+    g2.computeVertexNormals();
+    geo.dispose();
+    return g2;
+  }, [R]);
   const soilGeo = useMemo(() => blobGeometry(1, 1, 0.18, 7), []);
+  const soilS = R / 3.4;
 
   return (
     <group>
-      {/* Grass cap with radial lush→dirt texture. */}
-      <mesh receiveShadow position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[ISLAND_R + 0.04, 56]} />
+      {/* Grass cap with radial lush→dirt texture + relief. */}
+      <mesh receiveShadow geometry={capGeo} position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <meshStandardMaterial map={capTex} bumpMap={capTex} bumpScale={0.035} color={ground} roughness={0.95} />
       </mesh>
       {/* Gentle interior mounds for relief. */}
@@ -442,10 +463,10 @@ function Island({ ground, night }: { ground: string; night: boolean }) {
       <mesh geometry={sideGeo} position={[0, -0.19, 0]}>
         <meshStandardMaterial map={rockTex} bumpMap={rockTex} bumpScale={0.05} color="#7a5a39" roughness={1} />
       </mesh>
-      <mesh geometry={soilGeo} position={[0, -1.3, 0]} scale={[3.3, 1.4, 3.3]}>
+      <mesh geometry={soilGeo} position={[0, -1.3 * soilS, 0]} scale={[3.3 * soilS, 1.4 * soilS, 3.3 * soilS]}>
         <meshStandardMaterial map={rockTex} bumpMap={rockTex} bumpScale={0.06} color="#6e4f33" roughness={1} />
       </mesh>
-      <mesh geometry={soilGeo} position={[0.3, -2.4, -0.15]} scale={[1.6, 1.0, 1.6]}>
+      <mesh geometry={soilGeo} position={[0.3, -2.4 * soilS, -0.15]} scale={[1.6 * soilS, 1.0 * soilS, 1.6 * soilS]}>
         <meshStandardMaterial map={rockTex} color="#5d4229" roughness={1} />
       </mesh>
       {[0, 1, 2].map((i) => (
@@ -523,7 +544,19 @@ function Mountain({
  * Density grows with world progress so a young world is a clearing and a
  * finished one is a forest.
  */
-function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; pct: number; worldIndex: number; snow: boolean }) {
+function ConiferForest({
+  leafDeep,
+  pct,
+  worldIndex,
+  snow,
+  ringR = ISLAND_R * 0.93,
+}: {
+  leafDeep: string;
+  pct: number;
+  worldIndex: number;
+  snow: boolean;
+  ringR?: number;
+}) {
   const trunkRef = useRef<THREE.InstancedMesh>(null);
   const cardRef = useRef<THREE.InstancedMesh>(null);
   const snowRef = useRef<THREE.InstancedMesh>(null);
@@ -540,7 +573,7 @@ function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; 
     let guard = 0;
     while (placed.length < count && guard++ < 400) {
       const a = rng() * Math.PI * 2;
-      const r = 2.45 + rng() * 0.8;
+      const r = ringR * 0.76 + rng() * ringR * 0.25;
       const x = Math.cos(a) * r;
       const z = Math.sin(a) * r;
       if (Math.hypot(x - POND_POS[0], z - POND_POS[1]) < POND_R + 0.5) continue;
@@ -606,7 +639,7 @@ function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; 
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count, leafDeep, worldIndex, snow]);
+  }, [count, leafDeep, worldIndex, snow, ringR]);
 
   const barkTex = useMemo(() => barkTexture(), []);
   const cardTex = useMemo(() => foliageCardTexture(), []);
@@ -629,11 +662,11 @@ function ConiferForest({ leafDeep, pct, worldIndex, snow }: { leafDeep: string; 
 }
 
 /** Wooden plank bridge over the river. */
-function Bridge() {
+function Bridge({ R = ISLAND_R }: { R?: number }) {
   const barkTex = useMemo(() => barkTexture(), []);
   const dir = useMemo(() => new THREE.Vector2(POND_POS[0], POND_POS[1]).normalize(), []);
   const angle = Math.atan2(dir.y, dir.x);
-  const mid = 3.08; // over the river, near the rim
+  const mid = R - 0.34; // over the river, near the (growing) rim
   return (
     <group rotation={[0, -angle, 0]} position={[0, 0, 0]}>
       <group position={[mid, 0.05, 0]}>
@@ -889,60 +922,131 @@ function usePondShader(color: string) {
   return { matRef, uniforms };
 }
 
-/** World scale (v4 "diorama"): a significantly bigger island. */
-export const ISLAND_R = 3.4;
+/**
+ * World scale (v6): the island physically GROWS with progression. World 1
+ * starts small; every world (and growth within it) extends the land, pushes
+ * the forest ring outward and unlocks more water/mountains/animals.
+ */
+export const ISLAND_R = 3.4; // max footprint reference
+export function worldSizeFactor(worldIndex: number, pct: number): number {
+  return Math.min(1.32, 0.78 + (Math.min(worldIndex, 7) - 1) * 0.085 + pct * 0.085);
+}
 const POND_POS: [number, number] = [1.72, -1.34];
 const POND_R = 0.85;
 
-function Pond({ color }: { color: string }) {
+function Pond({
+  color,
+  center = POND_POS,
+  r = POND_R,
+  lilies = true,
+}: {
+  color: string;
+  center?: [number, number];
+  r?: number;
+  lilies?: boolean;
+}) {
   const { matRef, uniforms } = usePondShader(color);
   return (
-    <group position={[POND_POS[0], 0.02, POND_POS[1]]}>
+    <group position={[center[0], 0.02, center[1]]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[POND_R, 36]} />
+        <circleGeometry args={[r, 48]} />
         <shaderMaterial
           ref={matRef}
           transparent
           uniforms={uniforms}
-          vertexShader={`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`}
+          vertexShader={`
+            uniform float uTime; varying vec2 vUv;
+            void main(){
+              vUv = uv;
+              vec3 p = position;
+              float d = length(uv - 0.5);
+              // Real moving surface: two crossing wave trains.
+              p.z += sin(d * 30.0 - uTime * 2.4) * 0.012 + sin(uv.x * 22.0 + uTime * 1.6) * 0.008;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+            }`}
           fragmentShader={`
             uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
             void main(){
               vec2 c = vUv - 0.5;
               float d = length(c);
-              float rip = sin(d * 44.0 - uTime * 2.6) * 0.5 + 0.5;
-              float rip2 = sin(d * 21.0 - uTime * 1.4 + 1.7) * 0.5 + 0.5;
-              float glint = pow(max(sin(c.x * 30.0 + uTime * 1.8) * sin(c.y * 26.0 - uTime * 1.2), 0.0), 3.0);
-              vec3 deep = uColor * 0.55;
-              vec3 shallow = uColor * 1.5;
+              // Distorted UVs make highlights wander like real water.
+              vec2 w = c + vec2(sin(c.y * 18.0 + uTime * 1.1), cos(c.x * 16.0 - uTime * 0.9)) * 0.02;
+              float rip = sin(length(w) * 44.0 - uTime * 2.6) * 0.5 + 0.5;
+              float rip2 = sin(length(w) * 21.0 - uTime * 1.4 + 1.7) * 0.5 + 0.5;
+              float glint = pow(max(sin(w.x * 34.0 + uTime * 2.2) * sin(w.y * 30.0 - uTime * 1.6), 0.0), 3.0);
+              float glint2 = pow(max(sin(w.x * 52.0 - uTime * 3.1 + 2.0) * sin(w.y * 47.0 + uTime * 2.4), 0.0), 5.0);
+              vec3 deep = uColor * 0.5;
+              vec3 shallow = uColor * 1.55;
               vec3 col = mix(shallow, deep, clamp(d * 1.6 + rip * 0.25, 0.0, 1.0));
-              col += vec3(1.0) * (rip2 * 0.06 + glint * 0.25);
+              col += vec3(1.0) * (rip2 * 0.07 + glint * 0.28 + glint2 * 0.35);
               float edge = smoothstep(0.5, 0.36, d);
-              float foam = smoothstep(0.46, 0.5, d) * (0.5 + 0.5 * sin(uTime * 2.0 + d * 40.0));
-              col = mix(col, vec3(0.95), foam * 0.5);
+              float foam = smoothstep(0.455, 0.5, d) * (0.5 + 0.5 * sin(uTime * 2.0 + d * 40.0));
+              col = mix(col, vec3(0.96), foam * 0.55);
               gl_FragColor = vec4(col, edge * 0.94);
             }`}
         />
       </mesh>
-      {[0, 1].map((i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, i * 2.1]} position={[i === 0 ? 0.24 : -0.26, 0.006, i === 0 ? -0.12 : 0.18]}>
-          <circleGeometry args={[0.07, 8]} />
-          <meshStandardMaterial color="#3f9e63" roughness={0.7} />
+      {lilies &&
+        [0, 1].map((i) => (
+          <mesh key={i} rotation={[-Math.PI / 2, 0, i * 2.1]} position={[i === 0 ? r * 0.28 : -r * 0.3, 0.02, i === 0 ? -r * 0.14 : r * 0.21]}>
+            <circleGeometry args={[0.07, 8]} />
+            <meshStandardMaterial color="#3f9e63" roughness={0.7} />
+          </mesh>
+        ))}
+    </group>
+  );
+}
+
+/** Little rabbit hopping between two points (world 2+). */
+function Rabbit({ a, b, seed }: { a: [number, number]; b: [number, number]; seed: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const rng = useMemo(() => mulberry32(seed), [seed]);
+  const ph = useMemo(() => rng() * 6, [rng]);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime * 0.14 + ph;
+    const k = t % 2;
+    const u = k < 1 ? k : 2 - k; // ping-pong 0..1..0
+    const x = a[0] + (b[0] - a[0]) * u;
+    const z = a[1] + (b[1] - a[1]) * u;
+    const hop = Math.abs(Math.sin(u * Math.PI * 6)) * 0.09;
+    ref.current.position.set(x, hop, z);
+    ref.current.rotation.y = Math.atan2((k < 1 ? 1 : -1) * (b[0] - a[0]), (k < 1 ? 1 : -1) * (b[1] - a[1]));
+  });
+  return (
+    <group ref={ref} scale={0.5}>
+      <mesh castShadow position={[0, 0.09, 0]} scale={[0.8, 0.75, 1.15]}>
+        <sphereGeometry args={[0.11, 10, 8]} />
+        <meshStandardMaterial color="#cbb59a" roughness={0.9} />
+      </mesh>
+      <mesh castShadow position={[0, 0.18, 0.1]}>
+        <sphereGeometry args={[0.065, 10, 8]} />
+        <meshStandardMaterial color="#d6c2a8" roughness={0.9} />
+      </mesh>
+      {[-0.03, 0.03].map((x, i) => (
+        <mesh key={i} castShadow position={[x, 0.28, 0.08]} rotation={[0.25, 0, x * 3]}>
+          <capsuleGeometry args={[0.014, 0.08, 3, 6]} />
+          <meshStandardMaterial color="#d6c2a8" roughness={0.9} />
         </mesh>
       ))}
+      <mesh position={[0, 0.1, -0.12]}>
+        <sphereGeometry args={[0.03, 8, 8]} />
+        <meshStandardMaterial color="#f2ead9" />
+      </mesh>
+      <BlobShadow r={0.13} opacity={0.2} />
     </group>
   );
 }
 
 /** River from the pond over the rim + waterfall down the island side + mist. */
-function Waterfall({ color }: { color: string }) {
+function Waterfall({ color, R = ISLAND_R }: { color: string; R?: number }) {
   const dir = useMemo(() => {
     const v = new THREE.Vector2(POND_POS[0], POND_POS[1]).normalize();
     return v;
   }, []);
   const angle = Math.atan2(dir.y, dir.x);
-  const start = 2.85; // just past the pond edge along dir
-  const end = ISLAND_R + 0.06; // island rim
+  const end = R + 0.06; // island rim (grows with the world)
+  const start = Math.min(2.85, end - 0.3); // just past the pond edge
   const mid = (start + end) / 2;
   const riverLen = end - start;
   const { matRef: riverMat, uniforms: riverU } = usePondShader(color);
@@ -1065,7 +1169,7 @@ const tuftGeo = (() => {
   };
 })();
 
-function GrassField({ count, color, liveliness }: { count: number; color: string; liveliness: number }) {
+function GrassField({ count, color, liveliness, boundary = ISLAND_R - 0.18 }: { count: number; color: string; liveliness: number; boundary?: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const shaderRef = useRef<{ uniforms: { uTime: { value: number } } } | null>(null);
 
@@ -1118,7 +1222,7 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
       const rr = rng() * rng() * 0.6;
       const x = cl.x + Math.cos(a) * rr;
       const z = cl.z + Math.sin(a) * rr;
-      if (Math.hypot(x, z) > ISLAND_R - 0.18) continue;
+      if (Math.hypot(x, z) > boundary) continue;
       dummy.position.set(x, 0, z);
       const s = 0.72 + rng() * 0.75;
       dummy.scale.set(s, 0.7 + rng() * 0.8, s);
@@ -1130,7 +1234,7 @@ function GrassField({ count, color, liveliness }: { count: number; color: string
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [count, color]);
+  }, [count, color, boundary]);
 
   useFrame(({ clock }) => {
     if (shaderRef.current) shaderRef.current.uniforms.uTime.value = clock.elapsedTime * (0.6 + liveliness * 0.7);
@@ -1664,17 +1768,17 @@ function SparkleBurst({ at, onDone, tone = 'spark' }: { at: THREE.Vector3; onDon
 }
 
 /** Watering rain — plays while the "Regá tu mundo" action animates. */
-function Rain({ active }: { active: boolean }) {
+function Rain({ active, worldR = ISLAND_R }: { active: boolean; worldR?: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const COUNT = 80;
   const drops = useMemo(() => {
     const rng = mulberry32(777);
     return Array.from({ length: COUNT }).map(() => {
       const a = rng() * Math.PI * 2;
-      const r = Math.sqrt(rng()) * (ISLAND_R - 0.3);
+      const r = Math.sqrt(rng()) * (worldR - 0.3);
       return { x: Math.cos(a) * r, z: Math.sin(a) * r, phase: rng() * 3, speed: 2.6 + rng() * 1.6 };
     });
-  }, []);
+  }, [worldR]);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
@@ -1769,7 +1873,7 @@ const MOUNTAIN_POS: [number, number][] = [
   [-1.2, -2.55],
 ];
 
-function growthItems(worldIndex: number, growth: number, goal: number, hasPond: boolean, hasMountain: boolean): GrowthItem[] {
+function growthItems(worldIndex: number, growth: number, goal: number, hasPond: boolean, hasMountain: boolean, maxR = ISLAND_R - 0.3): GrowthItem[] {
   const items: GrowthItem[] = [];
   const rendered = Math.min(growth, MAX_RENDERED);
   const step = growth > MAX_RENDERED ? growth / MAX_RENDERED : 1;
@@ -1777,7 +1881,7 @@ function growthItems(worldIndex: number, growth: number, goal: number, hasPond: 
     const i = Math.floor(k * step);
     const rng = mulberry32(worldIndex * 100003 + i * 97 + 13);
     let angle = i * GOLDEN_ANGLE + rng() * 0.3;
-    const radius = 0.85 + 2.15 * Math.sqrt((i + 0.5) / goal);
+    const radius = 0.85 + (maxR - 0.95) * Math.sqrt((i + 0.5) / goal);
     let x = Math.cos(angle) * radius;
     let z = Math.sin(angle) * radius;
     const blocked = () =>
@@ -1837,9 +1941,13 @@ function Scene({
   const showPond = biome.features.pond;
   const showMountain = worldIndex >= 2;
 
+  // v6: the land itself grows with progression.
+  const sizeF = worldSizeFactor(worldIndex, pct);
+  const R = ISLAND_R * sizeF;
+
   const items = useMemo(
-    () => growthItems(worldIndex, growth, goal, showPond, showMountain),
-    [worldIndex, growth, goal, showPond, showMountain],
+    () => growthItems(worldIndex, growth, goal, showPond, showMountain, R - 0.3),
+    [worldIndex, growth, goal, showPond, showMountain, R],
   );
 
   const initialGrowth = useRef(growth);
@@ -1899,14 +2007,14 @@ function Scene({
 
       {/* Tap target: invisible disc over the island. */}
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onTap} visible={false}>
-        <circleGeometry args={[ISLAND_R + 0.1, 24]} />
+        <circleGeometry args={[R + 0.1, 24]} />
         <meshBasicMaterial />
       </mesh>
 
-      <Island ground={ground} night={night} />
-      <GrassField count={grassCount} color={grass} liveliness={mundo.liveliness} />
+      <Island ground={ground} night={night} R={R} />
+      <GrassField count={grassCount} color={grass} liveliness={mundo.liveliness} boundary={R - 0.18} />
       <GroundCover ground={ground} leafDeep={leafDeep} />
-      <ConiferForest leafDeep={leafDeep} pct={pct} worldIndex={worldIndex} snow={biome.features.snow} />
+      <ConiferForest leafDeep={leafDeep} pct={pct} worldIndex={worldIndex} snow={biome.features.snow} ringR={R * 0.93} />
 
       <group scale={0.78}>
         <Float speed={2} rotationIntensity={0} floatIntensity={0.2}>
@@ -1920,8 +2028,8 @@ function Scene({
       {showPond && (
         <>
           <Pond color={tint(biome.water)} />
-          <Waterfall color={tint(biome.water)} />
-          <Bridge />
+          <Waterfall color={tint(biome.water)} R={R} />
+          <Bridge R={R} />
           <Duck seed={81} />
           {growth >= 8 && <Duck seed={82} />}
           {growth >= 12 && <Deer position={[POND_POS[0] - 1.15, 0, POND_POS[1] + 0.55]} rotY={0.7} seed={71} />}
@@ -1929,6 +2037,11 @@ function Scene({
           {worldIndex >= 3 && <Kayak accent={accent} />}
         </>
       )}
+      {/* Second lake from world 4 — more water as the world grows. */}
+      {worldIndex >= 4 && <Pond color={tint(biome.water)} center={[-1.85, 1.5]} r={0.55} lilies={false} />}
+      {/* Rabbits from world 2 — more life as the world grows. */}
+      {worldIndex >= 2 && <Rabbit a={[-0.9, 1.6]} b={[0.7, 2.1]} seed={61} />}
+      {worldIndex >= 3 && growth >= 10 && <Rabbit a={[1.9, 0.6]} b={[0.9, 1.6]} seed={62} />}
       <DirtPath />
       <Stump position={[0.95, 0, 1.95]} />
       <FallenLog position={[-2.0, 0, 0.7]} rotY={0.9} />
@@ -1986,12 +2099,12 @@ function Scene({
       {night && <Fireflies count={10} />}
 
       {/* FX */}
-      <Rain active={watering} />
+      <Rain active={watering} worldR={R} />
       {bursts.map((b) => (
         <SparkleBurst key={b.id} at={b.at} tone={b.tone} onDone={() => setBursts((all) => all.filter((x) => x.id !== b.id))} />
       ))}
 
-      <ContactShadows position={[0, 0.005, 0]} opacity={0.35} scale={10.5} blur={2.4} far={3.6} />
+      <ContactShadows position={[0, 0.005, 0]} opacity={0.35} scale={R * 3.1} blur={2.4} far={3.6} />
       {/* Free videogame-style camera: orbit + pan + zoom (gently clamped). */}
       <OrbitControls
         enablePan
