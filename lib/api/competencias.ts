@@ -1,0 +1,112 @@
+'use client';
+
+import { createClient } from '@/lib/supabase/client';
+
+export interface CompetitionSummary {
+  id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  is_public?: boolean;
+  ends_at: string;
+  members: number;
+  active?: boolean;
+}
+
+export interface CompetitionBoard {
+  ok: boolean;
+  name: string;
+  code: string;
+  is_public: boolean;
+  starts_at: string;
+  ends_at: string;
+  rows: {
+    pos: number;
+    user_id: string;
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    xp: number;
+    actions: number;
+  }[];
+}
+
+export async function fetchMyCompetitions(): Promise<CompetitionSummary[]> {
+  const { data, error } = await createClient().rpc('my_competitions');
+  if (error) throw error;
+  return (data ?? []) as CompetitionSummary[];
+}
+
+export async function fetchPublicCompetitions(): Promise<CompetitionSummary[]> {
+  const { data, error } = await createClient().rpc('public_competitions', { p_limit: 20 });
+  if (error) throw error;
+  return (data ?? []) as CompetitionSummary[];
+}
+
+export async function fetchCompetitionBoard(id: string): Promise<CompetitionBoard> {
+  const { data, error } = await createClient().rpc('competition_leaderboard', { p_competition_id: id });
+  if (error) throw error;
+  return data as CompetitionBoard;
+}
+
+export async function createCompetition(
+  name: string,
+  description: string,
+  isPublic: boolean,
+  days: number,
+): Promise<{ id: string; code: string }> {
+  const { data, error } = await createClient().rpc('create_competition', {
+    p_name: name,
+    p_description: description,
+    p_is_public: isPublic,
+    p_days: days,
+  });
+  if (error) throw error;
+  return data as { id: string; code: string };
+}
+
+export async function joinCompetition(code: string): Promise<{ ok: boolean; error?: string; name?: string }> {
+  const { data, error } = await createClient().rpc('join_competition', { p_code: code });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; name?: string };
+}
+
+// ── Habits ──────────────────────────────────────────────────────────────────
+
+export interface Habit {
+  activity_id: string;
+  title_es: string;
+  domain_slug: string;
+  base_points: number;
+  cadence: string;
+  current_streak: number;
+  longest_streak: number;
+  done_today: boolean;
+}
+
+export async function fetchMyHabits(): Promise<Habit[]> {
+  const { data, error } = await createClient().rpc('my_habits');
+  if (error) throw error;
+  return (data ?? []) as Habit[];
+}
+
+export async function addHabit(activityId: string, cadence = 'daily'): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('add_habit', { p_activity_id: activityId, p_cadence: cadence });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function removeHabit(activityId: string): Promise<void> {
+  const { error } = await createClient().rpc('remove_habit', { p_activity_id: activityId });
+  if (error) throw error;
+}
+
+// ── Group actions ───────────────────────────────────────────────────────────
+
+export async function completeGroupAction(
+  projectId: string,
+): Promise<{ ok: boolean; error?: string; participants?: number; multiplier?: number; points_each?: number }> {
+  const { data, error } = await createClient().rpc('complete_group_action', { p_project_id: projectId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; participants?: number; multiplier?: number; points_each?: number };
+}

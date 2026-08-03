@@ -179,6 +179,9 @@ export default function RankingPage() {
               <p className="text-center text-caption text-muted-foreground">
                 Sumá puntos esta semana para subir en tu liga 🌱
               </p>
+              <Button variant="secondary" block asChild>
+                <Link href="/competencias">🏁 Crear o unirme a una competencia</Link>
+              </Button>
             </>
           ) : (
             <EmptyState message="No pudimos cargar tu liga. Probá de nuevo." />

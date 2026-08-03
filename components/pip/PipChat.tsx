@@ -33,6 +33,8 @@ export function PipChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  /** Eco-expert mode (F12.7): rigorous environmental answers instead of coaching. */
+  const [expert, setExpert] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export function PipChat() {
     setThinking(true);
     try {
       const { data, error } = await createClient().functions.invoke('pip-chat', {
-        body: { messages: history.slice(-8) },
+        body: { messages: history.slice(-8), mode: expert ? 'experto' : 'coach' },
       });
       const reply: string =
         (!error && (data as { reply?: string } | null)?.reply) ||
@@ -107,9 +109,24 @@ export function PipChat() {
             <div className="flex items-center gap-2.5 border-b border-border bg-surface px-4 py-3">
               <Pip size={36} mood="happy" pipStyle={profile.pipStyle} />
               <div className="flex-1">
-                <p className="font-display text-body font-bold leading-tight">Pip</p>
-                <p className="text-caption text-muted-foreground">Tu eco-coach · con IA ✦</p>
+                <p className="font-display text-body font-bold leading-tight">{expert ? 'Eco-Experto' : 'Pip'}</p>
+                <p className="text-caption text-muted-foreground">
+                  {expert ? 'Respuestas ambientales rigurosas 🧪' : 'Tu eco-coach · con IA ✦'}
+                </p>
               </div>
+              <button
+                onClick={() => {
+                  haptic('light');
+                  setExpert((v) => !v);
+                }}
+                aria-label="Cambiar modo"
+                className={cn(
+                  'rounded-pill border px-2.5 py-1 text-caption font-semibold transition-colors',
+                  expert ? 'border-brote-aqua/50 bg-brote-aqua/15 text-brote-aqua' : 'border-border text-muted-foreground',
+                )}
+              >
+                {expert ? '🧪 Experto' : '🌱 Coach'}
+              </button>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Cerrar"

@@ -26,7 +26,10 @@ export default function ExplorarPage() {
   const canCreate = meetsRank(totalXp, 'plantula');
 
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
-  const newsQ = useQuery({ queryKey: ['news', profile?.interests], queryFn: () => fetchNews(profile?.interests ?? []) });
+  const newsQ = useQuery({
+    queryKey: ['news', profile?.interests, profile?.accountType],
+    queryFn: () => fetchNews(profile?.interests ?? [], profile?.accountType ?? 'adult'),
+  });
 
   const [sort, setSort] = useState<ProjectSort>('proximos');
   const [domain, setDomain] = useState<string | null>(null);

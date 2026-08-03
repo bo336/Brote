@@ -4,6 +4,7 @@ import { useRewards } from '@/stores/rewards';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 import { computeMundoState } from '@/lib/mundo';
+import { completionImpactLine, parseImpact } from '@/lib/impact';
 import type { CompleteActivityResult } from '@/lib/types';
 
 /**
@@ -48,6 +49,25 @@ export function celebrateCompletion(result: CompleteActivityResult) {
   // Points toast (base + session bonus shown together).
   const total = result.points_awarded + result.session_bonus;
   if (total > 0) toast.points(total);
+
+  // Real impact of this single action — the "why it matters" beat (F12.2).
+  const impactLine = result.impact ? completionImpactLine(parseImpact(result.impact)) : null;
+  if (impactLine) {
+    toast.show({ variant: 'default', glyph: '🌍', title: 'Impacto real', description: impactLine, durationMs: 4000 });
+  }
+
+  // Habit streak milestones (F12.6).
+  if (result.habit?.streak) {
+    const h = result.habit;
+    if (h.bonus > 0) {
+      toast.show({
+        variant: 'default',
+        glyph: '🔁',
+        title: `¡Hábito de ${h.streak} días!`,
+        description: `+${h.bonus} pts por sostener la rutina`,
+      });
+    }
+  }
 
   const events: Parameters<typeof enqueue>[0] = [];
   // World completion leads the queue — it's the flagship moment.

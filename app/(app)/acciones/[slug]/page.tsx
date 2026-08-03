@@ -18,6 +18,7 @@ import { formatPoints } from '@/lib/points';
 import { activityDescription, activityInstructions } from '@/lib/activity-copy';
 import { useSession } from '@/stores/session';
 import { fetchActivityBySlug } from '@/lib/api/catalog';
+import { addHabit } from '@/lib/api/competencias';
 import { useCatalogCompletions } from '@/hooks/use-catalog';
 import { completeActivity } from '@/lib/api/activities';
 import { celebrateCompletion } from '@/lib/rewards';
@@ -40,6 +41,7 @@ export default function ActivityDetailPage() {
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
   const [busy, setBusy] = useState(false);
+  const [habitBusy, setHabitBusy] = useState(false);
 
   const activityQ = useQuery({
     queryKey: ['activity', params.slug],
@@ -141,6 +143,31 @@ export default function ActivityDetailPage() {
           ))}
         </ol>
       </section>
+
+      {/* Follow as a habit (F12.6) — only makes sense for repeatable actions. */}
+      {(a.type === 'daily' || a.frequency === 'recurring') && (
+        <Card className="flex items-center gap-3 p-4">
+          <span className="text-2xl">🔁</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-small font-semibold">Convertilo en hábito</p>
+            <p className="text-small text-muted-foreground">Seguilo día a día y ganá bonus cada 7 y 30 días.</p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={habitBusy}
+            onClick={async () => {
+              setHabitBusy(true);
+              const res = await addHabit(a.id);
+              setHabitBusy(false);
+              if (res.ok) toast.success('¡Hábito agregado!', 'Lo vas a ver en tu inicio');
+              else toast.error('No se pudo', res.error);
+            }}
+          >
+            Seguir
+          </Button>
+        </Card>
+      )}
 
       {/* Impact */}
       {a.impact_equivalency_es && (

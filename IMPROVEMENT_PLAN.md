@@ -160,6 +160,16 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [ ] F11.4 Rewarded ads ONLY (opt-in video → streak freeze / Semillas; never banners — they kill eco-brand trust)
 - [ ] F11.5 Sponsored challenges B2B (schema ready: sponsor_name/logo)
 
+### F12 — PLATAFORMA v2 (user 2026-07-04: the big functional upgrade)
+Ordered foundation-first because account types touch every surface.
+- [ ] F12.1 **Tipos de cuenta** (MOST IMPORTANT): enum kid(6-12)/teen(13-17)/adult(18+); profiles.account_type + birth_year; activities.age_groups[]; news.age_groups[]; every feed/ranking/competition filtered. Future-ready: `organizations` (escuela/club/empresa/barrio) + profiles.org_id + org leaderboards so schools can compete later.
+- [ ] F12.2 **Impacto real**: activities gain impact_water_l / impact_co2_kg / impact_waste_kg / impact_energy_kwh (seeded per activity); user totals aggregated; lib/impact.ts equivalence engine ("40 L = lo que toma producir una remera"); shown on activity cards, completion toast, daily summary and profile.
+- [ ] F12.3 **Puntos de competencia semanales**: total_xp stays for world/badges/ranks (lifetime); ALL competitive surfaces use windowed points (7-day rolling) so veterans don't auto-win — leagues already do this; formalize + expose "puntos de esta semana" in UI.
+- [ ] F12.4 **Competencias propias**: competitions table (code, private/public, window, metric, age filter, org) + create/join-by-code/leaderboard RPCs + UI.
+- [ ] F12.5 **Acciones grupales**: group actions on projects — N participants complete together, bonus multiplier by group size (e.g. limpieza de barrio).
+- [ ] F12.6 **Hábitos**: user_habits (activity, cadence, days, streak) — rewards installing a routine (bici al trabajo) with daily points + habit streak bonuses.
+- [ ] F12.7 **Eco-experto IA**: pip-chat gains an expert mode (better env answers, sources); Pro-gated if cost demands.
+
 ### F7 — Autonomy explainer
 - [x] `OPERACIONES.html` (repo root, styled, Spanish): the 3 cron jobs, why content never runs out (infinite biomes, rolling challenge windows, activity cooldowns, news rotation), AI layer + fallbacks + rate limits, the only owner actions (Gemini key, VAPID keys — both one-time), monitoring pointers, current costs ($0).
 

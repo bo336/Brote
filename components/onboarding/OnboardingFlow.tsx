@@ -40,6 +40,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [name, setName] = useState(initialName);
+  const [accountType, setAccountType] = useState<'kid' | 'teen' | 'adult'>('adult');
   const [city, setCity] = useState('');
   const [otherCity, setOtherCity] = useState('');
   const [interests, setInterests] = useState<Set<string>>(new Set());
@@ -75,6 +76,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
       await saveOnboardingProfile({
         displayName: name,
         city: resolvedCity,
+        accountType,
         interests: Array.from(interests),
         context: ctx as unknown as Record<string, unknown>,
       });
@@ -163,6 +165,28 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                       className={inputCls}
                       autoFocus
                     />
+                  </Field>
+                  <Field label="¿Qué edad tenés?" help="Con esto te mostramos acciones que podés hacer de verdad.">
+                    <div className="flex gap-2">
+                      {([
+                        { key: 'kid', label: 'Hasta 12', emoji: '🌱' },
+                        { key: 'teen', label: '13 a 17', emoji: '🌿' },
+                        { key: 'adult', label: '18 o más', emoji: '🌳' },
+                      ] as const).map((o) => (
+                        <button
+                          key={o.key}
+                          type="button"
+                          onClick={() => setAccountType(o.key)}
+                          className={cn(
+                            'flex-1 rounded-button border px-2 py-2.5 text-center transition-colors',
+                            accountType === o.key ? 'border-primary bg-primary/10' : 'border-border bg-surface',
+                          )}
+                        >
+                          <span className="block text-lg leading-none">{o.emoji}</span>
+                          <span className="mt-1 block text-caption font-medium">{o.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </Field>
                   <Field label={t('cityLabel')} help={t('cityHelp')}>
                     <select

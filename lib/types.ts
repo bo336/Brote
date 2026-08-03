@@ -22,6 +22,10 @@ export interface ProfileSummary {
   context?: Record<string, unknown> | null;
   /** Pip avatar customization (body palette + hat). */
   pipStyle?: { body?: string; hat?: string } | null;
+  /** Account type — gates which actions/news/competitions are shown. */
+  accountType?: 'kid' | 'teen' | 'adult';
+  /** Organization (school/club) the user belongs to, if any. */
+  orgId?: string | null;
   interests: string[];
   onboardingCompleted: boolean;
   language: 'es' | 'en';
@@ -50,5 +54,9 @@ export interface CompleteActivityResult {
   challenges_completed: { title_es: string; reward_points: number; type: string }[];
   /** Set when this completion finished a world (Mundo Infinito ceremony). */
   world_completed: { completed_index: number; new_index: number } | null;
+  /** Real resources saved by THIS action (F12.2). */
+  impact?: { water_l: number; co2_kg: number; waste_kg: number; energy_kwh: number } | null;
+  /** Set when the action is a tracked habit (F12.6). */
+  habit?: { streak: number; bonus: number } | null;
   mundo_delta: { liveliness?: number; new_elements?: string[] } | null;
 }
