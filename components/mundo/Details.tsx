@@ -471,6 +471,88 @@ export function Footpath({ layout }: { layout: WorldLayout }) {
   );
 }
 
+/**
+ * Lake-bed life: submerged stones and swaying weed. Only worth drawing now
+ * that the water is genuinely transparent — you can see straight down to it.
+ */
+export function Underwater({ layout, stones = 70, weeds = 90 }: { layout: WorldLayout; stones?: number; weeds?: number }) {
+  const stoneRef = useRef<THREE.InstancedMesh>(null);
+  const weedRef = useRef<THREE.InstancedMesh>(null);
+  const weedMat = useSwayMaterial(useMemo(() => reedTexture(), []), 'v7-weed', 0.05);
+
+  useEffect(() => {
+    const sm = stoneRef.current;
+    const wm = weedRef.current;
+    if (!sm || !wm || layout.lakes.length === 0) return;
+    const rng = mulberry32(6161 + layout.seed);
+    const dummy = new THREE.Object3D();
+    const c = new THREE.Color();
+
+    let s = 0;
+    let guard = 0;
+    while (s < stones && guard++ < stones * 12) {
+      const lake = layout.lakes[Math.floor(rng() * layout.lakes.length)]!;
+      const a = rng() * Math.PI * 2;
+      const r = lake.r * Math.sqrt(rng()) * 1.1;
+      const x = lake.x + Math.cos(a) * r;
+      const z = lake.z + Math.sin(a) * r;
+      const h = terrainHeight(x, z, layout);
+      if (h >= WATER_LEVEL) continue;
+      const size = 0.03 + rng() * 0.07;
+      dummy.position.set(x, h + size * 0.3, z);
+      dummy.rotation.set(rng() * 3, rng() * 3, rng() * 3);
+      dummy.scale.set(size, size * 0.7, size);
+      dummy.updateMatrix();
+      sm.setMatrixAt(s, dummy.matrix);
+      // Wet stones are darker and slightly green from algae.
+      c.setHSL(0.24 + rng() * 0.08, 0.1 + rng() * 0.14, 0.24 + rng() * 0.16);
+      sm.setColorAt(s, c);
+      s++;
+    }
+
+    let w = 0;
+    guard = 0;
+    while (w < weeds && guard++ < weeds * 12) {
+      const lake = layout.lakes[Math.floor(rng() * layout.lakes.length)]!;
+      const a = rng() * Math.PI * 2;
+      const r = lake.r * Math.sqrt(rng());
+      const x = lake.x + Math.cos(a) * r;
+      const z = lake.z + Math.sin(a) * r;
+      const h = terrainHeight(x, z, layout);
+      const depth = WATER_LEVEL - h;
+      if (depth < 0.05) continue;
+      dummy.position.set(x, h, z);
+      dummy.rotation.set(0, rng() * Math.PI, 0);
+      const sc = 0.1 + rng() * 0.12;
+      // Weed reaches up but never breaks the surface.
+      dummy.scale.set(sc, Math.min(depth * 0.85, 0.1 + rng() * 0.2), sc);
+      dummy.updateMatrix();
+      wm.setMatrixAt(w, dummy.matrix);
+      c.setHSL(0.3 + rng() * 0.06, 0.4 + rng() * 0.2, 0.2 + rng() * 0.12);
+      wm.setColorAt(w, c);
+      w++;
+    }
+
+    sm.count = s;
+    wm.count = w;
+    sm.instanceMatrix.needsUpdate = true;
+    wm.instanceMatrix.needsUpdate = true;
+    if (sm.instanceColor) sm.instanceColor.needsUpdate = true;
+    if (wm.instanceColor) wm.instanceColor.needsUpdate = true;
+  }, [layout, stones, weeds]);
+
+  if (layout.lakes.length === 0) return null;
+  return (
+    <group>
+      <instancedMesh ref={stoneRef} args={[undefined, undefined, stones]} receiveShadow frustumCulled={false}>
+        <icosahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial vertexColors roughness={0.75} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={weedRef} args={[crossQuad(), weedMat, weeds]} frustumCulled={false} />
+    </group>
+  );
+}
+
 /** Dust motes / pollen drifting in sunlight — cheap, huge atmosphere payoff. */
 export function Pollen({ layout, count = 60 }: { layout: WorldLayout; count?: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);

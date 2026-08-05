@@ -27,7 +27,7 @@ import {
 } from '@/lib/mundo/terrain';
 import { Ground, IslandBody, AllWater, type TerrainColors } from './Terrain';
 import { Vegetation, type PlantInstance, type Species } from './Vegetation';
-import { Reeds, LilyPads, Undergrowth, DeadWood, Footpath, Pollen } from './Details';
+import { Reeds, LilyPads, Undergrowth, DeadWood, Footpath, Pollen, Underwater } from './Details';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1180,6 +1180,8 @@ function Scene({
 
       <Ground layout={layout} colors={colors} snow={biome.features.snow} />
       <IslandBody layout={layout} rock="#6f5c46" />
+      {/* Lake bed first — it is meant to be seen through the water. */}
+      <Underwater layout={layout} />
       <AllWater layout={layout} color={colors.water} sunDir={sunPos} />
       <Waterfall layout={layout} color={colors.water} />
 

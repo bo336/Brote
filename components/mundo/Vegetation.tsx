@@ -145,37 +145,66 @@ function leafClusterTexture(kind: 'broad' | 'needle'): THREE.CanvasTexture {
   return tex;
 }
 
-/** Bark: vertical fibres + knots. */
-function barkTexture(): THREE.CanvasTexture {
-  const key = 'bark-v7';
+/**
+ * Bark, per species. A birch is unmistakable because of its papery white
+ * trunk with dark horizontal lenticels — so it gets its own texture rather
+ * than a recoloured generic one.
+ */
+function barkTexture(kind: 'rough' | 'birch' = 'rough'): THREE.CanvasTexture {
+  const key = `bark-v7-${kind}`;
   const hit = texCache.get(key);
   if (hit) return hit;
   const s = 256;
   const c = document.createElement('canvas');
   c.width = c.height = s;
   const ctx = c.getContext('2d')!;
-  const rng = mulberry32(77);
-  ctx.fillStyle = 'rgb(190,190,190)';
-  ctx.fillRect(0, 0, s, s);
-  for (let i = 0; i < 90; i++) {
-    const v = Math.round(120 + rng() * 110);
-    ctx.strokeStyle = `rgba(${v},${v},${v},0.55)`;
-    ctx.lineWidth = 1 + rng() * 3.2;
-    const x = rng() * s;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.bezierCurveTo(x + (rng() - 0.5) * 22, s * 0.35, x + (rng() - 0.5) * 22, s * 0.7, x + (rng() - 0.5) * 14, s);
-    ctx.stroke();
+  const rng = mulberry32(kind === 'birch' ? 91 : 77);
+
+  if (kind === 'birch') {
+    ctx.fillStyle = 'rgb(238,236,230)';
+    ctx.fillRect(0, 0, s, s);
+    // Horizontal lenticel dashes.
+    for (let i = 0; i < 46; i++) {
+      const y = rng() * s;
+      const x = rng() * s;
+      const w = s * (0.05 + rng() * 0.2);
+      const v = Math.round(40 + rng() * 60);
+      ctx.strokeStyle = `rgba(${v},${v},${v},${0.5 + rng() * 0.45})`;
+      ctx.lineWidth = 2 + rng() * 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y + (rng() - 0.5) * 3);
+      ctx.stroke();
+    }
+    // Faint grey shading so it isn't flat white.
+    for (let i = 0; i < 26; i++) {
+      const v = Math.round(190 + rng() * 40);
+      ctx.fillStyle = `rgba(${v},${v},${v},0.4)`;
+      ctx.fillRect(rng() * s, rng() * s, s * (0.02 + rng() * 0.05), s * (0.1 + rng() * 0.3));
+    }
+  } else {
+    ctx.fillStyle = 'rgb(190,190,190)';
+    ctx.fillRect(0, 0, s, s);
+    for (let i = 0; i < 90; i++) {
+      const v = Math.round(120 + rng() * 110);
+      ctx.strokeStyle = `rgba(${v},${v},${v},0.55)`;
+      ctx.lineWidth = 1 + rng() * 3.2;
+      const x = rng() * s;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.bezierCurveTo(x + (rng() - 0.5) * 22, s * 0.35, x + (rng() - 0.5) * 22, s * 0.7, x + (rng() - 0.5) * 14, s);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = 'rgba(105,105,105,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(rng() * s, rng() * s, 6 + rng() * 7, 3 + rng() * 5, rng() * 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
-  for (let i = 0; i < 5; i++) {
-    const kx = rng() * s;
-    const ky = rng() * s;
-    ctx.strokeStyle = 'rgba(105,105,105,0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(kx, ky, 6 + rng() * 7, 3 + rng() * 5, rng() * 3, 0, Math.PI * 2);
-    ctx.stroke();
-  }
+
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(1.6, 2.2);
@@ -328,8 +357,15 @@ function SpeciesForest({
     [builds],
   );
 
-  const bark = useMemo(() => barkTexture(), []);
+  const bark = useMemo(() => barkTexture(species === 'birch' ? 'birch' : 'rough'), [species]);
   const leafTex = useMemo(() => leafClusterTexture(species === 'pine' ? 'needle' : 'broad'), [species]);
+  // Each species has its own wood tone; birch stays pale.
+  const speciesBark = useMemo(() => {
+    if (species === 'birch') return '#f2efe6';
+    if (species === 'pine') return '#6b4c33';
+    if (species === 'bush') return '#5f7a42';
+    return barkColor;
+  }, [species, barkColor]);
 
   // Bucket plants by variant so each InstancedMesh gets its own list.
   const buckets = useMemo(() => {
@@ -375,12 +411,12 @@ function SpeciesForest({
   }, [leafTex]);
 
   const woodMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ map: bark, color: barkColor, roughness: 1 }),
-    [bark, barkColor],
+    () => new THREE.MeshStandardMaterial({ map: bark, color: speciesBark, roughness: 1 }),
+    [bark, speciesBark],
   );
   useEffect(() => {
-    woodMaterial.color.set(barkColor);
-  }, [barkColor, woodMaterial]);
+    woodMaterial.color.set(speciesBark);
+  }, [speciesBark, woodMaterial]);
 
   useEffect(() => {
     const dummy = new THREE.Object3D();
