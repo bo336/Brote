@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Float } from '@react-three/drei';
-import { EffectComposer, N8AO, Bloom } from '@react-three/postprocessing';
+import { EffectComposer, N8AO, Bloom, DepthOfField, Vignette, HueSaturation } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { biomeFor, type MundoState } from '@/lib/mundo';
 import {
@@ -27,6 +27,7 @@ import {
 } from '@/lib/mundo/terrain';
 import { Ground, IslandBody, AllWater, type TerrainColors } from './Terrain';
 import { Vegetation, type PlantInstance, type Species } from './Vegetation';
+import { Reeds, LilyPads, Undergrowth, DeadWood, Footpath, Pollen } from './Details';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1105,6 +1106,11 @@ function Scene({
     () => new THREE.Vector3(Math.cos(sunAngle) * 6, Math.max(2.6, Math.sin(sunAngle) * 6 + 3), 4),
     [sunAngle],
   );
+  /** Golden hour when the sun is low; neutral at midday. */
+  const sunWarmth = useMemo(() => {
+    const elevation = THREE.MathUtils.clamp(sunPos.y / 8, 0, 1);
+    return `#${new THREE.Color('#ffb761').lerp(new THREE.Color('#fff6e2'), elevation).getHexString()}`;
+  }, [sunPos]);
 
   const [bursts, setBursts] = useState<{ id: number; at: THREE.Vector3; tone: 'spark' | 'heart' }[]>([]);
   const burstId = useRef(0);
@@ -1146,12 +1152,13 @@ function Scene({
       <fog attach="fog" args={[horizon, R * 3.4, R * 7]} />
       <SkyDome top={night ? '#132a4d' : biome.skyTop} horizon={horizon} sunDir={sunPos} night={night} />
 
-      <ambientLight intensity={night ? 0.55 : 0.5} color={night ? '#b6c8e6' : '#fff4e6'} />
+      <ambientLight intensity={night ? 0.5 : 0.42} color={night ? '#b6c8e6' : '#fff4e6'} />
+      {/* Key light: warm and low at the edges of the day, white at noon. */}
       <directionalLight
         castShadow
         position={sunPos.toArray()}
-        intensity={night ? 0.75 : 1.55}
-        color={night ? '#cddcf5' : '#fff0cf'}
+        intensity={night ? 0.75 : 1.75}
+        color={night ? '#cddcf5' : sunWarmth}
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0005}
         shadow-normalBias={0.02}
@@ -1179,6 +1186,14 @@ function Scene({
       <GrassCover layout={layout} count={1400} color={colors.grass} colorDry={colors.grassDry} wind={1} />
       <Rocks layout={layout} count={90} snow={biome.features.snow} />
       <Flowers layout={layout} count={flowerCount} accent={tint(biome.accent)} />
+
+      {/* Landscape detail: shoreline, forest floor and history. */}
+      <Footpath layout={layout} />
+      <Reeds layout={layout} count={240} />
+      <LilyPads layout={layout} count={26} />
+      <Undergrowth layout={layout} count={Math.round(120 + pct * 130)} />
+      <DeadWood layout={layout} count={Math.min(8, 3 + Math.round(pct * 6))} />
+      {!night && <Pollen layout={layout} count={55} />}
 
       <Vegetation
         plants={allPlants}
@@ -1255,9 +1270,14 @@ export default function MundoCanvas({
       }}
     >
       <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} onCare={onCare} />
+      {/* Post: AO fuses the scene, a shallow focal plane gives the miniature
+          "tilt-shift" read, plus gentle grade and vignette. */}
       <EffectComposer multisampling={0}>
         <N8AO aoRadius={0.5} intensity={4} distanceFalloff={0.7} quality="performance" halfRes />
-        <Bloom intensity={0.2} luminanceThreshold={0.85} mipmapBlur />
+        <DepthOfField focusDistance={0.012} focalLength={0.05} bokehScale={2.6} height={480} />
+        <Bloom intensity={0.22} luminanceThreshold={0.82} mipmapBlur />
+        <HueSaturation saturation={0.12} />
+        <Vignette eskil={false} offset={0.28} darkness={0.42} />
       </EffectComposer>
     </Canvas>
   );
