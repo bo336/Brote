@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 export interface OnboardingProfileInput {
   displayName: string;
   city: string;
+  /** Gates which actions/news/competitions the user sees (PLAN F12.1). */
+  accountType?: 'kid' | 'teen' | 'adult';
   interests: string[];
   context: Record<string, unknown>;
 }
@@ -22,6 +24,7 @@ export async function saveOnboardingProfile(input: OnboardingProfileInput): Prom
     .update({
       display_name: input.displayName.trim() || null,
       city: input.city.trim() || 'Buenos Aires',
+      account_type: input.accountType ?? 'adult',
       interests: input.interests,
       context: input.context,
     })

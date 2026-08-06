@@ -220,22 +220,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
 
       <MundoCanvas mundo={state} night={effNight} dayT={effNight ? dayT : 0.35} watering={watering} onCare={interactive && profile ? onCare : undefined} />
 
-      {/* Diorama finish: subtle tilt-shift blur bands + vignette. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[14%]"
-        style={{ backdropFilter: 'blur(1.6px)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)', maskImage: 'linear-gradient(to bottom, black, transparent)' }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[12%]"
-        style={{ backdropFilter: 'blur(1.4px)', WebkitMaskImage: 'linear-gradient(to top, black, transparent)', maskImage: 'linear-gradient(to top, black, transparent)' }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,0.16) 100%)' }}
-      />
+      {/* Depth of field and vignette are done for real in the 3D post stack. */}
 
       {!hideOverlay && (
         <>

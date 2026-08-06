@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, Sparkles, AlertTriangle } from 'lucide-react';
 import { Mundo } from '@/components/mundo/Mundo';
+import { ImpactCard } from '@/components/impacto/ImpactCard';
+import { HabitsCard } from '@/components/habitos/HabitsCard';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -154,6 +156,15 @@ export default function HoyPage() {
             </div>
           )}
         </div>
+      </section>
+
+      {/* Mis hábitos (F12.6) — renders nothing until the user follows one. */}
+      <HabitsCard />
+
+      {/* Tu impacto real (F12.2) */}
+      <section>
+        <SectionHeader title="Tu impacto real" subtitle="Lo que ahorraste de verdad, en números" />
+        <ImpactCard period="total" />
       </section>
 
       {/* Reto del día */}

@@ -149,12 +149,14 @@ export async function uploadProjectImage(userId: string, file: File): Promise<st
  *   interests (first match counts full, extra matches add a little).
  * Then a greedy source-diversity re-rank so one outlet never floods the top.
  */
-export async function fetchNews(interests: string[]): Promise<NewsRow[]> {
+export async function fetchNews(interests: string[], accountType: 'kid' | 'teen' | 'adult' = 'adult'): Promise<NewsRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('news')
     .select('*')
     .eq('active', true)
+    // Age-appropriate feed (PLAN F12.1).
+    .contains('age_groups', [accountType])
     .order('published_at', { ascending: false })
     .limit(60);
   if (error) throw error;
