@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { ProjectCard } from '@/components/explorar/ProjectCard';
 import { NewsCard } from '@/components/explorar/NewsCard';
+import { AdSlot } from '@/components/ads/AdSlot';
+import { feedAdIndices } from '@/lib/ads/policy';
 import { useSession } from '@/stores/session';
 import { fetchProjects, fetchNews } from '@/lib/api/explorar';
 import { meetsRank } from '@/lib/ranks';
@@ -30,6 +32,7 @@ export default function ExplorarPage() {
     queryKey: ['news', profile?.interests, profile?.accountType],
     queryFn: () => fetchNews(profile?.interests ?? [], profile?.accountType ?? 'adult'),
   });
+  const adIndices = feedAdIndices((newsQ.data ?? []).length);
 
   const [sort, setSort] = useState<ProjectSort>('proximos');
   const [domain, setDomain] = useState<string | null>(null);
@@ -132,7 +135,14 @@ export default function ExplorarPage() {
           ) : (newsQ.data ?? []).length === 0 ? (
             <EmptyState message={t('newsEmpty')} />
           ) : (
-            (newsQ.data ?? []).map((item) => <NewsCard key={item.id} item={item} />)
+            // In-feed ads: after the 4th story, then every 6th (policy engine).
+            (newsQ.data ?? []).flatMap((item, i) => {
+              const nodes = [<NewsCard key={item.id} item={item} />];
+              if (adIndices.includes(i)) {
+                nodes.push(<AdSlot key={`ad-${i}`} placement="news-feed" className="my-1" />);
+              }
+              return nodes;
+            })
           )}
         </TabsContent>
       </Tabs>

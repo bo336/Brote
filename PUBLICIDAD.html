@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brote — Manual de publicidad y suscripciones</title>
+<style>
+  :root{--bg:#0C1A13;--surface:#12241A;--s2:#1A3324;--border:#27472f;--text:#F7F5EF;--muted:#9FB0A6;--green:#1FB57A;--sun:#F4A62A;--coral:#FF6B5E;--aqua:#2DB4D4}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,'Segoe UI',sans-serif}
+  .wrap{max-width:940px;margin:0 auto;padding:44px 22px 100px}
+  h1{font-size:2.05rem;line-height:1.2;margin:0 0 6px}
+  h2{font-size:1.32rem;margin:46px 0 12px;color:var(--green);scroll-margin-top:20px}
+  h3{font-size:1.04rem;margin:24px 0 6px}
+  p{margin:8px 0}
+  .sub{color:var(--muted);font-size:1.02rem;margin-bottom:22px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin:14px 0}
+  .accent{border-left:4px solid var(--green);padding-left:16px}
+  .accent.sun{border-color:var(--sun)}.accent.coral{border-color:var(--coral)}.accent.aqua{border-color:var(--aqua)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.93rem}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.79rem;text-transform:uppercase;letter-spacing:.04em}
+  code{background:var(--s2);border-radius:6px;padding:2px 7px;font-size:.87em;color:#c9e8d6;word-break:break-word}
+  pre{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;overflow-x:auto;font-size:.84rem}
+  pre code{background:none;padding:0}
+  ul,ol{margin:8px 0;padding-left:22px}li{margin:6px 0}
+  .muted{color:var(--muted)}
+  .ok{color:var(--green);font-weight:700}.warn{color:var(--sun);font-weight:700}.bad{color:var(--coral);font-weight:700}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+  .toc a{background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:5px 13px;font-size:.86rem;color:var(--text);text-decoration:none}
+  .toc a:hover{border-color:var(--green)}
+  .step{display:flex;gap:12px;margin:14px 0}
+  .num{flex:0 0 28px;height:28px;border-radius:50%;background:var(--green);color:#08120d;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>💰 Manual de publicidad y suscripciones</h1>
+<p class="sub">Todo lo que necesitás para activar los ingresos de Brote: configurar AdSense, configurar MercadoPago, entender dónde y cuándo aparece cada anuncio, cómo cobrar, y cómo cambiar cualquier cosa.</p>
+
+<div class="toc">
+  <a href="#estado">Estado actual</a>
+  <a href="#adsense">1 · Configurar AdSense</a>
+  <a href="#mp">2 · Configurar MercadoPago</a>
+  <a href="#donde">3 · Dónde aparecen los anuncios</a>
+  <a href="#reglas">4 · Reglas y límites</a>
+  <a href="#legal">5 · Chicos y privacidad</a>
+  <a href="#cobrar">6 · Cómo cobrás</a>
+  <a href="#modificar">7 · Cómo modificar</a>
+  <a href="#mantener">8 · Mantenimiento</a>
+  <a href="#problemas">9 · Problemas comunes</a>
+</div>
+
+<h2 id="estado">Estado actual</h2>
+<div class="card accent">
+  <p><strong>El código está 100% listo y desplegado.</strong> El sistema de anuncios y el de suscripciones ya están construidos, verificados y en producción. Están <em>dormidos</em> a propósito: sin tus credenciales no se carga ni un script de Google ni se puede cobrar. En cuanto pegues las claves (pasos 1 y 2), todo se enciende solo.</p>
+  <table>
+    <tr><th>Pieza</th><th>Estado</th></tr>
+    <tr><td>Motor de decisión de anuncios (quién ve qué y cuándo)</td><td class="ok">Listo · 22 reglas verificadas</td></tr>
+    <tr><td>Componentes de anuncios en las 5 ubicaciones</td><td class="ok">Listo</td></tr>
+    <tr><td>Base de datos de planes y suscripciones</td><td class="ok">Listo en producción</td></tr>
+    <tr><td>Funciones de MercadoPago (crear suscripción + webhook)</td><td class="ok">Desplegadas</td></tr>
+    <tr><td>Pantalla de Brote+ y banner de consentimiento</td><td class="ok">Listo</td></tr>
+    <tr><td>Tus credenciales de AdSense</td><td class="warn">Te toca (paso 1)</td></tr>
+    <tr><td>Tus credenciales de MercadoPago</td><td class="warn">Te toca (paso 2)</td></tr>
+  </table>
+</div>
+
+<h2 id="adsense">1 · Configurar Google AdSense</h2>
+
+<div class="card accent coral">
+  <p><strong>Antes de empezar, la verdad sobre los tiempos:</strong> Google revisa cada sitio antes de aprobarlo, y suele tardar <strong>entre 2 días y 2 semanas</strong>. Rechazan sitios con poco contenido propio. Brote tiene 168 acciones, noticias y perfiles, así que está en buena posición, pero <em>no cuentes con tener ingresos la semana que viene</em>. Aplicá cuanto antes para que el reloj empiece a correr.</p>
+</div>
+
+<div class="step"><div class="num">1</div><div>
+<h3>Crear la cuenta</h3>
+<p>Entrá a <code>adsense.google.com</code> → «Empezar». Te pide el sitio (<code>https://brote-ft7m.vercel.app</code>, o tu dominio propio si comprás uno) y tu país (Argentina). Usá la misma cuenta de Google que ya usás para el proyecto.</p>
+<p class="muted">Consejo: si vas a comprar un dominio propio (ej. <code>brote.app</code>), hacelo <em>antes</em> de aplicar. Cambiar de dominio después obliga a re-verificar.</p>
+</div></div>
+
+<div class="step"><div class="num">2</div><div>
+<h3>Verificar que el sitio es tuyo</h3>
+<p>Google te da un fragmento para pegar en el sitio. Ya está contemplado: solo tenés que poner tu <em>publisher id</em> en las variables de entorno (paso 4) y el script se inyecta solo.</p>
+</div></div>
+
+<div class="step"><div class="num">3</div><div>
+<h3>Crear las 5 unidades de anuncio</h3>
+<p>En AdSense → <strong>Anuncios → Por unidad de anuncio → Crear</strong>. Creá estas cinco, todas del tipo indicado, y anotá el <strong>ID de espacio</strong> (data-ad-slot, 10 dígitos) de cada una:</p>
+<table>
+  <tr><th>Nombre sugerido</th><th>Tipo en AdSense</th><th>Dónde se usa</th></tr>
+  <tr><td><code>brote-news-feed</code></td><td>Anuncios in-feed</td><td>Entre las noticias del listado</td></tr>
+  <tr><td><code>brote-news-article</code></td><td>Display (adaptable)</td><td>Al final de una noticia leída</td></tr>
+  <tr><td><code>brote-ranking</code></td><td>Display (adaptable)</td><td>Debajo de la tabla de ranking</td></tr>
+  <tr><td><code>brote-catalog</code></td><td>Display (adaptable)</td><td>Al final del catálogo de acciones</td></tr>
+  <tr><td><code>brote-moment</code></td><td>Display (adaptable)</td><td>Tarjeta del «momento» (ver sección 3)</td></tr>
+</table>
+</div></div>
+
+<div class="step"><div class="num">4</div><div>
+<h3>Pegar las claves en Vercel</h3>
+<p>Vercel → proyecto <code>brote-ft7m</code> → <strong>Settings → Environment Variables</strong>. Agregá estas seis (Production, Preview y Development):</p>
+<pre><code>NEXT_PUBLIC_ADSENSE_CLIENT      = ca-pub-XXXXXXXXXXXXXXXX
+NEXT_PUBLIC_ADSLOT_NEWS_FEED    = 1234567890
+NEXT_PUBLIC_ADSLOT_NEWS_ARTICLE = 1234567891
+NEXT_PUBLIC_ADSLOT_RANKING      = 1234567892
+NEXT_PUBLIC_ADSLOT_CATALOG      = 1234567893
+NEXT_PUBLIC_ADSLOT_MOMENT       = 1234567894</code></pre>
+<p>Después hacé <strong>Redeploy</strong> (las variables solo entran en un build nuevo).</p>
+</div></div>
+
+<div class="step"><div class="num">5</div><div>
+<h3>Actualizar <code>ads.txt</code></h3>
+<p>Abrí <code>public/ads.txt</code> en el repo y reemplazá <code>pub-0000000000000000</code> por tu publisher id real. Sin esto, Google puede dejar de servir anuncios. Es una línea, y es obligatoria.</p>
+</div></div>
+
+<h2 id="mp">2 · Configurar MercadoPago (suscripciones)</h2>
+
+<div class="step"><div class="num">1</div><div>
+<h3>Sacar las credenciales</h3>
+<p>Entrá a <code>mercadopago.com.ar/developers</code> → «Tus integraciones» → creá una aplicación (tipo: <em>Pagos online / Suscripciones</em>). Vas a obtener:</p>
+<ul>
+  <li><strong>Access Token de producción</strong> (empieza con <code>APP_USR-</code>)</li>
+  <li><strong>Clave secreta de webhooks</strong> (en la sección Webhooks / Notificaciones)</li>
+</ul>
+<p class="muted">Para probar sin cobrar de verdad, usá primero las credenciales de <em>prueba</em> y las tarjetas de test de MercadoPago.</p>
+</div></div>
+
+<div class="step"><div class="num">2</div><div>
+<h3>Cargarlas en Supabase</h3>
+<p>Supabase → proyecto <code>swdwulouasdnyorfhrjt</code> → <strong>Edge Functions → Secrets</strong>. Agregá:</p>
+<pre><code>MP_ACCESS_TOKEN    = APP_USR-...   (tu access token)
+MP_WEBHOOK_SECRET  = ...           (clave secreta de webhooks)
+APP_URL            = https://brote-ft7m.vercel.app
+MP_PLUS_AMOUNT     = 2999          (precio mensual en pesos)
+MP_CURRENCY        = ARS</code></pre>
+</div></div>
+
+<div class="step"><div class="num">3</div><div>
+<h3>Apagar «Verify JWT» en el webhook <span class="warn">(importante)</span></h3>
+<p>MercadoPago no puede enviar un token de Supabase, así que la función que recibe los avisos tiene que aceptar llamadas externas. En Supabase → <strong>Edge Functions → mp-webhook → Settings</strong>, desactivá <strong>«Verify JWT»</strong>.</p>
+<p>No queda insegura: la función <strong>verifica la firma HMAC</strong> de MercadoPago en cada llamada y rechaza cualquier cosa que no venga firmada con tu clave secreta.</p>
+</div></div>
+
+<div class="step"><div class="num">4</div><div>
+<h3>Registrar la URL del webhook</h3>
+<p>En el panel de MercadoPago → Webhooks, agregá esta URL y suscribite a los eventos de <em>suscripciones</em> y <em>pagos</em>:</p>
+<pre><code>https://swdwulouasdnyorfhrjt.supabase.co/functions/v1/mp-webhook</code></pre>
+</div></div>
+
+<div class="card accent aqua">
+  <p><strong>Cómo funciona el circuito completo:</strong> la persona toca «Suscribirme» → la app llama a <code>mp-subscribe</code> → se crea una suscripción en MercadoPago → la persona va al checkout de MercadoPago y paga → MercadoPago avisa a <code>mp-webhook</code> → la función <em>vuelve a preguntarle a MercadoPago</em> cuál es el estado real (nunca confía solo en el aviso) → marca el plan como <code>plus</code> hasta la fecha del próximo cobro. Cada mes que se cobra, el webhook extiende la fecha solo.</p>
+  <p class="muted">Si alguien cancela, <strong>mantiene Brote+ hasta que termine el período que ya pagó</strong> — nunca le sacamos algo por lo que pagó. Una tarea nocturna (<code>brote-expire-plans</code>, 05:15) baja los planes vencidos.</p>
+</div>
+
+<h2 id="donde">3 · Dónde aparece cada anuncio (y por qué ahí)</h2>
+
+<table>
+  <tr><th>Ubicación</th><th>Cuándo aparece</th><th>Por qué ahí</th></tr>
+  <tr>
+    <td><strong>Entre noticias</strong><br><span class="muted">news-feed</span></td>
+    <td>Después de la 4.ª noticia, y luego cada 6. Máximo 3 por pantalla.</td>
+    <td>Es la ubicación clásica de mayor rendimiento: la persona ya está navegando y leyendo. Nunca antes de la 4.ª para que el feed no arranque «vendiendo».</td>
+  </tr>
+  <tr>
+    <td><strong>Debajo de una noticia</strong><br><span class="muted">news-article</span></td>
+    <td>Al final del artículo, después del botón de la nota original.</td>
+    <td>La persona terminó de leer: es un final natural, no una interrupción.</td>
+  </tr>
+  <tr>
+    <td><strong>Debajo del ranking</strong><br><span class="muted">ranking-footer</span></td>
+    <td>Después de toda la tabla de la liga.</td>
+    <td>Página de consulta con mucho scroll; el anuncio queda al final, sin tapar posiciones.</td>
+  </tr>
+  <tr>
+    <td><strong>Final del catálogo</strong><br><span class="muted">catalog-footer</span></td>
+    <td>Después de todas las acciones.</td>
+    <td>Cierra una página larga de navegación sin ensuciar la grilla de acciones.</td>
+  </tr>
+  <tr>
+    <td><strong>El «momento»</strong><br><span class="muted">moment</span></td>
+    <td><strong>Al cerrar la 3.ª noticia de la sesión.</strong> Máximo 1 por sesión, mínimo 20 min entre uno y otro, y nunca antes de la 2.ª sesión de la persona.</td>
+    <td>Es tu idea, implementada con frenos. Aparece como <em>tarjeta abajo, que se puede cerrar</em> — no como pop-up que bloquea. Los interstitials que interrumpen la navegación molestan y son riesgo de sanción de Google.</td>
+  </tr>
+</table>
+
+<div class="card accent">
+  <h3>Dónde NUNCA hay anuncios (a propósito)</h3>
+  <p>El núcleo del producto queda limpio, porque es lo que hace que la gente vuelva:</p>
+  <ul>
+    <li><strong>La pantalla de inicio</strong> — tu mundo 3D y el set diario. Es el corazón de la app.</li>
+    <li><strong>El onboarding</strong> — nadie se enamora de una app que le muestra publicidad antes de empezar.</li>
+    <li><strong>Las celebraciones</strong> (subida de rango, mundo completado, acción hecha).</li>
+    <li><strong>La pantalla de Brote+</strong> — sería absurdo poner anuncios en la página que los quita.</li>
+    <li><strong>Instalar la app y personalizar a Pip.</strong></li>
+  </ul>
+</div>
+
+<h2 id="reglas">4 · Reglas y límites (el motor de decisión)</h2>
+<p>Toda la lógica vive en un solo archivo (<code>lib/ads/policy.ts</code>) para que se pueda leer y auditar de un vistazo. Estas son las reglas, todas verificadas con tests automáticos:</p>
+<table>
+  <tr><th>Regla</th><th>Efecto</th></tr>
+  <tr><td>Suscriptor de Brote+</td><td class="ok">Cero anuncios. Ni siquiera se descarga el script de Google.</td></tr>
+  <tr><td>Cuenta de chico (menor de 13)</td><td class="ok">Cero anuncios, siempre. Ver sección 5.</td></tr>
+  <tr><td>Cuenta de adolescente (13-17)</td><td>Ve anuncios, pero <strong>nunca personalizados</strong>.</td></tr>
+  <tr><td>Todavía no terminó el onboarding</td><td>Sin anuncios.</td></tr>
+  <tr><td>Cuenta con menos de <strong>2 días</strong></td><td>Sin anuncios (período de gracia: proteger la retención vale más que unos centavos).</td></tr>
+  <tr><td>Adulto que no dio consentimiento</td><td>Anuncios <strong>genéricos</strong> (no personalizados) por defecto.</td></tr>
+  <tr><td>Adulto que aceptó</td><td>Anuncios personalizados (mejor pago).</td></tr>
+</table>
+
+<h2 id="legal">5 · Chicos y privacidad <span class="bad">(leelo)</span></h2>
+<div class="card accent coral">
+  <p><strong>Las cuentas de chicos no ven publicidad. Nunca. Y no es una decisión estética.</strong></p>
+  <p>Mostrar anuncios personalizados a menores de 13 viola COPPA (EE.UU.) y el RGPD-K (Europa), y es una de las formas más rápidas de que Google te cierre la cuenta de AdSense y se quede con lo acumulado. En vez de arriesgarnos a etiquetar mal el tráfico infantil, directamente <strong>no monetizamos a los menores de 13</strong>: no se carga el script, no se pide un anuncio, no se envía un solo dato.</p>
+  <p>Los adolescentes sí ven anuncios, pero siempre genéricos.</p>
+  <p class="muted"><strong>Si algún día tenés tráfico europeo:</strong> Google exige un CMP certificado (Consent Management Platform) para servir anuncios en la UE/Reino Unido. El banner actual es la base honesta para Argentina y LatAm. Antes de hacer campañas en Europa, integrá un CMP certificado (Google ofrece uno propio y gratuito en el panel de AdSense → Privacidad y mensajería).</p>
+</div>
+
+<div class="card accent sun">
+  <h3>Sobre los «anuncios recompensados»</h3>
+  <p>En el plan de monetización figuraba «mirar un video para ganar un protector de racha». <strong>AdSense común no tiene anuncios recompensados</strong> — eso existe en AdMob (apps nativas) o en Ad Manager / H5 Games Ads. Preferí decírtelo antes que prometerte una función que Google no permite en un sitio web normal.</p>
+  <p>Caminos reales si lo querés más adelante: (a) empaquetar la PWA como app nativa y usar AdMob, o (b) migrar a Google Ad Manager, que sí ofrece formatos recompensados para web. Ninguna de las dos es urgente.</p>
+</div>
+
+<h2 id="cobrar">6 · Cómo cobrás la plata</h2>
+<h3>AdSense</h3>
+<ul>
+  <li>Google acumula lo que generás durante el mes.</li>
+  <li>Antes del primer pago te pide <strong>verificar tu identidad</strong> y te manda un <strong>PIN por correo postal</strong> a tu dirección (llega en 2-4 semanas) cuando superás los USD 10.</li>
+  <li>Se paga cuando el saldo supera el <strong>umbral de USD 100</strong>, alrededor del día 21 del mes siguiente.</li>
+  <li>En Argentina cobrás por transferencia bancaria en pesos, o por Western Union / cheque según lo que habiliten. Configurás todo en AdSense → <strong>Pagos</strong>.</li>
+</ul>
+<h3>MercadoPago</h3>
+<ul>
+  <li>La plata de las suscripciones entra a tu cuenta de MercadoPago <strong>al instante</strong> de cada cobro mensual.</li>
+  <li>MercadoPago descuenta su comisión (varía según el plan de liberación de dinero que elijas).</li>
+  <li>Desde ahí la transferís a tu banco cuando quieras.</li>
+  <li class="muted">Esto es facturación: si empieza a ser plata real, hablá con un contador sobre monotributo/IVA. No soy tu asesor impositivo.</li>
+</ul>
+
+<h2 id="modificar">7 · Cómo modificar cualquier cosa</h2>
+<table>
+  <tr><th>Quiero…</th><th>Dónde se cambia</th></tr>
+  <tr><td>Cambiar el <strong>precio</strong> de Brote+</td><td>Secret <code>MP_PLUS_AMOUNT</code> en Supabase. Afecta a las suscripciones nuevas.</td></tr>
+  <tr><td>Mostrar anuncios <strong>más seguido</strong> en el feed</td><td><code>lib/ads/policy.ts</code> → <code>PLACEMENT_RULES['news-feed']</code>: bajá <code>everyNItems</code> o <code>minItemsBefore</code>, subí <code>maxPerView</code>.</td></tr>
+  <tr><td>Cambiar cuándo aparece el <strong>«momento»</strong></td><td><code>lib/ads/policy.ts</code> → <code>MOMENT_RULES</code>: <code>triggerAfterCloses</code> (hoy 3), <code>maxPerSession</code> (1), <code>minMinutesBetween</code> (20), <code>minSessions</code> (2).</td></tr>
+  <tr><td>Acortar o alargar el <strong>período de gracia</strong> de usuarios nuevos</td><td><code>lib/ads/policy.ts</code> → <code>NEW_USER_GRACE_DAYS</code> (hoy 2).</td></tr>
+  <tr><td><strong>Sacar</strong> los anuncios de una pantalla</td><td>Borrá el <code>&lt;AdSlot /&gt;</code> de esa página, o agregá la ruta a <code>NEVER_ADS_ROUTES</code>.</td></tr>
+  <tr><td><strong>Agregar</strong> anuncios a una pantalla nueva</td><td>Sumá el nombre al tipo <code>Placement</code>, agregá su regla y su id de espacio, y poné <code>&lt;AdSlot placement="tu-nombre" /&gt;</code>.</td></tr>
+  <tr><td>Cambiar los <strong>beneficios</strong> de Brote+</td><td><code>app/(app)/brote-plus/page.tsx</code> → array <code>PERKS</code>.</td></tr>
+  <tr><td><strong>Apagar toda la publicidad</strong> ya mismo</td><td>Borrá <code>NEXT_PUBLIC_ADSENSE_CLIENT</code> en Vercel y redeployá. Sin esa variable no se renderiza ni se carga nada.</td></tr>
+</table>
+
+<h2 id="mantener">8 · Mantenimiento</h2>
+<div class="card">
+  <p><strong>Rutina normal: prácticamente ninguna.</strong> No hay nada que renovar ni tareas periódicas. Lo que sí conviene mirar de vez en cuando:</p>
+  <ul>
+    <li><strong>Una vez por mes:</strong> panel de AdSense (ingresos, RPM, si hay avisos de políticas) y panel de MercadoPago (suscripciones activas, cobros rechazados).</li>
+    <li><strong>Si Google manda un aviso de política:</strong> atendelo rápido. Casi siempre se resuelve sacando un anuncio de un lugar puntual.</li>
+    <li><strong>Cada tanto:</strong> mirá la relación entre ingresos y retención. Si la retención a 7 días empieza a caer, bajá la frecuencia antes que subirla.</li>
+    <li><strong>Logs:</strong> Supabase → Edge Functions → <code>mp-webhook</code> muestra cada aviso de MercadoPago procesado, con su resultado.</li>
+  </ul>
+</div>
+
+<h2 id="problemas">9 · Problemas comunes</h2>
+<table>
+  <tr><th>Síntoma</th><th>Causa probable y solución</th></tr>
+  <tr><td>No aparece ningún anuncio</td><td>Lo esperable al principio. Chequeá en orden: (1) ¿cargaste <code>NEXT_PUBLIC_ADSENSE_CLIENT</code> y redeployaste?; (2) ¿AdSense ya te aprobó?; (3) ¿estás probando con una cuenta que tenga más de 2 días y el onboarding terminado?; (4) ¿tenés bloqueador de anuncios?; (5) las unidades nuevas tardan horas en empezar a servir.</td></tr>
+  <tr><td>Espacios vacíos donde iría el anuncio</td><td>Normal mientras Google todavía no tiene inventario para ese usuario. El espacio reserva altura para que no salte el contenido.</td></tr>
+  <tr><td>Pagué y sigo viendo anuncios</td><td>El webhook todavía no llegó. En la pantalla de Brote+ hay un botón «¿Pagaste y no se actualizó?» que refresca. Si persiste: revisá que «Verify JWT» esté <strong>apagado</strong> en <code>mp-webhook</code> y que la URL esté registrada en MercadoPago.</td></tr>
+  <tr><td>El webhook devuelve 401</td><td>La firma no coincide: el <code>MP_WEBHOOK_SECRET</code> cargado no es el mismo que el del panel de MercadoPago.</td></tr>
+  <tr><td>«MercadoPago todavía no está configurado»</td><td>Falta el secret <code>MP_ACCESS_TOKEN</code> en Supabase.</td></tr>
+  <tr><td>Google rechazó el sitio</td><td>Suele ser por «contenido insuficiente». Dejá que entren más noticias (se actualizan solas cada 8 h), sumá una página de «Sobre Brote» y política de privacidad, y volvé a aplicar.</td></tr>
+</table>
+
+<div class="card accent sun" style="margin-top:34px">
+  <h3>Expectativa honesta de ingresos</h3>
+  <p>Con los límites conservadores de arriba, en Argentina el RPM (ingreso por mil impresiones) para este tipo de tráfico suele estar entre <strong>USD 0,50 y 2</strong>. Con 1.000 usuarios activos al mes eso es del orden de <strong>USD 20-60/mes</strong> de publicidad. <strong>La publicidad no es el negocio: Brote+ lo es.</strong> Una sola suscripción rinde más que cientos de impresiones. Los anuncios existen para monetizar a quien nunca va a pagar, sin arruinarle la experiencia.</p>
+  <p class="muted">Ver <code>ANALISIS.html</code> para los escenarios completos de ingresos.</p>
+</div>
+
+<p class="muted" style="margin-top:36px">Actualizá este documento si cambiás las reglas de <code>lib/ads/policy.ts</code>. Agosto 2026.</p>
+</div>
+</body>
+</html>

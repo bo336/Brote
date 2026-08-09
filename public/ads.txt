@@ -1,0 +1,5 @@
+# AdSense ownership declaration.
+# Replace pub-0000000000000000 with YOUR publisher id (AdSense > Account >
+# Settings > Account information). Without this line Google may stop serving
+# ads on the domain. Keep the rest of the line exactly as-is.
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

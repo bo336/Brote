@@ -170,6 +170,23 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F12.7 **Eco-experto IA**: pip-chat expert mode (temp 0.4, admits uncertainty, ends with one action), header toggle, own daily cap.
 - [ ] F12.8 NEXT: kid-specific news tagging (feed currently teen+adult by default — kid feed is empty until items are tagged `kid`); org UI (create/join school) — RPCs live but no screen yet; guardian consent flow; Brote+ gating of expert mode.
 
+### F13 — MONETIZACIÓN: AdSense + Brote+ (MercadoPago)
+**Hard rules that drive the design (not optional):**
+1. **NEVER show ads to `kid` accounts.** COPPA/GDPR-K: child-directed traffic cannot get personalized ads, and mixing kids with ad tech is the fastest way to lose an AdSense account. Kids get zero ads, full stop. Teens get non-personalized only.
+2. **Never break the core loop.** No ads on the world hero, during completions/celebrations, in onboarding, or inside the daily-set flow. Ads live in *browsing* surfaces (news, catalog, ranking) and at natural stopping points.
+3. **AdSense has no true "rewarded video" for regular sites** (that's AdMob for native apps / H5 Games Ads). So the planned "watch a video for a streak freeze" must NOT be promised on AdSense — it needs Ad Manager/H5 or a native wrapper later. Documented as a future path, not shipped as a lie.
+4. **Consent**: default to NON-personalized ads; only personalize after explicit opt-in. EEA traffic legally needs a certified CMP — documented for later, with a safe default now.
+
+- [ ] F13.1 DB: `profiles.plan`/`plan_expires_at`, `subscriptions` table (provider, external ref, status, period), `brote_is_pro(uid)`, RLS.
+- [ ] F13.2 Ad policy engine (`lib/ads/policy.ts`): one place deciding *whether*, *where*, and *how often* — account type, plan, onboarding state, per-session and per-placement frequency caps, personalization consent.
+- [ ] F13.3 AdSense integration: script loader, `<AdSlot>` (responsive, reserves height to avoid layout shift, never renders empty), placements: in-feed news (every 4th), news article footer, ranking footer, catalog footer.
+- [ ] F13.4 "Moment" interstitial: after closing the 3rd news article in a session — capped 1/session, ≥20 min apart, never on first session.
+- [ ] F13.5 Consent banner (non-personalized default) + `ads.txt`.
+- [ ] F13.6 MercadoPago subscriptions: create-preapproval edge function, webhook (signature-verified) → updates plan, paywall screen `/brote-plus`, manage/cancel.
+- [ ] F13.7 Pro gating everywhere: no ads, plus the existing Brote+ perks.
+- [ ] F13.8 `PUBLICIDAD.html`: full owner manual (AdSense setup, MercadoPago setup, every placement, caps, maintenance, payouts, how to change things).
+- [ ] F13.9 Second pass: re-review placement quality, caps, policy compliance, revenue/UX balance.
+
 ### F7 — Autonomy explainer
 - [x] `OPERACIONES.html` (repo root, styled, Spanish): the 3 cron jobs, why content never runs out (infinite biomes, rolling challenge windows, activity cooldowns, news rotation), AI layer + fallbacks + rate limits, the only owner actions (Gemini key, VAPID keys — both one-time), monitoring pointers, current costs ($0).
 

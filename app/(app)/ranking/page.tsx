@@ -25,6 +25,7 @@ import {
   addFriendByUsername,
 } from '@/lib/api/ranking';
 import { Avatar } from '@/components/ui/avatar';
+import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
 import type { LeaderboardEntry } from '@/lib/supabase/rows';
 import { toast } from '@/stores/toast';
@@ -182,6 +183,7 @@ export default function RankingPage() {
               <Button variant="secondary" block asChild>
                 <Link href="/competencias">🏁 Crear o unirme a una competencia</Link>
               </Button>
+              <AdSlot placement="ranking-footer" className="pt-1" />
             </>
           ) : (
             <EmptyState message="No pudimos cargar tu liga. Probá de nuevo." />

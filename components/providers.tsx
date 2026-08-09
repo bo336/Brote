@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { ToastProvider } from '@/components/ui/toast';
 import { RewardLayer } from '@/components/rewards/RewardLayer';
 import { ServiceWorker } from '@/components/pwa/ServiceWorker';
+import { AdsProvider } from '@/components/ads/AdsProvider';
 
 /**
  * Global client providers: theme (light/dark/system), server-state cache,
@@ -36,9 +37,11 @@ export function Providers({ children }: { children: ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          {children}
-          <RewardLayer />
-          <ServiceWorker />
+          <AdsProvider>
+            {children}
+            <RewardLayer />
+            <ServiceWorker />
+          </AdsProvider>
         </ToastProvider>
       </QueryClientProvider>
     </ThemeProvider>

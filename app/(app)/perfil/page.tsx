@@ -71,6 +71,12 @@ export default function PerfilPage() {
             Personalizá a Pip 🌱
           </Link>
         </div>
+        <Link
+          href="/brote-plus"
+          className="mt-2 block rounded-button border border-brote-sun/40 bg-brote-sun/10 px-3 py-2.5 text-center text-small font-semibold text-brote-sun transition-colors hover:bg-brote-sun/15"
+        >
+          🌟 Brote+ · sin anuncios y con extras
+        </Link>
       </Card>
 
       <section>
