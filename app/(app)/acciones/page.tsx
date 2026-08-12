@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCatalog, useCatalogCompletions, useDomainPoints } from '@/hooks/use-catalog';
 import { fetchMyRecommendations } from '@/lib/api/catalog';
 import { scoreActivities } from '@/lib/recommendations';
+import { AdSlot } from '@/components/ads/AdSlot';
 import { DOMAINS } from '@/lib/domains';
 import { cn } from '@/lib/utils/cn';
 import type { ActivityRow } from '@/lib/supabase/rows';
@@ -246,6 +247,9 @@ export default function AccionesPage() {
           </section>
         </>
       )}
+
+      {/* One unit at the very end of the catalogue, after all the content. */}
+      <AdSlot placement="catalog-footer" />
     </div>
   );
 }

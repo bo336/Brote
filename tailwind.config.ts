@@ -62,7 +62,16 @@ const config: Config = {
         display: ['var(--font-display)', 'Bricolage Grotesque', 'system-ui', 'sans-serif'],
         sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
       },
+      backgroundImage: {
+        // The one brand gradient — canopy green to dawn amber. Used only on
+        // hero headlines, key stat numbers and the primary CTA, never as a
+        // section wash (Bitácora Viva §1).
+        'brand-gradient': 'linear-gradient(115deg, #0E7A52 0%, #1FB57A 45%, #FFB23E 100%)',
+        'ink-scrim': 'linear-gradient(180deg, rgba(12,26,19,0) 0%, rgba(12,26,19,0.55) 60%, rgba(12,26,19,0.94) 100%)',
+      },
       fontSize: {
+        // Oversized editorial hero — the featured-story headline scale.
+        hero: ['clamp(2.1rem, 5.2vw, 3.4rem)', { lineHeight: '1.03', letterSpacing: '-0.03em' }],
         'display-xl': ['2.5rem', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
         'display-l': ['2rem', { lineHeight: '1.08', letterSpacing: '-0.02em' }],
         h1: ['1.6rem', { lineHeight: '1.15', letterSpacing: '-0.01em' }],
@@ -111,6 +120,10 @@ const config: Config = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-4px)' },
         },
+        'live-pulse': {
+          '0%, 100%': { opacity: '1', boxShadow: '0 0 0 0 rgba(31,181,122,0.5)' },
+          '50%': { opacity: '0.55', boxShadow: '0 0 0 5px rgba(31,181,122,0)' },
+        },
       },
       animation: {
         'count-pop': 'count-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -118,6 +131,7 @@ const config: Config = {
         'flame-flicker': 'flame-flicker 1.6s ease-in-out infinite',
         shimmer: 'shimmer 1.6s infinite',
         'pip-bob': 'pip-bob 3s ease-in-out infinite',
+        'live-pulse': 'live-pulse 1.8s ease-in-out infinite',
       },
     },
   },

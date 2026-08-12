@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -11,15 +12,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
 import { getDomain } from '@/lib/domains';
 import { fetchNewsItem } from '@/lib/api/explorar';
+import { AdSlot } from '@/components/ads/AdSlot';
+import { useAds } from '@/components/ads/AdsProvider';
 
 export default function NewsDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const t = useTranslations('explorar');
   const tc = useTranslations('common');
+  const { noteContentClosed } = useAds();
 
   const q = useQuery({ queryKey: ['news-item', params.id], queryFn: () => fetchNewsItem(params.id), enabled: !!params.id });
   const item = q.data;
+
+  // Finishing an article is a natural stopping point: it feeds the "moment"
+  // counter (an ad may appear after the third one in a session).
+  useEffect(() => {
+    if (!item) return;
+    return () => noteContentClosed();
+  }, [item, noteContentClosed]);
 
   if (q.isLoading) {
     return (
@@ -80,6 +91,9 @@ export default function NewsDetailPage() {
           {t('openOriginal')} <ExternalLink className="h-4 w-4" />
         </a>
       </Button>
+
+      {/* Below the content, never inside it — the reader finishes first. */}
+      <AdSlot placement="news-article" className="pt-2" />
     </article>
   );
 }

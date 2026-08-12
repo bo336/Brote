@@ -5,6 +5,8 @@ import { TopBar } from '@/components/nav/TopBar';
 import { BottomTabBar } from '@/components/nav/BottomTabBar';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
 import { PipChat } from '@/components/pip/PipChat';
+import { MomentAd } from '@/components/ads/AdSlot';
+import { AdsConsentBanner } from '@/components/ads/AdsConsent';
 import { SessionHydrator } from '@/components/session-hydrator';
 import { getSessionData } from '@/lib/supabase/queries';
 
@@ -29,6 +31,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <BottomTabBar />
       </div>
       <PipChat />
+      <MomentAd />
+      <AdsConsentBanner />
       <SessionHydrator profile={profile} unread={unread} />
     </div>
   );
