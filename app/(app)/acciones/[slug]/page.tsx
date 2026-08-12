@@ -22,6 +22,7 @@ import { addHabit } from '@/lib/api/competencias';
 import { useCatalogCompletions } from '@/hooks/use-catalog';
 import { completeActivity } from '@/lib/api/activities';
 import { celebrateCompletion } from '@/lib/rewards';
+import { invalidateScores } from '@/lib/refresh';
 import { toast } from '@/stores/toast';
 import Link from 'next/link';
 import type { Impact } from '@/lib/points';
@@ -55,8 +56,8 @@ export default function ActivityDetailPage() {
   const locked = a ? !meetsRank(profile?.totalXp ?? 0, a.min_rank_slug) : false;
 
   function invalidate() {
-    qc.invalidateQueries({ queryKey: ['catalog-completions'] });
-    qc.invalidateQueries({ queryKey: ['domain-points'] });
+    // Completing from the catalogue moves the same numbers as the daily set.
+    invalidateScores(qc);
   }
 
   async function doComplete() {

@@ -8,6 +8,7 @@ import {
   fetchTodayCompletions,
 } from '@/lib/api/activities';
 import { celebrateCompletion } from '@/lib/rewards';
+import { invalidateScores } from '@/lib/refresh';
 import { toast } from '@/stores/toast';
 import { localDate } from '@/lib/utils/dates';
 
@@ -52,9 +53,9 @@ export function useCompleteActivity() {
       celebrateCompletion(result);
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: KEYS.done });
-      // Challenge progress is recomputed server-side on every completion.
-      qc.invalidateQueries({ queryKey: ['daily-challenge'] });
+      // A completion moves points, streak, impact, every leaderboard and every
+      // position at once — refresh all of it, not just today's checklist.
+      invalidateScores(qc);
     },
   });
 }

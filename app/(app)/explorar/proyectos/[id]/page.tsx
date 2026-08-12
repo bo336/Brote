@@ -17,6 +17,7 @@ import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
 import { fetchProject, fetchProjectParticipants, joinProject, upvoteProject } from '@/lib/api/explorar';
 import { completeGroupAction } from '@/lib/api/competencias';
+import { invalidateScores } from '@/lib/refresh';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
@@ -212,6 +213,8 @@ export default function ProjectDetailPage() {
               if (res.ok) {
                 toast.success('¡Acción grupal completada!', `+${res.points_each} pts para ${res.participants} personas`);
                 qc.invalidateQueries({ queryKey: ['project', p.id] });
+                // Group actions award points to everyone who took part.
+                invalidateScores(qc);
               } else {
                 toast.error('No se pudo cerrar', res.error);
               }

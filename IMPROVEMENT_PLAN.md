@@ -170,6 +170,64 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F12.7 **Eco-experto IA**: pip-chat expert mode (temp 0.4, admits uncertainty, ends with one action), header toggle, own daily cap.
 - [ ] F12.8 NEXT: kid-specific news tagging (feed currently teen+adult by default — kid feed is empty until items are tagged `kid`); org UI (create/join school) — RPCs live but no screen yet; guardian consent flow; Brote+ gating of expert mode.
 
+### F14 — Backlog del 2026-08-12 (pedido completo del usuario, en orden de ataque)
+Ordenado por: primero lo que bloquea o se ve en cada pantalla, después lo estructural grande.
+
+**F14.1 Ranking: semanal + total en TODAS las tablas** — hoy solo liga y global tienen el
+toggle. Falta en ciudad, amigos y temáticas. Semanal debe ser el default en todas.
+BUG confirmado: el número de posición no se actualiza al cambiar total↔semanal.
+- [ ] F14.1
+
+**F14.2 Explorar abre en Novedades** + quitar el bloque grande del inicio (PulseStrip) +
+que TODA tarjeta tenga algo visual (fallback cuando no hay imagen).
+- [ ] F14.2
+
+**F14.3 Tipo de cuenta visible + cómo probarlo** — el rol no se ve en ningún lado.
+Mostrarlo en perfil/ajustes y documentar cómo crear y probar cuentas kid/teen/adult.
+- [ ] F14.3
+
+**F14.4 Catálogo de acciones ×10 con rotación** (el usuario lo marcó como "super importante").
+De ~169 a ~1.700. Buscar "agua" debe dar ~100, no 5. Mostrar la misma cantidad por día que
+ahora pero ROTANDO, para que nunca se repitan y siempre haya desafío.
+Energía y CO₂ hay que rehacerlas: hoy son demasiado difíciles; se necesitan cotidianas
+(desenchufar electrónicos, etc.). Variedad alta, nada demasiado común ni tradicional,
+pero todas posibles para cualquiera.
+- [ ] F14.4
+
+**F14.5 Actividades de rutina** — SOLO algunas especiales repetibles a diario (ducha corta,
+ir en bici al trabajo para adultos) se pueden sumar a una lista de rutina, visible bajo las
+actividades del día. Deliberadamente NO todas: si a la semana todo es rutina, se vuelve
+aburrido y se pierde el enganche del set diario.
+- [ ] F14.5
+
+**F14.6 Competencias: config más profunda** — sin fecha de fin (opcional), y reinicio de
+puntos por período configurable (semanal / mensual / cada domingo…). Activable y
+desactivable; si está activo, mostrar puntos del período actual Y totales.
+- [ ] F14.6
+
+**F14.7 Realtime en todo** — nada debe requerir recargar la página: leaderboards, puntos,
+cualquier lugar donde se muestren números, se actualizan solos al completar una acción.
+- [ ] F14.7
+
+**F14.8 Proyectos ↔ puntos + config más rica** — el organizador marca una jornada como
+hecha y eso otorga puntos fijos a quienes participaron (motiva la acción grupal). Además,
+configuración más completa: contacto para coordinar, y proyectos en varias fases/jornadas.
+- [ ] F14.8
+
+**F14.9 Acceso fácil a las noticias desde Hoy** — botón flotante tras completar acciones,
+con mensajes tentativos rotativos, sin molestar.
+- [ ] F14.9
+
+**F14.10 Noticias en español + más amigables + filtros** — hoy llegan en inglés y son
+demasiado técnicas/trágicas. Sumar temas que la gente disfruta leer (eco construcción, eco
+transporte, avances tecnológicos) y filtros por tema (agua, residuos, etc.).
+- [ ] F14.10
+
+**F14.11 Explorar como feed social (uno de los dos cambios grandes)** — reestructurar la
+sección al estilo Twitter/diario: feed donde la gente opina, comenta, da me gusta / no me
+gusta, hilos, y descubre info scrolleando.
+- [ ] F14.11
+
 ### F13 — MONETIZACIÓN: AdSense + Brote+ (MercadoPago)
 **Hard rules that drive the design (not optional):**
 1. **NEVER show ads to `kid` accounts.** COPPA/GDPR-K: child-directed traffic cannot get personalized ads, and mixing kids with ad tech is the fastest way to lose an AdSense account. Kids get zero ads, full stop. Teens get non-personalized only.

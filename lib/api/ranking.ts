@@ -17,6 +17,58 @@ export async function fetchWeeklyLeaderboard(): Promise<LeaderboardEntry[]> {
   return (data ?? []) as LeaderboardEntry[];
 }
 
+/**
+ * Every board can be viewed for the rolling week or for all time. Weekly is
+ * the default across the app so newcomers are never permanently buried under
+ * veterans' lifetime totals.
+ */
+export type Period = 'semana' | 'historico';
+
+/** Which field carries the score for a given period. */
+export function metricFor(period: Period): 'xp' | 'total_xp' {
+  return period === 'semana' ? 'xp' : 'total_xp';
+}
+
+export async function fetchCityLeaderboardWeekly(city: string): Promise<LeaderboardEntry[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('city_leaderboard_weekly', { p_city: city, p_limit: 100 });
+  if (error) throw error;
+  return (data ?? []) as LeaderboardEntry[];
+}
+
+export async function fetchFriendLeaderboardWeekly(userId: string): Promise<LeaderboardEntry[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('friend_leaderboard_weekly', { p_uid: userId });
+  if (error) throw error;
+  return (data ?? []) as LeaderboardEntry[];
+}
+
+export async function fetchDomainLeaderboardWeekly(domain: string): Promise<LeaderboardEntry[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('domain_leaderboard_weekly', {
+    p_domain: domain,
+    p_limit: 100,
+    p_offset: 0,
+  });
+  if (error) throw error;
+  return (data ?? []) as LeaderboardEntry[];
+}
+
+/**
+ * Your position, for the period actually being shown. The lifetime and weekly
+ * boards rank by different fields, so asking only the lifetime RPC left the
+ * number frozen when the toggle changed.
+ */
+export async function fetchMyPositionFor(userId: string, period: Period): Promise<number> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc(
+    period === 'semana' ? 'get_user_weekly_position' : 'get_user_global_position',
+    { p_uid: userId },
+  );
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
 export async function fetchCityLeaderboard(city: string): Promise<LeaderboardEntry[]> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc('city_leaderboard', {

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Sheet } from '@/components/ui/sheet';
 import { ThemeSegmented } from '@/components/ui/theme-toggle';
+import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
 import { BRAND } from '@/lib/brand';
 import { CITIES, OTHER_CITY } from '@/lib/data/cities';
 import { useSession } from '@/stores/session';
@@ -136,6 +137,21 @@ export default function AjustesPage() {
         <ArrowLeft className="h-4 w-4" /> {tp('title')}
       </Link>
       <h1 className="font-display text-h1 font-bold">{t('title')}</h1>
+
+      {/* The account type silently gates actions, news, competitions and ads —
+          so it has to be visible and explained somewhere (F14.3). */}
+      <Section title="Tipo de cuenta">
+        <Card className="space-y-2 p-4">
+          <AccountTypeBadge type={profile?.accountType} showDetail />
+          <p className="text-caption text-muted-foreground">
+            Define qué acciones, noticias y competencias ves. Para cambiarlo escribinos a{' '}
+            <a href={`mailto:${BRAND.contactEmail}`} className="text-primary underline underline-offset-2">
+              {BRAND.contactEmail}
+            </a>
+            .
+          </p>
+        </Card>
+      </Section>
 
       {/* Profile: name + city */}
       <Section title="Tu perfil">

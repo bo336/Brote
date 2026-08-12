@@ -11,16 +11,14 @@ import { Button } from '@/components/ui/button';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { Reveal } from '@/components/ui/reveal';
 import { ProjectCard } from '@/components/explorar/ProjectCard';
-import { NewsHero } from '@/components/explorar/NewsHero';
 import { NewsBriefingRow } from '@/components/explorar/NewsBriefingRow';
-import { PulseStrip } from '@/components/explorar/PulseStrip';
 import { SectionTabs } from '@/components/explorar/SectionTabs';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { feedAdIndices } from '@/lib/ads/policy';
 import { useSession } from '@/stores/session';
 import { fetchProjects, fetchNews } from '@/lib/api/explorar';
 import { meetsRank } from '@/lib/ranks';
-import { DOMAINS, getDomain } from '@/lib/domains';
+import { DOMAINS } from '@/lib/domains';
 
 type ProjectSort = 'cerca' | 'proximos' | 'populares';
 type Section = 'novedades' | 'proyectos';
@@ -37,6 +35,8 @@ export default function ExplorarPage() {
   const totalXp = profile?.totalXp ?? 0;
   const canCreate = meetsRank(totalXp, 'plantula');
 
+  // Novedades is the landing section: it is the reason most people open
+  // Explorar, so it should never take an extra tap to reach (F14.2).
   const [section, setSection] = useState<Section>('novedades');
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
   const newsQ = useQuery({
@@ -60,23 +60,8 @@ export default function ExplorarPage() {
     return list;
   }, [projectsQ.data, sort, domain, profile?.neighborhood]);
 
-  // Featured story + the calmer hairline briefing river beneath it.
   const news = newsQ.data ?? [];
-  const featured = news[0];
-  const briefing = news.slice(1);
-  const adIndices = feedAdIndices(briefing.length);
-
-  const pulse = useMemo(() => {
-    const dayMs = 24 * 3_600_000;
-    const today = news.filter((n) => n.published_at && Date.now() - new Date(n.published_at).getTime() < dayMs).length;
-    const counts = new Map<string, number>();
-    for (const n of news) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
-    let topSlug: string | null = null;
-    let topCount = 0;
-    for (const [slug, count] of counts) if (count > topCount) { topSlug = slug; topCount = count; }
-    const topDomain = topSlug ? getDomain(topSlug) : undefined;
-    return { today, total: news.length, trendingLabel: topDomain?.name_es ?? null, trendingColor: topDomain?.color };
-  }, [news]);
+  const adIndices = feedAdIndices(news.length);
 
   return (
     <div className="space-y-5">
@@ -90,46 +75,33 @@ export default function ExplorarPage() {
       />
 
       {section === 'novedades' && (
-        <div className="space-y-5">
-          {!newsQ.isLoading && news.length > 0 && (
-            <PulseStrip
-              today={pulse.today}
-              total={pulse.total}
-              trendingLabel={pulse.trendingLabel}
-              trendingColor={pulse.trendingColor}
-            />
-          )}
-
+        <div className="space-y-4">
           {newsQ.isLoading ? (
             <div className="space-y-3">
-              <Skeleton className="h-64 w-full rounded-card sm:h-80" />
-              {[0, 1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
           ) : news.length === 0 ? (
             <EmptyState message={t('newsEmpty')} />
           ) : (
-            <>
-              {featured && <NewsHero item={featured} />}
-              <div className="divide-y divide-border">
-                {briefing.flatMap((item, i) => {
-                  const nodes = [
-                    <Reveal key={item.id} index={i}>
-                      <NewsBriefingRow item={item} />
-                    </Reveal>,
-                  ];
-                  if (adIndices.includes(i)) {
-                    nodes.push(
-                      <div key={`ad-${i}`} className="py-3">
-                        <AdSlot placement="news-feed" />
-                      </div>,
-                    );
-                  }
-                  return nodes;
-                })}
-              </div>
-            </>
+            <div className="divide-y divide-border">
+              {news.flatMap((item, i) => {
+                const nodes = [
+                  <Reveal key={item.id} index={i}>
+                    <NewsBriefingRow item={item} />
+                  </Reveal>,
+                ];
+                if (adIndices.includes(i)) {
+                  nodes.push(
+                    <div key={`ad-${i}`} className="py-3">
+                      <AdSlot placement="news-feed" />
+                    </div>,
+                  );
+                }
+                return nodes;
+              })}
+            </div>
           )}
         </div>
       )}

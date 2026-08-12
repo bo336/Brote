@@ -12,6 +12,7 @@ import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactBenchmark } from '@/components/impacto/ImpactBenchmark';
+import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
 import { SectionHeader } from '@/components/ui/section';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,6 +48,7 @@ export default function PerfilPage() {
               {profile?.city ? ` · ${profile.city}` : ''}
             </p>
             {profile?.equippedTitle && <p className="text-caption font-medium text-primary">{profile.equippedTitle}</p>}
+            <AccountTypeBadge type={profile?.accountType} className="mt-1.5" />
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">

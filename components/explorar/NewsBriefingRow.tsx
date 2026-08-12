@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { DomainIcon } from '@/components/icons/DomainIcon';
 import { getDomain } from '@/lib/domains';
 import { relativeLabel } from '@/lib/utils/dates';
 import type { NewsRow } from '@/lib/supabase/rows';
@@ -23,11 +24,21 @@ export function NewsBriefingRow({ item }: { item: NewsRow }) {
       className="group -mx-2 flex items-center gap-3 rounded-button px-2 py-3.5 transition-colors duration-150 hover:bg-surface-2/70"
     >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dom?.color ?? '#1FB57A' }} aria-hidden />
+      {/*
+        Every row carries a visual, with or without a photo: a bare tinted
+        square made image-less stories look broken next to the rest (F14.2),
+        so the fallback shows the domain's own icon instead.
+      */}
       {item.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.image_url} alt="" className="h-14 w-14 shrink-0 rounded-[10px] object-cover" />
       ) : (
-        <div className="h-14 w-14 shrink-0 rounded-[10px]" style={{ background: `${dom?.color ?? '#1FB57A'}22` }} />
+        <div
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[10px]"
+          style={{ background: `${dom?.color ?? '#1FB57A'}1f` }}
+        >
+          <DomainIcon domain={item.domain_tags[0] ?? 'comunidad'} size={30} variant="bare" />
+        </div>
       )}
       <div className="min-w-0 flex-1">
         <p
