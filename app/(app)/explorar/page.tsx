@@ -60,7 +60,24 @@ export default function ExplorarPage() {
     return list;
   }, [projectsQ.data, sort, domain, profile?.neighborhood]);
 
-  const news = newsQ.data ?? [];
+  // Topic filter for the feed (F14.10). Only domains that actually have
+  // stories right now are offered — an empty filter chip is a dead end.
+  const [newsTopic, setNewsTopic] = useState<string>('all');
+  const allNews = newsQ.data ?? [];
+
+  const topicOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const n of allNews) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
+    const available = DOMAINS.filter((d) => (counts.get(d.slug) ?? 0) > 0)
+      .sort((a, b) => (counts.get(b.slug) ?? 0) - (counts.get(a.slug) ?? 0))
+      .map((d) => ({ value: d.slug, label: d.name_es, color: d.color }));
+    return [{ value: 'all', label: 'Todo' }, ...available];
+  }, [allNews]);
+
+  const news = useMemo(
+    () => (newsTopic === 'all' ? allNews : allNews.filter((n) => n.domain_tags.includes(newsTopic))),
+    [allNews, newsTopic],
+  );
   const adIndices = feedAdIndices(news.length);
 
   return (
@@ -76,6 +93,15 @@ export default function ExplorarPage() {
 
       {section === 'novedades' && (
         <div className="space-y-4">
+          {!newsQ.isLoading && topicOptions.length > 1 && (
+            <ChipRail
+              layoutId="news-topic"
+              value={newsTopic}
+              onChange={setNewsTopic}
+              options={topicOptions}
+            />
+          )}
+
           {newsQ.isLoading ? (
             <div className="space-y-3">
               {[0, 1, 2, 3, 4].map((i) => (
