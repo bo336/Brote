@@ -128,6 +128,14 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /*
+   * Signature angular cut — one leaf-notch clip per page, on the single
+   * hero media element. See BROTE_DESIGN_SYSTEM.md §4.
+   */
+  .leaf-clip {
+    clip-path: polygon(0 0, 100% 0, 100% 82%, 88% 100%, 0 100%);
+  }
 }
 
 /* Respect reduced-motion: neutralize big animations (§2.5). Functionality stays. */

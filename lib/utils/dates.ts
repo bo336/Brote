@@ -43,6 +43,21 @@ export function dayProgress(tz: string = APP_TZ, now: Date = new Date()): number
   return minutes / 1440;
 }
 
+/** Short Spanish relative-time label ("hace 2 h") for an ISO timestamp. */
+export function relativeLabel(iso: string, now: Date = new Date()): string {
+  const diffMs = now.getTime() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 1) return 'ahora';
+  if (mins < 60) return `hace ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `hace ${days} d`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `hace ${weeks} sem`;
+  return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+}
+
 /** Greeting key based on local time. */
 export function greetingKey(tz: string = APP_TZ, now: Date = new Date()): 'morning' | 'afternoon' | 'evening' | 'night' {
   const h = localHour(tz, now);
