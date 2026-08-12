@@ -11,6 +11,7 @@ import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
 import { Mundo } from '@/components/mundo/Mundo';
+import { ImpactBenchmark } from '@/components/impacto/ImpactBenchmark';
 import { SectionHeader } from '@/components/ui/section';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -117,6 +118,11 @@ export default function PerfilPage() {
           )}
         </Card>
         <p className="mt-1.5 text-center text-caption text-muted-foreground">Valores estimados · tu huella positiva</p>
+      </section>
+
+      {/* The motivational half: the same savings, next to a real person's use. */}
+      <section>
+        <ImpactBenchmark days={30} />
       </section>
 
       <div className="grid grid-cols-2 gap-2.5">

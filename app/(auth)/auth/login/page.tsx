@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Mail, Sparkles, ArrowRight } from 'lucide-react';
@@ -38,11 +39,29 @@ export default function LoginPage() {
   );
 }
 
+/**
+ * Human-readable explanations for every way a sign-in can fail. Previously a
+ * failed OAuth/magic-link round trip just dropped the user back here with no
+ * message at all, which read as an unexplained login loop.
+ */
+const ERROR_MESSAGES: Record<string, string> = {
+  provider: 'Google no pudo completar el ingreso. Probá de nuevo o usá tu correo.',
+  nocode: 'El ingreso volvió sin credenciales. Suele pasar cuando la URL de retorno no está habilitada en el servidor.',
+  exchange: 'No pudimos validar tu ingreso. Probá de nuevo; si sigue igual, entrá con tu correo.',
+  link: 'Ese enlace ya no sirve: los enlaces mágicos se usan una sola vez y vencen en una hora. Pedí uno nuevo.',
+  nolink: 'El enlace está incompleto. Pedí uno nuevo desde acá abajo.',
+  auth: 'No pudimos completar el ingreso. Probá de nuevo.',
+};
+
 function LoginInner() {
   const t = useTranslations('auth');
   const params = useSearchParams();
   const next = params.get('next') ?? '/';
   const [mode, setMode] = useState<Mode>('signin');
+
+  const errorKey = params.get('error');
+  const errorDetail = params.get('detail');
+  const errorMessage = errorKey ? (ERROR_MESSAGES[errorKey] ?? ERROR_MESSAGES.auth) : null;
 
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 py-10">
@@ -54,6 +73,19 @@ function LoginInner() {
           <h1 className="mt-4 font-display text-display-l font-extrabold">{t('welcome', { app: BRAND.name })}</h1>
           <p className="mt-1 text-muted-foreground">{t('subtitle')}</p>
         </div>
+
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-4 rounded-card border border-brote-coral/40 bg-brote-coral/10 p-3.5 text-small text-foreground"
+          >
+            <p className="font-semibold text-brote-coral">No pudimos iniciar tu sesión</p>
+            <p className="mt-1">{errorMessage}</p>
+            {errorDetail && (
+              <p className="mt-1.5 break-words text-caption text-muted-foreground">Detalle técnico: {errorDetail}</p>
+            )}
+          </div>
+        )}
 
         <Card className="space-y-4 p-5">
           <form action={signInWithGoogle.bind(null, next)}>
@@ -73,7 +105,21 @@ function LoginInner() {
           <AuthForm key={mode} mode={mode} next={next} onSwitch={setMode} />
         </Card>
 
-        <p className="mt-5 text-center text-caption text-muted-foreground">{t('terms')}</p>
+        {/*
+          The terms must be readable BEFORE accepting them, so both documents
+          are real, reachable pages rather than plain unclickable text.
+        */}
+        <p className="mt-5 text-center text-caption leading-relaxed text-muted-foreground">
+          Al continuar aceptás nuestros{' '}
+          <Link href="/legal/terminos" className="font-medium text-primary underline underline-offset-2">
+            Términos y Condiciones
+          </Link>{' '}
+          y nuestra{' '}
+          <Link href="/legal/privacidad" className="font-medium text-primary underline underline-offset-2">
+            Política de Privacidad
+          </Link>
+          .
+        </p>
       </div>
     </main>
   );

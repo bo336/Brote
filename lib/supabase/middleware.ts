@@ -2,7 +2,9 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /** Routes that don't require authentication. */
-const PUBLIC_PREFIXES = ['/auth', '/instalar', '/offline', '/_next', '/api/public'];
+// `/legal` must be public: the terms and privacy policy are linked from the
+// login screen and have to be readable BEFORE anyone accepts them.
+const PUBLIC_PREFIXES = ['/auth', '/legal', '/instalar', '/offline', '/_next', '/api/public'];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
