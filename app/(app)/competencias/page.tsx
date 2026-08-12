@@ -14,6 +14,8 @@ import {
   fetchPublicCompetitions,
   createCompetition,
   joinCompetition,
+  resetLabel,
+  type ResetPeriod,
 } from '@/lib/api/competencias';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
@@ -22,7 +24,9 @@ import { cn } from '@/lib/utils/cn';
 const inputCls =
   'w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none transition-colors focus:border-primary';
 
-function daysLeft(endsAt: string): string {
+function daysLeft(endsAt: string | null): string {
+  // No end date: the competition simply keeps running.
+  if (!endsAt) return 'Sin fecha de fin';
   const ms = new Date(endsAt).getTime() - Date.now();
   if (ms <= 0) return 'Terminada';
   const d = Math.ceil(ms / 86_400_000);
@@ -42,7 +46,10 @@ export default function CompetenciasPage() {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [days, setDays] = useState(7);
+  // null duration = open-ended competition (F14.6).
+  const [days, setDays] = useState<number | null>(7);
+  const [resetPeriod, setResetPeriod] = useState<ResetPeriod>(null);
+  const [resetAnchor, setResetAnchor] = useState<number>(1);
   const [busy, setBusy] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
@@ -51,7 +58,14 @@ export default function CompetenciasPage() {
     if (!name.trim() || busy) return;
     setBusy(true);
     try {
-      const res = await createCompetition(name.trim(), desc.trim(), isPublic, days);
+      const res = await createCompetition(
+        name.trim(),
+        desc.trim(),
+        isPublic,
+        days,
+        resetPeriod,
+        resetPeriod ? resetAnchor : null,
+      );
       haptic('success');
       toast.success('¡Competencia creada!', `Código: ${res.code}`);
       setShowCreate(false);
@@ -142,6 +156,8 @@ export default function CompetenciasPage() {
                     <p className="text-caption text-muted-foreground">
                       <Users className="mr-1 inline h-3 w-3" />
                       {c.members} · {daysLeft(c.ends_at)}
+                      {resetLabel(c.reset_period ?? null, c.reset_anchor) &&
+                        ` · ${resetLabel(c.reset_period ?? null, c.reset_anchor)}`}
                     </p>
                   </Link>
                   <button
@@ -201,7 +217,7 @@ export default function CompetenciasPage() {
           </label>
           <div>
             <span className="mb-1.5 block text-small font-medium">Duración</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {[7, 14, 30].map((d) => (
                 <button
                   key={d}
@@ -214,7 +230,83 @@ export default function CompetenciasPage() {
                   {d} días
                 </button>
               ))}
+              {/* An open-ended competition never expires — for a class or a
+                  household that just wants a permanent scoreboard. */}
+              <button
+                onClick={() => setDays(null)}
+                className={cn(
+                  'flex-1 whitespace-nowrap rounded-button border px-3 py-2 text-small font-medium transition-colors',
+                  days === null ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface',
+                )}
+              >
+                ♾️ Sin fin
+              </button>
             </div>
+          </div>
+
+          <div>
+            <span className="mb-1.5 block text-small font-medium">Reinicio de puntos</span>
+            <p className="mb-2 text-caption text-muted-foreground">
+              Si lo activás, el puesto se define por los puntos del período actual y quien se suma tarde también puede
+              ganar. El total acumulado se sigue mostrando.
+            </p>
+            <div className="flex gap-2">
+              {(
+                [
+                  { v: null, label: 'Sin reinicio' },
+                  { v: 'weekly', label: 'Semanal' },
+                  { v: 'monthly', label: 'Mensual' },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.label}
+                  onClick={() => setResetPeriod(o.v)}
+                  className={cn(
+                    'flex-1 rounded-button border px-3 py-2 text-small font-medium transition-colors',
+                    resetPeriod === o.v ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface',
+                  )}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+
+            {resetPeriod === 'weekly' && (
+              <div className="mt-2">
+                <span className="mb-1.5 block text-caption text-muted-foreground">¿Qué día reinicia?</span>
+                <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
+                  {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((d, i) => (
+                    <button
+                      key={d}
+                      onClick={() => setResetAnchor(i)}
+                      className={cn(
+                        'shrink-0 rounded-button border px-2.5 py-1.5 text-caption font-medium transition-colors',
+                        resetAnchor === i ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface',
+                      )}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {resetPeriod === 'monthly' && (
+              <label className="mt-2 block">
+                <span className="mb-1.5 block text-caption text-muted-foreground">¿Qué día del mes reinicia?</span>
+                <select
+                  value={resetAnchor ?? 1}
+                  onChange={(e) => setResetAnchor(Number(e.target.value))}
+                  className={inputCls}
+                >
+                  {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={d}>
+                      Día {d}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
           <div>
             <span className="mb-1.5 block text-small font-medium">Quién puede entrar</span>
