@@ -4,13 +4,34 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+/**
+ * The origin auth links must come back to.
+ *
+ * Prefers the ACTUAL host of the incoming request over NEXT_PUBLIC_APP_URL
+ * whenever the two disagree. A stale env var — the classic case being a
+ * production deploy still carrying `http://localhost:3000` copied from a local
+ * file — otherwise sends every Google/magic-link round trip to a domain the
+ * user is not on, so the session is written somewhere they never land and the
+ * login appears to loop forever. The request's own host is always right for
+ * the environment actually being used.
+ */
 function getOrigin(): string {
-  const env = process.env.NEXT_PUBLIC_APP_URL;
-  if (env) return env.replace(/\/$/, '');
   const h = headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}`;
+  const host = h.get('x-forwarded-host') ?? h.get('host');
+  const proto = h.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https');
+  const fromRequest = host ? `${proto}://${host}` : null;
+
+  const env = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || null;
+  if (!env) return fromRequest ?? 'http://localhost:3000';
+  if (!fromRequest) return env;
+
+  try {
+    if (new URL(env).host === new URL(fromRequest).host) return env;
+  } catch {
+    return fromRequest;
+  }
+  // Configured URL belongs to a different environment than this request.
+  return fromRequest;
 }
 
 export interface AuthActionState {
