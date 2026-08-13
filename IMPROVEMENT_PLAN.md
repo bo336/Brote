@@ -176,15 +176,19 @@ Ordenado por: primero lo que bloquea o se ve en cada pantalla, después lo estru
 **F14.1 Ranking: semanal + total en TODAS las tablas** — hoy solo liga y global tienen el
 toggle. Falta en ciudad, amigos y temáticas. Semanal debe ser el default en todas.
 BUG confirmado: el número de posición no se actualiza al cambiar total↔semanal.
-- [ ] F14.1
+- [x] F14.1 — SHIPPED. city/friend/domain weekly RPCs (live 0022), weekly default
+  everywhere, position bug fixed (RPC ranked lifetime only + query key omitted
+  the period). Verified: semanal #3 vs histórico #2.
 
 **F14.2 Explorar abre en Novedades** + quitar el bloque grande del inicio (PulseStrip) +
 que TODA tarjeta tenga algo visual (fallback cuando no hay imagen).
-- [ ] F14.2
+- [x] F14.2 — SHIPPED (superseded by F14.11: the list is now a feed).
 
 **F14.3 Tipo de cuenta visible + cómo probarlo** — el rol no se ve en ningún lado.
 Mostrarlo en perfil/ajustes y documentar cómo crear y probar cuentas kid/teen/adult.
-- [ ] F14.3
+- [x] F14.3 — SHIPPED. Badge on profile + explained section in ajustes.
+  To test another type: change `profiles.account_type` for the account and
+  reload. Verified kid/adult behaviour differs across news, feed and posting.
 
 **F14.4 Catálogo de acciones ×10 con rotación** (el usuario lo marcó como "super importante").
 De ~169 a ~1.700. Buscar "agua" debe dar ~100, no 5. Mostrar la misma cantidad por día que
@@ -203,11 +207,15 @@ aburrido y se pierde el enganche del set diario.
 **F14.6 Competencias: config más profunda** — sin fecha de fin (opcional), y reinicio de
 puntos por período configurable (semanal / mensual / cada domingo…). Activable y
 desactivable; si está activo, mostrar puntos del período actual Y totales.
-- [ ] F14.6
+- [x] F14.6 — SHIPPED (live 0023). Open-ended competitions + weekly/monthly
+  resets with a chosen anchor day; board shows current period AND all-time
+  total. Verified against backdated competitions.
 
 **F14.7 Realtime en todo** — nada debe requerir recargar la página: leaderboards, puntos,
 cualquier lugar donde se muestren números, se actualizan solos al completar una acción.
-- [ ] F14.7
+- [x] F14.7 — SHIPPED. lib/refresh.ts `invalidateScores()` wired into the daily
+  set, catalogue detail and group actions. Deny-list, so a new points screen is
+  covered by default.
 
 **F14.8 Proyectos ↔ puntos + config más rica** — el organizador marca una jornada como
 hecha y eso otorga puntos fijos a quienes participaron (motiva la acción grupal). Además,
@@ -221,12 +229,27 @@ con mensajes tentativos rotativos, sin molestar.
 **F14.10 Noticias en español + más amigables + filtros** — hoy llegan en inglés y son
 demasiado técnicas/trágicas. Sumar temas que la gente disfruta leer (eco construcción, eco
 transporte, avances tecnológicos) y filtros por tema (agua, residuos, etc.).
-- [ ] F14.10
+- [x] F14.10 — SHIPPED. Root cause was measured, not guessed: 426/431 items had
+  title_es = original_title and every row scored exactly 50 — the AI fallback
+  had never once succeeded, so English sources published raw. Feeds now declare
+  a language and untranslated non-Spanish items are SKIPPED. 9 Spanish sources
+  (each tested live before adding; 5 dead candidates discarded), heuristic
+  scoring that rewards solutions over disasters, topic filter rail, and
+  kid-safe news tagging (0 → 64 visible to children).
+  OPEN: setting GEMINI_API_KEY in Supabase → Edge Functions → Secrets would let
+  English sources be rewritten into friendly Spanish, roughly doubling supply.
 
 **F14.11 Explorar como feed social (uno de los dos cambios grandes)** — reestructurar la
 sección al estilo Twitter/diario: feed donde la gente opina, comenta, da me gusta / no me
 gusta, hilos, y descubre info scrolleando.
-- [ ] F14.11
+- [x] F14.11 — SHIPPED (live 0026/0027). One `feed_posts` table for news cards,
+  opinions and replies; engagement-aware ranking; optimistic reactions;
+  thread sheet; author delete; 10/hour flood guard.
+  CHILD SAFETY: user text is teen+adult only and kids cannot post — verified a
+  kid sees 0 user posts / 92 news. Revisit deliberately if ever widened.
+  NEXT for this area: infinite scroll / pagination (currently first 40),
+  notifications when someone replies to you, and a report/moderation path
+  before opening posting to a wider audience.
 
 ### F13 — MONETIZACIÓN: AdSense + Brote+ (MercadoPago)
 **Hard rules that drive the design (not optional):**
