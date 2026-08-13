@@ -6,12 +6,26 @@ import type { ActivityRow, CompletionStatus } from '@/lib/supabase/rows';
 import type { DomainSlug } from '@/lib/domains';
 
 /** All active catalog activities (RLS already scopes to active=true). */
-export async function fetchCatalog(): Promise<ActivityRow[]> {
+/**
+ * The full action library.
+ *
+ * Previously this filtered to `type = 'catalog'`, which hid every daily action
+ * from browsing and search — with 122 daily actions in the catalogue, someone
+ * searching "agua" saw a fraction of what exists. The daily SET is still a
+ * curated five per day; this is the library behind it, so everything is
+ * findable.
+ *
+ * Also age-gated, which it previously was not: a kid account could browse
+ * adult-only actions here even though the daily set correctly excluded them.
+ */
+export async function fetchCatalog(accountType: 'kid' | 'teen' | 'adult' = 'adult'): Promise<ActivityRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('activities')
     .select('*')
-    .eq('type', 'catalog')
+    .eq('active', true)
+    .in('type', ['catalog', 'daily'])
+    .contains('age_groups', [accountType])
     .order('sort_order');
   if (error) throw error;
   return (data ?? []) as ActivityRow[];
@@ -58,12 +72,14 @@ export interface CompletionInfo {
 /** Map of catalog activity_id -> latest completion (for done/cooldown state). */
 export async function fetchCatalogCompletions(userId: string): Promise<Map<string, CompletionInfo>> {
   const supabase = createClient();
+  // Not restricted to catalog-type any more: the library now includes daily
+  // actions, so their completions must show as done here too.
   const { data, error } = await supabase
     .from('activity_completions')
     .select('activity_id, status, completed_at')
     .eq('user_id', userId)
-    .eq('activity_type', 'catalog')
-    .order('completed_at', { ascending: false });
+    .order('completed_at', { ascending: false })
+    .limit(2000);
   if (error) throw error;
   const map = new Map<string, CompletionInfo>();
   for (const r of (data ?? []) as { activity_id: string; status: CompletionStatus; completed_at: string }[]) {
