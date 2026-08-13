@@ -69,8 +69,7 @@ export default function BrotePlusPage() {
               : 'Tu plan está activo.'}
           </p>
           <p className="mt-3 text-caption text-muted-foreground">
-            Podés cancelar cuando quieras desde tu cuenta de MercadoPago. Vas a seguir teniendo Brote+ hasta que termine
-            el período que ya pagaste.
+            Podés cancelar cuando quieras. Vas a seguir teniendo Brote+ hasta que termine el período que ya pagaste.
           </p>
         </Card>
       ) : (
@@ -99,7 +98,9 @@ export default function BrotePlusPage() {
           ) : (
             <>
               <Button block variant="primary" size="lg" loading={busy} onClick={subscribe}>
-                <Sparkles className="h-4 w-4" /> Suscribirme con MercadoPago
+                {/* No processor name here: people pay with a card and seeing
+                    an unexpected brand on the button reads as a redirect. */}
+                <Sparkles className="h-4 w-4" /> Suscribirme
               </Button>
               <p className="text-center text-caption text-muted-foreground">
                 Se cobra todos los meses. Cancelás cuando quieras, sin vueltas.

@@ -81,7 +81,10 @@ function LoginInner() {
           >
             <p className="font-semibold text-brote-coral">No pudimos iniciar tu sesión</p>
             <p className="mt-1">{errorMessage}</p>
-            {errorDetail && (
+            {/* The provider's raw text is for us, not for the person trying to
+                sign in (F15.5). It stays in the URL and the console for
+                debugging, but is only rendered outside production. */}
+            {errorDetail && process.env.NODE_ENV !== 'production' && (
               <p className="mt-1.5 break-words text-caption text-muted-foreground">Detalle técnico: {errorDetail}</p>
             )}
           </div>

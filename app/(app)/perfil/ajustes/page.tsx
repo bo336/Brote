@@ -166,27 +166,27 @@ export default function AjustesPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Ciudad</span>
+            <span className="mb-1.5 block text-small font-medium">Provincia</span>
             <select
               value={citySel}
               onChange={(e) => setCitySel(e.target.value)}
               className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
             >
               <option value="" disabled>
-                Elegí tu ciudad
+                Elegí tu provincia
               </option>
               {CITIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
-              <option value={OTHER_CITY}>Otra…</option>
+              <option value={OTHER_CITY}>Vivo en otro país</option>
             </select>
             {citySel === OTHER_CITY && (
               <input
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
-                placeholder="Escribí tu ciudad"
+                placeholder="Escribí dónde vivís"
                 className="mt-2 w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
               />
             )}
