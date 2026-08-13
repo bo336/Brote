@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Users, Trophy, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trophy, Copy, Check, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import {
   fetchPublicCompetitions,
   createCompetition,
   joinCompetition,
+  leaveCompetition,
   resetLabel,
   type ResetPeriod,
 } from '@/lib/api/competencias';
@@ -77,6 +78,19 @@ export default function CompetenciasPage() {
       toast.error('No se pudo crear', e instanceof Error ? e.message : '');
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onLeave(id: string, name: string) {
+    if (!confirm(`¿Salir de "${name}"? Podés volver a sumarte con el código.`)) return;
+    const res = await leaveCompetition(id);
+    if (res.ok) {
+      haptic('light');
+      toast.success('Saliste de la competencia');
+      qc.invalidateQueries({ queryKey: ['my-competitions'] });
+      qc.invalidateQueries({ queryKey: ['public-competitions'] });
+    } else {
+      toast.error('No se pudo salir', res.error);
     }
   }
 
@@ -168,6 +182,14 @@ export default function CompetenciasPage() {
                     {copied === c.code ? <Check className="h-3 w-3 text-brote-green" /> : <Copy className="h-3 w-3" />}
                     {c.code}
                   </button>
+                  {/* Anything joinable must be leavable (F15.10). */}
+                  <button
+                    onClick={() => onLeave(c.id, c.name)}
+                    aria-label={`Salir de ${c.name}`}
+                    className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-brote-coral"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </Card>
             ))}
@@ -195,9 +217,17 @@ export default function CompetenciasPage() {
                     {c.description || `${c.members} participando`} · {daysLeft(c.ends_at)}
                   </p>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => onJoin(c.code)} loading={busy}>
-                  Sumarme
-                </Button>
+                {/* Reflect membership instead of offering a join that
+                    silently does nothing the second time (F15.9). */}
+                {c.joined ? (
+                  <Button variant="secondary" size="sm" onClick={() => onLeave(c.id, c.name)}>
+                    <LogOut className="h-4 w-4" /> Salir
+                  </Button>
+                ) : (
+                  <Button variant="secondary" size="sm" onClick={() => onJoin(c.code)} loading={busy}>
+                    Sumarme
+                  </Button>
+                )}
               </Card>
             ))}
           </div>

@@ -17,6 +17,8 @@ export interface CompetitionSummary {
   reset_anchor?: number | null;
   members: number;
   active?: boolean;
+  /** Whether the current user is already a member (public listings). */
+  joined?: boolean;
 }
 
 export interface CompetitionBoard {
@@ -90,6 +92,13 @@ export async function createCompetition(
   });
   if (error) throw error;
   return data as { id: string; code: string };
+}
+
+/** Anything joinable must be leavable (F15.10). */
+export async function leaveCompetition(id: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('leave_competition', { p_competition_id: id });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
 }
 
 export async function joinCompetition(code: string): Promise<{ ok: boolean; error?: string; name?: string }> {

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { UserPlus, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Pill } from '@/components/ui/pill';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,10 +26,11 @@ import {
   fetchWeeklyLeague,
   fetchMyPositionFor,
   metricFor,
-  addFriendByUsername,
+  addFriendByCode,
   type Period,
 } from '@/lib/api/ranking';
 import { PeriodToggle } from '@/components/ranking/PeriodToggle';
+import { FriendInvite } from '@/components/ranking/FriendInvite';
 import { Avatar } from '@/components/ui/avatar';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
@@ -66,16 +68,25 @@ function List({
   );
 }
 
+// useSearchParams (for the ?amigo= invite link) needs a Suspense boundary.
 export default function RankingPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <RankingInner />
+    </Suspense>
+  );
+}
+
+function RankingInner() {
   const t = useTranslations('ranking');
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const profile = useSession((s) => s.profile);
   const myId = profile?.id;
 
   // Weekly is the default on every board (F14.1): a lifetime-only ranking
   // permanently favours whoever signed up first.
   const [period, setPeriod] = useState<Period>('semana');
-  const [friendName, setFriendName] = useState('');
-  const [addingFriend, setAddingFriend] = useState(false);
   const metric = metricFor(period);
 
   const globalQ = useQuery({
@@ -106,19 +117,27 @@ export default function RankingPage() {
     refetchInterval: 60_000,
   });
 
-  async function onAddFriend() {
-    if (!friendName.trim() || addingFriend) return;
-    setAddingFriend(true);
-    const res = await addFriendByUsername(friendName);
-    setAddingFriend(false);
-    if (res.ok) {
-      toast.success('¡Amigo agregado!');
-      setFriendName('');
-      friendsQ.refetch();
-    } else {
-      toast.error('Ups', res.error);
-    }
-  }
+  // Someone opening an invite link (?amigo=CODE) gets the code applied for
+  // them — the point of a link is that it does the work.
+  const inviteCode = searchParams.get('amigo');
+  useEffect(() => {
+    if (!inviteCode) return;
+    let cancelled = false;
+    (async () => {
+      const res = await addFriendByCode(inviteCode);
+      if (cancelled) return;
+      if (res.ok) {
+        toast.success('¡Listo!', `Ahora sos amigo de ${res.name ?? 'esa persona'}`);
+        friendsQ.refetch();
+      } else {
+        toast.error('No se pudo agregar', res.error);
+      }
+      router.replace('/ranking');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteCode]);
 
   return (
     <div className="space-y-4">
@@ -252,19 +271,7 @@ export default function RankingPage() {
         </TabsContent>
 
         <TabsContent value="amigos" className="space-y-3">
-          <Card className="p-3">
-            <div className="flex gap-2">
-              <input
-                value={friendName}
-                onChange={(e) => setFriendName(e.target.value)}
-                placeholder="Usuario de tu amigo"
-                className="flex-1 rounded-button border border-border bg-surface px-3 py-2 text-body outline-none focus:border-primary"
-              />
-              <Button variant="primary" onClick={onAddFriend} loading={addingFriend}>
-                <UserPlus className="h-4 w-4" /> {t('addFriends')}
-              </Button>
-            </div>
-          </Card>
+          <FriendInvite onAdded={() => friendsQ.refetch()} />
           <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-friends" />
           <List query={friendsQ} metric={metric} myId={myId} emptyMessage={t('friendsEmpty')} />
         </TabsContent>

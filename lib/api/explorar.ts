@@ -119,6 +119,13 @@ export async function completeProjectSession(
   return data as { ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number };
 }
 
+/** Leave a project you joined. Organisers cannot abandon their own (F15.10). */
+export async function leaveProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('leave_project', { p_project_id: projectId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
 export async function joinProject(projectId: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.rpc('join_project', { p_project_id: projectId });
