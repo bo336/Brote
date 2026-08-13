@@ -205,9 +205,13 @@ pero todas posibles para cualquiera.
   and search; and it did not age-gate, so a kid could browse adult-only
   actions. Search now matches domain + summary, accent-insensitive.
   MEASURED: "agua" 10 → 69 results.
-  REMAINING to reach the requested x10 (~1.700): roughly 1.400 more actions.
-  Best done in further per-domain passes of ~40; the mechanism and the search
+  Second pass took it to 369 (daily pool 150, routine_eligible 85).
+  REMAINING to reach the requested x10 (~1.700): roughly 1.330 more actions.
+  Best done in further per-domain passes of ~50; the mechanism and the search
   are now correct, so added content converts directly into variety.
+  SEPARATE CONTENT DEBT: 155 of the ORIGINAL seed actions have no
+  instructions_es (verified by slug that none were added in this work). They
+  render without any "how to do it" text. Worth its own pass.
 
 **F14.5 Actividades de rutina** — SOLO algunas especiales repetibles a diario (ducha corta,
 ir en bici al trabajo para adultos) se pueden sumar a una lista de rutina, visible bajo las
@@ -243,7 +247,15 @@ configuración más completa: contacto para coordinar, y proyectos en varias fas
 
 **F14.9 Acceso fácil a las noticias desde Hoy** — botón flotante tras completar acciones,
 con mensajes tentativos rotativos, sin molestar.
-- [ ] F14.9
+- [x] F14.9 — SHIPPED. Pill appears only after a completion, 4s delay so it
+  cannot step on the reward animation, once per day, dismissible, blocks
+  nothing; message rotates by date.
+  BUG FOUND TWICE: any entrance animation starting at opacity 0 (framer AND
+  css keyframes) strands the element at 0 when the frame loop is throttled —
+  and since the component stamps "shown today" on mount, it burned its one
+  daily appearance invisibly. Now has NO entrance animation on purpose.
+  Same failure mode as CountUp earlier; if a third case appears, make it a
+  documented rule rather than a per-component fix.
 
 **F14.10 Noticias en español + más amigables + filtros** — hoy llegan en inglés y son
 demasiado técnicas/trágicas. Sumar temas que la gente disfruta leer (eco construcción, eco
