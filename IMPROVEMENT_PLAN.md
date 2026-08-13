@@ -196,7 +196,18 @@ ahora pero ROTANDO, para que nunca se repitan y siempre haya desafío.
 Energía y CO₂ hay que rehacerlas: hoy son demasiado difíciles; se necesitan cotidianas
 (desenchufar electrónicos, etc.). Variedad alta, nada demasiado común ni tradicional,
 pero todas posibles para cualquiera.
-- [ ] F14.4
+- [~] F14.4 — IN PROGRESS. 170 → 316 actions written domain by domain (agua
+  12→46, residuos 23→46, movilidad 12→24, alimentacion 12→22, consumo 10→18,
+  agua_azul/digital/ciencia 6-8→15 each, rest extended). Daily pool 48→122;
+  reachable candidates/day 30→43. routine_eligible 23→69, all type='daily'.
+  TWO BLOCKING BUGS FIXED (mattered more than the content): fetchCatalog()
+  filtered type='catalog' so all 122 daily actions were unreachable in browse
+  and search; and it did not age-gate, so a kid could browse adult-only
+  actions. Search now matches domain + summary, accent-insensitive.
+  MEASURED: "agua" 10 → 69 results.
+  REMAINING to reach the requested x10 (~1.700): roughly 1.400 more actions.
+  Best done in further per-domain passes of ~40; the mechanism and the search
+  are now correct, so added content converts directly into variety.
 
 **F14.5 Actividades de rutina** — SOLO algunas especiales repetibles a diario (ducha corta,
 ir en bici al trabajo para adultos) se pueden sumar a una lista de rutina, visible bajo las
