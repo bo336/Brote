@@ -202,7 +202,10 @@ pero todas posibles para cualquiera.
 ir en bici al trabajo para adultos) se pueden sumar a una lista de rutina, visible bajo las
 actividades del día. Deliberadamente NO todas: si a la semana todo es rutina, se vuelve
 aburrido y se pierde el enganche del set diario.
-- [ ] F14.5
+- [x] F14.5 — SHIPPED (live 0028). ROOT CAUSE: the habits feature existed but
+  HabitsCard returned null when empty, so it could never be discovered.
+  RoutineSection now always renders. 23 curated `routine_eligible` actions;
+  the rule is enforced in add_habit(), not just hidden in the UI.
 
 **F14.6 Competencias: config más profunda** — sin fecha de fin (opcional), y reinicio de
 puntos por período configurable (semanal / mensual / cada domingo…). Activable y
@@ -220,7 +223,12 @@ cualquier lugar donde se muestren números, se actualizan solos al completar una
 **F14.8 Proyectos ↔ puntos + config más rica** — el organizador marca una jornada como
 hecha y eso otorga puntos fijos a quienes participaron (motiva la acción grupal). Además,
 configuración más completa: contacto para coordinar, y proyectos en varias fases/jornadas.
-- [ ] F14.8
+- [x] F14.8 — SHIPPED (live 0029-0031). Repeatable "jornadas": the organiser
+  closes one and every attendee is credited through the normal completions
+  ledger (so it reaches XP, boards and impact), scaling x1→x3 with turnout.
+  Projects carry a coordination contact and a per-session point value.
+  Verified: 2 sessions × 3 attendees × x1.25 = 150 each, XP 4405→4705, then
+  fully reversed; non-organiser refused.
 
 **F14.9 Acceso fácil a las noticias desde Hoy** — botón flotante tras completar acciones,
 con mensajes tentativos rotativos, sin molestar.
