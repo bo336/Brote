@@ -5,6 +5,7 @@ import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 import { computeMundoState } from '@/lib/mundo';
 import { completionImpactLine, parseImpact } from '@/lib/impact';
+import { localDate } from '@/lib/utils/dates';
 import type { CompleteActivityResult } from '@/lib/types';
 
 /**
@@ -18,7 +19,8 @@ export function celebrateCompletion(result: CompleteActivityResult) {
   // Session + world update — prefer the authoritative server-computed mundo
   // (returned by complete_activity); fall back to a local recompute.
   if (result.status !== 'pending') {
-    applyCompletion({ totalXp: result.new_total, streak: result.streak });
+    // A completion always keeps today's streak, so stamp it locally too.
+    applyCompletion({ totalXp: result.new_total, streak: result.streak, streakDate: localDate() });
     const p = useSession.getState().profile;
     if (p) {
       setProfile({
