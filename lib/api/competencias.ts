@@ -111,6 +111,25 @@ export interface Habit {
   done_today: boolean;
 }
 
+export interface RoutineSuggestion {
+  activity_id: string;
+  slug: string;
+  title_es: string;
+  short_es: string | null;
+  domain_slug: string;
+  base_points: number;
+}
+
+/**
+ * Routine-eligible actions not yet pinned. Only a curated subset qualifies —
+ * see the routine_eligible column and F14.5.
+ */
+export async function fetchRoutineSuggestions(limit = 12): Promise<RoutineSuggestion[]> {
+  const { data, error } = await createClient().rpc('routine_suggestions', { p_limit: limit });
+  if (error) throw error;
+  return (data ?? []) as RoutineSuggestion[];
+}
+
 export async function fetchMyHabits(): Promise<Habit[]> {
   const { data, error } = await createClient().rpc('my_habits');
   if (error) throw error;

@@ -49,6 +49,9 @@ export default function NuevoProyectoPage() {
   const [eventDate, setEventDate] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
   const [minRank, setMinRank] = useState('semilla');
+  const [contactInfo, setContactInfo] = useState('');
+  const [contactKind, setContactKind] = useState<'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro'>('whatsapp');
+  const [sessionPoints, setSessionPoints] = useState('120');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -95,6 +98,9 @@ export default function NuevoProyectoPage() {
         maxParticipants: maxParticipants ? Number(maxParticipants) : null,
         imageUrl,
         minRank,
+        contactInfo: contactInfo.trim() || null,
+        contactKind: contactInfo.trim() ? contactKind : null,
+        sessionPoints: Number(sessionPoints) || 120,
       });
       toast.success('¡Proyecto creado!');
       router.push(`/explorar/proyectos/${id}`);
@@ -163,6 +169,47 @@ export default function NuevoProyectoPage() {
           <input type="number" min={1} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className={inputCls} />
         </Field>
       </div>
+
+      {/* A project nobody can coordinate with never actually happens (F14.8). */}
+      <div className="grid grid-cols-[110px_1fr] gap-2">
+        <Field label="Contacto">
+          <select
+            value={contactKind}
+            onChange={(e) => setContactKind(e.target.value as typeof contactKind)}
+            className={inputCls}
+          >
+            <option value="whatsapp">WhatsApp</option>
+            <option value="email">Email</option>
+            <option value="instagram">Instagram</option>
+            <option value="telegram">Telegram</option>
+            <option value="otro">Otro</option>
+          </select>
+        </Field>
+        <Field label="Para coordinar (opcional)" help="Lo ven quienes se suman, para organizar los encuentros.">
+          <input
+            value={contactInfo}
+            onChange={(e) => setContactInfo(e.target.value)}
+            placeholder="Ej: +54 9 11 5555-5555"
+            maxLength={120}
+            className={inputCls}
+          />
+        </Field>
+      </div>
+
+      <Field
+        label="Puntos por jornada"
+        help="Lo que recibe cada persona por participar de un encuentro. Se multiplica según cuánta gente venga."
+      >
+        <input
+          type="number"
+          min={20}
+          max={500}
+          step={10}
+          value={sessionPoints}
+          onChange={(e) => setSessionPoints(e.target.value)}
+          className={inputCls}
+        />
+      </Field>
 
       <Field label="Rango mínimo para sumarse" help="Podés crear un proyecto exclusivo para rangos altos.">
         <select value={minRank} onChange={(e) => setMinRank(e.target.value)} className={inputCls}>

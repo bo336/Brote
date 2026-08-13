@@ -34,6 +34,8 @@ export interface ActivityRow {
   impact_equivalency_es: string | null;
   active: boolean;
   sort_order: number;
+  /** Only a curated subset may be pinned as a daily routine (F14.5). */
+  routine_eligible?: boolean;
 }
 
 export interface CompletionRow {
@@ -71,6 +73,11 @@ export interface ProjectRow {
   reward_points: number;
   upvotes: number;
   created_at: string;
+  /** How to reach the organiser to coordinate (F14.8). */
+  contact_info?: string | null;
+  contact_kind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
+  /** Base points awarded per work session, before the turnout multiplier. */
+  session_points?: number;
 }
 
 export interface ChallengeRow {

@@ -145,13 +145,17 @@ export default function ActivityDetailPage() {
         </ol>
       </section>
 
-      {/* Follow as a habit (F12.6) — only makes sense for repeatable actions. */}
-      {(a.type === 'daily' || a.frequency === 'recurring') && (
+      {/* Add to routine (F14.5) — offered ONLY for the curated subset that is
+          genuinely worth repeating daily, matching the server-side guard in
+          add_habit(). Showing it on every action would invite a refusal. */}
+      {a.routine_eligible && (
         <Card className="flex items-center gap-3 p-4">
           <span className="text-2xl">🔁</span>
           <div className="min-w-0 flex-1">
-            <p className="text-small font-semibold">Convertilo en hábito</p>
-            <p className="text-small text-muted-foreground">Seguilo día a día y ganá bonus cada 7 y 30 días.</p>
+            <p className="text-small font-semibold">Sumalo a mi rutina</p>
+            <p className="text-small text-muted-foreground">
+              Lo vas a ver todos los días en tu inicio, con su propia racha.
+            </p>
           </div>
           <Button
             variant="secondary"
@@ -161,11 +165,14 @@ export default function ActivityDetailPage() {
               setHabitBusy(true);
               const res = await addHabit(a.id);
               setHabitBusy(false);
-              if (res.ok) toast.success('¡Hábito agregado!', 'Lo vas a ver en tu inicio');
-              else toast.error('No se pudo', res.error);
+              if (res.ok) {
+                toast.success('¡Sumado a tu rutina!', 'Lo vas a ver todos los días en tu inicio');
+                qc.invalidateQueries({ queryKey: ['my-habits'] });
+                qc.invalidateQueries({ queryKey: ['routine-suggestions'] });
+              } else toast.error('No se pudo', res.error);
             }}
           >
-            Seguir
+            Sumar
           </Button>
         </Card>
       )}

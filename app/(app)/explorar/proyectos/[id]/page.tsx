@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check } from 'lucide-react';
+import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -17,6 +17,7 @@ import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
 import { fetchProject, fetchProjectParticipants, joinProject, upvoteProject } from '@/lib/api/explorar';
 import { completeGroupAction } from '@/lib/api/competencias';
+import { ProjectSessions } from '@/components/explorar/ProjectSessions';
 import { invalidateScores } from '@/lib/refresh';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
@@ -192,8 +193,30 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      {/* Group action (F12.5): the organizer closes it and EVERY participant
-          gets points, multiplied by how big the real-world crew was. */}
+      {/* How to reach the organiser — a project nobody can coordinate with
+          never actually happens (F14.8). */}
+      {p.contact_info && (
+        <Card className="mt-3 flex items-center gap-3 p-3.5">
+          <MessageSquare className="h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <p className="text-caption text-muted-foreground">
+              Coordinación{p.contact_kind ? ` · ${p.contact_kind}` : ''}
+            </p>
+            <p className="truncate text-small font-medium">{p.contact_info}</p>
+          </div>
+        </Card>
+      )}
+
+      {/* Repeatable work sessions, each crediting everyone who turned out. */}
+      <ProjectSessions
+        projectId={p.id}
+        isOrganizer={p.creator_id === profile?.id}
+        participantCount={p.participant_count}
+        className="mt-5"
+      />
+
+      {/* Group action (F12.5): closes the project as a whole. Sessions above
+          are the repeatable, per-phase version of the same idea. */}
       {p.creator_id === profile?.id && p.status !== 'completed' && (
         <Card className="mt-3 p-4">
           <p className="text-small font-semibold">¿Ya lo hicieron? 🙌</p>

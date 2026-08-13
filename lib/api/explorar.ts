@@ -82,6 +82,43 @@ export async function fetchProjectParticipants(projectId: string): Promise<Profi
   return (data ?? []) as ProfileBrief[];
 }
 
+export interface ProjectSession {
+  id: string;
+  title: string;
+  notes: string | null;
+  held_at: string;
+  points_each: number;
+  attendees: number;
+  i_was_there: boolean;
+}
+
+/** Work sessions ("jornadas") already held for a project (F14.8). */
+export async function fetchProjectSessions(projectId: string): Promise<ProjectSession[]> {
+  const { data, error } = await createClient().rpc('project_sessions_list', { p_project_id: projectId });
+  if (error) throw error;
+  return (data ?? []) as ProjectSession[];
+}
+
+/**
+ * Close a work session and credit everyone who turned out. Organiser only —
+ * enforced server-side too. Repeatable, so a project can run in phases.
+ */
+export async function completeProjectSession(
+  projectId: string,
+  title: string,
+  notes?: string | null,
+  attendeeIds?: string[] | null,
+): Promise<{ ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number }> {
+  const { data, error } = await createClient().rpc('complete_project_session', {
+    p_project_id: projectId,
+    p_title: title,
+    p_attendee_ids: attendeeIds ?? null,
+    p_notes: notes ?? null,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number };
+}
+
 export async function joinProject(projectId: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.rpc('join_project', { p_project_id: projectId });
@@ -108,6 +145,11 @@ export interface CreateProjectInput {
   maxParticipants: number | null;
   imageUrl: string | null;
   minRank: string;
+  /** How people reach the organiser to coordinate (F14.8). */
+  contactInfo?: string | null;
+  contactKind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
+  /** Base points per work session, before the turnout multiplier. */
+  sessionPoints?: number;
 }
 
 export async function createProject(input: CreateProjectInput): Promise<string> {
@@ -125,6 +167,9 @@ export async function createProject(input: CreateProjectInput): Promise<string> 
     p_max_participants: input.maxParticipants,
     p_image_url: input.imageUrl,
     p_min_rank: input.minRank,
+    p_contact_info: input.contactInfo ?? null,
+    p_contact_kind: input.contactKind ?? null,
+    p_session_points: input.sessionPoints ?? 120,
   });
   if (error) throw error;
   return data as string;
