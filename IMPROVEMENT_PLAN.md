@@ -173,6 +173,19 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 ### F15 — Backlog del 2026-08-13 (segundo pedido grande)
 Agrupado por afinidad técnica, no por el orden en que se pidió.
 
+**ESTADO al cierre de la sesión del 2026-08-13**
+ENTREGADO: F15.1 F15.2 F15.3 F15.4 F15.5 F15.6 F15.7 F15.9 F15.10 F15.11
+F15.14 F15.15 F15.19 F15.20 F15.21 F15.22 F15.23
+PENDIENTE: F15.8 F15.12 F15.13 F15.16 F15.17 F15.18 F15.24
+
+DEUDA CONOCIDA (no reclamar como hecho):
+- F15.21 el gate de Eco-Experto es SOLO del lado del cliente. La edge function
+  pip-chat sigue aceptando mode='experto' de cualquiera autenticado. Falta el
+  chequeo de plan en el servidor antes de considerarlo cerrado.
+- 155 acciones del seed original siguen sin instructions_es.
+- F15.4 quedó sobre la columna `profiles.city`; el nombre de la columna dice
+  "city" pero ahora guarda provincias. Renombrar cuando haya oportunidad.
+
 **A · Correcciones chicas y de texto**
 - [ ] F15.1 Botón Brote+ dice "MercadoPago" — debe decir solo "Suscribirme"
       (MP es el procesador; se paga con tarjeta).
