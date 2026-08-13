@@ -1,0 +1,55 @@
+-- Brote — 0032 — Activity catalogue expansion, domain by domain (F14.4).
+--
+-- 170 → 316 active actions. Written per domain rather than generated, because
+-- generated actions read like filler and the whole complaint was that the
+-- catalogue felt thin and repetitive.
+--
+--   agua          12 → 46   (the domain the user called out by name)
+--   residuos      23 → 46
+--   movilidad     12 → 24
+--   alimentacion  12 → 22
+--   agua_azul      6 → 15
+--   digital        7 → 15
+--   ciencia        8 → 15
+--   consumo       10 → 18
+--   plantas / animales / comunidad / aire_suelo / energia also extended
+--
+-- Daily pool 48 → 122, so the rotation fixed in migration 0024 now has real
+-- material to rotate: reachable candidates per day went 30 → 43.
+-- routine_eligible 23 → 69, all of them type='daily' (verified), so nothing
+-- can be pinned as a routine that is not genuinely repeatable.
+--
+-- Deliberate content choices:
+--  · No action requires buying equipment or spending money to qualify.
+--  · Nothing generic — "cerrá la canilla" already existed; these are the
+--    second-order habits people do not think of (catch the cold water before
+--    the shower warms up, a bottle in the cistern, dye-test the toilet for a
+--    silent leak, use the pasta water on the plants, lend instead of buy).
+--  · Age groups set per action: motor/driving actions are adult-only, and
+--    anything a child can genuinely do includes 'kid'.
+--  · Impact factors populated per action so the impact engine and the
+--    "vos vs. una persona promedio" comparison stay real rather than zero.
+--
+-- Integrity verified after loading: 0 duplicate titles, 0 empty titles or
+-- summaries, 0 non-positive point values, 0 rows with missing or invalid
+-- age_groups.
+--
+-- The INSERTs are applied live; this file records the shape and the reasoning.
+-- Every row carries a stable `slug` and was inserted with ON CONFLICT DO
+-- NOTHING, so re-running is safe.
+
+-- Two client-side fixes shipped alongside the content, both of which mattered
+-- more than the content itself:
+--
+-- 1. fetchCatalog() filtered `type = 'catalog'`, so all 122 daily actions were
+--    invisible when browsing or searching. The daily SET stays a curated five
+--    per day; the catalogue is now the full library behind it.
+--    Searching "agua" went from 10 results to 69.
+--
+-- 2. fetchCatalog() did not age-gate at all — a kid account could browse
+--    adult-only actions even though the daily set correctly excluded them.
+--    It now filters on age_groups like everything else.
+--
+-- Catalogue search also matches the DOMAIN and summary, not just the title, so
+-- "agua" finds "Ducha corta" and "Cerrá la canilla" — actions that never
+-- contain the word. Accent-insensitive, and every typed word must match.

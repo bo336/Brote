@@ -170,6 +170,118 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F12.7 **Eco-experto IA**: pip-chat expert mode (temp 0.4, admits uncertainty, ends with one action), header toggle, own daily cap.
 - [ ] F12.8 NEXT: kid-specific news tagging (feed currently teen+adult by default — kid feed is empty until items are tagged `kid`); org UI (create/join school) — RPCs live but no screen yet; guardian consent flow; Brote+ gating of expert mode.
 
+### F14 — Backlog del 2026-08-12 (pedido completo del usuario, en orden de ataque)
+Ordenado por: primero lo que bloquea o se ve en cada pantalla, después lo estructural grande.
+
+**F14.1 Ranking: semanal + total en TODAS las tablas** — hoy solo liga y global tienen el
+toggle. Falta en ciudad, amigos y temáticas. Semanal debe ser el default en todas.
+BUG confirmado: el número de posición no se actualiza al cambiar total↔semanal.
+- [x] F14.1 — SHIPPED. city/friend/domain weekly RPCs (live 0022), weekly default
+  everywhere, position bug fixed (RPC ranked lifetime only + query key omitted
+  the period). Verified: semanal #3 vs histórico #2.
+
+**F14.2 Explorar abre en Novedades** + quitar el bloque grande del inicio (PulseStrip) +
+que TODA tarjeta tenga algo visual (fallback cuando no hay imagen).
+- [x] F14.2 — SHIPPED (superseded by F14.11: the list is now a feed).
+
+**F14.3 Tipo de cuenta visible + cómo probarlo** — el rol no se ve en ningún lado.
+Mostrarlo en perfil/ajustes y documentar cómo crear y probar cuentas kid/teen/adult.
+- [x] F14.3 — SHIPPED. Badge on profile + explained section in ajustes.
+  To test another type: change `profiles.account_type` for the account and
+  reload. Verified kid/adult behaviour differs across news, feed and posting.
+
+**F14.4 Catálogo de acciones ×10 con rotación** (el usuario lo marcó como "super importante").
+De ~169 a ~1.700. Buscar "agua" debe dar ~100, no 5. Mostrar la misma cantidad por día que
+ahora pero ROTANDO, para que nunca se repitan y siempre haya desafío.
+Energía y CO₂ hay que rehacerlas: hoy son demasiado difíciles; se necesitan cotidianas
+(desenchufar electrónicos, etc.). Variedad alta, nada demasiado común ni tradicional,
+pero todas posibles para cualquiera.
+- [~] F14.4 — IN PROGRESS. 170 → 316 actions written domain by domain (agua
+  12→46, residuos 23→46, movilidad 12→24, alimentacion 12→22, consumo 10→18,
+  agua_azul/digital/ciencia 6-8→15 each, rest extended). Daily pool 48→122;
+  reachable candidates/day 30→43. routine_eligible 23→69, all type='daily'.
+  TWO BLOCKING BUGS FIXED (mattered more than the content): fetchCatalog()
+  filtered type='catalog' so all 122 daily actions were unreachable in browse
+  and search; and it did not age-gate, so a kid could browse adult-only
+  actions. Search now matches domain + summary, accent-insensitive.
+  MEASURED: "agua" 10 → 69 results.
+  Second pass took it to 369 (daily pool 150, routine_eligible 85).
+  REMAINING to reach the requested x10 (~1.700): roughly 1.330 more actions.
+  Best done in further per-domain passes of ~50; the mechanism and the search
+  are now correct, so added content converts directly into variety.
+  SEPARATE CONTENT DEBT: 155 of the ORIGINAL seed actions have no
+  instructions_es (verified by slug that none were added in this work). They
+  render without any "how to do it" text. Worth its own pass.
+
+**F14.5 Actividades de rutina** — SOLO algunas especiales repetibles a diario (ducha corta,
+ir en bici al trabajo para adultos) se pueden sumar a una lista de rutina, visible bajo las
+actividades del día. Deliberadamente NO todas: si a la semana todo es rutina, se vuelve
+aburrido y se pierde el enganche del set diario.
+- [x] F14.5 — SHIPPED (live 0028). ROOT CAUSE: the habits feature existed but
+  HabitsCard returned null when empty, so it could never be discovered.
+  RoutineSection now always renders. 23 curated `routine_eligible` actions;
+  the rule is enforced in add_habit(), not just hidden in the UI.
+
+**F14.6 Competencias: config más profunda** — sin fecha de fin (opcional), y reinicio de
+puntos por período configurable (semanal / mensual / cada domingo…). Activable y
+desactivable; si está activo, mostrar puntos del período actual Y totales.
+- [x] F14.6 — SHIPPED (live 0023). Open-ended competitions + weekly/monthly
+  resets with a chosen anchor day; board shows current period AND all-time
+  total. Verified against backdated competitions.
+
+**F14.7 Realtime en todo** — nada debe requerir recargar la página: leaderboards, puntos,
+cualquier lugar donde se muestren números, se actualizan solos al completar una acción.
+- [x] F14.7 — SHIPPED. lib/refresh.ts `invalidateScores()` wired into the daily
+  set, catalogue detail and group actions. Deny-list, so a new points screen is
+  covered by default.
+
+**F14.8 Proyectos ↔ puntos + config más rica** — el organizador marca una jornada como
+hecha y eso otorga puntos fijos a quienes participaron (motiva la acción grupal). Además,
+configuración más completa: contacto para coordinar, y proyectos en varias fases/jornadas.
+- [x] F14.8 — SHIPPED (live 0029-0031). Repeatable "jornadas": the organiser
+  closes one and every attendee is credited through the normal completions
+  ledger (so it reaches XP, boards and impact), scaling x1→x3 with turnout.
+  Projects carry a coordination contact and a per-session point value.
+  Verified: 2 sessions × 3 attendees × x1.25 = 150 each, XP 4405→4705, then
+  fully reversed; non-organiser refused.
+
+**F14.9 Acceso fácil a las noticias desde Hoy** — botón flotante tras completar acciones,
+con mensajes tentativos rotativos, sin molestar.
+- [x] F14.9 — SHIPPED. Pill appears only after a completion, 4s delay so it
+  cannot step on the reward animation, once per day, dismissible, blocks
+  nothing; message rotates by date.
+  BUG FOUND TWICE: any entrance animation starting at opacity 0 (framer AND
+  css keyframes) strands the element at 0 when the frame loop is throttled —
+  and since the component stamps "shown today" on mount, it burned its one
+  daily appearance invisibly. Now has NO entrance animation on purpose.
+  Same failure mode as CountUp earlier; if a third case appears, make it a
+  documented rule rather than a per-component fix.
+
+**F14.10 Noticias en español + más amigables + filtros** — hoy llegan en inglés y son
+demasiado técnicas/trágicas. Sumar temas que la gente disfruta leer (eco construcción, eco
+transporte, avances tecnológicos) y filtros por tema (agua, residuos, etc.).
+- [x] F14.10 — SHIPPED. Root cause was measured, not guessed: 426/431 items had
+  title_es = original_title and every row scored exactly 50 — the AI fallback
+  had never once succeeded, so English sources published raw. Feeds now declare
+  a language and untranslated non-Spanish items are SKIPPED. 9 Spanish sources
+  (each tested live before adding; 5 dead candidates discarded), heuristic
+  scoring that rewards solutions over disasters, topic filter rail, and
+  kid-safe news tagging (0 → 64 visible to children).
+  OPEN: setting GEMINI_API_KEY in Supabase → Edge Functions → Secrets would let
+  English sources be rewritten into friendly Spanish, roughly doubling supply.
+
+**F14.11 Explorar como feed social (uno de los dos cambios grandes)** — reestructurar la
+sección al estilo Twitter/diario: feed donde la gente opina, comenta, da me gusta / no me
+gusta, hilos, y descubre info scrolleando.
+- [x] F14.11 — SHIPPED (live 0026/0027). One `feed_posts` table for news cards,
+  opinions and replies; engagement-aware ranking; optimistic reactions;
+  thread sheet; author delete; 10/hour flood guard.
+  CHILD SAFETY: user text is teen+adult only and kids cannot post — verified a
+  kid sees 0 user posts / 92 news. Revisit deliberately if ever widened.
+  NEXT for this area: infinite scroll / pagination (currently first 40),
+  notifications when someone replies to you, and a report/moderation path
+  before opening posting to a wider audience.
+
 ### F13 — MONETIZACIÓN: AdSense + Brote+ (MercadoPago)
 **Hard rules that drive the design (not optional):**
 1. **NEVER show ads to `kid` accounts.** COPPA/GDPR-K: child-directed traffic cannot get personalized ads, and mixing kids with ad tech is the fastest way to lose an AdSense account. Kids get zero ads, full stop. Teens get non-personalized only.

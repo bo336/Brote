@@ -7,7 +7,8 @@ import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, Sparkles, AlertTriangle } from 'lucide-react';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
-import { HabitsCard } from '@/components/habitos/HabitsCard';
+import { RoutineSection } from '@/components/habitos/RoutineSection';
+import { NewsNudge } from '@/components/explorar/NewsNudge';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -158,8 +159,13 @@ export default function HoyPage() {
         </div>
       </section>
 
-      {/* Mis hábitos (F12.6) — renders nothing until the user follows one. */}
-      <HabitsCard />
+      {/* Mi rutina (F14.5) — sits directly under the daily set, and always
+          renders so it can actually be discovered. */}
+      <RoutineSection />
+
+      {/* A quiet nudge toward the feed once you have actually done something
+          today — at most once a day, and dismissible (F14.9). */}
+      <NewsNudge completionsToday={doneCount} />
 
       {/* Tu impacto real (F12.2) */}
       <section>

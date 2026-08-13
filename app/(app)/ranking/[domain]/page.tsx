@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -10,16 +11,19 @@ import { DomainIcon } from '@/components/icons/DomainIcon';
 import { LeaderboardRow } from '@/components/ranking/LeaderboardRow';
 import { useSession } from '@/stores/session';
 import { getDomain } from '@/lib/domains';
-import { fetchDomainLeaderboard } from '@/lib/api/ranking';
+import { fetchDomainLeaderboard, fetchDomainLeaderboardWeekly, type Period } from '@/lib/api/ranking';
+import { PeriodToggle } from '@/components/ranking/PeriodToggle';
 
 export default function DomainRankingPage() {
   const params = useParams<{ domain: string }>();
   const profile = useSession((s) => s.profile);
   const domain = getDomain(params.domain);
+  const [period, setPeriod] = useState<Period>('semana');
 
   const q = useQuery({
-    queryKey: ['lb-domain', params.domain],
-    queryFn: () => fetchDomainLeaderboard(params.domain),
+    queryKey: ['lb-domain', params.domain, period],
+    queryFn: () =>
+      period === 'semana' ? fetchDomainLeaderboardWeekly(params.domain) : fetchDomainLeaderboard(params.domain),
     enabled: !!params.domain,
   });
 
@@ -35,6 +39,8 @@ export default function DomainRankingPage() {
         </h1>
       </div>
 
+      <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-domain" />
+
       {q.isLoading ? (
         <div className="space-y-2">
           {[0, 1, 2, 3].map((i) => (
@@ -42,11 +48,22 @@ export default function DomainRankingPage() {
           ))}
         </div>
       ) : (q.data ?? []).length === 0 ? (
-        <EmptyState message="Todavía nadie sumó puntos en este tema. ¡Empezá vos!" />
+        <EmptyState
+          message={
+            period === 'semana'
+              ? 'Nadie sumó puntos en este tema esta semana. ¡Empezá vos!'
+              : 'Todavía nadie sumó puntos en este tema. ¡Empezá vos!'
+          }
+        />
       ) : (
         <div className="space-y-2">
           {(q.data ?? []).map((e) => (
-            <LeaderboardRow key={e.user_id} entry={e} isMe={e.user_id === profile?.id} metric="points" />
+            <LeaderboardRow
+              key={e.user_id}
+              entry={e}
+              isMe={e.user_id === profile?.id}
+              metric={period === 'semana' ? 'xp' : 'points'}
+            />
           ))}
         </div>
       )}

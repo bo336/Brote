@@ -8,8 +8,13 @@ import {
   type CompletionInfo,
 } from '@/lib/api/catalog';
 
-export function useCatalog() {
-  return useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog, staleTime: 10 * 60_000 });
+/** The full, age-appropriate action library. */
+export function useCatalog(accountType: 'kid' | 'teen' | 'adult' = 'adult') {
+  return useQuery({
+    queryKey: ['catalog', accountType],
+    queryFn: () => fetchCatalog(accountType),
+    staleTime: 10 * 60_000,
+  });
 }
 
 export function useCatalogCompletions(userId: string | undefined) {

@@ -19,11 +19,16 @@ import {
   fetchGlobalLeaderboard,
   fetchWeeklyLeaderboard,
   fetchCityLeaderboard,
+  fetchCityLeaderboardWeekly,
   fetchFriendLeaderboard,
+  fetchFriendLeaderboardWeekly,
   fetchWeeklyLeague,
-  fetchMyPosition,
+  fetchMyPositionFor,
+  metricFor,
   addFriendByUsername,
+  type Period,
 } from '@/lib/api/ranking';
+import { PeriodToggle } from '@/components/ranking/PeriodToggle';
 import { Avatar } from '@/components/ui/avatar';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
@@ -66,26 +71,34 @@ export default function RankingPage() {
   const profile = useSession((s) => s.profile);
   const myId = profile?.id;
 
-  const [period, setPeriod] = useState<'historico' | 'semana'>('historico');
+  // Weekly is the default on every board (F14.1): a lifetime-only ranking
+  // permanently favours whoever signed up first.
+  const [period, setPeriod] = useState<Period>('semana');
   const [friendName, setFriendName] = useState('');
   const [addingFriend, setAddingFriend] = useState(false);
+  const metric = metricFor(period);
 
   const globalQ = useQuery({
     queryKey: ['lb-global', period],
     queryFn: period === 'historico' ? fetchGlobalLeaderboard : fetchWeeklyLeaderboard,
-    refetchInterval: 60_000,
   });
   const cityQ = useQuery({
-    queryKey: ['lb-city', profile?.city],
-    queryFn: () => fetchCityLeaderboard(profile!.city!),
+    queryKey: ['lb-city', profile?.city, period],
+    queryFn: () =>
+      period === 'semana' ? fetchCityLeaderboardWeekly(profile!.city!) : fetchCityLeaderboard(profile!.city!),
     enabled: !!profile?.city,
   });
   const friendsQ = useQuery({
-    queryKey: ['lb-friends', myId],
-    queryFn: () => fetchFriendLeaderboard(myId!),
+    queryKey: ['lb-friends', myId, period],
+    queryFn: () => (period === 'semana' ? fetchFriendLeaderboardWeekly(myId!) : fetchFriendLeaderboard(myId!)),
     enabled: !!myId,
   });
-  const myPosQ = useQuery({ queryKey: ['my-pos', myId], queryFn: () => fetchMyPosition(myId!), enabled: !!myId });
+  // Keyed on `period` so the number actually changes with the toggle.
+  const myPosQ = useQuery({
+    queryKey: ['my-pos', myId, period],
+    queryFn: () => fetchMyPositionFor(myId!, period),
+    enabled: !!myId,
+  });
   const leagueQ = useQuery({
     queryKey: ['weekly-league', myId],
     queryFn: () => fetchWeeklyLeague(myId!),
@@ -191,30 +204,41 @@ export default function RankingPage() {
         </TabsContent>
 
         <TabsContent value="global" className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="inline-flex rounded-pill border border-border bg-surface-2 p-1">
-              {(['historico', 'semana'] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`rounded-pill px-3 py-1 text-small font-medium ${period === p ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                >
-                  {p === 'historico' ? t('historico') : t('weekly')}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center justify-between gap-2">
+            <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-global" />
             {myPosQ.data ? (
               <span className="text-small text-muted-foreground tnum">
                 {t('yourPosition')}: <span className="font-bold text-foreground">#{myPosQ.data}</span>
               </span>
             ) : null}
           </div>
-          <List query={globalQ} metric={period === 'semana' ? 'xp' : 'total_xp'} myId={myId} emptyMessage="Todavía no hay nadie en el ranking. ¡Sé el primero!" />
+          <List
+            query={globalQ}
+            metric={metric}
+            myId={myId}
+            emptyMessage={
+              period === 'semana'
+                ? 'Todavía nadie sumó puntos esta semana. ¡Sé la primera persona!'
+                : 'Todavía no hay nadie en el ranking. ¡Sé el primero!'
+            }
+          />
         </TabsContent>
 
-        <TabsContent value="ciudad">
+        <TabsContent value="ciudad" className="space-y-3">
           {profile?.city ? (
-            <List query={cityQ} myId={myId} emptyMessage="Sé la primera persona de tu ciudad en sumar puntos." />
+            <>
+              <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-city" />
+              <List
+                query={cityQ}
+                metric={metric}
+                myId={myId}
+                emptyMessage={
+                  period === 'semana'
+                    ? 'Nadie de tu ciudad sumó puntos esta semana. ¡Empezá vos!'
+                    : 'Sé la primera persona de tu ciudad en sumar puntos.'
+                }
+              />
+            </>
           ) : (
             <EmptyState
               message="Elegí tu ciudad en tu perfil para ver el ranking local."
@@ -241,7 +265,8 @@ export default function RankingPage() {
               </Button>
             </div>
           </Card>
-          <List query={friendsQ} myId={myId} emptyMessage={t('friendsEmpty')} />
+          <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-friends" />
+          <List query={friendsQ} metric={metric} myId={myId} emptyMessage={t('friendsEmpty')} />
         </TabsContent>
 
         <TabsContent value="dominio">

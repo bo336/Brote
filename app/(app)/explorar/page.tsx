@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { Plus, Lock } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -11,16 +11,18 @@ import { Button } from '@/components/ui/button';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { Reveal } from '@/components/ui/reveal';
 import { ProjectCard } from '@/components/explorar/ProjectCard';
-import { NewsHero } from '@/components/explorar/NewsHero';
-import { NewsBriefingRow } from '@/components/explorar/NewsBriefingRow';
-import { PulseStrip } from '@/components/explorar/PulseStrip';
 import { SectionTabs } from '@/components/explorar/SectionTabs';
+import { FeedCard } from '@/components/feed/FeedCard';
+import { Composer } from '@/components/feed/Composer';
+import { ThreadSheet } from '@/components/feed/ThreadSheet';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { feedAdIndices } from '@/lib/ads/policy';
 import { useSession } from '@/stores/session';
-import { fetchProjects, fetchNews } from '@/lib/api/explorar';
+import { fetchProjects } from '@/lib/api/explorar';
+import { fetchFeed, deletePost, type FeedItem } from '@/lib/api/feed';
+import { toast } from '@/stores/toast';
 import { meetsRank } from '@/lib/ranks';
-import { DOMAINS, getDomain } from '@/lib/domains';
+import { DOMAINS } from '@/lib/domains';
 
 type ProjectSort = 'cerca' | 'proximos' | 'populares';
 type Section = 'novedades' | 'proyectos';
@@ -37,12 +39,11 @@ export default function ExplorarPage() {
   const totalXp = profile?.totalXp ?? 0;
   const canCreate = meetsRank(totalXp, 'plantula');
 
+  // Novedades is the landing section: it is the reason most people open
+  // Explorar, so it should never take an extra tap to reach (F14.2).
   const [section, setSection] = useState<Section>('novedades');
+  const qc = useQueryClient();
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
-  const newsQ = useQuery({
-    queryKey: ['news', profile?.interests, profile?.accountType],
-    queryFn: () => fetchNews(profile?.interests ?? [], profile?.accountType ?? 'adult'),
-  });
 
   const [sort, setSort] = useState<ProjectSort>('proximos');
   const [domain, setDomain] = useState<string>('all');
@@ -60,23 +61,44 @@ export default function ExplorarPage() {
     return list;
   }, [projectsQ.data, sort, domain, profile?.neighborhood]);
 
-  // Featured story + the calmer hairline briefing river beneath it.
-  const news = newsQ.data ?? [];
-  const featured = news[0];
-  const briefing = news.slice(1);
-  const adIndices = feedAdIndices(briefing.length);
+  // Topic filter, applied server-side by feed_timeline (F14.10/F14.11).
+  const [newsTopic, setNewsTopic] = useState<string>('all');
+  const [threadId, setThreadId] = useState<string | null>(null);
 
-  const pulse = useMemo(() => {
-    const dayMs = 24 * 3_600_000;
-    const today = news.filter((n) => n.published_at && Date.now() - new Date(n.published_at).getTime() < dayMs).length;
+  const feedQ = useQuery({
+    queryKey: ['feed', newsTopic],
+    queryFn: () => fetchFeed(newsTopic),
+    staleTime: 60_000,
+  });
+  const feed = feedQ.data ?? [];
+  const adIndices = feedAdIndices(feed.length);
+
+  // Only offer topics that currently have something behind them — an empty
+  // filter chip is a dead end. Derived from the unfiltered fetch so the rail
+  // does not collapse to one chip as soon as a filter is applied.
+  const allFeedQ = useQuery({
+    queryKey: ['feed', 'all'],
+    queryFn: () => fetchFeed('all'),
+    staleTime: 60_000,
+  });
+  const topicOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const n of news) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
-    let topSlug: string | null = null;
-    let topCount = 0;
-    for (const [slug, count] of counts) if (count > topCount) { topSlug = slug; topCount = count; }
-    const topDomain = topSlug ? getDomain(topSlug) : undefined;
-    return { today, total: news.length, trendingLabel: topDomain?.name_es ?? null, trendingColor: topDomain?.color };
-  }, [news]);
+    for (const n of allFeedQ.data ?? []) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
+    const available = DOMAINS.filter((d) => (counts.get(d.slug) ?? 0) > 0)
+      .sort((a, b) => (counts.get(b.slug) ?? 0) - (counts.get(a.slug) ?? 0))
+      .map((d) => ({ value: d.slug, label: d.name_es, color: d.color }));
+    return [{ value: 'all', label: 'Todo' }, ...available];
+  }, [allFeedQ.data]);
+
+  function refreshFeed() {
+    qc.invalidateQueries({ queryKey: ['feed'] });
+  }
+
+  async function removePost(item: FeedItem) {
+    const res = await deletePost(item.id);
+    if (res.ok) refreshFeed();
+    else toast.error('No se pudo borrar', res.error);
+  }
 
   return (
     <div className="space-y-5">
@@ -90,47 +112,45 @@ export default function ExplorarPage() {
       />
 
       {section === 'novedades' && (
-        <div className="space-y-5">
-          {!newsQ.isLoading && news.length > 0 && (
-            <PulseStrip
-              today={pulse.today}
-              total={pulse.total}
-              trendingLabel={pulse.trendingLabel}
-              trendingColor={pulse.trendingColor}
-            />
+        <div className="space-y-3">
+          {/* Say something of your own — the feed is a conversation, not a wire. */}
+          <div className="rounded-card border border-border bg-surface p-3">
+            <Composer placeholder="¿Qué viste, hiciste o pensaste hoy? 🌱" onPosted={refreshFeed} compact />
+          </div>
+
+          {topicOptions.length > 1 && (
+            <ChipRail layoutId="news-topic" value={newsTopic} onChange={setNewsTopic} options={topicOptions} />
           )}
 
-          {newsQ.isLoading ? (
+          {feedQ.isLoading ? (
             <div className="space-y-3">
-              <Skeleton className="h-64 w-full rounded-card sm:h-80" />
               {[0, 1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+                <Skeleton key={i} className="h-40 w-full" />
               ))}
             </div>
-          ) : news.length === 0 ? (
+          ) : feed.length === 0 ? (
             <EmptyState message={t('newsEmpty')} />
           ) : (
-            <>
-              {featured && <NewsHero item={featured} />}
-              <div className="divide-y divide-border">
-                {briefing.flatMap((item, i) => {
-                  const nodes = [
-                    <Reveal key={item.id} index={i}>
-                      <NewsBriefingRow item={item} />
-                    </Reveal>,
-                  ];
-                  if (adIndices.includes(i)) {
-                    nodes.push(
-                      <div key={`ad-${i}`} className="py-3">
-                        <AdSlot placement="news-feed" />
-                      </div>,
-                    );
-                  }
-                  return nodes;
-                })}
-              </div>
-            </>
+            <div className="divide-y divide-border">
+              {feed.flatMap((item, i) => {
+                const nodes = [
+                  <Reveal key={item.id} index={i}>
+                    <FeedCard item={item} onReply={(it) => setThreadId(it.id)} onDelete={removePost} />
+                  </Reveal>,
+                ];
+                if (adIndices.includes(i)) {
+                  nodes.push(
+                    <div key={`ad-${i}`} className="py-3">
+                      <AdSlot placement="news-feed" />
+                    </div>,
+                  );
+                }
+                return nodes;
+              })}
+            </div>
           )}
+
+          <ThreadSheet postId={threadId} open={!!threadId} onClose={() => setThreadId(null)} />
         </div>
       )}
 

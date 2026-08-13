@@ -8,12 +8,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
-import { fetchCompetitionBoard } from '@/lib/api/competencias';
+import { fetchCompetitionBoard, resetLabel } from '@/lib/api/competencias';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 import { cn } from '@/lib/utils/cn';
 
-function daysLeft(endsAt: string): string {
+function daysLeft(endsAt: string | null): string {
+  if (!endsAt) return 'Sin fecha de fin';
   const ms = new Date(endsAt).getTime() - Date.now();
   if (ms <= 0) return 'Terminada';
   const d = Math.ceil(ms / 86_400_000);
@@ -68,6 +69,8 @@ export default function CompetenciaDetailPage() {
     );
   }
 
+  const reset = resetLabel(c.reset_period, c.reset_anchor);
+
   return (
     <div className="space-y-4 pb-6">
       <Link href="/competencias" className="inline-flex items-center gap-1.5 text-small text-muted-foreground">
@@ -82,6 +85,12 @@ export default function CompetenciaDetailPage() {
               <Users className="mr-1 inline h-3.5 w-3.5" />
               {c.rows.length} · {daysLeft(c.ends_at)}
             </p>
+            {reset && (
+              <p className="mt-1 text-caption font-medium text-primary">
+                🔄 {reset} · período desde el{' '}
+                {new Date(c.period_start).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+              </p>
+            )}
           </div>
           <Button variant="secondary" size="sm" onClick={share}>
             <Share2 className="h-4 w-4" /> {c.code}
@@ -107,16 +116,26 @@ export default function CompetenciaDetailPage() {
               <span className="min-w-0 flex-1 truncate text-small font-medium">
                 {r.display_name ?? r.username ?? 'Alguien'}
                 {isMe && <span className="text-muted-foreground"> (vos)</span>}
-                <span className="block text-caption text-muted-foreground">{r.actions} acciones</span>
+                <span className="block text-caption text-muted-foreground">
+                  {r.actions} {r.actions === 1 ? 'acción' : 'acciones'}
+                  {/* With resets on, the all-time total still deserves credit
+                      even though the ranking uses the current period. */}
+                  {reset && ` · ${r.total_xp} en total`}
+                </span>
               </span>
-              <span className="text-small font-bold text-brote-sun tnum">+{r.xp}</span>
+              <span className="text-right text-small font-bold text-brote-sun tnum">
+                +{r.xp}
+                {reset && <span className="block text-caption font-normal text-muted-foreground">este período</span>}
+              </span>
             </div>
           );
         })}
       </div>
 
       <p className="text-center text-caption text-muted-foreground">
-        Solo cuentan los puntos hechos durante la competencia — todos empiezan de cero. 🌱
+        {reset
+          ? 'El puesto se define por los puntos del período actual, así que siempre se puede dar vuelta. 🌱'
+          : 'Solo cuentan los puntos hechos durante la competencia — todos empiezan de cero. 🌱'}
       </p>
     </div>
   );

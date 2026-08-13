@@ -16,16 +16,21 @@ import { useCatalog, useCatalogCompletions, useDomainPoints } from '@/hooks/use-
 import { fetchMyRecommendations } from '@/lib/api/catalog';
 import { scoreActivities } from '@/lib/recommendations';
 import { AdSlot } from '@/components/ads/AdSlot';
-import { DOMAINS } from '@/lib/domains';
+import { DOMAINS, getDomain } from '@/lib/domains';
 import { cn } from '@/lib/utils/cn';
 import type { ActivityRow } from '@/lib/supabase/rows';
+
+/** Lowercase and strip accents, so "energia" matches "Energía". */
+function normalize(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
 
 export default function AccionesPage() {
   const t = useTranslations('acciones');
   const tc = useTranslations('common');
   const profile = useSession((s) => s.profile);
 
-  const catalog = useCatalog();
+  const catalog = useCatalog(profile?.accountType ?? 'adult');
   const completions = useCatalogCompletions(profile?.id);
   const domainPointsQ = useDomainPoints(profile?.id);
   const recsQ = useQuery({
@@ -84,8 +89,21 @@ export default function AccionesPage() {
     if (onlyDoable) list = list.filter((s) => !s.locked);
     if (hideCompleted) list = list.filter((s) => !completedIds.has(s.activity.id));
     if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((s) => s.activity.title_es.toLowerCase().includes(q));
+      // Match the TOPIC as well as the words, so searching "agua" returns
+      // every water action — including "Ducha corta" and "Cerrá la canilla",
+      // which never contain the literal word. Matching only the title made a
+      // 46-action domain look like 10.
+      const q = normalize(search);
+      list = list.filter((s) => {
+        const a = s.activity;
+        const dom = getDomain(a.domain_slug);
+        const haystack = normalize(
+          [a.title_es, a.short_es, a.description_es, a.domain_slug, dom?.name_es].filter(Boolean).join(' '),
+        );
+        // Every word typed must appear somewhere, so extra words narrow rather
+        // than accidentally widening the result.
+        return q.split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
+      });
     }
     return list;
   }, [scored, domain, onlyDoable, hideCompleted, search, completedIds]);
