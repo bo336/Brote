@@ -155,8 +155,6 @@ export interface CreateProjectInput {
   /** How people reach the organiser to coordinate (F14.8). */
   contactInfo?: string | null;
   contactKind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
-  /** Base points per work session, before the turnout multiplier. */
-  sessionPoints?: number;
 }
 
 export async function createProject(input: CreateProjectInput): Promise<string> {
@@ -176,7 +174,6 @@ export async function createProject(input: CreateProjectInput): Promise<string> 
     p_min_rank: input.minRank,
     p_contact_info: input.contactInfo ?? null,
     p_contact_kind: input.contactKind ?? null,
-    p_session_points: input.sessionPoints ?? 120,
   });
   if (error) throw error;
   return data as string;

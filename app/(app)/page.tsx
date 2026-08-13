@@ -163,6 +163,27 @@ export default function HoyPage() {
           renders so it can actually be discovered. */}
       <RoutineSection />
 
+      {/* Always-present way into the feed (F15.19). The floating nudge below
+          is the once-a-day prompt; this is the permanent door, so news access
+          never depends on catching a transient banner. */}
+      <section>
+        <Link
+          href="/explorar"
+          className="flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors hover:border-primary/40"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-brote-aqua/15 text-xl">
+            📰
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-small font-semibold">Últimas noticias y comentarios</span>
+            <span className="block text-caption text-muted-foreground">
+              Qué está pasando y qué está opinando la gente
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      </section>
+
       {/* A quiet nudge toward the feed once you have actually done something
           today — at most once a day, and dismissible (F14.9). */}
       <NewsNudge completionsToday={doneCount} />

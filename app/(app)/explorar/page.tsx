@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ChipRail } from '@/components/ui/chip-rail';
+import { BackToTop } from '@/components/ui/back-to-top';
 import { Reveal } from '@/components/ui/reveal';
 import { ProjectCard } from '@/components/explorar/ProjectCard';
 import { SectionTabs } from '@/components/explorar/SectionTabs';
@@ -151,6 +152,7 @@ export default function ExplorarPage() {
           )}
 
           <ThreadSheet postId={threadId} open={!!threadId} onClose={() => setThreadId(null)} />
+          <BackToTop />
         </div>
       )}
 

@@ -51,7 +51,6 @@ export default function NuevoProyectoPage() {
   const [minRank, setMinRank] = useState('semilla');
   const [contactInfo, setContactInfo] = useState('');
   const [contactKind, setContactKind] = useState<'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro'>('whatsapp');
-  const [sessionPoints, setSessionPoints] = useState('120');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -100,7 +99,6 @@ export default function NuevoProyectoPage() {
         minRank,
         contactInfo: contactInfo.trim() || null,
         contactKind: contactInfo.trim() ? contactKind : null,
-        sessionPoints: Number(sessionPoints) || 120,
       });
       toast.success('¡Proyecto creado!');
       router.push(`/explorar/proyectos/${id}`);
@@ -195,21 +193,6 @@ export default function NuevoProyectoPage() {
           />
         </Field>
       </div>
-
-      <Field
-        label="Puntos por jornada"
-        help="Lo que recibe cada persona por participar de un encuentro. Se multiplica según cuánta gente venga."
-      >
-        <input
-          type="number"
-          min={20}
-          max={500}
-          step={10}
-          value={sessionPoints}
-          onChange={(e) => setSessionPoints(e.target.value)}
-          className={inputCls}
-        />
-      </Field>
 
       <Field label="Rango mínimo para sumarse" help="Podés crear un proyecto exclusivo para rangos altos.">
         <select value={minRank} onChange={(e) => setMinRank(e.target.value)} className={inputCls}>
