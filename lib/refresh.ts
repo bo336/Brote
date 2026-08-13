@@ -16,7 +16,7 @@ import type { QueryClient } from '@tanstack/react-query';
  * query is to be wrongly refetched. Content that cannot change as a result of
  * scoring is excluded so a completion never triggers a heavy news refetch.
  */
-const NOT_SCORE_RELATED = ['news', 'news-item', 'projects', 'project', 'monetization'];
+const NOT_SCORE_RELATED = ['news', 'news-item', 'projects', 'project', 'monetization', 'feed', 'feed-thread'];
 
 export function invalidateScores(qc: QueryClient): void {
   qc.invalidateQueries({

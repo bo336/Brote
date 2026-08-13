@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { Plus, Lock } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -11,12 +11,16 @@ import { Button } from '@/components/ui/button';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { Reveal } from '@/components/ui/reveal';
 import { ProjectCard } from '@/components/explorar/ProjectCard';
-import { NewsBriefingRow } from '@/components/explorar/NewsBriefingRow';
 import { SectionTabs } from '@/components/explorar/SectionTabs';
+import { FeedCard } from '@/components/feed/FeedCard';
+import { Composer } from '@/components/feed/Composer';
+import { ThreadSheet } from '@/components/feed/ThreadSheet';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { feedAdIndices } from '@/lib/ads/policy';
 import { useSession } from '@/stores/session';
-import { fetchProjects, fetchNews } from '@/lib/api/explorar';
+import { fetchProjects } from '@/lib/api/explorar';
+import { fetchFeed, deletePost, type FeedItem } from '@/lib/api/feed';
+import { toast } from '@/stores/toast';
 import { meetsRank } from '@/lib/ranks';
 import { DOMAINS } from '@/lib/domains';
 
@@ -38,11 +42,8 @@ export default function ExplorarPage() {
   // Novedades is the landing section: it is the reason most people open
   // Explorar, so it should never take an extra tap to reach (F14.2).
   const [section, setSection] = useState<Section>('novedades');
+  const qc = useQueryClient();
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
-  const newsQ = useQuery({
-    queryKey: ['news', profile?.interests, profile?.accountType],
-    queryFn: () => fetchNews(profile?.interests ?? [], profile?.accountType ?? 'adult'),
-  });
 
   const [sort, setSort] = useState<ProjectSort>('proximos');
   const [domain, setDomain] = useState<string>('all');
@@ -60,25 +61,44 @@ export default function ExplorarPage() {
     return list;
   }, [projectsQ.data, sort, domain, profile?.neighborhood]);
 
-  // Topic filter for the feed (F14.10). Only domains that actually have
-  // stories right now are offered — an empty filter chip is a dead end.
+  // Topic filter, applied server-side by feed_timeline (F14.10/F14.11).
   const [newsTopic, setNewsTopic] = useState<string>('all');
-  const allNews = newsQ.data ?? [];
+  const [threadId, setThreadId] = useState<string | null>(null);
 
+  const feedQ = useQuery({
+    queryKey: ['feed', newsTopic],
+    queryFn: () => fetchFeed(newsTopic),
+    staleTime: 60_000,
+  });
+  const feed = feedQ.data ?? [];
+  const adIndices = feedAdIndices(feed.length);
+
+  // Only offer topics that currently have something behind them — an empty
+  // filter chip is a dead end. Derived from the unfiltered fetch so the rail
+  // does not collapse to one chip as soon as a filter is applied.
+  const allFeedQ = useQuery({
+    queryKey: ['feed', 'all'],
+    queryFn: () => fetchFeed('all'),
+    staleTime: 60_000,
+  });
   const topicOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const n of allNews) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
+    for (const n of allFeedQ.data ?? []) for (const d of n.domain_tags) counts.set(d, (counts.get(d) ?? 0) + 1);
     const available = DOMAINS.filter((d) => (counts.get(d.slug) ?? 0) > 0)
       .sort((a, b) => (counts.get(b.slug) ?? 0) - (counts.get(a.slug) ?? 0))
       .map((d) => ({ value: d.slug, label: d.name_es, color: d.color }));
     return [{ value: 'all', label: 'Todo' }, ...available];
-  }, [allNews]);
+  }, [allFeedQ.data]);
 
-  const news = useMemo(
-    () => (newsTopic === 'all' ? allNews : allNews.filter((n) => n.domain_tags.includes(newsTopic))),
-    [allNews, newsTopic],
-  );
-  const adIndices = feedAdIndices(news.length);
+  function refreshFeed() {
+    qc.invalidateQueries({ queryKey: ['feed'] });
+  }
+
+  async function removePost(item: FeedItem) {
+    const res = await deletePost(item.id);
+    if (res.ok) refreshFeed();
+    else toast.error('No se pudo borrar', res.error);
+  }
 
   return (
     <div className="space-y-5">
@@ -92,30 +112,30 @@ export default function ExplorarPage() {
       />
 
       {section === 'novedades' && (
-        <div className="space-y-4">
-          {!newsQ.isLoading && topicOptions.length > 1 && (
-            <ChipRail
-              layoutId="news-topic"
-              value={newsTopic}
-              onChange={setNewsTopic}
-              options={topicOptions}
-            />
+        <div className="space-y-3">
+          {/* Say something of your own — the feed is a conversation, not a wire. */}
+          <div className="rounded-card border border-border bg-surface p-3">
+            <Composer placeholder="¿Qué viste, hiciste o pensaste hoy? 🌱" onPosted={refreshFeed} compact />
+          </div>
+
+          {topicOptions.length > 1 && (
+            <ChipRail layoutId="news-topic" value={newsTopic} onChange={setNewsTopic} options={topicOptions} />
           )}
 
-          {newsQ.isLoading ? (
+          {feedQ.isLoading ? (
             <div className="space-y-3">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-20 w-full" />
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-40 w-full" />
               ))}
             </div>
-          ) : news.length === 0 ? (
+          ) : feed.length === 0 ? (
             <EmptyState message={t('newsEmpty')} />
           ) : (
             <div className="divide-y divide-border">
-              {news.flatMap((item, i) => {
+              {feed.flatMap((item, i) => {
                 const nodes = [
                   <Reveal key={item.id} index={i}>
-                    <NewsBriefingRow item={item} />
+                    <FeedCard item={item} onReply={(it) => setThreadId(it.id)} onDelete={removePost} />
                   </Reveal>,
                 ];
                 if (adIndices.includes(i)) {
@@ -129,6 +149,8 @@ export default function ExplorarPage() {
               })}
             </div>
           )}
+
+          <ThreadSheet postId={threadId} open={!!threadId} onClose={() => setThreadId(null)} />
         </div>
       )}
 
