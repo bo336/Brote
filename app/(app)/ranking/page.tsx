@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Trophy } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Pill } from '@/components/ui/pill';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +31,15 @@ import {
 } from '@/lib/api/ranking';
 import { PeriodToggle } from '@/components/ranking/PeriodToggle';
 import { FriendInvite } from '@/components/ranking/FriendInvite';
+import { fetchMyCompetitions } from '@/lib/api/competencias';
+
+/** Short "ends in N days" label; competitions may have no end date at all. */
+function compDaysLeft(endsAt: string): string {
+  const ms = new Date(endsAt).getTime() - Date.now();
+  if (ms <= 0) return 'terminada';
+  const d = Math.ceil(ms / 86_400_000);
+  return d === 1 ? 'termina hoy' : `${d} días`;
+}
 import { Avatar } from '@/components/ui/avatar';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
@@ -105,6 +114,7 @@ function RankingInner() {
     enabled: !!myId,
   });
   // Keyed on `period` so the number actually changes with the toggle.
+  const myComps = useQuery({ queryKey: ['my-competitions'], queryFn: fetchMyCompetitions, enabled: !!myId });
   const myPosQ = useQuery({
     queryKey: ['my-pos', myId, period],
     queryFn: () => fetchMyPositionFor(myId!, period),
@@ -148,6 +158,7 @@ function RankingInner() {
             <TabsTrigger value="global">{t('global')}</TabsTrigger>
             <TabsTrigger value="ciudad">{t('ciudad')}</TabsTrigger>
             <TabsTrigger value="amigos">{t('amigos')}</TabsTrigger>
+            <TabsTrigger value="competencias">Mis competencias</TabsTrigger>
             <TabsTrigger value="dominio">{t('porDominio')}</TabsTrigger>
           </TabsList>
         </div>
@@ -274,6 +285,56 @@ function RankingInner() {
           <FriendInvite onAdded={() => friendsQ.refetch()} />
           <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-friends" />
           <List query={friendsQ} metric={metric} myId={myId} emptyMessage={t('friendsEmpty')} />
+        </TabsContent>
+
+        {/* The competitions you are in belong beside the other boards — they
+            are leaderboards too, and were previously two taps away. */}
+        <TabsContent value="competencias" className="space-y-3">
+          {myComps.isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-[68px] w-full" />
+              <Skeleton className="h-[68px] w-full" />
+            </div>
+          ) : (myComps.data ?? []).length === 0 ? (
+            <EmptyState
+              message="Todavía no estás en ninguna competencia."
+              action={
+                <Button variant="primary" asChild>
+                  <Link href="/competencias">Crear o unirme</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <>
+              <div className="space-y-2">
+                {myComps.data!.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/competencias/${c.id}`}
+                    className={cn(
+                      'flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors hover:border-primary/40',
+                      !c.active && 'opacity-60',
+                    )}
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-brote-sun/15 text-brote-sun">
+                      <Trophy className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{c.name}</span>
+                      <span className="block truncate text-caption text-muted-foreground">
+                        {c.members} {c.members === 1 ? 'participante' : 'participantes'}
+                        {c.ends_at ? ` · ${compDaysLeft(c.ends_at)}` : ' · sin fecha de fin'}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                ))}
+              </div>
+              <Button variant="secondary" block asChild>
+                <Link href="/competencias">🏁 Crear o unirme a otra</Link>
+              </Button>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="dominio">

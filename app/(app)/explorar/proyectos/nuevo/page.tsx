@@ -134,10 +134,15 @@ export default function NuevoProyectoPage() {
         </div>
       </Field>
 
+      {/*
+        These wrap instead of scrolling horizontally. With a hidden scrollbar
+        there was nothing indicating more existed, so only about four of the
+        thirteen themes were ever discovered.
+      */}
       <Field label="Tema">
-        <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
+        <div className="flex flex-wrap gap-1.5">
           {DOMAINS.map((d) => (
-            <button key={d.slug} onClick={() => setDomain(d.slug)} type="button" className="shrink-0">
+            <button key={d.slug} onClick={() => setDomain(d.slug)} type="button">
               <Pill color={d.color} active={domain === d.slug} size="sm">
                 {d.name_es}
               </Pill>
