@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { friendlyError } from '@/lib/errors';
 
 export type ToastVariant = 'default' | 'success' | 'points' | 'warning' | 'error';
 
@@ -57,6 +58,17 @@ export const toast = {
     useToastStore.getState().push({ variant: 'success', title, description, glyph: '✅' }),
   warning: (title: string, description?: string) =>
     useToastStore.getState().push({ variant: 'warning', title, description, glyph: '⚠️' }),
-  error: (title: string, description?: string) =>
-    useToastStore.getState().push({ variant: 'error', title, description, glyph: '😕' }),
+  /**
+   * Error toasts sanitise their detail centrally (F15.5). Call sites can pass
+   * a raw error or API message without having to remember to clean it — the
+   * user never sees infrastructure text, and no future call site can leak it
+   * by forgetting.
+   */
+  error: (title: string, description?: unknown) =>
+    useToastStore.getState().push({
+      variant: 'error',
+      title,
+      description: description === undefined ? undefined : friendlyError(description),
+      glyph: '😕',
+    }),
 };

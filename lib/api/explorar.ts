@@ -119,6 +119,13 @@ export async function completeProjectSession(
   return data as { ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number };
 }
 
+/** Leave a project you joined. Organisers cannot abandon their own (F15.10). */
+export async function leaveProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('leave_project', { p_project_id: projectId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
 export async function joinProject(projectId: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.rpc('join_project', { p_project_id: projectId });
@@ -148,8 +155,6 @@ export interface CreateProjectInput {
   /** How people reach the organiser to coordinate (F14.8). */
   contactInfo?: string | null;
   contactKind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
-  /** Base points per work session, before the turnout multiplier. */
-  sessionPoints?: number;
 }
 
 export async function createProject(input: CreateProjectInput): Promise<string> {
@@ -169,7 +174,6 @@ export async function createProject(input: CreateProjectInput): Promise<string> 
     p_min_rank: input.minRank,
     p_contact_info: input.contactInfo ?? null,
     p_contact_kind: input.contactKind ?? null,
-    p_session_points: input.sessionPoints ?? 120,
   });
   if (error) throw error;
   return data as string;

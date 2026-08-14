@@ -29,7 +29,6 @@ export async function fetchImpact(userId: string): Promise<ImpactData> {
   const handprint = [
     { label: 'Agua ahorrada', value: c('agua') * 50, unit: 'L', glyph: '💧' },
     { label: 'Residuos desviados', value: c('residuos') * 3, unit: 'kg', glyph: '♻️' },
-    { label: 'Comidas veggie', value: c('alimentacion'), unit: '', glyph: '🥗' },
     { label: 'Plantas y verde', value: c('plantas'), unit: '', glyph: '🌱' },
     { label: 'Km sin auto', value: c('movilidad') * 5, unit: 'km', glyph: '🚲' },
     { label: 'Fauna ayudada', value: c('animales'), unit: '', glyph: '🐦' },

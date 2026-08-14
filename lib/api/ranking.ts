@@ -125,6 +125,26 @@ export async function fetchMyPosition(userId: string): Promise<number> {
   return Number(data ?? 0);
 }
 
+/** Your shareable invite code, created on first request (F15.11). */
+export async function fetchMyFriendCode(): Promise<string> {
+  const { data, error } = await createClient().rpc('my_friend_code');
+  if (error) throw error;
+  return String(data ?? '');
+}
+
+/** Add a friend from their code — symmetric, so both sides see it at once. */
+export async function addFriendByCode(code: string): Promise<{ ok: boolean; error?: string; name?: string }> {
+  const { data, error } = await createClient().rpc('add_friend_by_code', { p_code: code });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; name?: string };
+}
+
+export async function removeFriend(friendId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('remove_friend', { p_friend_id: friendId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
 /** Add a friend by username (creates an accepted friendship). */
 export async function addFriendByUsername(username: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = createClient();

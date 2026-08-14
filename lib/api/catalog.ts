@@ -67,13 +67,50 @@ export async function fetchActivityBySlug(slug: string): Promise<ActivityRow | n
 export interface CompletionInfo {
   status: CompletionStatus;
   completed_at: string;
+  /** When it can be done again. null for genuinely once-in-a-lifetime actions. */
+  available_at?: string | null;
+  /** True when the action is never repeatable (a solar-panel install). */
+  permanent?: boolean;
 }
 
-/** Map of catalog activity_id -> latest completion (for done/cooldown state). */
-export async function fetchCatalogCompletions(userId: string): Promise<Map<string, CompletionInfo>> {
+/**
+ * Actions that are currently NOT doable — either still cooling down or truly
+ * one-off (F15.14).
+ *
+ * The map deliberately contains only what is unavailable RIGHT NOW. Previously
+ * it held every completion ever, so an action finished weeks ago stayed ticked
+ * off forever and the pool of things to do could only shrink. Callers already
+ * treat "present in the map" as "done", so honouring the cooldown here fixes
+ * every screen at once.
+ */
+export async function fetchCatalogCompletions(_userId: string): Promise<Map<string, CompletionInfo>> {
   const supabase = createClient();
-  // Not restricted to catalog-type any more: the library now includes daily
-  // actions, so their completions must show as done here too.
+  const { data, error } = await supabase.rpc('my_activity_states');
+  if (error) throw error;
+
+  const states = (data ?? {}) as Record<
+    string,
+    { last_done: string; available_at: string | null; permanent: boolean }
+  >;
+  const now = Date.now();
+  const map = new Map<string, CompletionInfo>();
+
+  for (const [activityId, s] of Object.entries(states)) {
+    const stillLocked = s.permanent || (s.available_at ? new Date(s.available_at).getTime() > now : false);
+    if (!stillLocked) continue; // cooled down — available again
+    map.set(activityId, {
+      status: 'honor' as CompletionStatus,
+      completed_at: s.last_done,
+      available_at: s.available_at,
+      permanent: s.permanent,
+    });
+  }
+  return map;
+}
+
+/** Kept for callers that genuinely want raw history rather than availability. */
+export async function fetchRawCompletions(userId: string): Promise<Map<string, CompletionInfo>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('activity_completions')
     .select('activity_id, status, completed_at')

@@ -24,7 +24,7 @@ export const BRAND = {
   /** Default locale. */
   defaultLocale: 'es',
   /** Support / contact handle shown in settings + about. */
-  contactEmail: 'hola@brote.app',
+  contactEmail: 'aiaureum@gmail.com',
 } as const;
 
 export type Brand = typeof BRAND;

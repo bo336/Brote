@@ -5,6 +5,7 @@ import { TopBar } from '@/components/nav/TopBar';
 import { BottomTabBar } from '@/components/nav/BottomTabBar';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
 import { PipChat } from '@/components/pip/PipChat';
+import { FirstRunTour } from '@/components/tutorial/FirstRunTour';
 import { MomentAd } from '@/components/ads/AdSlot';
 import { AdsConsentBanner } from '@/components/ads/AdsConsent';
 import { SessionHydrator } from '@/components/session-hydrator';
@@ -31,6 +32,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <BottomTabBar />
       </div>
       <PipChat />
+      {/* One-time orientation, skippable from the first card (F15.18). */}
+      <FirstRunTour />
       <MomentAd />
       <AdsConsentBanner />
       <SessionHydrator profile={profile} unread={unread} />

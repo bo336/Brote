@@ -5,8 +5,12 @@ interface SessionState {
   profile: ProfileSummary | null;
   unreadNotifications: number;
   setProfile: (p: ProfileSummary | null) => void;
-  /** Apply a server-confirmed XP/streak delta after a completion. */
-  applyCompletion: (patch: { totalXp: number; streak: number }) => void;
+  /**
+   * Apply a server-confirmed XP/streak delta after a completion.
+   * `streakDate` marks today as kept, which is what dismisses the
+   * "streak at risk" warning (F15.8).
+   */
+  applyCompletion: (patch: { totalXp: number; streak: number; streakDate?: string }) => void;
   setUnread: (n: number) => void;
 }
 
@@ -19,7 +23,21 @@ export const useSession = create<SessionState>((set) => ({
   profile: null,
   unreadNotifications: 0,
   setProfile: (profile) => set({ profile }),
-  applyCompletion: ({ totalXp, streak }) =>
-    set((s) => (s.profile ? { profile: { ...s.profile, totalXp, currentStreak: streak } } : s)),
+  applyCompletion: ({ totalXp, streak, streakDate }) =>
+    set((s) =>
+      s.profile
+        ? {
+            profile: {
+              ...s.profile,
+              totalXp,
+              currentStreak: streak,
+              // Without this the "racha en riesgo" banner stayed on screen
+              // after you had just saved the streak, because it is derived
+              // from lastStreakDate and nothing updated it.
+              lastStreakDate: streakDate ?? s.profile.lastStreakDate,
+            },
+          }
+        : s,
+    ),
   setUnread: (unreadNotifications) => set({ unreadNotifications }),
 }));

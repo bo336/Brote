@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SendHorizonal, X } from 'lucide-react';
 import { Pip } from '@/components/pip/Pip';
+import { useAds } from '@/components/ads/AdsProvider';
 import { createClient } from '@/lib/supabase/client';
 import { useSession } from '@/stores/session';
 import { haptic } from '@/lib/utils/haptics';
@@ -29,6 +31,8 @@ const SUGGESTIONS = [
  */
 export function PipChat() {
   const profile = useSession((s) => s.profile);
+  const { monetization } = useAds();
+  const isPro = monetization?.is_pro ?? false;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -51,7 +55,9 @@ export function PipChat() {
     setThinking(true);
     try {
       const { data, error } = await createClient().functions.invoke('pip-chat', {
-        body: { messages: history.slice(-8), mode: expert ? 'experto' : 'coach' },
+        // Never request the paid mode without the plan, even if state drifted
+        // (e.g. a subscription lapsed while the sheet was open).
+        body: { messages: history.slice(-8), mode: expert && isPro ? 'experto' : 'coach' },
       });
       const reply: string =
         (!error && (data as { reply?: string } | null)?.reply) ||
@@ -114,19 +120,32 @@ export function PipChat() {
                   {expert ? 'Respuestas ambientales rigurosas 🧪' : 'Tu eco-coach · con IA ✦'}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  haptic('light');
-                  setExpert((v) => !v);
-                }}
-                aria-label="Cambiar modo"
-                className={cn(
-                  'rounded-pill border px-2.5 py-1 text-caption font-semibold transition-colors',
-                  expert ? 'border-brote-aqua/50 bg-brote-aqua/15 text-brote-aqua' : 'border-border text-muted-foreground',
-                )}
-              >
-                {expert ? '🧪 Experto' : '🌱 Coach'}
-              </button>
+              {/* Eco-Experto is a Brote+ feature (F15.21): it is the mode that
+                  actually costs money to run, so it is what the plan buys. The
+                  free coach stays available to everyone. */}
+              {isPro ? (
+                <button
+                  onClick={() => {
+                    haptic('light');
+                    setExpert((v) => !v);
+                  }}
+                  aria-label="Cambiar modo"
+                  className={cn(
+                    'rounded-pill border px-2.5 py-1 text-caption font-semibold transition-colors',
+                    expert ? 'border-brote-aqua/50 bg-brote-aqua/15 text-brote-aqua' : 'border-border text-muted-foreground',
+                  )}
+                >
+                  {expert ? '🧪 Experto' : '🌱 Coach'}
+                </button>
+              ) : (
+                <Link
+                  href="/brote-plus"
+                  onClick={() => setOpen(false)}
+                  className="rounded-pill border border-brote-sun/40 bg-brote-sun/10 px-2.5 py-1 text-caption font-semibold text-brote-sun"
+                >
+                  🧪 Experto · Brote+
+                </Link>
+              )}
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Cerrar"

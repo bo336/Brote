@@ -66,27 +66,38 @@ interface Equivalence {
  * Ordered from largest to smallest cost per item.
  */
 
+/*
+ * F15.16 — the units are deliberately SPECIFIC and local. "≈ 4 duchas" leaves
+ * you wondering how long a shower is; "≈ 4 duchas de 8 minutos" is a picture.
+ * Where possible the reference is something an Argentine actually does — a
+ * mate, an asado, a trip to Mar del Plata — rather than a generic figure.
+ */
+
 // ── Water (litres) ──────────────────────────────────────────────────────────
 const WATER_EQ: Equivalence[] = [
-  { per: 2_500_000, one: 'pileta olímpica', many: 'piletas olímpicas', emoji: '🏊' },
-  { per: 15_000, one: 'kilo de carne vacuna', many: 'kilos de carne vacuna', emoji: '🥩' },
-  { per: 10_000, one: 'jean nuevo', many: 'jeans nuevos', emoji: '👖' },
-  { per: 2_700, one: 'remera de algodón', many: 'remeras de algodón', emoji: '👕' },
-  { per: 2_400, one: 'hamburguesa', many: 'hamburguesas', emoji: '🍔' },
-  { per: 130, one: 'café', many: 'cafés', emoji: '☕' },
-  { per: 70, one: 'ducha', many: 'duchas', emoji: '🚿' },
+  { per: 2_500_000, one: 'pileta olímpica llena', many: 'piletas olímpicas llenas', emoji: '🏊' },
+  { per: 15_000, one: 'kilo de carne vacuna producido', many: 'kilos de carne vacuna producidos', emoji: '🥩' },
+  { per: 10_000, one: 'jean nuevo fabricado', many: 'jeans nuevos fabricados', emoji: '👖' },
+  { per: 2_700, one: 'remera de algodón fabricada', many: 'remeras de algodón fabricadas', emoji: '👕' },
+  { per: 2_400, one: 'hamburguesa completa', many: 'hamburguesas completas', emoji: '🍔' },
+  { per: 1_100, one: 'lavarropas cargado', many: 'lavarropas cargados', emoji: '🌀' },
+  { per: 130, one: 'café de cafetería', many: 'cafés de cafetería', emoji: '☕' },
+  { per: 70, one: 'ducha de 8 minutos', many: 'duchas de 8 minutos', emoji: '🚿' },
+  { per: 22, one: 'termo de mate', many: 'termos de mate', emoji: '🧉' },
   { per: 9, one: 'descarga de inodoro', many: 'descargas de inodoro', emoji: '🚽' },
   { per: 1, one: 'litro de agua', many: 'litros de agua', emoji: '💧' },
 ];
 
 // ── CO₂ (kg) ────────────────────────────────────────────────────────────────
 const CO2_EQ: Equivalence[] = [
-  { per: 4_600, one: 'año de un auto naftero', many: 'años de un auto naftero', emoji: '🚙' },
+  { per: 4_600, one: 'año entero de un auto naftero', many: 'años enteros de un auto naftero', emoji: '🚙' },
   { per: 1_800, one: 'vuelo ida y vuelta a Madrid', many: 'vuelos ida y vuelta a Madrid', emoji: '✈️' },
   { per: 200, one: 'vuelo ida y vuelta a Bariloche', many: 'vuelos ida y vuelta a Bariloche', emoji: '🛫' },
-  { per: 27, one: 'kilo de carne vacuna', many: 'kilos de carne vacuna', emoji: '🥩' },
-  { per: 21, one: 'árbol absorbiendo un año', many: 'árboles absorbiendo un año', emoji: '🌳' },
-  { per: 0.12, one: 'km en auto', many: 'km en auto', emoji: '🚗' },
+  { per: 55, one: 'viaje en auto a Mar del Plata', many: 'viajes en auto a Mar del Plata', emoji: '🛣️' },
+  { per: 27, one: 'kilo de asado', many: 'kilos de asado', emoji: '🥩' },
+  { per: 21, one: 'árbol absorbiendo todo un año', many: 'árboles absorbiendo todo un año', emoji: '🌳' },
+  { per: 2.5, one: 'carga de celular por un año', many: 'cargas de celular por un año', emoji: '🔌' },
+  { per: 0.12, one: 'kilómetro en auto', many: 'kilómetros en auto', emoji: '🚗' },
 ];
 
 // ── Waste (kg) ──────────────────────────────────────────────────────────────

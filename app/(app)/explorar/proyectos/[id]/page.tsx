@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
-import { fetchProject, fetchProjectParticipants, joinProject, upvoteProject } from '@/lib/api/explorar';
+import { fetchProject, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/explorar';
 import { completeGroupAction } from '@/lib/api/competencias';
 import { ProjectSessions } from '@/components/explorar/ProjectSessions';
 import { invalidateScores } from '@/lib/refresh';
@@ -185,6 +185,26 @@ export default function ProjectDetailPage() {
         ) : p.joined ? (
           <Button block variant="secondary" size="lg" disabled>
             <Check className="h-4 w-4" /> {t('joined')}
+          </Button>
+        ) : p.joined ? (
+          // Already in: offer the way out instead of a join that does nothing.
+          <Button
+            block
+            variant="secondary"
+            size="lg"
+            onClick={async () => {
+              if (!confirm('¿Salir de este proyecto?')) return;
+              const res = await leaveProject(p.id);
+              if (res.ok) {
+                toast.success('Saliste del proyecto');
+                qc.invalidateQueries({ queryKey: ['project', p.id] });
+                qc.invalidateQueries({ queryKey: ['projects'] });
+              } else {
+                toast.error('No se pudo salir', res.error);
+              }
+            }}
+          >
+            <LogOut className="h-4 w-4" /> Salir del proyecto
           </Button>
         ) : (
           <Button block variant="primary" size="lg" onClick={() => joinM.mutate()} loading={joinM.isPending}>

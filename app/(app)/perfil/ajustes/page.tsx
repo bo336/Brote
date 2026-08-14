@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Sheet } from '@/components/ui/sheet';
 import { ThemeSegmented } from '@/components/ui/theme-toggle';
 import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
+import { FirstRunTour } from '@/components/tutorial/FirstRunTour';
 import { BRAND } from '@/lib/brand';
 import { CITIES, OTHER_CITY } from '@/lib/data/cities';
 import { useSession } from '@/stores/session';
@@ -66,6 +67,7 @@ export default function AjustesPage() {
   const [prefs, setPrefs] = useState<Record<string, boolean>>({ streak: true, challenges: true, projects: true, news: false });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [pushOn, setPushOn] = useState(false);
 
   useEffect(() => {
@@ -138,6 +140,22 @@ export default function AjustesPage() {
       </Link>
       <h1 className="font-display text-h1 font-bold">{t('title')}</h1>
 
+      {/* A tutorial you can only ever see once is a tutorial you cannot go
+          back to when you actually need it (F15.18). */}
+      {showTour && <FirstRunTour force onClose={() => setShowTour(false)} />}
+      <Section title="Cómo funciona la app">
+        <Card className="flex items-center gap-3 p-4">
+          <span className="text-2xl">🧭</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-small font-semibold">Ver el tutorial de nuevo</p>
+            <p className="text-caption text-muted-foreground">Un repaso rápido de para qué es cada sección.</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => setShowTour(true)}>
+            Ver
+          </Button>
+        </Card>
+      </Section>
+
       {/* The account type silently gates actions, news, competitions and ads —
           so it has to be visible and explained somewhere (F14.3). */}
       <Section title="Tipo de cuenta">
@@ -166,27 +184,27 @@ export default function AjustesPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Ciudad</span>
+            <span className="mb-1.5 block text-small font-medium">Provincia</span>
             <select
               value={citySel}
               onChange={(e) => setCitySel(e.target.value)}
               className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
             >
               <option value="" disabled>
-                Elegí tu ciudad
+                Elegí tu provincia
               </option>
               {CITIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
-              <option value={OTHER_CITY}>Otra…</option>
+              <option value={OTHER_CITY}>Vivo en otro país</option>
             </select>
             {citySel === OTHER_CITY && (
               <input
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
-                placeholder="Escribí tu ciudad"
+                placeholder="Escribí dónde vivís"
                 className="mt-2 w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
               />
             )}

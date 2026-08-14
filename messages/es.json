@@ -7,7 +7,8 @@
     "acciones": "Acciones",
     "explorar": "Explorar",
     "ranking": "Ranking",
-    "perfil": "Perfil"
+    "perfil": "Perfil",
+    "aprender": "Aprendé"
   },
   "common": {
     "loading": "Cargando…",
@@ -93,10 +94,10 @@
     "nameLabel": "Tu nombre",
     "namePlaceholder": "Tu nombre o apodo",
     "cityTitle": "¿De qué ciudad sos?",
-    "cityLabel": "Ciudad",
-    "cityPlaceholder": "Elegí tu ciudad",
-    "cityOther": "Otra…",
-    "cityOtherPlaceholder": "Escribí tu ciudad",
+    "cityLabel": "Provincia",
+    "cityPlaceholder": "Elegí tu provincia",
+    "cityOther": "Vivo en otro país",
+    "cityOtherPlaceholder": "Escribí dónde vivís",
     "cityHelp": "La usamos para tu ranking local. Podés cambiarla después.",
     "interestsTitle": "¿Qué te interesa cuidar?",
     "interestsHelp": "Elegí al menos 3. Con esto armo tus recomendaciones.",
