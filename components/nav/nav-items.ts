@@ -1,7 +1,7 @@
-import { Home, Leaf, Compass, Trophy, User, type LucideIcon } from 'lucide-react';
+import { Home, Leaf, Compass, Trophy, User, GraduationCap, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
-  key: 'hoy' | 'acciones' | 'explorar' | 'ranking' | 'perfil';
+  key: 'hoy' | 'acciones' | 'explorar' | 'ranking' | 'perfil' | 'aprender';
   href: string;
   icon: LucideIcon;
   /** The center action tab is visually elevated. */
@@ -15,6 +15,13 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'explorar', href: '/explorar', icon: Compass },
   { key: 'perfil', href: '/perfil', icon: User },
 ];
+
+/**
+ * Sidebar-only destinations. The mobile bar keeps exactly five tabs because
+ * its centre tab is visually elevated — a sixth would knock that off centre.
+ * On mobile, Aprendé is reached from the card on the home screen instead.
+ */
+export const SECONDARY_NAV: NavItem[] = [{ key: 'aprender', href: '/aprender', icon: GraduationCap }];
 
 /** Active-state matcher: exact for '/', prefix for the rest. */
 export function isNavActive(itemHref: string, pathname: string): boolean {

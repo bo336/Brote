@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, ChevronDown, Sparkles, AlertTriangle } from 'lucide-react';
+import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, GraduationCap } from 'lucide-react';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
@@ -162,6 +162,26 @@ export default function HoyPage() {
       {/* Mi rutina (F14.5) — sits directly under the daily set, and always
           renders so it can actually be discovered. */}
       <RoutineSection />
+
+      {/* Aprendé (F15.17). The mobile tab bar keeps five tabs, so this card is
+          how the learning path is discovered on a phone. */}
+      <section>
+        <Link
+          href="/aprender"
+          className="flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors hover:border-primary/40"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary/15 text-primary">
+            <GraduationCap className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-small font-semibold">Aprendé sobre lo que hacés</span>
+            <span className="block text-caption text-muted-foreground">
+              Lecciones cortas, con preguntas y respuestas explicadas
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      </section>
 
       {/* Always-present way into the feed (F15.19). The floating nudge below
           is the once-a-day prompt; this is the permanent door, so news access

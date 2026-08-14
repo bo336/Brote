@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { NAV_ITEMS, isNavActive } from './nav-items';
+import { NAV_ITEMS, SECONDARY_NAV, isNavActive } from './nav-items';
 import { Logo } from '@/components/brand/Logo';
 import { cn } from '@/lib/utils/cn';
 
@@ -19,7 +19,7 @@ export function Sidebar() {
       </Link>
       <nav aria-label="Navegación principal">
         <ul className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {[...NAV_ITEMS, ...SECONDARY_NAV].map((item) => {
             const active = isNavActive(item.href, pathname);
             const Icon = item.icon;
             return (
