@@ -174,14 +174,32 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 Agrupado por afinidad técnica, no por el orden en que se pidió.
 
 **ESTADO al cierre de la sesión del 2026-08-13**
-ENTREGADO: F15.1 F15.2 F15.3 F15.4 F15.5 F15.6 F15.7 F15.9 F15.10 F15.11
-F15.14 F15.15 F15.19 F15.20 F15.21 F15.22 F15.23
-PENDIENTE: F15.8 F15.12 F15.13 F15.16 F15.17 F15.18 F15.24
+ENTREGADO: F15.1 F15.2 F15.3 F15.4 F15.5 F15.6 F15.7 F15.8 F15.9 F15.10
+F15.11 F15.12 F15.14 F15.15 F15.16 F15.19 F15.20 F15.21 F15.22 F15.23 F15.24
+PENDIENTE: F15.13 (a medias, ver abajo) · F15.17 · F15.18
+
+**F15.13 QUEDÓ A MEDIAS — LEER ANTES DE SEGUIR.**
+La migración 0039 (ligas persistentes) SÍ se aplicó: tabla user_leagues,
+brote_league_rollover() con ascenso/descenso, weekly_league() reescrita, y el
+cron de los lunes. Eso funciona.
+La migración 0040 (jugadores simulados) FALLÓ y quedó revertida por completo:
+no existe la columna profiles.is_bot ni ninguna función de simulación. El
+motivo: profiles.id tiene FK a auth.users, y al insertar en auth.users se
+dispara el trigger que ya crea el profile, así que el insert explícito chocaba
+con la PK. El arreglo es usar `on conflict (id) do update` sobre profiles en
+vez de un insert.
+IMPORTANTE: al intentar limpiar, el clasificador de permisos bloqueó el acceso
+a la base. NO se pudo verificar si quedaron filas huérfanas en auth.users con
+email '%@brote.invalid'. Verificar eso ANTES de reintentar:
+    select count(*) from auth.users where email like '%@brote.invalid';
+y borrarlas si existen.
 
 DEUDA CONOCIDA (no reclamar como hecho):
 - F15.21 el gate de Eco-Experto es SOLO del lado del cliente. La edge function
   pip-chat sigue aceptando mode='experto' de cualquiera autenticado. Falta el
   chequeo de plan en el servidor antes de considerarlo cerrado.
+- F15.12 las ligas nuevas todavía no se probaron con datos reales de varias
+  semanas; el rollover corre recién el próximo lunes.
 - 155 acciones del seed original siguen sin instructions_es.
 - F15.4 quedó sobre la columna `profiles.city`; el nombre de la columna dice
   "city" pero ahora guarda provincias. Renombrar cuando haya oportunidad.
