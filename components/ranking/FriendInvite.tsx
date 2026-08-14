@@ -2,11 +2,18 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, Check, UserPlus, Share2 } from 'lucide-react';
+import { Copy, Check, UserPlus, Share2, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Avatar } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchMyFriendCode, addFriendByCode } from '@/lib/api/ranking';
+import {
+  fetchMyFriendCode,
+  addFriendByCode,
+  fetchFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+} from '@/lib/api/ranking';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 
@@ -25,6 +32,7 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const mine = useQuery({ queryKey: ['friend-code'], queryFn: fetchMyFriendCode, staleTime: 60 * 60_000 });
+  const requests = useQuery({ queryKey: ['friend-requests'], queryFn: fetchFriendRequests, staleTime: 30_000 });
   const inviteUrl =
     typeof window !== 'undefined' && mine.data ? `${window.location.origin}/ranking?amigo=${mine.data}` : '';
 
@@ -36,7 +44,11 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
     setBusy(false);
     if (res.ok) {
       haptic('success');
-      toast.success('¡Listo!', `Ahora sos amigo de ${res.name ?? 'esa persona'}`);
+      // A code can be shared or screenshotted, so adding someone now asks them
+      // first — unless they had already asked you, in which case it just
+      // completes the match.
+      if (res.accepted) toast.success('¡Listo!', `Ahora sos amigo de ${res.name ?? 'esa persona'}`);
+      else toast.success('Solicitud enviada', `${res.name ?? 'Esa persona'} tiene que aceptarla.`);
       setCode('');
       onAdded?.();
     } else {
@@ -61,6 +73,51 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
 
   return (
     <div className="space-y-2.5">
+      {/* Incoming requests come first — they need an answer. */}
+      {(requests.data ?? []).length > 0 && (
+        <Card className="p-3.5">
+          <p className="mb-2 text-small font-semibold">
+            Solicitudes ({requests.data!.length})
+          </p>
+          <div className="space-y-2">
+            {requests.data!.map((r) => (
+              <div key={r.user_id} className="flex items-center gap-2.5">
+                <Avatar name={r.display_name} src={r.avatar_url} size={34} />
+                <span className="min-w-0 flex-1 truncate text-small font-medium">
+                  {r.display_name ?? r.username ?? 'Alguien'}
+                </span>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={async () => {
+                    const res = await acceptFriendRequest(r.user_id);
+                    if (res.ok) {
+                      haptic('success');
+                      toast.success('¡Ahora son amigos!');
+                      requests.refetch();
+                      onAdded?.();
+                    } else toast.error('No se pudo', res.error);
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  aria-label="Rechazar"
+                  onClick={async () => {
+                    await rejectFriendRequest(r.user_id);
+                    requests.refetch();
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <Card className="p-3.5">
         <p className="text-small font-semibold">Agregar con un código</p>
         <div className="mt-2 flex gap-2">

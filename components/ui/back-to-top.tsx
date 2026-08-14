@@ -12,21 +12,40 @@ import { ArrowUp } from 'lucide-react';
  * the frame loop was throttled, and a control that cannot be seen is worse
  * than one that appears abruptly.
  */
-export function BackToTop({ threshold = 900 }: { threshold?: number }) {
+export function BackToTop({ threshold = 400 }: { threshold?: number }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > threshold);
+    /*
+     * The app scrolls an inner container on some layouts, not the window, so
+     * listening only to `window.scrollY` meant the button never appeared.
+     * Watch whichever element is actually scrolling.
+     */
+    const scroller: HTMLElement | null =
+      document.scrollingElement instanceof HTMLElement ? document.scrollingElement : null;
+
+    const offset = () =>
+      Math.max(
+        window.scrollY || 0,
+        scroller?.scrollTop ?? 0,
+        document.documentElement.scrollTop || 0,
+        document.body.scrollTop || 0,
+      );
+
+    const onScroll = () => setShow(offset() > threshold);
     onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    return () => window.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions);
   }, [threshold]);
 
   if (!show) return null;
 
   return (
     <button
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      onClick={() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.scrollingElement?.scrollTo?.({ top: 0, behavior: 'smooth' });
+      }}
       aria-label="Volver arriba"
       className="fixed bottom-24 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface/95 text-foreground shadow-soft-lg backdrop-blur transition-transform active:scale-95 lg:bottom-6"
     >

@@ -72,6 +72,15 @@ export function PipChat() {
 
   if (!profile) return null;
 
+  /*
+   * The whole assistant is a Brote+ feature, not just the expert mode: every
+   * reply costs a model call, so it is the clearest thing the plan can buy.
+   * Non-subscribers get no floating button at all rather than a button that
+   * turns into a paywall — offering something and then refusing it is worse
+   * than not offering it. The plan link lives on the profile screen.
+   */
+  if (!isPro) return null;
+
   return (
     <>
       {/* Floating Pip button */}

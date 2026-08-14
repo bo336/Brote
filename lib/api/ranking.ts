@@ -132,11 +132,44 @@ export async function fetchMyFriendCode(): Promise<string> {
   return String(data ?? '');
 }
 
-/** Add a friend from their code — symmetric, so both sides see it at once. */
-export async function addFriendByCode(code: string): Promise<{ ok: boolean; error?: string; name?: string }> {
+/**
+ * Send a friend request from a code. Returns `accepted` when the other person
+ * had already requested you, in which case the match completes immediately.
+ */
+export async function addFriendByCode(
+  code: string,
+): Promise<{ ok: boolean; error?: string; name?: string; accepted?: boolean; pending?: boolean; message?: string }> {
   const { data, error } = await createClient().rpc('add_friend_by_code', { p_code: code });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string; name?: string };
+}
+
+export interface FriendRequest {
+  user_id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  rank_slug: string | null;
+  requested_at: string;
+}
+
+/** Requests waiting for MY answer (F: friend requests). */
+export async function fetchFriendRequests(): Promise<FriendRequest[]> {
+  const { data, error } = await createClient().rpc('my_friend_requests');
+  if (error) throw error;
+  return (data ?? []) as FriendRequest[];
+}
+
+export async function acceptFriendRequest(requesterId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('accept_friend_request', { p_requester: requesterId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function rejectFriendRequest(requesterId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('reject_friend_request', { p_requester: requesterId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
 }
 
 export async function removeFriend(friendId: string): Promise<{ ok: boolean; error?: string }> {
