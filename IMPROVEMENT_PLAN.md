@@ -165,7 +165,7 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F12.2 **Impacto real**: 4 impact columns seeded per activity; brote_user_impact/_since; lib/impact.ts equivalence engine; ImpactCard on Inicio; per-completion toast.
 - [x] F12.3 **Puntos windowed**: lifetime XP → world/badges/ranks only; leagues + competitions score their own window; my_weekly_points().
 - [x] F12.4 **Competencias**: create private/public + code, join, discover, live leaderboard (/competencias, /competencias/[id]).
-- [x] F12.5 **Acciones grupales**: complete_group_action — all participants rewarded, x1.25→x3 by crew size.
+- [x] ~~F12.5 **Acciones grupales**: complete_group_action — all participants rewarded, x1.25→x3 by crew size.~~ REMOVED 2026-08-16: overlapped with jornadas (both "give everyone points" with different curves); collapsed into jornadas paying one fixed, admin-set amount per person, tunable from /panel.
 - [x] F12.6 **Hábitos**: user_habits (max 5), own streak, +100 @7d / +500 @30d; HabitsCard on Inicio; "Seguir" on activity pages.
 - [x] F12.7 **Eco-experto IA**: pip-chat expert mode (temp 0.4, admits uncertainty, ends with one action), header toggle, own daily cap.
 - [ ] F12.8 NEXT: kid-specific news tagging (feed currently teen+adult by default — kid feed is empty until items are tagged `kid`); org UI (create/join school) — RPCs live but no screen yet; guardian consent flow; Brote+ gating of expert mode.

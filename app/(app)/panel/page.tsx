@@ -58,6 +58,7 @@ export default function PanelPage() {
   // Change passphrase
   const [changeTo, setChangeTo] = useState('');
   const [simCount, setSimCount] = useState('');
+  const [sessionPts, setSessionPts] = useState('');
 
   useEffect(() => {
     adminIsConfigured().then(setConfigured);
@@ -74,6 +75,8 @@ export default function PanelPage() {
     }
     setData(res);
     setSimCount(String(res.stats.simulated_players ?? 0));
+    const pts = res.settings.session_points_universal?.value;
+    setSessionPts(String(typeof pts === 'number' ? pts : 120));
   }
 
   async function firstRun() {
@@ -198,15 +201,53 @@ export default function PanelPage() {
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Interruptores</h2>
         <Card className="divide-y divide-border">
-          {Object.entries(data.settings).map(([key, s]) => (
-            <div key={key} className="flex items-center gap-3 p-3.5">
-              <div className="min-w-0 flex-1">
-                <p className="text-small font-medium">{s.description ?? key}</p>
-                <p className="text-caption text-muted-foreground">{key}</p>
+          {Object.entries(data.settings)
+            .filter(([, s]) => typeof s.value === 'boolean')
+            .map(([key, s]) => (
+              <div key={key} className="flex items-center gap-3 p-3.5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-small font-medium">{s.description ?? key}</p>
+                  <p className="text-caption text-muted-foreground">{key}</p>
+                </div>
+                <Switch checked={s.value === true} onCheckedChange={(v) => toggle(key, v)} />
               </div>
-              <Switch checked={s.value === true} onCheckedChange={(v) => toggle(key, v)} />
-            </div>
-          ))}
+            ))}
+        </Card>
+      </section>
+
+      <section>
+        <h2 className="mb-2 font-display text-h3 font-bold">Puntos por jornada</h2>
+        <Card className="space-y-2.5 p-4">
+          <p className="text-small text-muted-foreground">
+            Puntos que recibe cada persona anotada cuando se cierra una jornada de un proyecto. Un único número, igual
+            para todos los proyectos, sin importar cuánta gente haya participado.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min={1}
+              max={5000}
+              value={sessionPts}
+              onChange={(e) => setSessionPts(e.target.value)}
+              className={inputCls}
+            />
+            <Button
+              variant="secondary"
+              loading={busy}
+              onClick={async () => {
+                const v = Number(sessionPts);
+                if (!v || v < 1) return toast.error('Valor inválido');
+                setBusy(true);
+                const res = await adminSetSetting(pass, 'session_points_universal', v);
+                setBusy(false);
+                if (!res.ok) return toast.error('No se pudo', res.error);
+                toast.success('Listo', `Ahora cada jornada da ${v} puntos`);
+                await enter();
+              }}
+            >
+              Aplicar
+            </Button>
+          </div>
         </Card>
       </section>
 

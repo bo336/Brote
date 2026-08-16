@@ -118,9 +118,8 @@ export function ProjectSessions({
       <Sheet open={open} onOpenChange={setOpen} title="Cerrar una jornada">
         <div className="space-y-3">
           <p className="text-small text-muted-foreground">
-            Se van a acreditar los puntos a las {participantCount}{' '}
-            {participantCount === 1 ? 'persona anotada' : 'personas anotadas'} en el proyecto. Cuanta más gente
-            participe, mayor es el multiplicador.
+            Se van a acreditar los mismos puntos a las {participantCount}{' '}
+            {participantCount === 1 ? 'persona anotada' : 'personas anotadas'} en el proyecto.
           </p>
           <label className="block">
             <span className="mb-1.5 block text-small font-medium">¿Qué jornada fue?</span>

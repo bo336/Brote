@@ -101,14 +101,16 @@ export async function fetchProjectSessions(projectId: string): Promise<ProjectSe
 
 /**
  * Close a work session and credit everyone who turned out. Organiser only —
- * enforced server-side too. Repeatable, so a project can run in phases.
+ * enforced server-side too. Repeatable, so a project can run in phases. Points
+ * per person are a single fixed, admin-set amount — same for every project,
+ * every group size, every time (no per-project or turnout variance).
  */
 export async function completeProjectSession(
   projectId: string,
   title: string,
   notes?: string | null,
   attendeeIds?: string[] | null,
-): Promise<{ ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number }> {
+): Promise<{ ok: boolean; error?: string; attendees?: number; points_each?: number }> {
   const { data, error } = await createClient().rpc('complete_project_session', {
     p_project_id: projectId,
     p_title: title,

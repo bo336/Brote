@@ -16,9 +16,7 @@ import { Pip } from '@/components/pip/Pip';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
 import { fetchProject, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/explorar';
-import { completeGroupAction } from '@/lib/api/competencias';
 import { ProjectSessions } from '@/components/explorar/ProjectSessions';
-import { invalidateScores } from '@/lib/refresh';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
@@ -37,7 +35,6 @@ export default function ProjectDetailPage() {
   const tc = useTranslations('common');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
-  const [closing, setClosing] = useState(false);
   const totalXp = profile?.totalXp ?? 0;
 
   const projectQ = useQuery({
@@ -182,7 +179,8 @@ export default function ProjectDetailPage() {
           <Button block variant="secondary" size="lg" disabled>
             <Lock className="h-4 w-4" /> {t('createGated', { rank: lockLabel(p.min_rank_slug) })}
           </Button>
-        ) : p.joined ? (
+        ) : p.joined && p.creator_id === profile?.id ? (
+          // Organisers can't leave their own project (enforced server-side too).
           <Button block variant="secondary" size="lg" disabled>
             <Check className="h-4 w-4" /> {t('joined')}
           </Button>
@@ -235,38 +233,6 @@ export default function ProjectDetailPage() {
         className="mt-5"
       />
 
-      {/* Group action (F12.5): closes the project as a whole. Sessions above
-          are the repeatable, per-phase version of the same idea. */}
-      {p.creator_id === profile?.id && p.status !== 'completed' && (
-        <Card className="mt-3 p-4">
-          <p className="text-small font-semibold">¿Ya lo hicieron? 🙌</p>
-          <p className="mt-0.5 text-small text-muted-foreground">
-            Cerralo y todas las personas que se sumaron reciben puntos. Cuanto más grande el grupo, mayor el bonus
-            (x1,25 · x1,6 desde 5 · x2,2 desde 10 · x3 desde 20).
-          </p>
-          <Button
-            variant="primary"
-            block
-            className="mt-3"
-            loading={closing}
-            onClick={async () => {
-              setClosing(true);
-              const res = await completeGroupAction(p.id);
-              setClosing(false);
-              if (res.ok) {
-                toast.success('¡Acción grupal completada!', `+${res.points_each} pts para ${res.participants} personas`);
-                qc.invalidateQueries({ queryKey: ['project', p.id] });
-                // Group actions award points to everyone who took part.
-                invalidateScores(qc);
-              } else {
-                toast.error('No se pudo cerrar', res.error);
-              }
-            }}
-          >
-            Cerrar acción grupal
-          </Button>
-        </Card>
-      )}
     </div>
   );
 }
