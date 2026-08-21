@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -11,10 +12,10 @@ import { Pill } from '@/components/ui/pill';
 import { Pip } from '@/components/pip/Pip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
-import { meetsRank, RANKS } from '@/lib/ranks';
+import { getRank, RANKS, RANK_BY_TIER } from '@/lib/ranks';
 import { DOMAINS } from '@/lib/domains';
 import { BARRIOS } from '@/lib/data/barrios';
-import { createProject, uploadProjectImage } from '@/lib/api/explorar';
+import { createProject, uploadProjectImage, fetchProjectMinRankTier } from '@/lib/api/explorar';
 import { toast } from '@/stores/toast';
 
 const ProjectMap = dynamic(() => import('@/components/explorar/ProjectMap'), {
@@ -39,6 +40,7 @@ export default function NuevoProyectoPage() {
   const router = useRouter();
   const profile = useSession((s) => s.profile);
   const fileRef = useRef<HTMLInputElement>(null);
+  const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -55,17 +57,29 @@ export default function NuevoProyectoPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  if (profile && !meetsRank(profile.totalXp, 'plantula')) {
+  // Gate read from the server, so this screen and create_project() can never
+  // disagree about who is allowed to organise.
+  const minTier = minTierQ.data ?? 4;
+  const needed = RANK_BY_TIER[minTier];
+  if (profile && getRank(profile.totalXp).tier < minTier) {
+    const missing = Math.max(0, (needed?.enterAt ?? 0) - profile.totalXp);
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={80} mood="neutral" />
-        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: 'Plántula' })}</h1>
+        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: needed?.name_es ?? 'Retoño' })}</h1>
         <p className="max-w-xs text-small text-muted-foreground">
-          Subí de rango completando acciones y vas a poder crear proyectos para tu comunidad.
+          Organizar un proyecto significa coordinar gente en persona y repartir puntos, así que se
+          habilita un poco más adelante. Te faltan{' '}
+          <span className="font-semibold text-foreground tnum">{missing.toLocaleString('es-AR')}</span> puntos.
         </p>
-        <Button variant="secondary" asChild>
-          <Link href="/explorar">{tc('back')}</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="primary" asChild>
+            <Link href="/acciones">Ver acciones</Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/explorar">{tc('back')}</Link>
+          </Button>
+        </div>
       </div>
     );
   }

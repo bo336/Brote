@@ -121,6 +121,16 @@ export async function completeProjectSession(
   return data as { ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number };
 }
 
+/**
+ * Minimum rank tier required to create a project, read from the server so the
+ * UI gate and the server rule can never drift apart. Owner-tunable from /panel.
+ */
+export async function fetchProjectMinRankTier(): Promise<number> {
+  const { data, error } = await createClient().rpc('project_min_rank_tier');
+  if (error) return 4;
+  return Number(data ?? 4);
+}
+
 /** Leave a project you joined. Organisers cannot abandon their own (F15.10). */
 export async function leaveProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
   const { data, error } = await createClient().rpc('leave_project', { p_project_id: projectId });

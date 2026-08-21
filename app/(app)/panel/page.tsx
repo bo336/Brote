@@ -58,7 +58,6 @@ export default function PanelPage() {
   // Change passphrase
   const [changeTo, setChangeTo] = useState('');
   const [simCount, setSimCount] = useState('');
-  const [sessionPts, setSessionPts] = useState('');
 
   useEffect(() => {
     adminIsConfigured().then(setConfigured);
@@ -75,8 +74,6 @@ export default function PanelPage() {
     }
     setData(res);
     setSimCount(String(res.stats.simulated_players ?? 0));
-    const pts = res.settings.session_points_universal?.value;
-    setSessionPts(String(typeof pts === 'number' ? pts : 120));
   }
 
   async function firstRun() {
@@ -215,39 +212,33 @@ export default function PanelPage() {
         </Card>
       </section>
 
+      {/* Any numeric app_setting renders here automatically, so adding one
+          server-side needs no change to this screen. */}
       <section>
-        <h2 className="mb-2 font-display text-h3 font-bold">Puntos por jornada</h2>
-        <Card className="space-y-2.5 p-4">
-          <p className="text-small text-muted-foreground">
-            Puntos que recibe cada persona anotada cuando se cierra una jornada de un proyecto. Un único número, igual
-            para todos los proyectos, sin importar cuánta gente haya participado.
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min={1}
-              max={5000}
-              value={sessionPts}
-              onChange={(e) => setSessionPts(e.target.value)}
-              className={inputCls}
-            />
-            <Button
-              variant="secondary"
-              loading={busy}
-              onClick={async () => {
-                const v = Number(sessionPts);
-                if (!v || v < 1) return toast.error('Valor inválido');
-                setBusy(true);
-                const res = await adminSetSetting(pass, 'session_points_universal', v);
-                setBusy(false);
-                if (!res.ok) return toast.error('No se pudo', res.error);
-                toast.success('Listo', `Ahora cada jornada da ${v} puntos`);
-                await enter();
-              }}
-            >
-              Aplicar
-            </Button>
-          </div>
+        <h2 className="mb-2 font-display text-h3 font-bold">Valores</h2>
+        <Card className="divide-y divide-border">
+          {Object.entries(data.settings)
+            .filter(([, s]) => typeof s.value === 'number')
+            .map(([key, s]) => (
+              <NumberSetting
+                key={key}
+                settingKey={key}
+                description={s.description}
+                value={s.value as number}
+                busy={busy}
+                onSave={async (v) => {
+                  setBusy(true);
+                  const res = await adminSetSetting(pass, key, v);
+                  setBusy(false);
+                  if (!res.ok) {
+                    toast.error('No se pudo', res.error);
+                    return;
+                  }
+                  toast.success('Guardado');
+                  await enter();
+                }}
+              />
+            ))}
         </Card>
       </section>
 
@@ -313,6 +304,48 @@ export default function PanelPage() {
           </Button>
         </Card>
       </section>
+    </div>
+  );
+}
+
+/**
+ * One editable numeric setting. Keeps its own draft state so typing in one
+ * field never re-renders or resets the others, and only offers Save once the
+ * value actually differs from what is stored.
+ */
+function NumberSetting({
+  settingKey,
+  description,
+  value,
+  busy,
+  onSave,
+}: {
+  settingKey: string;
+  description: string | null;
+  value: number;
+  busy: boolean;
+  onSave: (v: number) => void | Promise<void>;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const parsed = Number(draft);
+  const dirty = draft.trim() !== '' && Number.isFinite(parsed) && parsed !== value;
+
+  return (
+    <div className="flex items-center gap-3 p-3.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-small font-medium">{description ?? settingKey}</p>
+        <p className="text-caption text-muted-foreground">{settingKey}</p>
+      </div>
+      <input
+        type="number"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        className="w-24 shrink-0 rounded-button border border-border bg-surface px-2.5 py-1.5 text-right text-small tnum outline-none transition-colors focus:border-primary"
+      />
+      <Button size="sm" variant="secondary" disabled={!dirty || busy} onClick={() => onSave(parsed)}>
+        Guardar
+      </Button>
     </div>
   );
 }
