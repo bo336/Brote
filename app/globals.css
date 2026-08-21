@@ -17,11 +17,17 @@
   --surface-2: 241 239 231;
   --fg: 12 26 19; /* brote-ink */
   --muted: 234 231 222;
-  --muted-fg: 92 104 96;
+  /* Nudged darker: the old 92 104 96 sat at ~4.2:1 on cream, under AA for the
+     small metadata text it is mostly used for. */
+  --muted-fg: 82 94 86;
   --border: 226 223 213;
   --ring: 31 181 122; /* brote-green */
   --primary: 31 181 122;
   --primary-fg: 255 255 255;
+
+  /* Hairline used for divider-first lists (§3): lighter than --border so a
+     long list of rows does not read as a stack of boxes. */
+  --hairline: 0 0 0 / 0.07;
 
   color-scheme: light;
 }
@@ -33,11 +39,13 @@
   --surface-2: 28 48 36;
   --fg: 247 245 239; /* brote-cream */
   --muted: 34 53 43;
-  --muted-fg: 159 176 166;
+  --muted-fg: 165 182 172;
   --border: 37 56 45;
   --ring: 31 181 122;
   --primary: 31 181 122;
   --primary-fg: 8 18 13;
+
+  --hairline: 255 255 255 / 0.09;
 
   color-scheme: dark;
 }
@@ -71,9 +79,24 @@
     font-feature-settings: 'tnum';
   }
 
+  /* Display face gets slightly tighter tracking at large sizes — Bricolage
+     is drawn loose by default and reads soft in headlines without this. */
+  h1,
+  h2,
+  .font-display {
+    letter-spacing: -0.011em;
+  }
+
   /* Accessible, on-brand focus ring everywhere. */
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Headings and numbers should never be broken across lines awkwardly. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: pretty;
   }
 
   /* Slightly green-tinted, slim scrollbars. */
@@ -127,6 +150,58 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  /*
+   * Divider-first lists (§3). Lighter than `divide-border` so a long list of
+   * rows reads as one grouped object instead of a stack of separate boxes.
+   */
+  .divide-hairline > * + * {
+    border-top: 1px solid rgb(var(--hairline));
+  }
+  .border-hairline {
+    border-color: rgb(var(--hairline));
+  }
+
+  /*
+   * §2 micro-label: the small tracked uppercase eyebrow that sits above
+   * headlines and list-row groups. Used everywhere, so it earns a utility
+   * rather than being retyped as four classes each time.
+   */
+  .eyebrow {
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /*
+   * §5.1 hover underline that draws in from zero width, rather than
+   * text-decoration appearing all at once. Put on the text element itself.
+   */
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1.5px;
+    transition: background-size 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .group:hover .link-underline,
+  .link-underline:hover {
+    background-size: 100% 1.5px;
+  }
+
+  /* Press feedback for whole rows/cards that are themselves the control. */
+  .press {
+    transition:
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 120ms linear,
+      background-color 120ms linear;
+  }
+  .press:active {
+    transform: scale(0.985);
   }
 
   /*

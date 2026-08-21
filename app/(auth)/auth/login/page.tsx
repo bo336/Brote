@@ -5,11 +5,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Mail, Sparkles, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   signInWithOtp,
   signInWithPassword,
@@ -65,34 +66,46 @@ function LoginInner() {
 
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 py-10">
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+      {/*
+        Two offset washes rather than one centred blob: a single symmetrical
+        glow behind a centred card is the default template look. Offsetting
+        them, in the two brand colours, gives the screen a light direction.
+      */}
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-[70%] rounded-full bg-primary/20 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-40 right-0 h-72 w-72 translate-x-1/4 rounded-full bg-brote-sun/15 blur-[100px]" />
 
       <div className="z-10 w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <Pip size={104} mood="happy" />
-          <h1 className="mt-4 font-display text-display-l font-extrabold">{t('welcome', { app: BRAND.name })}</h1>
-          <p className="mt-1 text-muted-foreground">{t('subtitle')}</p>
+          <span className="eyebrow mt-4 text-primary">Bitácora viva</span>
+          <h1 className="mt-1.5 text-balance font-display text-display-l font-extrabold leading-[1.05]">
+            {t('welcome', { app: BRAND.name })}
+          </h1>
+          <p className="mt-2 text-balance leading-relaxed text-muted-foreground">{t('subtitle')}</p>
         </div>
 
         {errorMessage && (
           <div
             role="alert"
-            className="mb-4 rounded-card border border-brote-coral/40 bg-brote-coral/10 p-3.5 text-small text-foreground"
+            className="mb-4 flex gap-3 rounded-card border border-brote-coral/40 bg-brote-coral/10 p-3.5 text-small text-foreground"
           >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brote-coral" />
+            <div className="min-w-0">
             <p className="font-semibold text-brote-coral">No pudimos iniciar tu sesión</p>
-            <p className="mt-1">{errorMessage}</p>
+            <p className="mt-1 leading-relaxed">{errorMessage}</p>
             {/* The provider's raw text is for us, not for the person trying to
                 sign in (F15.5). It stays in the URL and the console for
                 debugging, but is only rendered outside production. */}
             {errorDetail && process.env.NODE_ENV !== 'production' && (
               <p className="mt-1.5 break-words text-caption text-muted-foreground">Detalle técnico: {errorDetail}</p>
             )}
+            </div>
           </div>
         )}
 
-        <Card className="space-y-4 p-5">
+        <Card className="space-y-4 p-5 shadow-soft-lg">
           <form action={signInWithGoogle.bind(null, next)}>
-            <Button type="submit" variant="secondary" block>
+            <Button type="submit" variant="secondary" block size="lg">
               <GoogleGlyph />
               {t('google')}
             </Button>
@@ -100,7 +113,7 @@ function LoginInner() {
 
           <div className="flex items-center gap-3 py-1">
             <span className="h-px flex-1 bg-border" />
-            <span className="text-caption text-muted-foreground">{t('orEmail')}</span>
+            <span className="eyebrow text-muted-foreground">{t('orEmail')}</span>
             <span className="h-px flex-1 bg-border" />
           </div>
 
@@ -136,14 +149,15 @@ function AuthForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
   if (state.sent) {
     return (
       <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary shadow-glow">
           <Sparkles className="h-6 w-6" />
         </span>
-        <p className="text-body font-medium">
+        <p className="text-balance text-body font-medium leading-relaxed">
           {mode === 'signup'
             ? t('signupConfirm', { email: state.email ?? '' })
             : t('magicSent', { email: state.email ?? '' })}
         </p>
+        <p className="text-caption text-muted-foreground">Revisá también la carpeta de spam.</p>
       </div>
     );
   }
@@ -159,16 +173,16 @@ function AuthForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
           {t('emailLabel')}
         </label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
+          <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             id="email"
             name="email"
             type="email"
             inputMode="email"
             autoComplete="email"
             required
+            icon
             placeholder={t('emailPlaceholder')}
-            className="w-full rounded-button border border-border bg-surface-2 py-3 pl-9 pr-4 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
       </div>
@@ -178,16 +192,19 @@ function AuthForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
           <label htmlFor="password" className="sr-only">
             {t('passwordLabel')}
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            required
-            minLength={6}
-            placeholder={t('passwordPlaceholder')}
-            className="w-full rounded-button border border-border bg-surface-2 px-4 py-3 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          />
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              required
+              minLength={6}
+              icon
+              placeholder={t('passwordPlaceholder')}
+            />
+          </div>
         </div>
       )}
 
@@ -195,29 +212,47 @@ function AuthForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
 
       <SubmitButton label={submitLabel} />
 
-      <div className="flex flex-col items-center gap-1.5 pt-1 text-center text-small">
+      <div className="flex flex-col items-center gap-2 pt-1.5 text-center text-small">
         {mode === 'signin' && (
           <>
-            <button type="button" onClick={() => onSwitch('signup')} className="font-medium text-primary">
+            <SwitchLink onClick={() => onSwitch('signup')} primary>
               {t('createAccountCta')}
-            </button>
-            <button type="button" onClick={() => onSwitch('magic')} className="text-muted-foreground">
-              {t('useMagic')}
-            </button>
+            </SwitchLink>
+            <SwitchLink onClick={() => onSwitch('magic')}>{t('useMagic')}</SwitchLink>
           </>
         )}
         {mode === 'signup' && (
-          <button type="button" onClick={() => onSwitch('signin')} className="font-medium text-primary">
+          <SwitchLink onClick={() => onSwitch('signin')} primary>
             {t('haveAccountCta')}
-          </button>
+          </SwitchLink>
         )}
-        {mode === 'magic' && (
-          <button type="button" onClick={() => onSwitch('signin')} className="text-muted-foreground">
-            {t('usePassword')}
-          </button>
-        )}
+        {mode === 'magic' && <SwitchLink onClick={() => onSwitch('signin')}>{t('usePassword')}</SwitchLink>}
       </div>
     </form>
+  );
+}
+
+/** Mode switcher. Was a bare text button with no hover state at all (§5.1). */
+function SwitchLink({
+  onClick,
+  primary,
+  children,
+}: {
+  onClick: () => void;
+  primary?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'group rounded-sm px-1 py-0.5 transition-colors duration-150 ' +
+        (primary ? 'font-medium text-primary hover:text-brote-green-deep' : 'text-muted-foreground hover:text-foreground')
+      }
+    >
+      <span className="link-underline">{children}</span>
+    </button>
   );
 }
 

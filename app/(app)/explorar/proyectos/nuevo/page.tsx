@@ -2,19 +2,21 @@
 
 import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Lock, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
+import { Input, Textarea, Select, Field } from '@/components/ui/input';
 import { Pip } from '@/components/pip/Pip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
-import { meetsRank, RANKS } from '@/lib/ranks';
+import { getRank, RANKS, RANK_BY_TIER } from '@/lib/ranks';
 import { DOMAINS } from '@/lib/domains';
 import { BARRIOS } from '@/lib/data/barrios';
-import { createProject, uploadProjectImage } from '@/lib/api/explorar';
+import { createProject, uploadProjectImage, fetchProjectMinRankTier } from '@/lib/api/explorar';
 import { toast } from '@/stores/toast';
 
 const ProjectMap = dynamic(() => import('@/components/explorar/ProjectMap'), {
@@ -30,15 +32,13 @@ const TYPES = [
   { v: 'otro', l: 'Otro' },
 ];
 
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-4 py-2.5 text-body outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring';
-
 export default function NuevoProyectoPage() {
   const t = useTranslations('explorar');
   const tc = useTranslations('common');
   const router = useRouter();
   const profile = useSession((s) => s.profile);
   const fileRef = useRef<HTMLInputElement>(null);
+  const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -55,17 +55,29 @@ export default function NuevoProyectoPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  if (profile && !meetsRank(profile.totalXp, 'plantula')) {
+  // Gate read from the server, so this screen and create_project() can never
+  // disagree about who is allowed to organise.
+  const minTier = minTierQ.data ?? 4;
+  const needed = RANK_BY_TIER[minTier];
+  if (profile && getRank(profile.totalXp).tier < minTier) {
+    const missing = Math.max(0, (needed?.enterAt ?? 0) - profile.totalXp);
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={80} mood="neutral" />
-        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: 'Plántula' })}</h1>
+        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: needed?.name_es ?? 'Retoño' })}</h1>
         <p className="max-w-xs text-small text-muted-foreground">
-          Subí de rango completando acciones y vas a poder crear proyectos para tu comunidad.
+          Organizar un proyecto significa coordinar gente en persona y repartir puntos, así que se
+          habilita un poco más adelante. Te faltan{' '}
+          <span className="font-semibold text-foreground tnum">{missing.toLocaleString('es-AR')}</span> puntos.
         </p>
-        <Button variant="secondary" asChild>
-          <Link href="/explorar">{tc('back')}</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="primary" asChild>
+            <Link href="/acciones">Ver acciones</Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/explorar">{tc('back')}</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -116,10 +128,10 @@ export default function NuevoProyectoPage() {
       <h1 className="font-display text-h1 font-bold">{t('createProject')}</h1>
 
       <Field label="Título">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Ej: Limpieza en la plaza" />
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Limpieza en la plaza" />
       </Field>
       <Field label="Descripción">
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} min-h-24`} placeholder="Contá de qué se trata" />
+        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Contá de qué se trata" />
       </Field>
 
       <Field label="Tipo">
@@ -152,7 +164,7 @@ export default function NuevoProyectoPage() {
       </Field>
 
       <Field label="Barrio">
-        <input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} list="barrios" className={inputCls} />
+        <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} list="barrios" />
         <datalist id="barrios">
           {BARRIOS.map((b) => (
             <option key={b} value={b} />
@@ -166,47 +178,42 @@ export default function NuevoProyectoPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Fecha">
-          <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className={inputCls} />
+          <Input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
         </Field>
         <Field label="Cupos (opcional)">
-          <input type="number" min={1} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className={inputCls} />
+          <Input type="number" min={1} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} />
         </Field>
       </div>
 
       {/* A project nobody can coordinate with never actually happens (F14.8). */}
       <div className="grid grid-cols-[110px_1fr] gap-2">
         <Field label="Contacto">
-          <select
-            value={contactKind}
-            onChange={(e) => setContactKind(e.target.value as typeof contactKind)}
-            className={inputCls}
-          >
+          <Select value={contactKind} onChange={(e) => setContactKind(e.target.value as typeof contactKind)}>
             <option value="whatsapp">WhatsApp</option>
             <option value="email">Email</option>
             <option value="instagram">Instagram</option>
             <option value="telegram">Telegram</option>
             <option value="otro">Otro</option>
-          </select>
+          </Select>
         </Field>
         <Field label="Para coordinar (opcional)" help="Lo ven quienes se suman, para organizar los encuentros.">
-          <input
+          <Input
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
             placeholder="Ej: +54 9 11 5555-5555"
             maxLength={120}
-            className={inputCls}
           />
         </Field>
       </div>
 
       <Field label="Rango mínimo para sumarse" help="Podés crear un proyecto exclusivo para rangos altos.">
-        <select value={minRank} onChange={(e) => setMinRank(e.target.value)} className={inputCls}>
+        <Select value={minRank} onChange={(e) => setMinRank(e.target.value)}>
           {RANKS.map((r) => (
             <option key={r.slug} value={r.slug}>
               {r.name_es}
             </option>
           ))}
-        </select>
+        </Select>
       </Field>
 
       <Field label="Imagen (opcional)">
@@ -230,12 +237,3 @@ export default function NuevoProyectoPage() {
   );
 }
 
-function Field({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-small font-medium">{label}</span>
-      {children}
-      {help && <span className="mt-1 block text-caption text-muted-foreground">{help}</span>}
-    </label>
-  );
-}

@@ -122,7 +122,12 @@ export function LessonPlayer({ lesson }: { lesson: LessonDetail }) {
             </span>
           )}
         </div>
-        <ProgressBar value={((index + (answered ? 1 : 0)) / lesson.steps.length) * 100} />
+        {/* ProgressBar takes 0..1 and clamps, so multiplying by 100 pinned this
+            bar at full for the whole lesson — you could never see how far in
+            you were. */}
+        <ProgressBar
+          value={lesson.steps.length ? (index + (answered ? 1 : 0)) / lesson.steps.length : 0}
+        />
       </div>
 
       {step.kind === 'info' && <InfoCard payload={step.payload as InfoPayload} />}

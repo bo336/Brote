@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, Trophy } from 'lucide-react';
+import { ChevronRight, Trophy, Flag } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Pill } from '@/components/ui/pill';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -172,16 +172,20 @@ function RankingInner() {
             </div>
           ) : leagueQ.data ? (
             <>
-              <Card className="flex items-center justify-between bg-primary/5 p-4">
-                <div>
-                  <p className="font-display text-h3 font-bold">{leagueQ.data.league}</p>
-                  <p className="text-caption text-muted-foreground">
+              <Card className="flex items-center justify-between gap-3 border-primary/25 bg-primary/5 p-4">
+                <div className="min-w-0">
+                  <span className="eyebrow block text-primary">Tu liga</span>
+                  <p className="mt-0.5 font-display text-h3 font-bold">{leagueQ.data.league}</p>
+                  <p className="mt-0.5 text-caption text-muted-foreground">
                     Se renueva cada lunes · Top 5 suben de liga
                   </p>
                 </div>
-                <span className="rounded-pill bg-primary/15 px-3 py-1 text-small font-bold text-primary tnum">
-                  #{leagueQ.data.my_pos}
-                </span>
+                <div className="shrink-0 text-right">
+                  <span className="eyebrow block text-muted-foreground">Puesto</span>
+                  <span className="font-display text-display-l font-extrabold leading-none text-primary tnum">
+                    {leagueQ.data.my_pos}
+                  </span>
+                </div>
               </Card>
               <div className="space-y-1.5">
                 {leagueQ.data.rows.map((r) => {
@@ -190,27 +194,42 @@ function RankingInner() {
                   const relegate = leagueQ.data!.rows.length >= 15 && r.pos > leagueQ.data!.rows.length - 3;
                   const inner = (
                     <>
-                      <span className={cn('w-6 text-center text-small font-bold tnum', promote ? 'text-brote-green' : relegate ? 'text-brote-coral' : 'text-muted-foreground')}>
+                      <span
+                        className={cn(
+                          'w-6 shrink-0 text-center text-small font-bold tnum',
+                          promote ? 'text-brote-green' : relegate ? 'text-brote-coral' : 'text-muted-foreground',
+                        )}
+                      >
                         {r.pos}
                       </span>
                       <Avatar name={r.display_name} src={r.avatar_url} size={34} />
                       <span className="min-w-0 flex-1 truncate text-small font-medium">
-                        {r.display_name ?? r.username ?? 'Alguien'}
+                        <span className="link-underline">{r.display_name ?? r.username ?? 'Alguien'}</span>
                         {isMe && <span className="text-muted-foreground"> (vos)</span>}
-                        {!isMe && r.username && <span className="text-caption text-muted-foreground"> · visitar 🌍</span>}
                       </span>
-                      <span className="text-small font-bold text-brote-sun tnum">+{r.xp}</span>
+                      <span className="shrink-0 text-small font-bold text-brote-sun tnum">+{r.xp}</span>
+                      {/* Was the text "· visitar 🌍" inline in the name, which
+                          §0 forbids and which also truncated on narrow rows.
+                          A chevron that slides on hover says the same thing. */}
+                      {!isMe && r.username && (
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
+                      )}
                     </>
                   );
                   const cls = cn(
-                    'flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
+                    'group flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
                     promote && 'border-brote-green/40 bg-brote-green/5',
                     relegate && 'border-brote-coral/30 bg-brote-coral/5',
-                    isMe && 'ring-2 ring-primary',
+                    isMe && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
                   );
                   // Visiting worlds (F10.3): tap a rival to walk their island.
                   return !isMe && r.username ? (
-                    <Link key={r.user_id} href={`/perfil/${r.username}`} className={cn(cls, 'transition-transform hover:-translate-y-0.5')}>
+                    <Link
+                      key={r.user_id}
+                      href={`/perfil/${r.username}`}
+                      title={`Visitar el mundo de ${r.display_name ?? r.username}`}
+                      className={cn(cls, 'press hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-soft')}
+                    >
                       {inner}
                     </Link>
                   ) : (
@@ -224,7 +243,9 @@ function RankingInner() {
                 Sumá puntos esta semana para subir en tu liga 🌱
               </p>
               <Button variant="secondary" block asChild>
-                <Link href="/competencias">🏁 Crear o unirme a una competencia</Link>
+                <Link href="/competencias">
+                  <Flag className="h-4 w-4" /> Crear o unirme a una competencia
+                </Link>
               </Button>
               <AdSlot placement="ranking-footer" className="pt-1" />
             </>
@@ -331,7 +352,9 @@ function RankingInner() {
                 ))}
               </div>
               <Button variant="secondary" block asChild>
-                <Link href="/competencias">🏁 Crear o unirme a otra</Link>
+                <Link href="/competencias">
+                  <Flag className="h-4 w-4" /> Crear o unirme a otra
+                </Link>
               </Button>
             </>
           )}

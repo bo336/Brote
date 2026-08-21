@@ -4,10 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, LogOut, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, LogOut, Download, Trash2, Compass } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input, Select, Field } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { ThemeSegmented } from '@/components/ui/theme-toggle';
 import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
@@ -145,10 +146,14 @@ export default function AjustesPage() {
       {showTour && <FirstRunTour force onClose={() => setShowTour(false)} />}
       <Section title="Cómo funciona la app">
         <Card className="flex items-center gap-3 p-4">
-          <span className="text-2xl">🧭</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/15 text-primary">
+            <Compass className="h-5 w-5" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-small font-semibold">Ver el tutorial de nuevo</p>
-            <p className="text-caption text-muted-foreground">Un repaso rápido de para qué es cada sección.</p>
+            <p className="mt-0.5 text-caption leading-relaxed text-muted-foreground">
+              Un repaso rápido de para qué es cada sección.
+            </p>
           </div>
           <Button variant="secondary" size="sm" onClick={() => setShowTour(true)}>
             Ver
@@ -173,23 +178,17 @@ export default function AjustesPage() {
 
       {/* Profile: name + city */}
       <Section title="Tu perfil">
-        <Card className="space-y-3 p-4">
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Nombre</span>
-            <input
+        <Card className="space-y-3.5 p-4">
+          <Field label="Nombre" htmlFor="ajustes-nombre">
+            <Input
+              id="ajustes-nombre"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Tu nombre o apodo"
-              className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
             />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Provincia</span>
-            <select
-              value={citySel}
-              onChange={(e) => setCitySel(e.target.value)}
-              className="w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
-            >
+          </Field>
+          <Field label="Provincia" htmlFor="ajustes-provincia" help="Se usa para tu ranking local.">
+            <Select id="ajustes-provincia" value={citySel} onChange={(e) => setCitySel(e.target.value)}>
               <option value="" disabled>
                 Elegí tu provincia
               </option>
@@ -199,17 +198,16 @@ export default function AjustesPage() {
                 </option>
               ))}
               <option value={OTHER_CITY}>Vivo en otro país</option>
-            </select>
+            </Select>
             {citySel === OTHER_CITY && (
-              <input
+              <Input
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
                 placeholder="Escribí dónde vivís"
-                className="mt-2 w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-primary"
+                className="mt-2"
               />
             )}
-            <span className="mt-1 block text-caption text-muted-foreground">Se usa para tu ranking local.</span>
-          </label>
+          </Field>
           <Button variant="primary" size="sm" loading={savingProfile} onClick={saveProfile}>
             Guardar cambios
           </Button>

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet } from '@/components/ui/sheet';
+import { Input, Select, Field } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   fetchMyCompetitions,
@@ -21,9 +22,6 @@ import {
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 import { cn } from '@/lib/utils/cn';
-
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none transition-colors focus:border-primary';
 
 function daysLeft(endsAt: string | null): string {
   // No end date: the competition simply keeps running.
@@ -137,12 +135,13 @@ export default function CompetenciasPage() {
       <Card className="p-3.5">
         <p className="mb-2 text-small font-semibold">¿Te pasaron un código?</p>
         <div className="flex gap-2">
-          <input
+          <Input
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === 'Enter' && joinCode.trim() && onJoin()}
             placeholder="Ej: 4KD9F2"
             maxLength={6}
-            className={cn(inputCls, 'flex-1 font-mono uppercase tracking-widest')}
+            className="flex-1 text-center font-mono uppercase tracking-[0.3em]"
           />
           <Button variant="secondary" onClick={() => onJoin()} loading={busy} disabled={!joinCode.trim()}>
             Unirme
@@ -152,6 +151,7 @@ export default function CompetenciasPage() {
 
       {/* My competitions */}
       <section>
+        <span className="eyebrow mb-1 block text-muted-foreground">Tus grupos</span>
         <h2 className="mb-2 font-display text-h3 font-bold">Mis competencias</h2>
         {mine.isLoading ? (
           <div className="space-y-2">
@@ -237,14 +237,24 @@ export default function CompetenciasPage() {
       {/* Create sheet */}
       <Sheet open={showCreate} onOpenChange={setShowCreate} title="Nueva competencia">
         <div className="space-y-3">
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Nombre</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Reto del curso 5°B" className={inputCls} maxLength={60} />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Descripción (opcional)</span>
-            <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="¿De qué se trata?" className={inputCls} maxLength={140} />
-          </label>
+          <Field label="Nombre" htmlFor="comp-nombre">
+            <Input
+              id="comp-nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ej: Reto del curso 5°B"
+              maxLength={60}
+            />
+          </Field>
+          <Field label="Descripción (opcional)" htmlFor="comp-desc">
+            <Input
+              id="comp-desc"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder="¿De qué se trata?"
+              maxLength={140}
+            />
+          </Field>
           <div>
             <span className="mb-1.5 block text-small font-medium">Duración</span>
             <div className="flex flex-wrap gap-2">
@@ -266,10 +276,12 @@ export default function CompetenciasPage() {
                 onClick={() => setDays(null)}
                 className={cn(
                   'flex-1 whitespace-nowrap rounded-button border px-3 py-2 text-small font-medium transition-colors',
-                  days === null ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface',
+                  days === null
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-surface hover:border-primary/40',
                 )}
               >
-                ♾️ Sin fin
+                Sin fin
               </button>
             </div>
           </div>
@@ -324,17 +336,13 @@ export default function CompetenciasPage() {
             {resetPeriod === 'monthly' && (
               <label className="mt-2 block">
                 <span className="mb-1.5 block text-caption text-muted-foreground">¿Qué día del mes reinicia?</span>
-                <select
-                  value={resetAnchor ?? 1}
-                  onChange={(e) => setResetAnchor(Number(e.target.value))}
-                  className={inputCls}
-                >
+                <Select value={resetAnchor ?? 1} onChange={(e) => setResetAnchor(Number(e.target.value))}>
                   {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
                     <option key={d} value={d}>
                       Día {d}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
           </div>

@@ -64,7 +64,12 @@ export function Sheet({ open, onOpenChange, children, side = 'bottom', title, de
                       </Dialog.Description>
                     )}
                   </div>
-                  <Dialog.Close className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground" aria-label="Cerrar">
+                  {/* Was p-1.5 around a 20px icon — about a 32px target, under
+                      the 44px minimum, on the control people reach for most. */}
+                  <Dialog.Close
+                    className="-mr-1.5 -mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+                    aria-label="Cerrar"
+                  >
                     <X className="h-5 w-5" />
                   </Dialog.Close>
                 </div>

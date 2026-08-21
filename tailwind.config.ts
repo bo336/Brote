@@ -27,6 +27,14 @@ const config: Config = {
           'cream-soft': '#FFFFFF',
           sun: '#FFB23E',
           coral: '#FF6B5E',
+          /*
+           * `brote-aqua` was already referenced by PipChat's expert toggle and
+           * the home news card, but had never been defined — so the toggle had
+           * no visible active state and the icon swatch rendered transparent.
+           * Defined here to match the Agua domain accent it was clearly meant
+           * to echo.
+           */
+          aqua: '#2DB4D4',
         },
         // Theme-aware semantic tokens (driven by CSS vars)
         background: 'rgb(var(--bg) / <alpha-value>)',
@@ -93,8 +101,18 @@ const config: Config = {
         '22': '5.5rem',
       },
       boxShadow: {
-        soft: '0 2px 8px -2px rgb(15 60 40 / 0.10), 0 6px 24px -8px rgb(15 60 40 / 0.12)',
-        'soft-lg': '0 8px 32px -8px rgb(15 60 40 / 0.18)',
+        /*
+         * Layered rather than one cast: a tight contact shadow for the edge
+         * plus a wide ambient one for depth. A single blurred shadow is the
+         * main thing that makes an interface read as a template.
+         */
+        soft: '0 1px 2px -1px rgb(15 60 40 / 0.10), 0 3px 10px -3px rgb(15 60 40 / 0.10), 0 8px 28px -12px rgb(15 60 40 / 0.10)',
+        'soft-lg':
+          '0 2px 4px -2px rgb(15 60 40 / 0.12), 0 8px 20px -6px rgb(15 60 40 / 0.14), 0 20px 48px -20px rgb(15 60 40 / 0.20)',
+        /* Hover elevation for cards that lift. */
+        lift: '0 3px 6px -3px rgb(15 60 40 / 0.14), 0 12px 28px -8px rgb(15 60 40 / 0.18), 0 28px 60px -24px rgb(15 60 40 / 0.22)',
+        /* Inset hairline that keeps a filled button from looking flat. */
+        crisp: 'inset 0 1px 0 0 rgb(255 255 255 / 0.14), 0 1px 2px -1px rgb(15 60 40 / 0.24), 0 4px 12px -4px rgb(15 60 40 / 0.22)',
         glow: '0 0 0 1px rgb(31 181 122 / 0.25), 0 0 24px -4px rgb(31 181 122 / 0.35)',
         'sun-glow': '0 0 24px -4px rgb(255 178 62 / 0.5)',
       },

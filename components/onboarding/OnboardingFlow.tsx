@@ -4,12 +4,13 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Sprout, Leaf, TreeDeciduous } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { DOMAINS } from '@/lib/domains';
 import { CITIES, OTHER_CITY } from '@/lib/data/cities';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
+import { Input, Select, Field } from '@/components/ui/input';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Mundo } from '@/components/mundo/Mundo';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
@@ -158,42 +159,46 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                 <StepTitle pip="happy" title={t('nameTitle')} />
                 <div className="mt-6 space-y-4">
                   <Field label={t('nameLabel')}>
-                    <input
+                    <Input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder={t('namePlaceholder')}
-                      className={inputCls}
                       autoFocus
                     />
                   </Field>
                   <Field label="¿Qué edad tenés?" help="Con esto te mostramos acciones que podés hacer de verdad.">
+                    {/*
+                      Age is the single most consequential answer in onboarding
+                      — it decides the whole content gate — so the selected
+                      option gets a real selected state (ring + check), not
+                      just a faint tint that is easy to misread.
+                    */}
                     <div className="flex gap-2">
                       {([
-                        { key: 'kid', label: 'Hasta 12', emoji: '🌱' },
-                        { key: 'teen', label: '13 a 17', emoji: '🌿' },
-                        { key: 'adult', label: '18 o más', emoji: '🌳' },
+                        { key: 'kid', label: 'Hasta 12', Icon: Sprout },
+                        { key: 'teen', label: '13 a 17', Icon: Leaf },
+                        { key: 'adult', label: '18 o más', Icon: TreeDeciduous },
                       ] as const).map((o) => (
                         <button
                           key={o.key}
                           type="button"
+                          aria-pressed={accountType === o.key}
                           onClick={() => setAccountType(o.key)}
                           className={cn(
-                            'flex-1 rounded-button border px-2 py-2.5 text-center transition-colors',
-                            accountType === o.key ? 'border-primary bg-primary/10' : 'border-border bg-surface',
+                            'press relative flex-1 rounded-button border px-2 py-3 text-center',
+                            accountType === o.key
+                              ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/30'
+                              : 'border-border bg-surface text-muted-foreground hover:border-primary/40 hover:text-foreground',
                           )}
                         >
-                          <span className="block text-lg leading-none">{o.emoji}</span>
-                          <span className="mt-1 block text-caption font-medium">{o.label}</span>
+                          <o.Icon className="mx-auto h-5 w-5" />
+                          <span className="mt-1.5 block text-caption font-medium">{o.label}</span>
                         </button>
                       ))}
                     </div>
                   </Field>
                   <Field label={t('cityLabel')} help={t('cityHelp')}>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className={inputCls}
-                    >
+                    <Select value={city} onChange={(e) => setCity(e.target.value)}>
                       <option value="" disabled>
                         {t('cityPlaceholder')}
                       </option>
@@ -203,13 +208,13 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                         </option>
                       ))}
                       <option value={OTHER_CITY}>{t('cityOther')}</option>
-                    </select>
+                    </Select>
                     {city === OTHER_CITY && (
-                      <input
+                      <Input
                         value={otherCity}
                         onChange={(e) => setOtherCity(e.target.value)}
                         placeholder={t('cityOtherPlaceholder')}
-                        className={`${inputCls} mt-2`}
+                        className="mt-2"
                         autoFocus
                       />
                     )}
@@ -325,9 +330,6 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   );
 }
 
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-4 py-3 text-body outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-ring';
-
 function Centered({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-1 flex-col items-center justify-center text-center">{children}</div>;
 }
@@ -343,15 +345,6 @@ function StepTitle({ title, subtitle, pip }: { title: string; subtitle?: string;
         {subtitle && <p className="mt-1 text-small text-muted-foreground">{subtitle}</p>}
       </div>
     </div>
-  );
-}
-function Field({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-small font-medium">{label}</span>
-      {children}
-      {help && <span className="mt-1 block text-caption text-muted-foreground">{help}</span>}
-    </label>
   );
 }
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {

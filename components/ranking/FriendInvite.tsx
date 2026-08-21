@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Copy, Check, UserPlus, Share2, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -121,12 +122,12 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
       <Card className="p-3.5">
         <p className="text-small font-semibold">Agregar con un código</p>
         <div className="mt-2 flex gap-2">
-          <input
+          <Input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 8))}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="Ej: N24KED"
-            className="flex-1 rounded-button border border-border bg-surface px-3 py-2 text-body uppercase tracking-widest outline-none focus:border-primary"
+            className="flex-1 text-center font-mono uppercase tracking-[0.3em]"
           />
           <Button variant="primary" onClick={submit} loading={busy} disabled={!code.trim()}>
             <UserPlus className="h-4 w-4" /> Agregar

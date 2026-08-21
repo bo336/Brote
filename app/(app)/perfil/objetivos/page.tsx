@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Plus, Trash2, Target, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input, Select } from '@/components/ui/input';
 import { Pill } from '@/components/ui/pill';
 import { Sheet } from '@/components/ui/sheet';
 import { ProgressBar } from '@/components/ui/progress';
@@ -140,12 +141,12 @@ export default function ObjetivosPage() {
           )}
           <div>
             <p className="mb-1.5 text-small font-medium">{t('target')}</p>
-            <input
+            <Input
               type="number"
               min={1}
               value={target}
               onChange={(e) => setTarget(Math.max(1, Number(e.target.value)))}
-              className="w-full rounded-button border border-border bg-surface px-4 py-2.5 text-body outline-none focus:border-primary"
+              className="tnum"
             />
           </div>
           <div>

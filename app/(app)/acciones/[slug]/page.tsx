@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Check, Lock } from 'lucide-react';
+import { ArrowLeft, Check, Lock, Repeat, Globe2 } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Pill } from '@/components/ui/pill';
 import { Card } from '@/components/ui/card';
@@ -106,17 +106,17 @@ export default function ActivityDetailPage() {
 
       {/* Header */}
       <div
-        className="flex flex-col items-center rounded-card p-6 text-center"
+        className="flex flex-col items-center rounded-card border border-border p-6 text-center shadow-soft"
         style={{ background: `linear-gradient(160deg, ${domain?.color}22, transparent)` }}
       >
         <DomainIcon domain={a.domain_slug} size={72} />
-        <h1 className="mt-3 font-display text-h1 font-bold">{a.title_es}</h1>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
-          {domain && (
-            <Pill color={domain.color} size="sm">
-              {domain.name_es}
-            </Pill>
-          )}
+        {domain && (
+          <span className="eyebrow mt-3" style={{ color: domain.color }}>
+            {domain.name_es}
+          </span>
+        )}
+        <h1 className="mt-1 text-balance font-display text-h1 font-bold leading-tight">{a.title_es}</h1>
+        <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5">
           <Pill size="sm">{EFFORT_ES[a.effort]}</Pill>
           <Pill size="sm">Impacto {IMPACT_ES[a.impact]}</Pill>
         </div>
@@ -127,19 +127,27 @@ export default function ActivityDetailPage() {
 
       {/* Description */}
       <Card className="p-4">
-        <p className="text-body">{activityDescription(a.title_es, a.impact as Impact, a.description_es)}</p>
+        <p className="text-body leading-relaxed">
+          {activityDescription(a.title_es, a.impact as Impact, a.description_es)}
+        </p>
       </Card>
 
       {/* Instructions */}
       <section>
-        <h2 className="mb-2 font-display text-h3 font-bold">{t('instructions')}</h2>
-        <ol className="space-y-2">
-          {activityInstructions(a.verification, a.instructions_es).map((step, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-small font-bold text-primary">
+        <span className="eyebrow mb-1 block text-muted-foreground">Cómo se hace</span>
+        <h2 className="mb-3 font-display text-h3 font-bold">{t('instructions')}</h2>
+        {/* Numbered steps get a connecting rule, so a multi-step action reads
+            as a sequence instead of a bulleted list. */}
+        <ol className="space-y-0">
+          {activityInstructions(a.verification, a.instructions_es).map((step, i, arr) => (
+            <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
+              {i < arr.length - 1 && (
+                <span className="absolute left-3 top-7 h-[calc(100%-1.75rem)] w-px bg-border" aria-hidden />
+              )}
+              <span className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-small font-bold text-primary tnum">
                 {i + 1}
               </span>
-              <span className="text-body">{step}</span>
+              <span className="text-body leading-relaxed">{step}</span>
             </li>
           ))}
         </ol>
@@ -150,10 +158,12 @@ export default function ActivityDetailPage() {
           add_habit(). Showing it on every action would invite a refusal. */}
       {a.routine_eligible && (
         <Card className="flex items-center gap-3 p-4">
-          <span className="text-2xl">🔁</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/15 text-primary">
+            <Repeat className="h-5 w-5" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-small font-semibold">Sumalo a mi rutina</p>
-            <p className="text-small text-muted-foreground">
+            <p className="mt-0.5 text-small leading-relaxed text-muted-foreground">
               Lo vas a ver todos los días en tu inicio, con su propia racha.
             </p>
           </div>
@@ -179,11 +189,13 @@ export default function ActivityDetailPage() {
 
       {/* Impact */}
       {a.impact_equivalency_es && (
-        <Card className="flex items-center gap-3 bg-primary/5 p-4">
-          <span className="text-2xl">🌍</span>
-          <div>
-            <p className="text-small font-semibold">{t('impactEquivalency')}</p>
-            <p className="text-small text-muted-foreground">{a.impact_equivalency_es}</p>
+        <Card className="flex items-center gap-3 border-primary/20 bg-primary/5 p-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/15 text-primary">
+            <Globe2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="eyebrow text-primary">{t('impactEquivalency')}</p>
+            <p className="mt-0.5 text-small leading-relaxed">{a.impact_equivalency_es}</p>
           </div>
         </Card>
       )}

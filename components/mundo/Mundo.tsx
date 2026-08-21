@@ -3,6 +3,17 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import {
+  Sun,
+  Moon,
+  Share2,
+  Droplet,
+  Check,
+  Loader2,
+  Maximize2,
+  Minimize2,
+  Sprout,
+} from 'lucide-react';
 import { MundoHeroFallback } from './MundoHeroFallback';
 import { Pip } from '@/components/pip/Pip';
 import { useSettings, shouldRender3D } from '@/stores/settings';
@@ -241,7 +252,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
             aria-label={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
             className="absolute bottom-16 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105"
           >
-            {fullscreen ? '✕' : '⛶'}
+            {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
           <button
             onClick={(e) => {
@@ -253,7 +264,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
             aria-label="Cambiar día y noche"
             className="absolute bottom-[6.9rem] right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105"
           >
-            {effNight ? '☀️' : '🌙'}
+            {effNight ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           {interactive && profile && (
             <button
@@ -266,7 +277,7 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
               aria-label="Compartir tu mundo"
               className="absolute bottom-[9.7rem] right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-transform hover:scale-105 disabled:opacity-50"
             >
-              {sharing ? '…' : '📤'}
+              {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
             </button>
           )}
 
@@ -287,7 +298,19 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
                   : 'bg-white/90 text-brote-ink shadow-soft-lg hover:scale-105 active:scale-95',
               )}
             >
-              {alreadyWatered ? '✓ Regado hoy' : watering ? '💧 Regando…' : '💧 Regar +50'}
+              {alreadyWatered ? (
+                <>
+                  <Check className="h-3.5 w-3.5" /> Regado hoy
+                </>
+              ) : watering ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Regando…
+                </>
+              ) : (
+                <>
+                  <Droplet className="h-3.5 w-3.5" /> Regar +50
+                </>
+              )}
             </button>
           )}
 
@@ -295,7 +318,9 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
           <div className="pointer-events-none absolute inset-x-3 bottom-3">
             <div className="rounded-pill bg-black/25 px-3 py-1.5 backdrop-blur-sm">
               <div className="flex items-center justify-between text-caption text-white/90">
-                <span className="font-semibold">🌱 {growth}/{goal}</span>
+                <span className="inline-flex items-center gap-1 font-semibold tnum">
+                  <Sprout className="h-3 w-3" /> {growth}/{goal}
+                </span>
                 <span>{pct}%</span>
               </div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-pill bg-white/20">

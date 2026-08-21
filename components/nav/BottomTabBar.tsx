@@ -36,8 +36,8 @@ export function BottomTabBar() {
                 >
                   <span
                     className={cn(
-                      'flex h-14 w-14 items-center justify-center rounded-full shadow-soft-lg transition-transform active:scale-95',
-                      active ? 'bg-brote-green-deep' : 'bg-primary',
+                      'flex h-14 w-14 items-center justify-center rounded-full shadow-soft-lg ring-4 ring-surface transition-all duration-200 active:scale-95',
+                      active ? 'bg-brote-green-deep shadow-glow' : 'bg-primary hover:-translate-y-0.5',
                     )}
                   >
                     <Icon className="h-7 w-7 text-primary-foreground" strokeWidth={2.4} />
@@ -57,21 +57,35 @@ export function BottomTabBar() {
                 prefetch={false}
                 onClick={() => haptic('light')}
                 aria-current={active ? 'page' : undefined}
-                className="relative flex min-w-14 flex-col items-center gap-0.5 px-2 py-2"
+                className="group relative flex min-w-14 flex-col items-center gap-0.5 px-2 py-2"
               >
-                <Icon
-                  className={cn('h-6 w-6 transition-colors', active ? 'text-primary' : 'text-muted-foreground')}
-                  strokeWidth={active ? 2.4 : 2}
-                />
-                <span className={cn('text-caption font-medium transition-colors', active ? 'text-primary' : 'text-muted-foreground')}>
-                  {t(item.key)}
-                </span>
+                {/*
+                  A tinted pill that glides between tabs, rather than a 4px dot
+                  pinned above the icon — the dot was easy to miss and sat half
+                  outside the tap target.
+                */}
                 {active && (
                   <motion.span
-                    layoutId="tab-dot"
-                    className="absolute -top-0.5 h-1 w-1 rounded-full bg-primary"
+                    layoutId="tab-pill"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    className="absolute inset-x-1 top-1 h-8 rounded-pill bg-primary/12"
                   />
                 )}
+                <Icon
+                  className={cn(
+                    'relative h-6 w-6 transition-all duration-200',
+                    active ? 'scale-105 text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                  )}
+                  strokeWidth={active ? 2.4 : 2}
+                />
+                <span
+                  className={cn(
+                    'relative text-caption font-medium transition-colors duration-200',
+                    active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                  )}
+                >
+                  {t(item.key)}
+                </span>
               </Link>
             </li>
           );

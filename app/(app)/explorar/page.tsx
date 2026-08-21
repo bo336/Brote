@@ -19,10 +19,10 @@ import { ThreadSheet } from '@/components/feed/ThreadSheet';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { feedAdIndices } from '@/lib/ads/policy';
 import { useSession } from '@/stores/session';
-import { fetchProjects } from '@/lib/api/explorar';
+import { fetchProjects, fetchProjectMinRankTier } from '@/lib/api/explorar';
 import { fetchFeed, deletePost, type FeedItem } from '@/lib/api/feed';
 import { toast } from '@/stores/toast';
-import { meetsRank } from '@/lib/ranks';
+import { getRank, RANK_BY_TIER } from '@/lib/ranks';
 import { DOMAINS } from '@/lib/domains';
 
 type ProjectSort = 'cerca' | 'proximos' | 'populares';
@@ -38,7 +38,12 @@ export default function ExplorarPage() {
   const t = useTranslations('explorar');
   const profile = useSession((s) => s.profile);
   const totalXp = profile?.totalXp ?? 0;
-  const canCreate = meetsRank(totalXp, 'plantula');
+  // Both the gate and its label come from the server setting, so raising the
+  // bar in /panel updates this screen without a deploy.
+  const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
+  const minTier = minTierQ.data ?? 4;
+  const canCreate = getRank(totalXp).tier >= minTier;
+  const createRankName = RANK_BY_TIER[minTier]?.name_es ?? 'Retoño';
 
   // Novedades is the landing section: it is the reason most people open
   // Explorar, so it should never take an extra tap to reach (F14.2).
@@ -173,7 +178,7 @@ export default function ExplorarPage() {
               </Button>
             ) : (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-pill border border-border bg-surface-2 px-3 py-1 text-caption text-muted-foreground">
-                <Lock className="h-3 w-3" /> {t('createGated', { rank: 'Plántula' })}
+                <Lock className="h-3 w-3" /> {t('createGated', { rank: createRankName })}
               </span>
             )}
           </div>

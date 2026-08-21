@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ChevronRight } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Reveal } from '@/components/ui/reveal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pill } from '@/components/ui/pill';
 import { Pip } from '@/components/pip/Pip';
@@ -133,23 +135,43 @@ export default function AccionesPage() {
       {/* Search + filter toggle */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            icon
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('searchPlaceholder')}
-            className="w-full rounded-button border border-border bg-surface py-2.5 pl-9 pr-3 text-body outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            className={search ? 'pr-10' : undefined}
           />
+          {/* Clearing a search took selecting the text and deleting it. */}
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label="Borrar búsqueda"
+              className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <button
           onClick={() => setShowFilters((v) => !v)}
-          className={cn(
-            'inline-flex h-11 w-11 items-center justify-center rounded-button border border-border',
-            showFilters ? 'bg-primary/10 text-primary' : 'bg-surface text-muted-foreground',
-          )}
           aria-label={tc('filters')}
+          aria-pressed={showFilters}
+          className={cn(
+            'press relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-button border',
+            showFilters
+              ? 'border-primary/40 bg-primary/10 text-primary'
+              : 'border-border bg-surface text-muted-foreground hover:border-primary/30 hover:text-foreground',
+          )}
         >
           <SlidersHorizontal className="h-5 w-5" />
+          {/* Silent filters are how people end up thinking the catalogue is
+              empty. A dot makes an active filter visible when collapsed. */}
+          {!showFilters && filtering && (
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-surface" />
+          )}
         </button>
       </div>
 
@@ -178,7 +200,23 @@ export default function AccionesPage() {
 
       {filtering ? (
         <section>
-          <SectionHeader title={`${filtered.length} ${filtered.length === 1 ? 'acción' : 'acciones'}`} />
+          <SectionHeader
+            eyebrow="Resultados"
+            title={`${filtered.length} ${filtered.length === 1 ? 'acción' : 'acciones'}`}
+            action={
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setDomain(null);
+                  setOnlyDoable(false);
+                  setHideCompleted(false);
+                }}
+                className="text-small font-medium text-primary transition-colors hover:text-brote-green-deep"
+              >
+                Limpiar
+              </button>
+            }
+          />
           <div className="space-y-2.5">
             {filtered.map((s) => (
               <ActivityCard
@@ -200,7 +238,7 @@ export default function AccionesPage() {
         <>
           {/* Para Vos */}
           <section>
-            <SectionHeader title={t('paraVos')} subtitle={t('paraVosReason')} />
+            <SectionHeader eyebrow="Recomendado" title={t('paraVos')} subtitle={t('paraVosReason')} />
             <div className="space-y-2.5">
               {scored.slice(0, 5).map((s) => (
                 <ActivityCard
@@ -217,7 +255,7 @@ export default function AccionesPage() {
           {/* Nuevas esta semana */}
           {featured.length > 0 && (
             <section>
-              <SectionHeader title={t('newThisWeek')} />
+              <SectionHeader eyebrow="Esta semana" title={t('newThisWeek')} />
               <div className="space-y-2.5">
                 {featured.map((a) => (
                   <div key={a.id} className="relative">
@@ -233,32 +271,44 @@ export default function AccionesPage() {
 
           {/* Browse by domain */}
           <section>
-            <SectionHeader title={t('browseByDomain')} />
-            <div className="space-y-4">
-              {DOMAINS.map((d) => {
+            <SectionHeader eyebrow="Explorar" title={t('browseByDomain')} />
+            <div className="space-y-5">
+              {DOMAINS.map((d, i) => {
                 const items = byDomain.get(d.slug) ?? [];
                 if (items.length === 0) return null;
                 return (
-                  <div key={d.slug}>
-                    <button
-                      onClick={() => {
-                        setDomain(d.slug);
-                        setShowFilters(true);
-                      }}
-                      className="mb-2 flex items-center gap-2"
-                    >
-                      <DomainIcon domain={d.slug} size={28} />
-                      <span className="font-display text-h3 font-bold" style={{ color: d.color }}>
-                        {d.name_es}
-                      </span>
-                      <span className="text-caption text-muted-foreground tnum">{items.length}</span>
-                    </button>
-                    <div className="space-y-2.5">
-                      {items.slice(0, 3).map((a) => (
-                        <ActivityCard key={a.id} activity={a} completed={completedIds.has(a.id)} />
-                      ))}
+                  <Reveal key={d.slug} index={i}>
+                    <div>
+                      {/*
+                        The whole heading is the control, so it gets a hover
+                        state and says what tapping does. Before, the count
+                        was the only hint that more existed behind it.
+                      */}
+                      <button
+                        onClick={() => {
+                          setDomain(d.slug);
+                          setShowFilters(true);
+                        }}
+                        className="group mb-2 flex w-full items-center gap-2 rounded-button py-1 text-left transition-colors"
+                      >
+                        <span className="transition-transform duration-200 group-hover:scale-110">
+                          <DomainIcon domain={d.slug} size={28} />
+                        </span>
+                        <span className="font-display text-h3 font-bold" style={{ color: d.color }}>
+                          <span className="link-underline">{d.name_es}</span>
+                        </span>
+                        <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-caption text-muted-foreground tnum">
+                          {items.length}
+                        </span>
+                        <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
+                      </button>
+                      <div className="space-y-2.5">
+                        {items.slice(0, 3).map((a) => (
+                          <ActivityCard key={a.id} activity={a} completed={completedIds.has(a.id)} />
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  </Reveal>
                 );
               })}
             </div>

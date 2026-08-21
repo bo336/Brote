@@ -26,31 +26,40 @@ export function ActivityCard({ activity, locked, completed, reason }: ActivityCa
     <Link
       href={`/acciones/${activity.slug}`}
       className={cn(
-        'group flex gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-soft-lg',
+        'press group flex gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft',
+        'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift',
         locked && 'opacity-75',
       )}
     >
-      <DomainIcon domain={activity.domain_slug} size={48} />
+      <span className="shrink-0 transition-transform duration-200 group-hover:scale-105">
+        <DomainIcon domain={activity.domain_slug} size={48} />
+      </span>
       <div className="min-w-0 flex-1">
+        {/* Domain name moved up into the §2 eyebrow slot: it identifies the
+            row before you read the title, and frees a chip below. */}
+        {domain && (
+          <span className="eyebrow mb-1 block" style={{ color: domain.color }}>
+            {domain.name_es}
+          </span>
+        )}
         <div className="flex items-start justify-between gap-2">
-          <p className="text-body font-semibold leading-tight">{activity.title_es}</p>
+          <p className="text-body font-semibold leading-tight">
+            <span className="link-underline">{activity.title_es}</span>
+          </p>
           <span className="shrink-0 font-display text-body font-bold text-brote-sun tnum">
             +{formatPoints(activity.base_points)}
           </span>
         </div>
         {reason ? (
-          <p className="mt-0.5 flex items-center gap-1 text-caption text-primary">
-            <Sparkles className="h-3 w-3" /> {reason}
+          <p className="mt-1 flex items-center gap-1 text-caption text-primary">
+            <Sparkles className="h-3 w-3 shrink-0" /> {reason}
           </p>
         ) : (
-          activity.short_es && <p className="mt-0.5 text-caption text-muted-foreground">{activity.short_es}</p>
+          activity.short_es && (
+            <p className="mt-1 text-caption leading-relaxed text-muted-foreground">{activity.short_es}</p>
+          )
         )}
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {domain && (
-            <Pill color={domain.color} size="sm">
-              {domain.name_es}
-            </Pill>
-          )}
           <Pill size="sm">{EFFORT_ES[activity.effort]}</Pill>
           <Pill size="sm">Impacto {IMPACT_ES[activity.impact]}</Pill>
           {completed && (
