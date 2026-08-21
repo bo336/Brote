@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
   adminIsConfigured,
   adminSetPassword,
@@ -27,9 +28,6 @@ import { toast } from '@/stores/toast';
  * The passphrase is kept in component state only: never in localStorage, so it
  * does not survive a refresh or sit around on a shared machine.
  */
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none transition-colors focus:border-primary';
-
 const STAT_LABELS: Record<string, string> = {
   real_users: 'Usuarios reales',
   simulated_players: 'Jugadores simulados',
@@ -115,19 +113,18 @@ export default function PanelPage() {
             Todavía no hay contraseña. La primera que pongas queda guardada (encriptada) y después vas a poder
             cambiarla desde acá.
           </p>
-          <input
+          <Input
             type="password"
             value={newPass}
             onChange={(e) => setNewPass(e.target.value)}
             placeholder="Contraseña nueva (mínimo 8)"
-            className={inputCls}
           />
-          <input
+          <Input
             type="password"
             value={newPass2}
             onChange={(e) => setNewPass2(e.target.value)}
             placeholder="Repetila"
-            className={inputCls}
+            invalid={newPass2.length > 0 && newPass !== newPass2}
           />
           <Button block variant="primary" onClick={firstRun} loading={busy} disabled={newPass.length < 8}>
             Guardar
@@ -146,14 +143,13 @@ export default function PanelPage() {
             <Lock className="h-5 w-5 text-muted-foreground" />
             <h1 className="font-display text-h2 font-bold">Panel</h1>
           </div>
-          <input
+          <Input
             type="password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && enter()}
             placeholder="Contraseña"
             autoFocus
-            className={inputCls}
           />
           <Button block variant="primary" onClick={() => enter()} loading={busy} disabled={!pass}>
             Entrar
@@ -250,13 +246,12 @@ export default function PanelPage() {
             Poné 0 para eliminarlos por completo.
           </p>
           <div className="flex gap-2">
-            <input
+            <Input
               type="number"
               min={0}
               max={500}
               value={simCount}
               onChange={(e) => setSimCount(e.target.value)}
-              className={inputCls}
             />
             <Button
               variant="secondary"
@@ -279,12 +274,11 @@ export default function PanelPage() {
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Cambiar contraseña</h2>
         <Card className="space-y-2.5 p-4">
-          <input
+          <Input
             type="password"
             value={changeTo}
             onChange={(e) => setChangeTo(e.target.value)}
             placeholder="Contraseña nueva (mínimo 8)"
-            className={inputCls}
           />
           <Button
             variant="secondary"
@@ -337,11 +331,11 @@ function NumberSetting({
         <p className="text-small font-medium">{description ?? settingKey}</p>
         <p className="text-caption text-muted-foreground">{settingKey}</p>
       </div>
-      <input
+      <Input
         type="number"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        className="w-24 shrink-0 rounded-button border border-border bg-surface px-2.5 py-1.5 text-right text-small tnum outline-none transition-colors focus:border-primary"
+        className="w-24 shrink-0 text-right text-small tnum"
       />
       <Button size="sm" variant="secondary" disabled={!dirty || busy} onClick={() => onSave(parsed)}>
         Guardar

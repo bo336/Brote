@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Lock, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
+import { Input, Textarea, Select, Field } from '@/components/ui/input';
 import { Pip } from '@/components/pip/Pip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
@@ -30,9 +31,6 @@ const TYPES = [
   { v: 'reciclaje', l: 'Reciclaje' },
   { v: 'otro', l: 'Otro' },
 ];
-
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-4 py-2.5 text-body outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring';
 
 export default function NuevoProyectoPage() {
   const t = useTranslations('explorar');
@@ -130,10 +128,10 @@ export default function NuevoProyectoPage() {
       <h1 className="font-display text-h1 font-bold">{t('createProject')}</h1>
 
       <Field label="Título">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Ej: Limpieza en la plaza" />
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Limpieza en la plaza" />
       </Field>
       <Field label="Descripción">
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} min-h-24`} placeholder="Contá de qué se trata" />
+        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Contá de qué se trata" />
       </Field>
 
       <Field label="Tipo">
@@ -166,7 +164,7 @@ export default function NuevoProyectoPage() {
       </Field>
 
       <Field label="Barrio">
-        <input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} list="barrios" className={inputCls} />
+        <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} list="barrios" />
         <datalist id="barrios">
           {BARRIOS.map((b) => (
             <option key={b} value={b} />
@@ -180,47 +178,42 @@ export default function NuevoProyectoPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Fecha">
-          <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className={inputCls} />
+          <Input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
         </Field>
         <Field label="Cupos (opcional)">
-          <input type="number" min={1} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className={inputCls} />
+          <Input type="number" min={1} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} />
         </Field>
       </div>
 
       {/* A project nobody can coordinate with never actually happens (F14.8). */}
       <div className="grid grid-cols-[110px_1fr] gap-2">
         <Field label="Contacto">
-          <select
-            value={contactKind}
-            onChange={(e) => setContactKind(e.target.value as typeof contactKind)}
-            className={inputCls}
-          >
+          <Select value={contactKind} onChange={(e) => setContactKind(e.target.value as typeof contactKind)}>
             <option value="whatsapp">WhatsApp</option>
             <option value="email">Email</option>
             <option value="instagram">Instagram</option>
             <option value="telegram">Telegram</option>
             <option value="otro">Otro</option>
-          </select>
+          </Select>
         </Field>
         <Field label="Para coordinar (opcional)" help="Lo ven quienes se suman, para organizar los encuentros.">
-          <input
+          <Input
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
             placeholder="Ej: +54 9 11 5555-5555"
             maxLength={120}
-            className={inputCls}
           />
         </Field>
       </div>
 
       <Field label="Rango mínimo para sumarse" help="Podés crear un proyecto exclusivo para rangos altos.">
-        <select value={minRank} onChange={(e) => setMinRank(e.target.value)} className={inputCls}>
+        <Select value={minRank} onChange={(e) => setMinRank(e.target.value)}>
           {RANKS.map((r) => (
             <option key={r.slug} value={r.slug}>
               {r.name_es}
             </option>
           ))}
-        </select>
+        </Select>
       </Field>
 
       <Field label="Imagen (opcional)">
@@ -244,12 +237,3 @@ export default function NuevoProyectoPage() {
   );
 }
 
-function Field({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-small font-medium">{label}</span>
-      {children}
-      {help && <span className="mt-1 block text-caption text-muted-foreground">{help}</span>}
-    </label>
-  );
-}

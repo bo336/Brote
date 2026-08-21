@@ -4,13 +4,15 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, GraduationCap } from 'lucide-react';
+import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, GraduationCap, Newspaper } from 'lucide-react';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
 import { NewsNudge } from '@/components/explorar/NewsNudge';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
+import { LinkRow } from '@/components/ui/link-row';
+import { Reveal } from '@/components/ui/reveal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
 import { Pip } from '@/components/pip/Pip';
@@ -50,6 +52,13 @@ export default function HoyPage() {
     );
   }, [t]);
 
+  // "miércoles 21 de agosto", capitalised. Computed once per render rather
+  // than per row so the string is stable across the page.
+  const today = useMemo(() => {
+    const s = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }, []);
+
   const set = dailySet.data ?? [];
   const done = completions.data ?? new Set<string>();
   const doneCount = set.filter((a) => done.has(a.id)).length;
@@ -67,30 +76,39 @@ export default function HoyPage() {
 
   return (
     <div className="space-y-6">
-      {/* Greeting + Pip */}
+      {/* Greeting + Pip. The date eyebrow is the §2 micro-label: it grounds
+          the screen in "today", which is what this page is about. */}
       <div className="flex items-center gap-3">
         <Pip size={52} mood={atRisk ? 'worried' : 'happy'} pipStyle={profile?.pipStyle} />
-        <div>
-          <h1 className="font-display text-h1 font-bold leading-tight">
+        <div className="min-w-0">
+          <span className="eyebrow block text-primary">{today}</span>
+          <h1 className="mt-0.5 font-display text-h1 font-bold leading-tight">
             {greeting}
             {profile?.displayName ? `, ${profile.displayName.split(' ')[0]}` : ''}
           </h1>
-          <p className="text-small text-muted-foreground">{tp('homeGreeting')}</p>
+          <p className="mt-0.5 text-small leading-relaxed text-muted-foreground">{tp('homeGreeting')}</p>
         </div>
       </div>
 
-      {/* Tu Mundo hero */}
-      <Link href="/perfil" className="block" aria-label={t('tapWorld')}>
+      {/* Tu Mundo hero — the one hero media per page, so it carries the
+          signature leaf notch (§4). */}
+      <Link
+        href="/perfil"
+        aria-label={t('tapWorld')}
+        className="group block overflow-hidden rounded-card leaf-clip shadow-soft-lg transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.005]"
+      >
         <Mundo mundo={profile?.mundoState} height={320} />
       </Link>
 
       {/* Streak at risk */}
       {atRisk && (
-        <Card className="flex items-center gap-3 border-brote-coral/40 bg-brote-coral/5 p-3.5">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-brote-coral" />
-          <div>
+        <Card className="flex items-center gap-3 border-brote-coral/40 bg-brote-coral/[0.07] p-3.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brote-coral/15">
+            <AlertTriangle className="h-4.5 w-4.5 text-brote-coral" />
+          </span>
+          <div className="min-w-0">
             <p className="text-small font-semibold">{t('streakRiskTitle')}</p>
-            <p className="text-caption text-muted-foreground">{t('streakRiskBody')}</p>
+            <p className="mt-0.5 text-caption leading-relaxed text-muted-foreground">{t('streakRiskBody')}</p>
           </div>
         </Card>
       )}
@@ -98,6 +116,7 @@ export default function HoyPage() {
       {/* Daily Set */}
       <section aria-labelledby="daily-set">
         <SectionHeader
+          eyebrow="Hoy"
           title={t('dailySetTitle')}
           subtitle={
             dailySet.isLoading
@@ -164,44 +183,27 @@ export default function HoyPage() {
       <RoutineSection />
 
       {/* Aprendé (F15.17). The mobile tab bar keeps five tabs, so this card is
-          how the learning path is discovered on a phone. */}
-      <section>
-        <Link
+          how the learning path is discovered on a phone.
+          The news row below used a 📰 emoji as its icon, which §0 forbids for
+          anything functional, and tinted its tile with `bg-brote-aqua/15` — a
+          colour that did not exist, so the tile rendered transparent. */}
+      <section className="space-y-2.5">
+        <LinkRow
           href="/aprender"
-          className="flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors hover:border-primary/40"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary/15 text-primary">
-            <GraduationCap className="h-5 w-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-small font-semibold">Aprendé sobre lo que hacés</span>
-            <span className="block text-caption text-muted-foreground">
-              Lecciones cortas, con preguntas y respuestas explicadas
-            </span>
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
-      </section>
-
-      {/* Always-present way into the feed (F15.19). The floating nudge below
-          is the once-a-day prompt; this is the permanent door, so news access
-          never depends on catching a transient banner. */}
-      <section>
-        <Link
+          icon={<GraduationCap className="h-5 w-5" />}
+          title="Aprendé sobre lo que hacés"
+          description="Lecciones cortas, con preguntas y respuestas explicadas"
+        />
+        {/* Always-present way into the feed (F15.19). The floating nudge below
+            is the once-a-day prompt; this is the permanent door, so news access
+            never depends on catching a transient banner. */}
+        <LinkRow
           href="/explorar"
-          className="flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors hover:border-primary/40"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-brote-aqua/15 text-xl">
-            📰
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-small font-semibold">Últimas noticias y comentarios</span>
-            <span className="block text-caption text-muted-foreground">
-              Qué está pasando y qué está opinando la gente
-            </span>
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
+          icon={<Newspaper className="h-5 w-5" />}
+          accent="#2DB4D4"
+          title="Últimas noticias y comentarios"
+          description="Qué está pasando y qué está opinando la gente"
+        />
       </section>
 
       {/* A quiet nudge toward the feed once you have actually done something
@@ -209,55 +211,73 @@ export default function HoyPage() {
       <NewsNudge completionsToday={doneCount} />
 
       {/* Tu impacto real (F12.2) */}
-      <section>
-        <SectionHeader title="Tu impacto real" subtitle="Lo que ahorraste de verdad, en números" />
-        <ImpactCard period="total" />
-      </section>
+      <Reveal>
+        <section>
+          <SectionHeader eyebrow="Acumulado" title="Tu impacto real" subtitle="Lo que ahorraste de verdad, en números" />
+          <ImpactCard period="total" />
+        </section>
+      </Reveal>
 
       {/* Reto del día */}
-      <section>
-        <SectionHeader title={t('retoTitle')} />
-        {challenge.data ? (
-          <Card className="flex items-center gap-3 p-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-brote-sun/15 text-brote-sun">
-              <Sparkles className="h-6 w-6" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-medium">{challenge.data.challenge.title_es}</p>
-              <p className="text-small text-muted-foreground tnum">
-                {challenge.data.progress}/{challenge.data.challenge.target_value} · +
-                {challenge.data.challenge.reward_points} pts
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <Skeleton className="h-[80px] w-full" />
-        )}
-      </section>
+      <Reveal index={1}>
+        <section>
+          <SectionHeader eyebrow="Desafío" title={t('retoTitle')} />
+          {challenge.data ? (
+            <Card className="flex items-center gap-3 p-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-brote-sun/15 text-brote-sun">
+                <Sparkles className="h-6 w-6" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium leading-tight">{challenge.data.challenge.title_es}</p>
+                <p className="mt-1 text-small text-muted-foreground tnum">
+                  {challenge.data.progress}/{challenge.data.challenge.target_value} · +
+                  {challenge.data.challenge.reward_points} pts
+                </p>
+                {/* The numbers alone did not show how close you were. */}
+                <ProgressBar
+                  value={
+                    challenge.data.challenge.target_value
+                      ? Math.min(1, challenge.data.progress / challenge.data.challenge.target_value)
+                      : 0
+                  }
+                  className="mt-2"
+                />
+              </div>
+            </Card>
+          ) : (
+            <Skeleton className="h-[80px] w-full" />
+          )}
+        </section>
+      </Reveal>
 
       {/* Para Vos peek */}
-      <section>
-        <SectionHeader
-          title={t('paraVosTitle')}
-          subtitle={t('paraVosSubtitle')}
-          action={
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/acciones">{tc('seeAll')}</Link>
+      <Reveal index={2}>
+        <section>
+          <SectionHeader
+            eyebrow="Para vos"
+            title={t('paraVosTitle')}
+            subtitle={t('paraVosSubtitle')}
+            action={
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/acciones">{tc('seeAll')}</Link>
+              </Button>
+            }
+          />
+          <Card className="flex items-center justify-between gap-3 p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <Pip size={44} />
+              <p className="text-small leading-relaxed text-muted-foreground">
+                Acciones más grandes, elegidas para vos.
+              </p>
+            </div>
+            <Button variant="secondary" size="sm" asChild className="shrink-0">
+              <Link href="/acciones">
+                {tc('seeMore')} <ChevronRight className="h-4 w-4" />
+              </Link>
             </Button>
-          }
-        />
-        <Card className="flex items-center justify-between gap-3 p-4">
-          <div className="flex items-center gap-3">
-            <Pip size={44} />
-            <p className="text-small text-muted-foreground">Acciones más grandes, elegidas para vos.</p>
-          </div>
-          <Button variant="secondary" size="sm" asChild>
-            <Link href="/acciones">
-              {tc('seeMore')} <ChevronRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </Card>
-      </section>
+          </Card>
+        </section>
+      </Reveal>
     </div>
   );
 }

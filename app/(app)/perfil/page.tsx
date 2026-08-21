@@ -4,7 +4,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Settings, Target, Award, BarChart3 } from 'lucide-react';
+import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { RankBadge } from '@/components/brand/RankBadge';
@@ -38,16 +38,20 @@ export default function PerfilPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-4">
-        <div className="flex items-center gap-4">
+      <Card className="relative overflow-hidden p-4">
+        {/* Faint rank-coloured wash so the identity card is not a plain box. */}
+        <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+        <div className="relative flex items-center gap-4">
           <Avatar name={profile?.displayName} src={profile?.avatarUrl} size={64} />
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-display text-h1 font-bold">{profile?.displayName ?? 'Tu perfil'}</h1>
-            <p className="text-small text-muted-foreground">
+            {profile?.equippedTitle && <span className="eyebrow block text-primary">{profile.equippedTitle}</span>}
+            <h1 className="truncate font-display text-h1 font-bold leading-tight">
+              {profile?.displayName ?? 'Tu perfil'}
+            </h1>
+            <p className="mt-0.5 truncate text-small text-muted-foreground">
               {profile?.username ? `@${profile.username}` : 'Sin usuario'}
               {profile?.city ? ` · ${profile.city}` : ''}
             </p>
-            {profile?.equippedTitle && <p className="text-caption font-medium text-primary">{profile.equippedTitle}</p>}
             <AccountTypeBadge type={profile?.accountType} className="mt-1.5" />
           </div>
         </div>
@@ -60,36 +64,45 @@ export default function PerfilPage() {
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
+        {/* These were text buttons carrying an ASCII "→" and a 🌱, with no
+            hover beyond a colour change. Icons + a real press state instead. */}
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Link
             href="/perfil/rangos"
-            className="block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="press group flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
           >
-            Los rangos →
+            <Layers className="h-4 w-4" />
+            Los rangos
+            <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
           <Link
             href="/perfil/pip"
-            className="block rounded-button border border-border bg-surface-2 px-3 py-2 text-center text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="press group flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
           >
-            Personalizá a Pip 🌱
+            <Wand2 className="h-4 w-4" />
+            Personalizá a Pip
           </Link>
         </div>
         <Link
           href="/brote-plus"
-          className="mt-2 block rounded-button border border-brote-sun/40 bg-brote-sun/10 px-3 py-2.5 text-center text-small font-semibold text-brote-sun transition-colors hover:bg-brote-sun/15"
+          className="press group mt-2 flex items-center justify-center gap-2 rounded-button border border-brote-sun/40 bg-brote-sun/10 px-3 py-2.5 text-center text-small font-semibold text-brote-sun hover:bg-brote-sun/15 hover:shadow-sun-glow"
         >
-          🌟 Brote+ · sin anuncios y con extras
+          <Sparkles className="h-4 w-4" />
+          Brote+ · sin anuncios y con extras
+          <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
       </Card>
 
       <section>
-        <SectionHeader title="Tu mundo" />
-        <Mundo mundo={profile?.mundoState} height={320} />
+        <SectionHeader eyebrow="Tu progreso" title="Tu mundo" />
+        <div className="overflow-hidden rounded-card shadow-soft-lg">
+          <Mundo mundo={profile?.mundoState} height={320} />
+        </div>
       </section>
 
       {/* Impacto / handprint */}
       <section>
-        <SectionHeader title={t('impact')} />
+        <SectionHeader eyebrow="En la vida real" title={t('impact')} />
         <Card className="overflow-hidden">
           <div className="relative h-40 bg-gradient-to-b from-domain-agua_azul/20 to-transparent">
             <ImpactGlobe markerCount={Math.max(6, impactQ.data?.totalCompletions ?? 6)} />

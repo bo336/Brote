@@ -31,21 +31,32 @@ export function DailyActionRow({ title, domain, points, done, loading, onComplet
         onComplete?.();
       }}
       className={cn(
-        'flex w-full items-center gap-3 rounded-card border p-3 text-left transition-colors',
-        done ? 'border-brote-green/30 bg-primary/5' : 'border-border bg-surface hover:bg-surface-2',
+        'press group flex w-full items-center gap-3 rounded-card border p-3 text-left',
+        done
+          ? 'border-brote-green/30 bg-primary/5'
+          : 'border-border bg-surface hover:-translate-y-0.5 hover:border-primary/30 hover:bg-surface-2 hover:shadow-soft',
       )}
     >
-      <DomainIcon domain={domain} size={42} />
+      <span className={cn('shrink-0 transition-transform duration-200', !done && 'group-hover:scale-105')}>
+        <DomainIcon domain={domain} size={42} />
+      </span>
       <div className="min-w-0 flex-1">
-        <p className={cn('truncate text-body font-medium', done && 'text-muted-foreground line-through')}>
+        <p
+          className={cn(
+            'truncate text-body font-medium transition-colors duration-200',
+            done && 'text-muted-foreground line-through',
+          )}
+        >
           {title}
         </p>
         <span className="text-small font-semibold text-brote-sun tnum">+{points}</span>
       </div>
       <span
         className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-          done ? 'border-primary bg-primary text-primary-foreground' : 'border-border',
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
+          done
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-border group-hover:border-primary/60 group-hover:bg-primary/5',
         )}
       >
         {done && (

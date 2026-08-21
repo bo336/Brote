@@ -6,15 +6,13 @@ import { CalendarCheck, Plus, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
+import { Input, Field } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchProjectSessions, completeProjectSession } from '@/lib/api/explorar';
 import { invalidateScores } from '@/lib/refresh';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 import { cn } from '@/lib/utils/cn';
-
-const inputCls =
-  'w-full rounded-button border border-border bg-surface px-3 py-2.5 text-body outline-none transition-colors focus:border-primary';
 
 /**
  * Work sessions ("jornadas") for a project (F14.8).
@@ -121,26 +119,24 @@ export function ProjectSessions({
             Se van a acreditar los mismos puntos a las {participantCount}{' '}
             {participantCount === 1 ? 'persona anotada' : 'personas anotadas'} en el proyecto.
           </p>
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">¿Qué jornada fue?</span>
-            <input
+          <Field label="¿Qué jornada fue?" htmlFor="jornada-titulo">
+            <Input
+              id="jornada-titulo"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej: Jornada 1 — sector norte"
-              className={inputCls}
               maxLength={80}
             />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-small font-medium">Notas (opcional)</span>
-            <input
+          </Field>
+          <Field label="Notas (opcional)" htmlFor="jornada-notas">
+            <Input
+              id="jornada-notas"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ej: juntamos 12 bolsas"
-              className={inputCls}
               maxLength={140}
             />
-          </label>
+          </Field>
           <Button block variant="primary" onClick={submit} loading={busy} disabled={!title.trim()}>
             Acreditar puntos
           </Button>
