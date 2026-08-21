@@ -68,9 +68,22 @@ export function ProgressBar({ value, color = 'rgb(var(--primary))', className, h
       aria-valuemin={0}
       aria-valuemax={100}
     >
+      {/*
+        A flat fill reads as a loading bar. The inner highlight gives the fill
+        a little dimension, and a full bar gets a soft glow so completing
+        something is legible at a glance rather than "the bar stopped moving".
+      */}
       <div
-        className="h-full rounded-pill transition-[width] duration-700 ease-out"
-        style={{ width: `${clamped * 100}%`, backgroundColor: color }}
+        className={cn(
+          'h-full rounded-pill transition-[width,box-shadow] duration-700 ease-out',
+          clamped >= 1 && 'shadow-[0_0_10px_-1px_currentColor]',
+        )}
+        style={{
+          width: `${clamped * 100}%`,
+          backgroundColor: color,
+          color,
+          backgroundImage: 'linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0))',
+        }}
       />
     </div>
   );

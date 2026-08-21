@@ -29,11 +29,11 @@ export default function AprenderPage() {
   return (
     <div className="space-y-5 pb-6">
       <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Aprendé</p>
-        <h1 className="mt-1 font-display text-display-l font-extrabold leading-tight">
+        <p className="eyebrow text-primary">Aprendé</p>
+        <h1 className="mt-1 text-balance font-display text-display-l font-extrabold leading-tight">
           Entendé lo que estás haciendo
         </h1>
-        <p className="mt-1.5 text-small text-muted-foreground">
+        <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">
           Lecciones cortas y concretas. Sin humo y sin fórmulas.
         </p>
       </header>
@@ -59,7 +59,9 @@ export default function AprenderPage() {
                 {done} de {lessons.length}
               </span>
             </div>
-            <ProgressBar value={(done / lessons.length) * 100} />
+            {/* ProgressBar takes 0..1 and clamps. This passed a percentage, so
+                the bar sat at 100% from the first visit regardless of progress. */}
+            <ProgressBar value={lessons.length ? done / lessons.length : 0} />
           </Card>
 
           {levels.map((level) => {
@@ -67,8 +69,11 @@ export default function AprenderPage() {
             const locked = group.every((l) => !l.unlocked);
             return (
               <section key={level} className="space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pt-1">
                   <h2 className="font-display text-h3 font-bold">Nivel {level}</h2>
+                  <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-caption text-muted-foreground tnum">
+                    {group.filter((l) => l.completed).length}/{group.length}
+                  </span>
                   {locked && (
                     <span className="inline-flex items-center gap-1 rounded-pill border border-border bg-surface-2 px-2 py-0.5 text-caption text-muted-foreground">
                       <Lock className="h-3 w-3" /> Se abre al avanzar
@@ -87,7 +92,14 @@ export default function AprenderPage() {
                         <DomainIcon domain={l.domain_slug} size={26} variant="bare" />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-display text-body font-bold">{l.title_es}</span>
+                        {dom && (
+                          <span className="eyebrow block" style={{ color: dom.color }}>
+                            {dom.name_es}
+                          </span>
+                        )}
+                        <span className="mt-0.5 block truncate font-display text-body font-bold">
+                          <span className="link-underline">{l.title_es}</span>
+                        </span>
                         <span className="block truncate text-caption text-muted-foreground">{l.summary_es}</span>
                         <span className="mt-1 flex items-center gap-2.5 text-caption text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
@@ -108,8 +120,10 @@ export default function AprenderPage() {
                   );
 
                   const cls = cn(
-                    'flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 transition-colors',
-                    l.unlocked ? 'hover:border-primary/40' : 'opacity-60',
+                    'press group flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft',
+                    l.unlocked
+                      ? 'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift'
+                      : 'cursor-not-allowed opacity-60 shadow-none',
                   );
 
                   return (

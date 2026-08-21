@@ -58,12 +58,16 @@ export function TopBar() {
           <Link
             href="/notificaciones"
             prefetch={false}
-            aria-label={tn('notifications')}
+            aria-label={unread > 0 ? `${tn('notifications')} (${unread})` : tn('notifications')}
             className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           >
             <Bell className="h-5 w-5" />
+            {/* A bare dot said "something happened" but not how much, so it was
+                easy to ignore indefinitely. The count gives it weight. */}
             {unread > 0 && (
-              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-brote-coral ring-2 ring-background" />
+              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brote-coral px-1 text-[10px] font-bold leading-none text-white ring-2 ring-background tnum">
+                {unread > 9 ? '9+' : unread}
+              </span>
             )}
           </Link>
           <ThemeToggle className="hidden sm:inline-flex" />

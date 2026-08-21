@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Lock, Check } from 'lucide-react';
+import { ArrowLeft, Lock, Check, Medal } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -110,12 +110,27 @@ export default function LogrosPage() {
                 <div
                   key={badge.id}
                   className={cn(
-                    'flex flex-col items-center gap-1.5 rounded-card border border-border bg-surface p-3 text-center',
-                    !badge.earned && 'opacity-55',
+                    'flex flex-col items-center gap-1.5 rounded-card border p-3 text-center transition-all duration-200',
+                    badge.earned
+                      ? 'border-brote-sun/40 bg-brote-sun/[0.07] shadow-soft'
+                      : 'border-border bg-surface opacity-60',
                   )}
                   title={badge.description_es ?? ''}
                 >
-                  <span className={cn('text-3xl', !badge.earned && 'grayscale')}>{badge.earned ? '🎖️' : '🔒'}</span>
+                  {/*
+                    Earned badges were a 🎖️ emoji and locked ones a 🔒, which
+                    rendered as whatever glyph the device happened to have.
+                    A real medal shape, tinted when earned, is legible and
+                    consistent across platforms.
+                  */}
+                  <span
+                    className={cn(
+                      'flex h-11 w-11 items-center justify-center rounded-full',
+                      badge.earned ? 'bg-brote-sun/20 text-brote-sun' : 'bg-surface-2 text-muted-foreground',
+                    )}
+                  >
+                    {badge.earned ? <Medal className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+                  </span>
                   <p className="text-caption font-semibold leading-tight">{badge.name_es}</p>
                   {!badge.earned && <p className="text-[10px] leading-tight text-muted-foreground">{badge.description_es}</p>}
                 </div>

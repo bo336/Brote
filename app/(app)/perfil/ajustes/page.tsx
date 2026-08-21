@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, LogOut, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, LogOut, Download, Trash2, Compass } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -146,10 +146,14 @@ export default function AjustesPage() {
       {showTour && <FirstRunTour force onClose={() => setShowTour(false)} />}
       <Section title="Cómo funciona la app">
         <Card className="flex items-center gap-3 p-4">
-          <span className="text-2xl">🧭</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/15 text-primary">
+            <Compass className="h-5 w-5" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-small font-semibold">Ver el tutorial de nuevo</p>
-            <p className="text-caption text-muted-foreground">Un repaso rápido de para qué es cada sección.</p>
+            <p className="mt-0.5 text-caption leading-relaxed text-muted-foreground">
+              Un repaso rápido de para qué es cada sección.
+            </p>
           </div>
           <Button variant="secondary" size="sm" onClick={() => setShowTour(true)}>
             Ver

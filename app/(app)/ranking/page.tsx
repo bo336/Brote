@@ -352,7 +352,9 @@ function RankingInner() {
                 ))}
               </div>
               <Button variant="secondary" block asChild>
-                <Link href="/competencias">🏁 Crear o unirme a otra</Link>
+                <Link href="/competencias">
+                  <Flag className="h-4 w-4" /> Crear o unirme a otra
+                </Link>
               </Button>
             </>
           )}

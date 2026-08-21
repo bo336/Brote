@@ -167,11 +167,36 @@ user-visible, elements that only change on `:active`.
 
 ## Rollout
 
-Screens restyled to this system so far:
-
 - **Explorar** (Novedades + Proyectos) — 2026-08-12. Featured-hero + hairline briefing river for
   news, `<PulseStrip>` live stat break, `<SectionTabs>`/`<ChipRail>` navigation.
+- **Everything else** — 2026-08-21. Login, Inicio, Acciones (+ detail), Ranking, Perfil (+ header
+  and sub-nav), Competencias, Aprendé, Brote+, Notificaciones, onboarding, `/panel`, and the app
+  shell (top bar + bottom tab bar). Applied as refinement, not replacement: same palette, same
+  layouts, corrected details.
 
-Everything else (Inicio/world, Ranking, Acciones, Perfil, onboarding) is still on the earlier flat
-card look and is next in line, screen by screen, per user direction — don't assume it already
-matches this file.
+### Shared primitives added in that pass
+
+| Component | Path | Replaces |
+|---|---|---|
+| `<Input>` `<Textarea>` `<Select>` `<Field>` | `components/ui/input.tsx` | The same input hand-written in 11 files with 6 different results |
+| `<LinkRow>` | `components/ui/link-row.tsx` | The icon+title+chevron nav row, duplicated per screen |
+| `<Card interactive>` / `<Eyebrow>` | `components/ui/card.tsx` | Per-screen ad-hoc hover treatments |
+| `.eyebrow` `.link-underline` `.press` `.divide-hairline` | `app/globals.css` | Retyped 4-class utility strings |
+| `shadow-soft` / `soft-lg` / `lift` / `crisp` | `tailwind.config.ts` | Single-cast shadows (now layered) |
+
+`SectionHeader` takes an `eyebrow` prop — use it, per §2's micro-label rule.
+
+### Things that turned out to be bugs, not style
+
+Worth knowing about because each was invisible until something was looked at closely:
+
+- `bg-brote-aqua` was referenced in two components but never defined in the palette, so PipChat's
+  Eco-Experto toggle had **no visible active state** and the home news tile rendered transparent.
+- `<ProgressBar>` takes `0..1` and clamps. Two callers in the learning section passed a
+  **percentage**, so both bars sat at 100% from the first render.
+- Notificaciones had a "marcar todas como leídas" button hardcoded `disabled`.
+- A stale `create_project` overload made PostgREST refuse the call for any caller that omitted the
+  contact arguments.
+
+If a control looks styled but never responds, check whether the class or column it depends on
+actually exists before restyling it.
