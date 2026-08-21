@@ -155,13 +155,3 @@ export async function removeHabit(activityId: string): Promise<void> {
   const { error } = await createClient().rpc('remove_habit', { p_activity_id: activityId });
   if (error) throw error;
 }
-
-// ── Group actions ───────────────────────────────────────────────────────────
-
-export async function completeGroupAction(
-  projectId: string,
-): Promise<{ ok: boolean; error?: string; participants?: number; multiplier?: number; points_each?: number }> {
-  const { data, error } = await createClient().rpc('complete_group_action', { p_project_id: projectId });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string; participants?: number; multiplier?: number; points_each?: number };
-}

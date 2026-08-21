@@ -1,19 +1,44 @@
 'use client';
 
 import Link from 'next/link';
-import { Users, ThumbsUp, Lock, MapPin, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Users, ThumbsUp, Lock, MapPin, Calendar, LogOut } from 'lucide-react';
 import { Pill } from '@/components/ui/pill';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
 import { cn } from '@/lib/utils/cn';
-import type { ProjectWithMeta } from '@/lib/api/explorar';
+import { leaveProject, type ProjectWithMeta } from '@/lib/api/explorar';
+import { useSession } from '@/stores/session';
+import { toast } from '@/stores/toast';
 
 export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; totalXp: number }) {
+  const qc = useQueryClient();
+  const userId = useSession((s) => s.profile?.id);
+  const [leaving, setLeaving] = useState(false);
   const domain = getDomain(project.domain_slug ?? '');
   const locked = !meetsRank(totalXp, project.min_rank_slug);
   const date = project.event_date ? new Date(project.event_date) : null;
+  // Organisers can't leave their own project (enforced server-side too), so
+  // the button is only worth showing to someone who actually joined as a guest.
+  const canLeave = project.joined && project.creator_id !== userId;
+
+  async function leave(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (leaving || !confirm('¿Salir de este proyecto?')) return;
+    setLeaving(true);
+    const res = await leaveProject(project.id);
+    setLeaving(false);
+    if (res.ok) {
+      toast.success('Saliste del proyecto');
+      qc.invalidateQueries({ queryKey: ['projects'] });
+    } else {
+      toast.error('No se pudo salir', res.error);
+    }
+  }
 
   return (
     <Link
@@ -33,6 +58,17 @@ export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; to
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill bg-brote-ink/70 px-2 py-0.5 text-caption font-semibold text-white">
             <Lock className="h-3 w-3" /> {lockLabel(project.min_rank_slug)}
           </span>
+        )}
+        {canLeave && (
+          <button
+            type="button"
+            onClick={leave}
+            disabled={leaving}
+            aria-label="Salir del proyecto"
+            className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-pill bg-brote-ink/70 px-2 py-0.5 text-caption font-semibold text-white transition-colors hover:bg-brote-ink/90 disabled:opacity-60"
+          >
+            <LogOut className="h-3 w-3" /> Salir
+          </button>
         )}
       </div>
       <div className="p-3.5">

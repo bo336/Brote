@@ -76,7 +76,7 @@ export interface ProjectRow {
   /** How to reach the organiser to coordinate (F14.8). */
   contact_info?: string | null;
   contact_kind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
-  /** Base points awarded per work session, before the turnout multiplier. */
+  /** Unused: session points are now a single admin-set amount, same for every project. */
   session_points?: number;
 }
 
