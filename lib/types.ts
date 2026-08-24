@@ -14,14 +14,16 @@ export interface ProfileSummary {
   longestStreak: number;
   lastStreakDate: string | null;
   streakFreezes: number;
+  /** Soft currency spent in the tienda on cosmetics (F11.2). Never buys rank. */
+  semillas: number;
   equippedTitle: string | null;
   mundoState: MundoState | null;
   /** Lifetime scoring completions — drives per-completion world micro-growth. */
   completionsCount?: number;
   /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
   context?: Record<string, unknown> | null;
-  /** Pip avatar customization (body palette + hat). */
-  pipStyle?: { body?: string; hat?: string } | null;
+  /** Pip avatar customization (body palette + accessories). */
+  pipStyle?: { body?: string; hat?: string; glasses?: string; pattern?: string } | null;
   /** Account type — gates which actions/news/competitions are shown. */
   accountType?: 'kid' | 'teen' | 'adult';
   /** Organization (school/club) the user belongs to, if any. */
@@ -58,5 +60,9 @@ export interface CompleteActivityResult {
   impact?: { water_l: number; co2_kg: number; waste_kg: number; energy_kwh: number } | null;
   /** Set when the action is a tracked habit (F12.6). */
   habit?: { streak: number; bonus: number } | null;
+  /** Semillas granted by THIS action (milestones only — see migration 0038). */
+  semillas_earned?: number;
+  /** Balance after the grant, straight from the server. */
+  semillas_balance?: number;
   mundo_delta: { liveliness?: number; new_elements?: string[] } | null;
 }

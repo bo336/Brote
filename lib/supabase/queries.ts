@@ -23,7 +23,8 @@ interface ProfileQueryRow {
   streak_freezes: number;
   mundo_state: unknown;
   context: Record<string, unknown> | null;
-  pip_style: { body?: string; hat?: string } | null;
+  pip_style: { body?: string; hat?: string; glasses?: string; pattern?: string } | null;
+  semillas: number | null;
   account_type: 'kid' | 'teen' | 'adult' | null;
   org_id: string | null;
   interests: string[] | null;
@@ -52,7 +53,7 @@ export async function getSessionData(): Promise<SessionData> {
     supabase
       .from('profiles')
       .select(
-        'id, username, display_name, avatar_url, city, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, mundo_state, context, pip_style, account_type, org_id, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
+        'id, username, display_name, avatar_url, city, neighborhood, total_xp, current_streak, longest_streak, last_streak_date, streak_freezes, semillas, mundo_state, context, pip_style, account_type, org_id, interests, onboarding_completed, language, equipped_title:titles!profiles_equipped_title_id_fkey(name_es)',
       )
       .eq('id', user.id)
       .maybeSingle(),
@@ -91,6 +92,7 @@ export async function getSessionData(): Promise<SessionData> {
     longestStreak: row.longest_streak ?? 0,
     lastStreakDate: row.last_streak_date,
     streakFreezes: row.streak_freezes ?? 0,
+    semillas: Number(row.semillas ?? 0),
     equippedTitle: (row.equipped_title as { name_es: string } | null)?.name_es ?? null,
     mundoState: parseMundoState(row.mundo_state),
     context: row.context ?? null,

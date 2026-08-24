@@ -28,6 +28,7 @@ import {
 import { Ground, IslandBody, AllWater, type TerrainColors } from './Terrain';
 import { Vegetation, type PlantInstance, type Species } from './Vegetation';
 import { Reeds, LilyPads, Undergrowth, DeadWood, Footpath, Pollen, Underwater } from './Details';
+import { WorldDecorations } from './Decorations';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1049,12 +1050,14 @@ function Scene({
   night,
   dayT,
   watering,
+  decorations,
   onCare,
 }: {
   mundo: MundoState;
   night: boolean;
   dayT: number;
   watering: boolean;
+  decorations: string[];
   onCare?: () => void;
 }) {
   const biome = biomeFor(mundo.worldIndex ?? 1);
@@ -1210,6 +1213,10 @@ function Scene({
         <Pip3D golden={golden} aura={mundo.unlockedCosmetics.includes('guardian_aura')} layout={layout} />
       </Float>
 
+      {/* Lo comprado con semillas. Va después de la vegetación para que quede
+          claro que es lo último que se agregó a la isla, no parte del terreno. */}
+      <WorldDecorations slugs={decorations} layout={layout} night={night} />
+
       {cabinSpot && pct >= 0.45 && <Cabin layout={layout} pos={cabinSpot} />}
       {firePos && pct >= 0.6 && <Campfire layout={layout} pos={firePos} />}
       {growth >= 12 && deerSpots[0] && <Deer pos={deerSpots[0]} layout={layout} seed={71} />}
@@ -1252,12 +1259,15 @@ export default function MundoCanvas({
   night,
   dayT,
   watering = false,
+  decorations = [],
   onCare,
 }: {
   mundo: MundoState;
   night: boolean;
   dayT: number;
   watering?: boolean;
+  /** Slugs of the world decorations the user bought and switched on (F11.2). */
+  decorations?: string[];
   onCare?: () => void;
 }) {
   return (
@@ -1271,7 +1281,7 @@ export default function MundoCanvas({
         gl.toneMappingExposure = 1.1;
       }}
     >
-      <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} onCare={onCare} />
+      <Scene mundo={mundo} night={night} dayT={dayT} watering={watering} decorations={decorations} onCare={onCare} />
       {/* Post: AO fuses the scene, a shallow focal plane gives the miniature
           "tilt-shift" read, plus gentle grade and vignette. */}
       <EffectComposer multisampling={0}>

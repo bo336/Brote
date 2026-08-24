@@ -20,11 +20,19 @@ export const PIP_PALETTES: Record<string, [string, string, string, string]> = {
   lavanda: ['#B99AE8', '#9A7BD0', '#B07CD6', '#8A5CB8'],
   sol: ['#FFD27A', '#F4A62A', '#FFB23E', '#E8950E'],
   noche: ['#7B8AF5', '#5B6CF0', '#6FBF73', '#0E7A52'],
+  // Premium (tienda, migración 0038). El servidor valida la propiedad antes de
+  // dejar guardar cualquiera de estos en profiles.pip_style.
+  aurora: ['#8EDCC9', '#4FA894', '#A97BE8', '#6E4BB8'],
+  bosque: ['#4E8C5A', '#33643E', '#2E7D4F', '#17452C'],
+  atardecer: ['#FFB07A', '#E8804F', '#FF8A5B', '#C4522A'],
+  glaciar: ['#BFE4F0', '#8CBBD0', '#DCF2F8', '#7FA8BC'],
+  cosmos: ['#6B5CE0', '#4536A8', '#9B7BF0', '#5E3FB0'],
 };
 
-export const PIP_HATS = ['ninguno', 'brotecito', 'flor', 'gorro', 'corona', 'hongo', 'mono', 'vincha', 'estrella'] as const;
-export const PIP_GLASSES = ['ninguno', 'redondos', 'sol', 'corazones'] as const;
-export const PIP_PATTERNS = ['ninguno', 'pecas', 'lunares', 'rayitas'] as const;
+export const PIP_HATS = ['ninguno', 'brotecito', 'flor', 'gorro', 'corona', 'hongo', 'mono', 'vincha', 'estrella',
+  'sombrero', 'casco', 'visera', 'aureola'] as const;
+export const PIP_GLASSES = ['ninguno', 'redondos', 'sol', 'corazones', 'aviador', 'pixel'] as const;
+export const PIP_PATTERNS = ['ninguno', 'pecas', 'lunares', 'rayitas', 'hojitas', 'estrellitas', 'olitas'] as const;
 
 interface PipProps {
   size?: number;
@@ -125,6 +133,34 @@ export function Pip({ size = 96, mood = 'happy', aura, golden, pipStyle, classNa
             <path d="M36 74 q 4 6 0 12" /><path d="M84 74 q -4 6 0 12" /><path d="M60 96 q 6 3 12 0" />
           </g>
         )}
+        {pattern === 'hojitas' && (
+          <g fill={leafDeep} opacity="0.45">
+            {([[42, 88, -25], [56, 96, 10], [72, 90, 30], [78, 66, -15], [38, 64, 20]] as const).map(([x, y, r], i) => (
+              <path
+                key={i}
+                d="M0 0 C 5 -4, 9 -1, 9 4 C 4 6, 0 4, 0 0 Z"
+                transform={`translate(${x} ${y}) rotate(${r})`}
+              />
+            ))}
+          </g>
+        )}
+        {pattern === 'estrellitas' && (
+          <g fill="#fff" opacity="0.6">
+            {([[44, 66, 2.6], [74, 72, 2], [50, 92, 2.4], [70, 94, 1.8], [61, 60, 1.6]] as const).map(([x, y, r], i) => (
+              <path
+                key={i}
+                d={`M${x} ${y - r * 2} L${x + r * 0.6} ${y - r * 0.6} L${x + r * 2} ${y} L${x + r * 0.6} ${y + r * 0.6} L${x} ${y + r * 2} L${x - r * 0.6} ${y + r * 0.6} L${x - r * 2} ${y} L${x - r * 0.6} ${y - r * 0.6} Z`}
+              />
+            ))}
+          </g>
+        )}
+        {pattern === 'olitas' && (
+          <g stroke="#fff" strokeWidth="2.2" strokeLinecap="round" opacity="0.45" fill="none">
+            <path d="M38 72 q 5 -4 10 0 t 10 0 t 10 0 t 10 0" />
+            <path d="M40 84 q 5 -4 10 0 t 10 0 t 10 0 t 8 0" />
+            <path d="M44 96 q 5 -4 10 0 t 10 0 t 10 0" />
+          </g>
+        )}
 
         {/* cheeks */}
         <circle cx="44" cy="80" r="6" fill="#FF8FA3" opacity="0.5" />
@@ -218,6 +254,38 @@ export function Pip({ size = 96, mood = 'happy', aura, golden, pipStyle, classNa
             <path d="M60 12 L 62.4 18 L 68 18.6 L 63.8 22.6 L 65 28.4 L 60 25.4 L 55 28.4 L 56.2 22.6 L 52 18.6 L 57.6 18 Z" fill="#FFD24A" />
           </g>
         )}
+        {hat === 'sombrero' && (
+          <g>
+            <ellipse cx="60" cy="45" rx="30" ry="8" fill="#E8C87A" />
+            <ellipse cx="60" cy="44" rx="30" ry="7" fill="#F2D992" />
+            <path d="M46 44 C 47 30, 73 30, 74 44 Z" fill="#E8C87A" />
+            <path d="M46 41 q 14 5 28 0" stroke="#B8934A" strokeWidth="3" fill="none" strokeLinecap="round" />
+          </g>
+        )}
+        {hat === 'casco' && (
+          <g>
+            <path d="M36 46 C 36 27, 84 27, 84 46 Z" fill="#2DB4D4" />
+            <path d="M36 46 C 36 27, 84 27, 84 46 Z" fill="#fff" opacity="0.12" />
+            <g stroke="#1E88A8" strokeWidth="3" strokeLinecap="round">
+              <path d="M50 42 L 52 31" /><path d="M60 42 L 60 30" /><path d="M70 42 L 68 31" />
+            </g>
+            <path d="M36 46 L 84 46" stroke="#1E88A8" strokeWidth="3.5" strokeLinecap="round" />
+          </g>
+        )}
+        {hat === 'visera' && (
+          <g>
+            <path d="M40 45 C 41 29, 79 29, 80 45 Z" fill="#E8638C" />
+            <path d="M40 45 C 30 45, 26 50, 26 52 C 40 54, 52 50, 52 45 Z" fill="#C74A72" />
+            <circle cx="60" cy="29" r="3" fill="#C74A72" />
+          </g>
+        )}
+        {hat === 'aureola' && (
+          <g>
+            <ellipse cx="60" cy="22" rx="18" ry="5.5" fill="none" stroke="#FFE08A" strokeWidth="9" opacity="0.25" />
+            <ellipse cx="60" cy="22" rx="18" ry="5.5" fill="none" stroke="#FFD24A" strokeWidth="4" />
+            <ellipse cx="60" cy="22" rx="18" ry="5.5" fill="none" stroke="#fff" strokeWidth="1.4" opacity="0.75" />
+          </g>
+        )}
 
         {/* glasses */}
         {glasses === 'redondos' && (
@@ -239,6 +307,24 @@ export function Pip({ size = 96, mood = 'happy', aura, golden, pipStyle, classNa
           <g fill="#FF5F8A">
             <path d="M50 76 C 42 70, 42 62, 48 62 C 50 62, 50 64, 50 64 C 50 64, 50 62, 52 62 C 58 62, 58 70, 50 76 Z" />
             <path d="M70 76 C 62 70, 62 62, 68 62 C 70 62, 70 64, 70 64 C 70 64, 70 62, 72 62 C 78 62, 78 70, 70 76 Z" />
+          </g>
+        )}
+        {glasses === 'aviador' && (
+          <g>
+            <path d="M41 65 C 41 63, 57 63, 57 65 C 57 74, 51 78, 47 78 C 43 78, 41 72, 41 65 Z" fill="#3A4A55" opacity="0.9" />
+            <path d="M63 65 C 63 63, 79 63, 79 65 C 79 72, 77 78, 73 78 C 69 78, 63 74, 63 65 Z" fill="#3A4A55" opacity="0.9" />
+            <path d="M57 66 q 3 -2 6 0" stroke="#C9D6DE" strokeWidth="2.2" fill="none" />
+            <path d="M43 68 l 6 6" stroke="#fff" strokeWidth="2" opacity="0.5" strokeLinecap="round" />
+            <path d="M65 68 l 6 6" stroke="#fff" strokeWidth="2" opacity="0.5" strokeLinecap="round" />
+          </g>
+        )}
+        {glasses === 'pixel' && (
+          <g fill="#0C1A13">
+            <rect x="40" y="62" width="18" height="6" /><rect x="40" y="68" width="6" height="6" />
+            <rect x="52" y="68" width="6" height="6" />
+            <rect x="62" y="62" width="18" height="6" /><rect x="62" y="68" width="6" height="6" />
+            <rect x="74" y="68" width="6" height="6" />
+            <rect x="58" y="62" width="4" height="4" />
           </g>
         )}
       </svg>

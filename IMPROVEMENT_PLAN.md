@@ -5,7 +5,7 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
-- **Phase:** F1-F4 DONE, F6 server-side QA DONE, F7 DONE → remaining: F5 (needs payment provider decision), F6.3 visual click-through, F2.3 archipelago polish, F4.4-AI upgrade of recap
+- **Phase:** F1-F4, F6, F7, F12-F15 shipped. Restyle parte 1-2 shipped 2026-08-21. F16 (Semillas + tienda) built and DB-verified 2026-08-24 — see F16 below for what still needs a browser click-through.
 - **Last done (this block):** NEWS FIXED + FLOWING (12 articles live; cron rewired keyless w/ anon JWT — the Vault secret dependency is gone; push trigger too; live 0011 = repo 0020). Weekly recap cron (Mondays 10:00 AR, template-based, zero AI deps). Streak time-travel QA on live logic PASSED (T1 first daily → streak 1; T2 next-day → 2; T3 freeze consumed, streak survives; T4 no freeze → reset; correct notifications; challenge completions fired end-to-end; synthetic user cleaned up). RLS perf hardening (live 0012 = repo 0021): (select auth.uid()) once-per-query + deduped SELECT policies — advisors now clean of actionable items. OPERACIONES.html written (repo root, styled, Spanish): crons, infinite-content guarantees, AI fallbacks, owner actions, monitoring, costs.
 - **Remaining backlog:** F5 Semillas+Brote+ (blocked on payment provider choice: MercadoPago vs LemonSqueezy — ask user), F6.3 browser click-through + visual canvas check (test account via preview), F6.6 delete old paused Supabase project when confident, F2.3 archipelago swipe, F4.4 upgrade recap to AI-written when GEMINI_API_KEY exists, F3.4 mobile perf pass.
 - **USER ACTIONS PENDING:** (1) GEMINI_API_KEY secret → Pip Chat + AI news summaries light up. (2) merge branch → deploy. (3) Optional: VAPID keys for web push.
@@ -169,6 +169,65 @@ Either way, I code: wind-sway vertex shader on foliage, GPU-particle fire with f
 - [x] F12.6 **Hábitos**: user_habits (max 5), own streak, +100 @7d / +500 @30d; HabitsCard on Inicio; "Seguir" on activity pages.
 - [x] F12.7 **Eco-experto IA**: pip-chat expert mode (temp 0.4, admits uncertainty, ends with one action), header toggle, own daily cap.
 - [ ] F12.8 NEXT: kid-specific news tagging (feed currently teen+adult by default — kid feed is empty until items are tagged `kid`); org UI (create/join school) — RPCs live but no screen yet; guardian consent flow; Brote+ gating of expert mode.
+
+### F16 — Retos rotos + Semillas (economía cosmética) — 2026-08-24
+
+**F16.0 — BUG CRÍTICO encontrado y arreglado: los retos diarios morían a las 21:00.**
+`daily_maintenance()` armaba la ventana con `v_ba_date::timestamptz`, que castea
+la fecha de Buenos Aires en la zona de la SESIÓN (UTC), no en la de BA. La
+ventana real iba de las 21:00 de ayer a las 21:00 de hoy: desde las 21:00 hasta
+pasada la medianoche —horas pico de uso— los 16 retos vigentes figuraban
+vencidos y "Reto del día" no sumaba nada. Medido en vivo antes de tocar nada
+(0/16 vigentes, 3 acciones seguidas completaron 0 retos), arreglado anclando la
+ventana a medianoche LOCAL, reparadas las ventanas vencidas en el momento, y
+reverificado (16/16 vigentes, las mismas 3 acciones completan 2 retos). Migración
+0039, commit propio y ya pusheado.
+- [x] F16.0 — SHIPPED y verificado en la base en vivo.
+
+**F16.1-4 — Semillas: la mitad que faltaba del loop (F5.1/F11.2 del plan original,
+nunca construida).** El juego solo sabía DAR (XP, rango, título, mundo) y nada
+para GASTAR — el personalizador de Pip regalaba sus 864 combinaciones el primer
+día. Semillas es la moneda blanda: se gana jugando lo que ya importa (reto,
+jornada, racha, mundo completo, rango, objetivo, lección) y se gasta en cosas
+que se VEN. Nunca compra puntos, rango ni posición en ningún ranking.
+- Migración 0038 (aplicada en vivo): `profiles.semillas` + `semilla_ledger`
+  (libro mayor, fuente de verdad), `cosmetics` + `user_cosmetics`,
+  `brote_grant_semillas` (EXECUTE revocado — sólo el servidor otorga),
+  `buy_cosmetic`/`equip_cosmetic`/`shop_state` RPCs, trigger
+  `brote_validate_pip_style` que rechaza en la base cualquier accesorio premium
+  que el usuario no haya comprado (blindado contra un PATCH directo a
+  profiles.pip_style). `complete_activity`, `complete_goal` y `complete_lesson`
+  reescritas para otorgar semillas en cada hito real. Catálogo: 5 paletas Pip,
+  4 sombreros, 2 anteojos, 3 estampas premium + 10 decoraciones del mundo
+  (comedero, banco, hamaca, colmena, farolitos, arco, huerta, tótem, carpa,
+  molino). Backfill retroactivo (tope 600) para quien ya jugaba.
+  VERIFICADO en vivo con un usuario real, transacción rolled back: compra,
+  compra repetida (rechazada), pro_only (rechazada), rango insuficiente
+  (rechazada), poner accesorio premium sin comprarlo (bloqueado por el
+  trigger), poner accesorio comprado (ok), equipar/desequipar decoración (ok),
+  complete_activity de punta a punta otorgando semillas por reto completado.
+- [x] F16.1 DB (migración 0038) — SHIPPED, verificado en vivo.
+- [x] F16.2 `/tienda`: saldo, pestañas Mundo/Pip/Movimientos, comprar y
+  equipar, previews SVG de las 10 decoraciones — construido, `tsc`/`build`
+  limpios. Entrada visible desde `/perfil` y desde el personalizador.
+- [x] F16.3 Personalizador de Pip gateado: lo premium se ve con candado y
+  precio en vez de estar escondido; lo que ya era gratis sigue gratis. Nuevo
+  arte SVG para las 5 paletas, 4 sombreros y 2 anteojos premium.
+- [x] F16.4 Las 10 decoraciones se dibujan de verdad en el `MundoCanvas` 3D
+  (`components/mundo/Decorations.tsx`), ancladas de forma determinística al
+  slug + semilla del layout vía `snapToLand` (nunca en el agua ni en un
+  acantilado, nunca saltan de lugar entre renders). Comedero con pájaro que se
+  posa, colmena con abejas, farolitos con guirnalda que prende de noche, molino
+  con aspas que giran.
+- [ ] F16.5 **Verificación visual pendiente**: el entorno de esta sesión bloquea
+  por política de red la conexión saliente directa a `*.supabase.co` (403 en
+  el proxy — confirmado con curl y con Playwright, no es un bug de la app).
+  Todo lo de servidor se probó igual, a través del canal del MCP de Supabase,
+  contra la base en vivo con rollback. Lo que falta es un click-through real en
+  navegador: comprar una decoración y verla aparecer en Tu Mundo, comprar un
+  accesorio de Pip y verlo puesto, confirmar que el saldo se actualiza en el
+  toast de recompensa. Hacerlo en una sesión con salida de red normal antes de
+  darlo por cerrado.
 
 ### F15 — Backlog del 2026-08-13 (segundo pedido grande)
 Agrupado por afinidad técnica, no por el orden en que se pidió.

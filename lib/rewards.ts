@@ -26,6 +26,9 @@ export function celebrateCompletion(result: CompleteActivityResult) {
       setProfile({
         ...p,
         completionsCount: result.completions_count ?? p.completionsCount,
+        // El saldo vuelve del servidor con la acción; sin esto la tienda y el
+        // perfil mostrarían un número viejo hasta recargar la página.
+        semillas: result.semillas_balance ?? p.semillas,
         mundoState:
           result.mundo ??
           computeMundoState({
@@ -94,6 +97,19 @@ export function celebrateCompletion(result: CompleteActivityResult) {
       glyph: '🏆',
       title: '¡Reto completado!',
       description: `${ch.title_es} · +${ch.reward_points} pts`,
+    });
+  }
+
+  // Semillas (F11.2). Un solo aviso por acción aunque hayan entrado por varios
+  // lados a la vez — el detalle de cada movimiento está en la tienda.
+  const semillas = result.semillas_earned ?? 0;
+  if (semillas > 0) {
+    toast.show({
+      variant: 'default',
+      glyph: '🌱',
+      title: `+${semillas} semillas`,
+      description: 'Gastalas en la tienda',
+      durationMs: 3600,
     });
   }
 }

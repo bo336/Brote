@@ -4,7 +4,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight } from 'lucide-react';
+import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, Sprout, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { RankBadge } from '@/components/brand/RankBadge';
@@ -64,9 +64,23 @@ export default function PerfilPage() {
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
+        {/* La tienda va acá arriba y con el saldo a la vista: si el saldo vive
+            escondido en otra pantalla, nadie se entera de que junta algo. */}
+        <Link
+          href="/tienda"
+          className="press group mt-3 flex items-center gap-2.5 rounded-button border border-primary/30 bg-primary/8 px-3 py-2.5 text-small font-semibold text-primary hover:bg-primary/12"
+        >
+          <Sprout className="h-4 w-4 shrink-0" />
+          <span className="tabular-nums">{profile?.semillas ?? 0} semillas</span>
+          <span className="min-w-0 flex-1 truncate font-medium text-muted-foreground">
+            para gastar en la tienda
+          </span>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </Link>
+
         {/* These were text buttons carrying an ASCII "→" and a 🌱, with no
             hover beyond a colour change. Icons + a real press state instead. */}
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           <Link
             href="/perfil/rangos"
             className="press group flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"

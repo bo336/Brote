@@ -20,6 +20,7 @@ import { useSettings, shouldRender3D } from '@/stores/settings';
 import { useSession } from '@/stores/session';
 import { isNight, dayProgress } from '@/lib/utils/dates';
 import { computeMundoState, biomeFor, type MundoState } from '@/lib/mundo';
+import { fetchEquippedDecorations } from '@/lib/api/tienda';
 import { createClient } from '@/lib/supabase/client';
 import { useTodayCompletions, useCompleteActivity } from '@/hooks/use-daily-set';
 import { haptic } from '@/lib/utils/haptics';
@@ -73,6 +74,15 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
   const careBusy = useRef(false);
 
   const cuidaId = useQuery({ queryKey: ['cuida-mundo-id'], queryFn: fetchCuidaMundoId, staleTime: Infinity, enabled: interactive });
+  // Decoraciones compradas (F11.2). Sólo en TU mundo: cuando visitás el de otra
+  // persona el canvas es no interactivo, y mostrarle tus cosas en la isla ajena
+  // sería mentira.
+  const decorations = useQuery({
+    queryKey: ['mundo-decorations'],
+    queryFn: fetchEquippedDecorations,
+    staleTime: 60_000,
+    enabled: interactive && !!profile,
+  });
   const todayDone = useTodayCompletions();
   const complete = useCompleteActivity();
   const alreadyWatered = !!cuidaId.data && !!todayDone.data?.has(cuidaId.data);
@@ -229,7 +239,14 @@ export function Mundo({ mundo, height = 300, className, hideOverlay = false, int
         </div>
       )}
 
-      <MundoCanvas mundo={state} night={effNight} dayT={effNight ? dayT : 0.35} watering={watering} onCare={interactive && profile ? onCare : undefined} />
+      <MundoCanvas
+        mundo={state}
+        night={effNight}
+        dayT={effNight ? dayT : 0.35}
+        watering={watering}
+        decorations={decorations.data ?? []}
+        onCare={interactive && profile ? onCare : undefined}
+      />
 
       {/* Depth of field and vignette are done for real in the 3D post stack. */}
 
