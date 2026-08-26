@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { usePipStyles } from '@/hooks/use-pip-styles';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
@@ -43,6 +44,9 @@ export default function PublicProfilePage() {
     enabled: !!params.username,
   });
   const p = q.data;
+  // get_public_profile predates the Pip-as-identity system.
+  const pips = usePipStyles([p?.id]);
+  const pipIdentity = p?.id ? pips.data?.[p.id] : undefined;
 
   if (q.isLoading) {
     return (
@@ -72,7 +76,7 @@ export default function PublicProfilePage() {
 
       <Card className="p-4">
         <div className="flex items-center gap-4">
-          <Avatar name={p.display_name ?? p.username} src={p.avatar_url} size={64} />
+          <PipAvatar pipStyle={pipIdentity?.pip_style} avatarUrl={p.avatar_url} name={p.display_name ?? p.username} rankSlug={pipIdentity?.rank_slug ?? null} size={64} ring />
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-display text-h1 font-bold">{p.display_name ?? p.username}</h1>
             <p className="text-small text-muted-foreground">

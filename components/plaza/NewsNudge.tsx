@@ -77,7 +77,7 @@ export function NewsNudge({ completionsToday }: { completionsToday: number }) {
   const inner = (
     <div className="pointer-events-auto mx-auto flex max-w-md items-center gap-2 rounded-pill border border-border bg-surface/95 py-2 pl-4 pr-2 shadow-soft-lg backdrop-blur">
       <Link
-        href="/explorar"
+        href="/feed"
         onClick={() => setVisible(false)}
         className="flex min-w-0 flex-1 items-center gap-2 text-small font-medium"
       >

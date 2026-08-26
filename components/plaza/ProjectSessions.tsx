@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
 import { Input, Field } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchProjectSessions, completeProjectSession } from '@/lib/api/explorar';
+import { fetchProjectSessions, completeProjectSession } from '@/lib/api/plaza';
 import { invalidateScores } from '@/lib/refresh';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';

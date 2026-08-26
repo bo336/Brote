@@ -11,7 +11,7 @@ export function NewsCard({ item }: { item: NewsRow }) {
     : '';
   return (
     <Link
-      href={`/explorar/novedades/${item.id}`}
+      href={`/feed/n/${item.id}`}
       className="flex gap-3 overflow-hidden rounded-card border border-border bg-surface p-3 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-soft-lg"
     >
       {item.image_url && (

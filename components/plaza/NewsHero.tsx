@@ -17,7 +17,7 @@ export function NewsHero({ item }: { item: NewsRow }) {
 
   return (
     <Reveal>
-      <Link href={`/explorar/novedades/${item.id}`} className="group block">
+      <Link href={`/feed/n/${item.id}`} className="group block">
         <div className="leaf-clip relative h-64 w-full overflow-hidden rounded-card sm:h-80">
           {item.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element

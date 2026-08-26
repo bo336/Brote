@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
 import { fetchImpact } from '@/lib/api/profile';
 import { formatPoints } from '@/lib/points';
+import { getRank } from '@/lib/ranks';
 
 const ImpactGlobe = dynamic(() => import('@/components/perfil/ImpactGlobe'), { ssr: false, loading: () => null });
 
@@ -42,7 +43,7 @@ export default function PerfilPage() {
         {/* Faint rank-coloured wash so the identity card is not a plain box. */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
         <div className="relative flex items-center gap-4">
-          <Avatar name={profile?.displayName} src={profile?.avatarUrl} size={64} />
+          <PipAvatar pipStyle={profile?.pipStyle} avatarUrl={profile?.avatarUrl} name={profile?.displayName} rankSlug={getRank(xp).rankSlug} size={64} ring animate />
           <div className="min-w-0 flex-1">
             {profile?.equippedTitle && <span className="eyebrow block text-primary">{profile.equippedTitle}</span>}
             <h1 className="truncate font-display text-h1 font-bold leading-tight">

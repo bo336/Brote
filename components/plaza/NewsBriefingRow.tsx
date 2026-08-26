@@ -20,7 +20,7 @@ export function NewsBriefingRow({ item }: { item: NewsRow }) {
 
   return (
     <Link
-      href={`/explorar/novedades/${item.id}`}
+      href={`/feed/n/${item.id}`}
       className="group -mx-2 flex items-center gap-3 rounded-button px-2 py-3.5 transition-colors duration-150 hover:bg-surface-2/70"
     >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dom?.color ?? '#1FB57A' }} aria-hidden />

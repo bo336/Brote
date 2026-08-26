@@ -16,10 +16,10 @@ import { useSession } from '@/stores/session';
 import { getRank, RANKS, RANK_BY_TIER } from '@/lib/ranks';
 import { DOMAINS } from '@/lib/domains';
 import { BARRIOS } from '@/lib/data/barrios';
-import { createProject, uploadProjectImage, fetchProjectMinRankTier } from '@/lib/api/explorar';
+import { createProject, uploadProjectImage, fetchProjectMinRankTier } from '@/lib/api/plaza';
 import { toast } from '@/stores/toast';
 
-const ProjectMap = dynamic(() => import('@/components/explorar/ProjectMap'), {
+const ProjectMap = dynamic(() => import('@/components/plaza/ProjectMap'), {
   ssr: false,
   loading: () => <Skeleton className="h-[200px] w-full" />,
 });
@@ -33,7 +33,7 @@ const TYPES = [
 ];
 
 export default function NuevoProyectoPage() {
-  const t = useTranslations('explorar');
+  const t = useTranslations('proyectos');
   const tc = useTranslations('common');
   const router = useRouter();
   const profile = useSession((s) => s.profile);
@@ -75,7 +75,7 @@ export default function NuevoProyectoPage() {
             <Link href="/acciones">Ver acciones</Link>
           </Button>
           <Button variant="secondary" asChild>
-            <Link href="/explorar">{tc('back')}</Link>
+            <Link href="/feed">{tc('back')}</Link>
           </Button>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function NuevoProyectoPage() {
         contactKind: contactInfo.trim() ? contactKind : null,
       });
       toast.success('¡Proyecto creado!');
-      router.push(`/explorar/proyectos/${id}`);
+      router.push(`/proyectos/${id}`);
     } catch (e) {
       toast.error('No se pudo crear', e instanceof Error ? e.message : '');
       setSaving(false);

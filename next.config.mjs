@@ -28,6 +28,20 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@react-three/drei', 'recharts'],
   },
+  /**
+   * /explorar split into /feed (the Plaza) and /proyectos. These are permanent
+   * because the old paths are already out in the world — in the PWA's cached
+   * shell, in shared news links, and in push notifications sent before the
+   * move. A 404 for someone tapping an old notification is a lost session.
+   */
+  async redirects() {
+    return [
+      { source: '/explorar', destination: '/feed', permanent: true },
+      { source: '/explorar/novedades/:id', destination: '/feed/n/:id', permanent: true },
+      { source: '/explorar/proyectos', destination: '/acciones?tab=proyectos', permanent: true },
+      { source: '/explorar/proyectos/:path*', destination: '/proyectos/:path*', permanent: true },
+    ];
+  },
 };
 
 export default withSerwist(withNextIntl(nextConfig));

@@ -10,7 +10,7 @@ import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
 import { cn } from '@/lib/utils/cn';
-import { leaveProject, type ProjectWithMeta } from '@/lib/api/explorar';
+import { leaveProject, type ProjectWithMeta } from '@/lib/api/plaza';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 
@@ -42,7 +42,7 @@ export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; to
 
   return (
     <Link
-      href={`/explorar/proyectos/${project.id}`}
+      href={`/proyectos/${project.id}`}
       className="block overflow-hidden rounded-card border border-border bg-surface shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-soft-lg"
     >
       <div className="relative h-28 w-full" style={{ background: `linear-gradient(135deg, ${domain?.color ?? '#1FB57A'}, ${domain?.color ?? '#1FB57A'}99)` }}>

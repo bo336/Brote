@@ -19,6 +19,7 @@ import { isStreakAtRisk } from '@/lib/streak';
 export function TopBar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const tp = useTranslations('proyectos');
   const tn = useTranslations('topbar');
   const profile = useSession((s) => s.profile);
   const unread = useSession((s) => s.unreadNotifications);
@@ -29,8 +30,11 @@ export function TopBar() {
 
   const title = (() => {
     if (pathname === '/') return null; // Home shows the logo
+    // /feed shows no title either: its SectionTabs ARE the title, and stacking
+    // a heading on top of them just eats a row of a phone screen.
+    if (pathname.startsWith('/feed')) return null;
     if (pathname.startsWith('/acciones')) return t('acciones');
-    if (pathname.startsWith('/explorar')) return t('explorar');
+    if (pathname.startsWith('/proyectos')) return tp('title');
     if (pathname.startsWith('/ranking')) return t('ranking');
     if (pathname.startsWith('/perfil')) return t('perfil');
     return null;

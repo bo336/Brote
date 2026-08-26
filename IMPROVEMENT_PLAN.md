@@ -5,6 +5,64 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
+
+### F16 · LA PLAZA (Feed v2) — FASE 1 ENTREGADA (2026-08-26)
+
+Del pack `Brote Feed prompts/`. El feed dejó de ser un río de noticias con un
+composer colgado y pasó a ser la superficie principal del producto adulto.
+
+**Base de datos** (repo `0040`–`0046`, aplicadas en vivo). Los números `0038` y
+`0039` estaban tomados por la rama de Semillas (sin mergear todavía), así que
+esta tanda arranca en `0040` para no chocar cuando las dos ramas se junten.
+- `0040_moderation_core` — espejo de lo ya aplicado en vivo: bloqueos, silencios,
+  denuncias, registro de decisiones, lista de palabras (28 patrones).
+- `0041_feed_enums` — `repost`/`milestone` + 6 tipos de notificación. Solo. Un
+  `ALTER TYPE ... ADD VALUE` no se puede usar en la misma transacción que lo crea.
+- `0042_social_graph` — `follows` (asimétrico, instantáneo, **distinto** de
+  `friendships`), contadores por trigger, `follow_user`/`unfollow_user`,
+  `suggested_accounts`, `search_profiles`, columnas nuevas de `profiles`.
+- `0043_notify_social` — notificador que **agrupa** por (usuario, tipo, clave)
+  por hora en vez de repetir.
+- `0044_feed_v2` — `feed_seen`, `feed_saves`, `feed_item_json`,
+  `feed_timeline_v2` (cursor, nunca OFFSET), `create_feed_post_v2`,
+  `react_to_post` v2, `feed_thread_v2`, `feed_pulse`, bucket `feed`.
+- `0045_feed_lock_grants` — cierre de `anon` + `pg_trgm` fuera de `public`.
+- `0046_pip_styles_lookup` — búsqueda por lote de Pip para las listas.
+
+**Verificado, no asumido:**
+- Paginación: 8 páginas por SQL y 6 páginas por UI real (120 items) → **0 duplicados**.
+- Edad, llamando a las RPC directo (no mirando la UI): un chico no publica, no
+  reacciona, no sigue, y su timeline devuelve **0 items que no sean noticia**.
+  Un adulto tampoco puede seguir a un chico.
+- Escritura: duplicado rechazado, >1000 rechazado, lista de palabras → retenido
+  (`held`, oculto pero NO descartado), `#agua` → `domain_tags {agua}`,
+  `age_groups {teen,adult}`, +2 semillas por primera publicación del día.
+- Redirecciones `/explorar*` → 308 a los destinos nuevos; cero referencias
+  muertas en el código.
+- `get_advisors(security)`: funciones nuevas ejecutables por `anon` **14 → 0**.
+
+**Dos bugs propios encontrados y corregidos durante la fase**, los dos silenciosos:
+1. `anon` podía ejecutar `feed_item_json` (SECURITY DEFINER) y leer cualquier
+   publicación por id, sin sesión. Revocar de `public` no alcanza: Supabase tiene
+   un ALTER DEFAULT PRIVILEGES que le da EXECUTE a `anon` en cada función nueva.
+2. Al mover las claves de proyectos de `explorar` a `proyectos`, las dos páginas
+   de proyecto siguieron pidiendo el namespace viejo. next-intl no rompe: el
+   botón "Sumarme" simplemente desapareció. Quedó un chequeo de claves para que
+   no vuelva a pasar en silencio.
+
+**Desvío del pack, anotado a propósito:** `pip_style` NO se agregó a las 13 RPC
+de ranking/competencias/amigos. Cada una tiene su forma de retorno y cambiarlas
+significa drop + recreate de las funciones que sostienen los rankings — algo que
+ya se rompió una vez. En su lugar, `pip_styles_for()` + `usePipStyles()`, una
+consulta por lista. El feed sí lleva `pip_style` adentro de `feed_item_json`,
+que es donde el rendimiento importa.
+
+**Fase 2** (`05_PHASE_2.md`): perfiles v2 con todas las estadísticas reales,
+hilos y permalinks con OG, repost/cita/guardados/editar, `/buscar`,
+notificaciones sociales con push, y la cola de moderación en `/panel`.
+
+---
+
 - **Phase:** F1-F4 DONE, F6 server-side QA DONE, F7 DONE → remaining: F5 (needs payment provider decision), F6.3 visual click-through, F2.3 archipelago polish, F4.4-AI upgrade of recap
 - **Last done (this block):** NEWS FIXED + FLOWING (12 articles live; cron rewired keyless w/ anon JWT — the Vault secret dependency is gone; push trigger too; live 0011 = repo 0020). Weekly recap cron (Mondays 10:00 AR, template-based, zero AI deps). Streak time-travel QA on live logic PASSED (T1 first daily → streak 1; T2 next-day → 2; T3 freeze consumed, streak survives; T4 no freeze → reset; correct notifications; challenge completions fired end-to-end; synthetic user cleaned up). RLS perf hardening (live 0012 = repo 0021): (select auth.uid()) once-per-query + deduped SELECT policies — advisors now clean of actionable items. OPERACIONES.html written (repo root, styled, Spanish): crons, infinite-content guarantees, AI fallbacks, owner actions, monitoring, costs.
 - **Remaining backlog:** F5 Semillas+Brote+ (blocked on payment provider choice: MercadoPago vs LemonSqueezy — ask user), F6.3 browser click-through + visual canvas check (test account via preview), F6.6 delete old paused Supabase project when confident, F2.3 archipelago swipe, F4.4 upgrade recap to AI-written when GEMINI_API_KEY exists, F3.4 mobile perf pass.

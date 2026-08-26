@@ -145,7 +145,7 @@ Five top-level destinations, thumb-reachable, with the center tab elevated:
 
 1. **Hoy** (Home/Today) — `/` — the daily hub + Tu Mundo + daily streak session. Default landing.
 2. **Acciones** (Activity Catalog) — `/acciones` — the 150+ catalog + personalized "Para Vos" feed.
-3. **Explorar** (Explore) — `/explorar` — two sub-tabs: **Novedades** (news) and **Proyectos** (community projects).
+3. **Explorar** (Explore) — `/feed` — two sub-tabs: **Novedades** (news) and **Proyectos** (community projects).
 4. **Ranking** (Leaderboards) — `/ranking` — global / domain / local / friends leaderboards + your standing.
 5. **Perfil** (Profile) — `/perfil` — rank, titles, badges, impact, your Mundo detail, your projects, goals, settings.
 
@@ -154,9 +154,9 @@ The center tab (Acciones) can be visually elevated as the primary action. Use cl
 ### 3.2 Secondary routes
 - `/onboarding` (multi-step, post-signup, pre-home)
 - `/acciones/[slug]` (activity detail + complete/verify flow)
-- `/explorar/proyectos/[id]` (project detail + join)
-- `/explorar/proyectos/nuevo` (create project — gated by min rank, see §8)
-- `/explorar/novedades/[id]` (full news item)
+- `/proyectos/[id]` (project detail + join)
+- `/proyectos/nuevo` (create project — gated by min rank, see §8)
+- `/feed/n/[id]` (full news item)
 - `/perfil/[username]` (public profile of another user)
 - `/perfil/objetivos` (goals manager)
 - `/perfil/logros` (titles & badges gallery)
@@ -464,17 +464,17 @@ Everything above the fold should make returning feel rewarding within seconds.
 - **ActivityCard:** illustrated icon, title, short desc, domain chip, point value (big amber), effort & impact badges, a verification badge if photo required, and a lock badge + "Desbloqueás en [Rank]" if `min_rank` not met. Tap → detail.
 - **Activity detail (`/acciones/[slug]`):** full illustration/3D-ish header, description, step-by-step instructions, impact equivalency, points, verification requirements. Primary CTA "Marcar como hecha" (honor) or "Subir foto y verificar" (photo_ai). Completion runs `complete_activity`; photo flow in §11. Shows your completion history for recurring ones and cooldown state. Tier-locked actions show what's needed to unlock.
 
-### 8.5 Explorar (`/explorar`) — two sub-tabs
+### 8.5 Explorar (`/feed`) — two sub-tabs
 **A) Novedades (News dashboard)**
 - Feed of `NewsCard`s from the AI-summarized `news` table, sorted by a blend of `interest_score`, recency, and match to the user's interest domains (personalized order).
-- Each card: image, punchy Spanish AI title + 1–2 line summary, source attribution + domain tag(s), published time, "leer más" → `/explorar/novedades/[id]` (full summary + outbound link to source; **link out — do not reproduce full article text**, only the AI summary + attribution).
+- Each card: image, punchy Spanish AI title + 1–2 line summary, source attribution + domain tag(s), published time, "leer más" → `/feed/n/[id]` (full summary + outbound link to source; **link out — do not reproduce full article text**, only the AI summary + attribution).
 - Filter chips by domain. Pull-to-refresh. Content must be **interesting**: the AI scoring + curation (§10.3) prioritizes engaging, relevant, recent items (innovations, wins, local Argentina/LatAm news when available) over dry press releases.
 
 **B) Proyectos (Community projects dashboard)**
 - Feed of `ProjectCard`s: image, title, type, domain chip, neighborhood + distance (if geo), date, participant count / max, upvotes, status, and a rank-lock badge if `min_rank` gating applies.
 - Sort/filter: cerca tuyo (by neighborhood), próximos (by date), populares (upvotes), por dominio, abiertos.
-- **Project detail (`/explorar/proyectos/[id]`):** full description, map (use a free map: Leaflet + OpenStreetMap tiles — no paid key), date, organizer profile, participant list/avatars, upvote button, **"Sumarme"** (join → `join_project`) / "Me interesa". Verified participation can grant `reward_points` (organizer or geo/photo confirmation — keep simple: organizer marks attendees, or honor + optional photo).
-- **Create project (`/explorar/proyectos/nuevo`):** gated — only users at rank ≥ **Plántula** (tier 3) may create (enforced server-side in `create_project`). Form: title, description, type, domain, neighborhood/location (map picker), date, max participants, optional image (Storage upload), optional `min_rank` to set a tier-gated project (the owner's requested "challenges/projects only for tier ≥ X"). Creating costs nothing; rewards community-building (badge/title).
+- **Project detail (`/proyectos/[id]`):** full description, map (use a free map: Leaflet + OpenStreetMap tiles — no paid key), date, organizer profile, participant list/avatars, upvote button, **"Sumarme"** (join → `join_project`) / "Me interesa". Verified participation can grant `reward_points` (organizer or geo/photo confirmation — keep simple: organizer marks attendees, or honor + optional photo).
+- **Create project (`/proyectos/nuevo`):** gated — only users at rank ≥ **Plántula** (tier 3) may create (enforced server-side in `create_project`). Form: title, description, type, domain, neighborhood/location (map picker), date, max participants, optional image (Storage upload), optional `min_rank` to set a tier-gated project (the owner's requested "challenges/projects only for tier ≥ X"). Creating costs nothing; rewards community-building (badge/title).
 - **Tier-gated projects/challenges:** projects (and certain challenges) may set `min_rank_slug`; users below see them but cannot join, with "Disponible desde [Rank]" — a motivation hook to climb.
 
 ### 8.6 Ranking / Leaderboards (`/ranking`)

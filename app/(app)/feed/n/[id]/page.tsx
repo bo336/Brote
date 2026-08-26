@@ -11,7 +11,7 @@ import { Pill } from '@/components/ui/pill';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
 import { getDomain } from '@/lib/domains';
-import { fetchNewsItem } from '@/lib/api/explorar';
+import { fetchNewsItem } from '@/lib/api/plaza';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { useAds } from '@/components/ads/AdsProvider';
 
@@ -46,7 +46,7 @@ export default function NewsDetailPage() {
         <Pip size={64} mood="neutral" />
         <p className="text-muted-foreground">No encontramos esa novedad.</p>
         <Button variant="secondary" asChild>
-          <Link href="/explorar">{tc('back')}</Link>
+          <Link href="/feed">{tc('back')}</Link>
         </Button>
       </div>
     );

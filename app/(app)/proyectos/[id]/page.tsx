@@ -10,20 +10,21 @@ import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquar
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { usePipStyles } from '@/hooks/use-pip-styles';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
-import { fetchProject, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/explorar';
-import { ProjectSessions } from '@/components/explorar/ProjectSessions';
+import { fetchProject, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/plaza';
+import { ProjectSessions } from '@/components/plaza/ProjectSessions';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 
-const ProjectMap = dynamic(() => import('@/components/explorar/ProjectMap'), {
+const ProjectMap = dynamic(() => import('@/components/plaza/ProjectMap'), {
   ssr: false,
   loading: () => <Skeleton className="h-[200px] w-full" />,
 });
@@ -31,7 +32,7 @@ const ProjectMap = dynamic(() => import('@/components/explorar/ProjectMap'), {
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const t = useTranslations('explorar');
+  const t = useTranslations('proyectos');
   const tc = useTranslations('common');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
@@ -48,6 +49,7 @@ export default function ProjectDetailPage() {
     enabled: !!params.id,
   });
 
+  const pips = usePipStyles((participantsQ.data ?? []).map((u) => u.id));
   const p = projectQ.data;
   const locked = p ? !meetsRank(totalXp, p.min_rank_slug) : false;
 
@@ -84,7 +86,7 @@ export default function ProjectDetailPage() {
         <Pip size={64} mood="neutral" />
         <p className="text-muted-foreground">No encontramos ese proyecto.</p>
         <Button variant="secondary" asChild>
-          <Link href="/explorar">{tc('back')}</Link>
+          <Link href="/feed">{tc('back')}</Link>
         </Button>
       </div>
     );
@@ -155,7 +157,7 @@ export default function ProjectDetailPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {(participantsQ.data ?? []).map((u) => (
-            <Avatar key={u.id} name={u.display_name ?? u.username} src={u.avatar_url} size={36} />
+            <PipAvatar key={u.id} pipStyle={pips.data?.[u.id]?.pip_style ?? null} avatarUrl={u.avatar_url} name={u.display_name ?? u.username} rankSlug={u.rank_slug} size={36} ring href={u.username ? `/perfil/${u.username}` : undefined} />
           ))}
           {(participantsQ.data ?? []).length === 0 && (
             <p className="text-small text-muted-foreground">Sé la primera persona en sumarte.</p>

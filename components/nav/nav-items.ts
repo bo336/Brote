@@ -1,18 +1,25 @@
-import { Home, Leaf, Compass, Trophy, User, GraduationCap, type LucideIcon } from 'lucide-react';
+import { Home, Leaf, MessagesSquare, Trophy, User, GraduationCap, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
-  key: 'hoy' | 'acciones' | 'explorar' | 'ranking' | 'perfil' | 'aprender';
+  key: 'hoy' | 'acciones' | 'plaza' | 'ranking' | 'perfil' | 'aprender';
   href: string;
   icon: LucideIcon;
   /** The center action tab is visually elevated. */
   elevated?: boolean;
 }
 
+/**
+ * Still exactly five tabs, centre elevated. "Explorar" became "Plaza" (`/feed`)
+ * — the same slot, but it is now the social timeline instead of a news river
+ * sharing a tab with Projects. Projects moved under Acciones, because a project
+ * IS an action (a group one), so it belongs where people go to act rather than
+ * where they go to read.
+ */
 export const NAV_ITEMS: NavItem[] = [
   { key: 'hoy', href: '/', icon: Home },
   { key: 'ranking', href: '/ranking', icon: Trophy },
   { key: 'acciones', href: '/acciones', icon: Leaf, elevated: true },
-  { key: 'explorar', href: '/explorar', icon: Compass },
+  { key: 'plaza', href: '/feed', icon: MessagesSquare },
   { key: 'perfil', href: '/perfil', icon: User },
 ];
 
