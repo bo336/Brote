@@ -55,6 +55,13 @@ export interface FeedItem {
   /** 1 = liked, -1 = disliked, null = no reaction from this user. */
   my_reaction: number | null;
   saved: boolean;
+  /** Whether *you* have already replanted this one — drives the toggle. */
+  reposted: boolean;
+  /**
+   * Held by the word list, pending review. Only ever true on your own profile:
+   * every other surface filters hidden posts out before they reach here.
+   */
+  hidden: boolean;
   author: FeedAuthor | null;
   news: FeedNews | null;
   repost_of: FeedRepostOf | null;
@@ -189,6 +196,29 @@ export async function deletePost(postId: string): Promise<{ ok: boolean; error?:
   const { data, error } = await createClient().rpc('delete_feed_post', { p_post_id: postId });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string };
+}
+
+/**
+ * Undo your own replant.
+ *
+ * A dedicated RPC rather than "find my repost id, then call deletePost":
+ * one round trip instead of two, and the `author_id = auth.uid()` filter
+ * lives on the server, so there is no window in which the id being deleted
+ * could be somebody else's.
+ */
+export async function unrepost(
+  postId: string,
+): Promise<{ ok: boolean; removed?: number; repost_count?: number; error?: string }> {
+  const { data, error } = await createClient().rpc('unrepost', { p_post_id: postId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; removed?: number; repost_count?: number };
+}
+
+/** The server allows edits for 5 minutes; the UI hides the option after that. */
+export const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
+export function canStillEdit(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() < EDIT_WINDOW_MS;
 }
 
 export async function editPost(postId: string, body: string): Promise<{ ok: boolean; error?: string }> {

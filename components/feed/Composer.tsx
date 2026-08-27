@@ -29,6 +29,8 @@ const MAX = 1000;
 export function Composer({
   parentId,
   newsId,
+  repostOf,
+  initialBody,
   placeholder,
   onPosted,
   autoFocus = false,
@@ -36,6 +38,10 @@ export function Composer({
 }: {
   parentId?: string | null;
   newsId?: string | null;
+  /** Set when this composer is writing a quote ("Citar") of another post. */
+  repostOf?: string | null;
+  /** Prefilled text — used to seed "@handle " when answering a reply. */
+  initialBody?: string;
   placeholder?: string;
   onPosted?: () => void;
   autoFocus?: boolean;
@@ -46,7 +52,7 @@ export function Composer({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(autoFocus || compact);
-  const [body, setBody] = useState('');
+  const [body, setBody] = useState(initialBody ?? '');
   const [busy, setBusy] = useState(false);
   const [image, setImage] = useState<{ url: string; preview: string } | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -106,6 +112,7 @@ export function Composer({
       body: text,
       parentId: parentId ?? null,
       newsId: newsId ?? null,
+      repostOf: repostOf ?? null,
       imageUrl: image?.url ?? null,
     });
     setBusy(false);

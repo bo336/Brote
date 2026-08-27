@@ -6,6 +6,106 @@
 
 ## CURRENT STATE
 
+### F16 · LA PLAZA (Feed v2) — FASE 2 ENTREGADA (2026-08-27)
+
+Perfiles con números reales, hilos que se pueden linkear, replantar/citar/guardar/editar,
+buscador, notificaciones sociales y la cola de moderación en `/panel`.
+
+**Base de datos** (repo `0053`–`0064`, todas aplicadas en vivo).
+- `0053_share_cards` — `feed_post_og` (la ÚNICA función del feed que `anon` puede
+  ejecutar, y sólo porque el rastreador de WhatsApp/Twitter no tiene sesión;
+  devuelve `null` para autor teen, perfil privado o post retenido) y `news_post_id`.
+- `0054_repost_toggle` — `reposted` dentro de `feed_item_json` + `unrepost`.
+- `0055_feed_shape_repost_milestone` — **bug real**: el CHECK `feed_shape` era de
+  cuando había tres formas (news/post/reply). Como 0041 agregó `repost` y
+  `milestone` al enum pero nadie tocó el CHECK, **todo replante y todo logro
+  autopublicado fallaba con `23514`**. El trigger de logros se tragaba el error,
+  así que no se veía.
+- `0056_repost_count_trigger` — **bug real**: `repost_count` se incrementaba a mano
+  y nadie restaba nunca. Ahora lo recalcula un trigger desde la verdad, igual que
+  `reply_count`. Verificado 0→1→2→1→0.
+- `0057_flatten_replies` — **bug real**: `feed_thread_v2` trae sólo hijas directas
+  de la raíz, pero `create_feed_post_v2` guardaba el `parent_id` tal cual. Responder
+  a una respuesta la guardaba bien y **no la mostraba nunca más**. Trigger BEFORE
+  INSERT que reenraiza; a quién le respondés se ve por el "@usuario" que precarga
+  la interfaz.
+- `0058_pip_styles_actors` — `pip_styles_for` ahora trae también nombre, foto y
+  `is_following`, para pintar quién te notificó.
+- `0059_feed_realtime` — `feed_posts` en la publicación de realtime (RLS se
+  respeta: un chico no recibe el evento de algo que no puede ver).
+- `0060_held_posts_visible_to_author` — una publicación retenida se le sigue
+  viendo a quien la escribió, con el cartel "En revisión". Para el resto no existe.
+- `0061_fix_replies_received_alias` — **el peor bug de la tanda: SEGUIR A ALGUIEN
+  FALLABA SIEMPRE.** La rama `replies_received` de 0051 usa `from feed_posts r`, y
+  la función ya declara `r record`: plpgsql resolvía `r.kind` contra la variable
+  sin asignar (`55000`). Como corre en un trigger AFTER INSERT sobre `follows`, la
+  excepción abortaba la transacción entera. Se renombró el alias y además el
+  trigger ahora no puede voltear un follow por un fallo repartiendo insignias.
+- `0062_cursor_end_of_list` — **bug real**: las cuatro funciones paginadas del
+  perfil devolvían cursor aunque la página viniera corta, así que "Cargar más" no
+  desaparecía nunca y pedía páginas vacías para siempre. Es el mismo error que ya
+  estaba corregido en `feed_timeline_v2`; faltaba aplicarlo acá.
+- `0063_lock_trigger_functions` — seis funciones de trigger estaban publicadas en
+  `/rest/v1/rpc/`. No eran explotables, pero la regla desde 0045 es no exponer lo
+  que no se usa.
+- `0064_feed_indexes` — índice duplicado que yo mismo había creado en 0044
+  (`idx_feed_author_created` ≡ `idx_feed_author`) y las FK sin índice de
+  `feed_saves`, `feed_seen`, `content_reports` y `moderation_actions` (importan en
+  los borrados en cascada, que es justo donde `feed_seen` es grande).
+
+**Verificado en la base, no asumido:**
+- 5 me gusta de 5 personas distintas → **1 sola notificación con `count: 5`**;
+  la propia reacción de la autora no suma.
+- Silenciada → 0 notificaciones. Bloqueo → deja de seguir en los **dos** sentidos,
+  y desaparece de búsqueda, perfil y publicaciones, también en los dos sentidos.
+- Editar: dentro de 5 min OK + `edited_at`; a los 6 min rechazado; lo ajeno rechazado.
+- 2 denuncias → visible; la 3ª → se oculta sola; la autora la sigue viendo "En
+  revisión" y nadie más la ve.
+- Moderación: contraseña equivocada rechazada, ocultar/restaurar/descartar OK,
+  2 sostenidas no suspenden y la 3ª sí, se avisa a la autora, queda registro en
+  `moderation_actions`. **La contraseña del dueño se guardó y se restauró byte a
+  byte** (verificado) — nunca la vi ni la necesité.
+- Vista previa pública: adulta+pública trae datos; perfil privado, autor teen y
+  post oculto devuelven `null` (verificado los cuatro casos).
+
+**Verificado en el navegador, con sesión real:**
+- Seguir desde "A quién seguir" → fila, contadores y notificación (era justo lo
+  que rompía 0061).
+- Publicar → aparece en el feed sin recargar; replantar → citar → des-replantar
+  con el contador siguiendo la verdad; guardar → aparece en `/perfil/guardados`.
+- Editar desde el menú ⋯ dentro de los 5 minutos → texto nuevo + "editado".
+- Responder a una respuesta → precarga "@aureum", y se ve plana con
+  "EN RESPUESTA A @AUREUM" y el handle sacado del cuerpo.
+- `/feed/p/[id]` **abre sin sesión** y con las etiquetas OG correctas
+  (`curl | grep og:` → título, descripción, imagen del medio); un id que no se
+  puede previsualizar cae al login con `?next=`. El resto de la app sigue cerrada.
+- Notificaciones: chips Todo/Social/Progreso/Sistema, Pip de quien te notificó,
+  "Seguir de vuelta" en el lugar donde leés que te siguieron, y el enlace a la
+  conversación.
+- `/panel` → cola con el texto denunciado, la confianza de la cuenta y las
+  sostenidas de 30 días; ocultar avisa a la autora y deja registro.
+
+**Tres bugs propios más, encontrados mirando la interfaz y no la base:**
+1. **Ajustes borraba tu nombre y tu provincia.** Los campos se inicializaban
+   desde el store antes de que `SessionHydrator` lo llenara, así que quedaban en
+   `''` y "Guardar cambios" escribía vacío encima. (Era anterior a esta fase; el
+   campo de usuario nuevo lo heredó.)
+2. **Cambiar un interruptor de notificaciones borraba todos los demás.** La
+   pantalla escribía `{ push: true, ...next }`, que REEMPLAZA la columna entera:
+   tocar "Novedades" se llevaba puestas las cinco de la Plaza y las de
+   autopublicar. Ahora se combina en vez de reemplazar.
+3. **Publicar no mostraba tu publicación.** El composer hacía scroll al tope de un
+   timeline que todavía no la tenía.
+
+**Concordancia de plural:** "y 1 personas más" → `{n, plural, ...}` en las dos
+lenguas, igual que "1 denuncias" en el panel.
+
+**Fase 3** (`06_PHASE_3.md`): escalera de contenido para cuentas nuevas, paso de
+seguir en el onboarding, `delete_my_account` extendido a las tablas nuevas,
+normas de comunidad enlazadas, y la pasada de rendimiento/accesibilidad.
+
+---
+
 ### F16 · LA PLAZA (Feed v2) — FASE 1 ENTREGADA (2026-08-26)
 
 Del pack `Brote Feed prompts/`. El feed dejó de ser un río de noticias con un
@@ -57,9 +157,7 @@ ya se rompió una vez. En su lugar, `pip_styles_for()` + `usePipStyles()`, una
 consulta por lista. El feed sí lleva `pip_style` adentro de `feed_item_json`,
 que es donde el rendimiento importa.
 
-**Fase 2** (`05_PHASE_2.md`): perfiles v2 con todas las estadísticas reales,
-hilos y permalinks con OG, repost/cita/guardados/editar, `/buscar`,
-notificaciones sociales con push, y la cola de moderación en `/panel`.
+**Fase 2**: entregada el 2026-08-27 — ver el bloque de arriba.
 
 ---
 

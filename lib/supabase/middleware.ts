@@ -4,7 +4,20 @@ import { NextResponse, type NextRequest } from 'next/server';
 /** Routes that don't require authentication. */
 // `/legal` must be public: the terms and privacy policy are linked from the
 // login screen and have to be readable BEFORE anyone accepts them.
-const PUBLIC_PREFIXES = ['/auth', '/legal', '/instalar', '/offline', '/_next', '/api/public'];
+// `/feed/p/` is public because a shared link has to open for the person you
+// shared it with — and because the Open Graph card is fetched by a crawler
+// that has no session at all. What a signed-out visitor actually gets is a
+// preview built from `feed_post_og`, which returns nothing for a teen author,
+// a private profile or a held post. The gate is in the RPC, not here.
+const PUBLIC_PREFIXES = [
+  '/auth',
+  '/legal',
+  '/instalar',
+  '/offline',
+  '/_next',
+  '/api/public',
+  '/feed/p/',
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
@@ -56,5 +69,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next({ request });
+  // Layouts cannot read the pathname, and the app shell needs it to know when
+  // it is rendering a public permalink for somebody with no session.
+  const headers = new Headers(request.headers);
+  headers.set('x-pathname', pathname);
+  return NextResponse.next({ request: { headers } });
 }

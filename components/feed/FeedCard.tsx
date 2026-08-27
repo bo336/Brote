@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { BadgeCheck, ExternalLink, Sprout, Trophy } from 'lucide-react';
+import { BadgeCheck, ExternalLink, Sprout, Trophy, Clock } from 'lucide-react';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { ReactionBar } from './ReactionBar';
@@ -32,6 +32,7 @@ export function FeedCard({
   onReply,
   onSeen,
   readOnly,
+  avatarSize = 40,
   className,
 }: {
   item: FeedItem;
@@ -39,6 +40,8 @@ export function FeedCard({
   onSeen?: (id: string) => void;
   /** Kid accounts read only: no reactions, no menu. */
   readOnly?: boolean;
+  /** 56 on a permalink root, 40 in a list. */
+  avatarSize?: number;
   className?: string;
 }) {
   const t = useTranslations('feed');
@@ -80,6 +83,16 @@ export function FeedCard({
 
   return (
     <article ref={rowRef} className={cn('py-4', className)}>
+      {/* Held by the word list. Shown only to the author (the server does not
+          return hidden posts to anyone else), so nobody is left thinking their
+          post evaporated. */}
+      {item.hidden && (
+        <p className="mb-1.5 inline-flex items-center gap-1 rounded-pill bg-surface-2 px-2 py-0.5 text-caption font-medium text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {t('underReview')}
+        </p>
+      )}
+
       {/* "X replantó" sits above the row it belongs to. */}
       {item.kind === 'repost' && item.author && (
         <p className="eyebrow mb-1.5 flex items-center gap-1 text-muted-foreground">
@@ -96,16 +109,24 @@ export function FeedCard({
             avatarUrl={item.author.avatar_url}
             name={item.author.display_name}
             rankSlug={item.author.rank_slug}
-            size={40}
+            size={avatarSize}
             ring
             href={profileHref}
           />
         ) : (
           <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]"
-            style={{ background: `${dom?.color ?? '#1FB57A'}1f` }}
+            className="flex shrink-0 items-center justify-center rounded-[12px]"
+            style={{
+              background: `${dom?.color ?? '#1FB57A'}1f`,
+              width: avatarSize,
+              height: avatarSize,
+            }}
           >
-            <DomainIcon domain={item.domain_tags?.[0] ?? 'comunidad'} size={20} variant="bare" />
+            <DomainIcon
+              domain={item.domain_tags?.[0] ?? 'comunidad'}
+              size={Math.round(avatarSize / 2)}
+              variant="bare"
+            />
           </span>
         )}
 

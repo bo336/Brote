@@ -15,6 +15,7 @@ import {
   adminSetSimulatedCount,
   type AdminDashboard,
 } from '@/lib/api/admin';
+import { ModerationQueue } from '@/components/panel/ModerationQueue';
 import { toast } from '@/stores/toast';
 
 /**
@@ -237,6 +238,10 @@ export default function PanelPage() {
             ))}
         </Card>
       </section>
+
+      {/* Moderation sits high on this screen on purpose: it is the only part
+          of the panel where somebody is waiting on the other side. */}
+      <ModerationQueue pass={pass} />
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Jugadores simulados</h2>

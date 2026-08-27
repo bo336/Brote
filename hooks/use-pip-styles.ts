@@ -9,6 +9,9 @@ export interface PipIdentity {
   rank_slug: string | null;
   is_verified: boolean;
   username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  is_following: boolean;
 }
 
 /**

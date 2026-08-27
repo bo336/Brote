@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/utils/image-compress';
-import type { ProjectRow, NewsRow } from '@/lib/supabase/rows';
+import type { ProjectRow, NewsRow, ActivityRow } from '@/lib/supabase/rows';
 
 export interface ProjectWithMeta extends ProjectRow {
   participant_count: number;
@@ -260,4 +260,78 @@ export async function fetchNewsItem(id: string): Promise<NewsRow | null> {
   const { data, error } = await supabase.from('news').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
   return (data as NewsRow | null) ?? null;
+}
+
+export interface NewsSearchResult {
+  id: string;
+  title_es: string | null;
+  summary_es: string | null;
+  image_url: string | null;
+  source: string | null;
+  source_url: string;
+  published_at: string | null;
+  domain_tags: string[];
+}
+
+/** Story search by headline. Age-filtered server-side like every news read. */
+export async function searchNews(q: string, limit = 20): Promise<NewsSearchResult[]> {
+  if (q.trim().length < 2) return [];
+  const { data, error } = await createClient().rpc('search_news', { p_q: q.trim(), p_limit: limit });
+  if (error) return [];
+  return (data ?? []) as NewsSearchResult[];
+}
+
+/** The conversation attached to a story, if the reader's age allows it. */
+export async function fetchNewsPostId(newsId: string): Promise<string | null> {
+  const { data, error } = await createClient().rpc('news_post_id', { p_news_id: newsId });
+  if (error) return null;
+  return (data as string | null) ?? null;
+}
+
+export interface DoSomething {
+  activities: ActivityRow[];
+  projects: ProjectWithMeta[];
+}
+
+/**
+ * "Hacer algo": what a reader can actually do about the story they just read.
+ *
+ * This is the whole reason the Plaza carries news at all — an environment app
+ * whose feed only makes you feel bad is an app that makes you close it. Two
+ * actions and any open project in the same domain, and nothing invented: if
+ * there is no project in that topic, none is shown.
+ */
+export async function fetchDoSomething(
+  domains: string[],
+  accountType: 'kid' | 'teen' | 'adult' = 'adult',
+  userId?: string,
+): Promise<DoSomething> {
+  if (domains.length === 0) return { activities: [], projects: [] };
+  const supabase = createClient();
+
+  const [{ data: acts }, projects] = await Promise.all([
+    supabase
+      .from('activities')
+      .select('*')
+      .eq('active', true)
+      .in('type', ['catalog', 'daily'])
+      .in('domain_slug', domains)
+      .contains('age_groups', [accountType])
+      .order('sort_order')
+      .limit(2),
+    // Kids never see projects: they are in-person meet-ups with strangers.
+    accountType === 'kid' ? Promise.resolve([] as ProjectWithMeta[]) : fetchProjects(userId),
+  ]);
+
+  return {
+    activities: (acts ?? []) as ActivityRow[],
+    projects: projects
+      .filter(
+        (p) =>
+          (p.status === 'active' || p.status === 'proposed') &&
+          p.domain_slug &&
+          domains.includes(p.domain_slug),
+      )
+      .slice(0, 1),
+  };
 }

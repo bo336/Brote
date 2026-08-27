@@ -1,105 +1,118 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { PipAvatar } from '@/components/pip/PipAvatar';
-import { usePipStyles } from '@/hooks/use-pip-styles';
+import { useTranslations } from 'next-intl';
+import { ArrowLeft, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
-import { RankBadge } from '@/components/brand/RankBadge';
-import { PointsBadge } from '@/components/brand/PointsBadge';
-import { StreakFlame } from '@/components/brand/StreakFlame';
-import { Mundo } from '@/components/mundo/Mundo';
-import { createClient } from '@/lib/supabase/client';
-import { parseMundoState } from '@/lib/mundo';
+import { SectionHeader } from '@/components/ui/section';
+import { ProfileHeader } from '@/components/perfil/ProfileHeader';
+import { ProfileStats } from '@/components/perfil/ProfileStats';
+import { ProfileTabs } from '@/components/perfil/ProfileTabs';
+import { fetchPublicProfileV2 } from '@/lib/api/perfil-publico';
+import type { MundoState } from '@/lib/mundo';
 
-interface PublicProfile {
-  id: string;
-  username: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  city: string | null;
-  neighborhood: string | null;
-  total_xp: number;
-  current_streak: number;
-  title_es: string | null;
-  mundo_state: unknown;
-}
+// The 3D world is heavy and is the reward, not the reputation — it loads last.
+const Mundo = dynamic(() => import('@/components/mundo/Mundo').then((m) => m.Mundo), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[280px] w-full rounded-card" />,
+});
 
-async function fetchPublicProfile(username: string): Promise<PublicProfile | null> {
-  const { data } = await createClient().rpc('get_public_profile', { p_username: username });
-  return ((data ?? [])[0] as PublicProfile) ?? null;
-}
-
+/**
+ * Someone else's profile.
+ *
+ * The numbers come first and the world comes last, deliberately: the impact
+ * figures are what make an account worth following, the world is the prize.
+ * Visiting someone's world is read-only — that bug was fixed once already and
+ * `interactive` is what keeps it fixed.
+ */
 export default function PublicProfilePage() {
-  const params = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>();
+  const router = useRouter();
+  const t = useTranslations('perfilPublico');
+  const tc = useTranslations('common');
+
   const q = useQuery({
-    queryKey: ['public-profile', params.username],
-    queryFn: () => fetchPublicProfile(params.username),
-    enabled: !!params.username,
+    queryKey: ['public-profile', username],
+    queryFn: () => fetchPublicProfileV2(username),
+    enabled: !!username,
   });
-  const p = q.data;
-  // get_public_profile predates the Pip-as-identity system.
-  const pips = usePipStyles([p?.id]);
-  const pipIdentity = p?.id ? pips.data?.[p.id] : undefined;
 
   if (q.isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-28 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
-  if (!p) {
+
+  const res = q.data;
+  if (!res?.ok || !res.profile || !res.viewer) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={64} mood="neutral" />
-        <p className="text-muted-foreground">No encontramos a @{params.username}.</p>
-        <Button variant="secondary" asChild>
-          <Link href="/ranking">Volver</Link>
+        <p className="text-muted-foreground">{res?.error ?? t('notFound')}</p>
+        <Button variant="secondary" onClick={() => router.push('/feed')}>
+          {tc('back')}
         </Button>
       </div>
     );
   }
 
+  const { profile, viewer, stats, recent } = res;
+
   return (
-    <div className="space-y-5">
-      <Link href="/ranking" className="inline-flex items-center gap-1.5 text-small text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> Ranking
-      </Link>
+    <div className="space-y-5 pb-6">
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1.5 text-small text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" /> {tc('back')}
+      </button>
 
-      <Card className="p-4">
-        <div className="flex items-center gap-4">
-          <PipAvatar pipStyle={pipIdentity?.pip_style} avatarUrl={p.avatar_url} name={p.display_name ?? p.username} rankSlug={pipIdentity?.rank_slug ?? null} size={64} ring />
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate font-display text-h1 font-bold">{p.display_name ?? p.username}</h1>
-            <p className="text-small text-muted-foreground">
-              {p.username ? `@${p.username}` : ''}
-              {p.city ? ` · ${p.city}` : p.neighborhood ? ` · ${p.neighborhood}` : ''}
-            </p>
-            {p.title_es && <p className="text-caption font-medium text-primary">{p.title_es}</p>}
-          </div>
-        </div>
-        {p.bio && <p className="mt-3 text-small text-muted-foreground">{p.bio}</p>}
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <RankBadge totalXp={p.total_xp} variant="full" size={52} />
-          <div className="flex flex-col items-end gap-1">
-            <PointsBadge value={p.total_xp} animate={false} />
-            <StreakFlame count={p.current_streak} size="sm" />
-          </div>
-        </div>
-      </Card>
+      <ProfileHeader profile={profile} viewer={viewer} />
 
-      <section>
-        <h2 className="mb-2 font-display text-h3 font-bold">Su mundo</h2>
-        <Mundo mundo={parseMundoState(p.mundo_state)} height={300} interactive={false} />
-      </section>
+      {/* A private or followers-only account still gets a header — that is what
+          lets you decide to follow — but nothing behind it. */}
+      {!viewer.can_see ? (
+        <Card className="flex flex-col items-center gap-2 p-8 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-2 text-muted-foreground">
+            <Lock className="h-5 w-5" />
+          </span>
+          <p className="font-display text-h3 font-bold">{t('privateTitle')}</p>
+          <p className="max-w-xs text-balance text-small leading-relaxed text-muted-foreground">
+            {t('privateBody')}
+          </p>
+        </Card>
+      ) : (
+        <>
+          {stats && <ProfileStats profile={profile} stats={stats} />}
+
+          <ProfileTabs userId={profile.id} isMe={viewer.is_me} displayName={profile.display_name} />
+
+          {profile.mundo_state ? (
+            <section>
+              <SectionHeader eyebrow={t('theReward')} title={t('theirWorld')} />
+              <div className="overflow-hidden rounded-card shadow-soft-lg">
+                {/* interactive={false}: visiting must never let you water or
+                    care for someone else's world as if it were yours. */}
+                <Mundo mundo={profile.mundo_state as MundoState} height={280} interactive={false} />
+              </div>
+            </section>
+          ) : null}
+        </>
+      )}
+
+      {/* `recent` is already in the payload; the tabs re-fetch page 1 so the
+          list stays consistent as you switch. Kept here only as a hint that a
+          brand-new account is not broken, just empty. */}
+      {viewer.can_see && (recent?.posts.length ?? 0) === 0 && profile.posts_count === 0 && null}
     </div>
   );
 }

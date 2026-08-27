@@ -1,96 +1,99 @@
-'use client';
-
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Pip } from '@/components/pip/Pip';
-import { FeedCard } from '@/components/feed/FeedCard';
-import { Composer } from '@/components/feed/Composer';
-import { ThreadReply } from '@/components/feed/ThreadReply';
-import { fetchThread, deletePost } from '@/lib/api/feed';
-import { useSession } from '@/stores/session';
-import { toast } from '@/stores/toast';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { PostThreadView } from '@/components/feed/PostThreadView';
+import { PublicPostPreview } from '@/components/feed/PublicPostPreview';
+import { BRAND } from '@/lib/brand';
 
 /**
  * Post permalink.
  *
- * This route exists in phase 1 because notifications, shares and deep links
- * all point at it — a conversation you cannot link to is a dead end, which is
- * exactly what the old sheet-only thread was. The richer treatment (OG tags,
- * nested "in reply to" resolution) is phase 2.
+ * A server component only so `generateMetadata` can run — the thread itself is
+ * still client-rendered. What the crawler gets comes from `feed_post_og`
+ * (migration 0053), the one feed function `anon` may call, and it deliberately
+ * returns nothing for a teen author, a private profile or a held post. In
+ * those cases the link still works; it just previews as plain Brote instead of
+ * leaking someone's words into a chat thread they never chose to be in.
  */
-export default function PostPermalinkPage() {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const t = useTranslations('feed');
-  const tc = useTranslations('common');
-  const qc = useQueryClient();
-  const isKid = useSession((s) => s.profile?.accountType) === 'kid';
+export const dynamic = 'force-dynamic';
 
-  const q = useQuery({ queryKey: ['feed-thread', id], queryFn: () => fetchThread(id), enabled: !!id });
+interface OgPost {
+  kind: string;
+  title: string | null;
+  body: string | null;
+  summary: string | null;
+  image: string | null;
+  source: string | null;
+  author: string | null;
+}
 
-  function refresh() {
-    qc.invalidateQueries({ queryKey: ['feed-thread', id] });
-    qc.invalidateQueries({ queryKey: ['feed'] });
+async function loadOg(id: string): Promise<OgPost | null> {
+  try {
+    const { data, error } = await createClient().rpc('feed_post_og', { p_post_id: id });
+    if (error || !data) return null;
+    return data as OgPost;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const og = await loadOg(params.id);
+
+  if (!og) {
+    return {
+      title: BRAND.name,
+      description: BRAND.description,
+      openGraph: { title: BRAND.name, description: BRAND.description, images: [{ url: '/og.png' }] },
+    };
   }
 
-  async function removeReply(replyId: string) {
-    const res = await deletePost(replyId);
-    if (res.ok) refresh();
-    else toast.error(t('postFailed'), res.error);
+  const title = og.title?.trim() || BRAND.name;
+  // A story keeps its source line; a person's post is credited to the person.
+  const description =
+    og.summary?.trim() ||
+    og.body?.trim() ||
+    (og.source ? `${og.source} · ${BRAND.name}` : BRAND.description);
+  const byline = og.author ? `${title} — ${og.author}` : title;
+  const image = og.image ?? '/og.png';
+
+  return {
+    title: byline,
+    description,
+    openGraph: {
+      title: byline,
+      description,
+      type: 'article',
+      locale: 'es_AR',
+      images: [{ url: image }],
+    },
+    twitter: { card: 'summary_large_image', title: byline, description, images: [image] },
+  };
+}
+
+export default async function PostPermalinkPage({ params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    const og = await loadOg(params.id);
+    // No session and nothing safe to preview: the login page is the honest
+    // destination, and it comes back here afterwards.
+    if (!og) redirect(`/auth/login?next=${encodeURIComponent(`/feed/p/${params.id}`)}`);
+    return (
+      <PublicPostPreview
+        id={params.id}
+        title={og.title}
+        body={og.body}
+        summary={og.summary}
+        image={og.image}
+        source={og.source}
+        author={og.author}
+      />
+    );
   }
 
-  return (
-    <div className="space-y-4 pb-6">
-      <button
-        onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 text-small text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> {tc('back')}
-      </button>
-
-      {q.isLoading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      ) : !q.data?.post ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <Pip size={64} mood="neutral" />
-          <p className="text-muted-foreground">{t('postNotFound')}</p>
-          <Button variant="secondary" onClick={() => router.push('/feed')}>
-            {t('title')}
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="border-b border-border pb-2">
-            <FeedCard item={q.data.post} readOnly={isKid} />
-          </div>
-
-          {!isKid && (
-            <Composer parentId={q.data.post.id} placeholder={t('replyPlaceholder')} onPosted={refresh} compact />
-          )}
-
-          <section>
-            <span className="eyebrow block text-muted-foreground">{t('replies')}</span>
-            <div className="mt-1 divide-y divide-hairline">
-              {q.data.replies.length === 0 ? (
-                <p className="py-6 text-center text-small text-muted-foreground">
-                  Todavía no hay comentarios. Estrenalo vos 🌱
-                </p>
-              ) : (
-                q.data.replies.map((r) => (
-                  <ThreadReply key={r.id} reply={r} onDelete={isKid ? undefined : removeReply} />
-                ))
-              )}
-            </div>
-          </section>
-        </>
-      )}
-    </div>
-  );
+  return <PostThreadView id={params.id} />;
 }

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Heart, ThumbsDown, MessageCircle, Repeat2, Bookmark, Share2 } from 'lucide-react';
-import { reactToPost, toggleSave, createPost, type FeedItem } from '@/lib/api/feed';
+import { reactToPost, toggleSave, createPost, unrepost, type FeedItem } from '@/lib/api/feed';
+import { RepostSheet } from './RepostSheet';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
@@ -31,6 +32,8 @@ export function ReactionBar({ item, onReply }: { item: FeedItem; onReply?: () =>
   });
   const [saved, setSaved] = useState(item.saved);
   const [reposts, setReposts] = useState(item.repost_count);
+  const [reposted, setReposted] = useState(item.reposted);
+  const [repostOpen, setRepostOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (isKid) return null;
@@ -67,17 +70,53 @@ export function ReactionBar({ item, onReply }: { item: FeedItem; onReply?: () =>
     else setSaved(res.saved ?? next);
   }
 
-  async function repost() {
+  /**
+   * The icon is a toggle, not an "add one more". Tapping it when you have
+   * already replanted removes yours — otherwise the only way back would be
+   * hunting your own repost down in your profile.
+   */
+  async function onRepostTap() {
+    if (busy) return;
+    if (!reposted) return setRepostOpen(true);
+
+    setBusy(true);
+    haptic('light');
+    setReposted(false);
+    setReposts((n) => Math.max(0, n - 1));
+    const res = await unrepost(item.id);
+    if (!res.ok) {
+      setReposted(true);
+      setReposts(item.repost_count);
+      toast.error(t('postFailed'), res.error);
+    } else {
+      if (typeof res.repost_count === 'number') setReposts(res.repost_count);
+      toast.success(t('repostUndone'));
+    }
+    setBusy(false);
+  }
+
+  async function repostPlain() {
     if (busy) return;
     setBusy(true);
     haptic('light');
+    setRepostOpen(false);
+    setReposted(true);
     setReposts((n) => n + 1);
     const res = await createPost({ body: '', repostOf: item.id });
     if (!res.ok) {
+      setReposted(false);
       setReposts((n) => Math.max(0, n - 1));
       toast.error(t('postFailed'), res.error);
+    } else {
+      toast.success(t('repostDone'));
     }
     setBusy(false);
+  }
+
+  function onQuoted() {
+    setRepostOpen(false);
+    setReposted(true);
+    setReposts((n) => n + 1);
   }
 
   async function share() {
@@ -135,7 +174,12 @@ export function ReactionBar({ item, onReply }: { item: FeedItem; onReply?: () =>
         </button>
       )}
 
-      <button onClick={repost} aria-label={t('repost')} className={cn(btn, 'text-muted-foreground hover:text-primary')}>
+      <button
+        onClick={onRepostTap}
+        aria-pressed={reposted}
+        aria-label={reposted ? t('repostDone') : t('repost')}
+        className={cn(btn, reposted ? 'text-primary' : 'text-muted-foreground hover:text-primary')}
+      >
         <Repeat2 className="h-4 w-4" />
         {reposts > 0 && <span className="tnum">{reposts}</span>}
       </button>
@@ -152,6 +196,14 @@ export function ReactionBar({ item, onReply }: { item: FeedItem; onReply?: () =>
       <button onClick={share} aria-label={t('share')} className={cn(btn, 'text-muted-foreground hover:text-foreground')}>
         <Share2 className="h-4 w-4" />
       </button>
+
+      <RepostSheet
+        item={item}
+        open={repostOpen}
+        onOpenChange={setRepostOpen}
+        onPlain={repostPlain}
+        onQuoted={onQuoted}
+      />
     </div>
   );
 }

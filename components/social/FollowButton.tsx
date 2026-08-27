@@ -26,12 +26,15 @@ export function FollowButton({
   initialFollowing,
   size = 'md',
   className,
+  label: notFollowingLabel,
   onChange,
 }: {
   targetId: string;
   initialFollowing: boolean;
   size?: 'sm' | 'md';
   className?: string;
+  /** Overrides the "Seguir" wording — e.g. "Seguir de vuelta". */
+  label?: string;
   onChange?: (following: boolean) => void;
 }) {
   const t = useTranslations('feed');
@@ -68,7 +71,11 @@ export function FollowButton({
     qc.invalidateQueries({ queryKey: ['suggested-accounts'] });
   }
 
-  const label = following ? (hovering ? t('unfollow') : t('following')) : t('follow');
+  const label = following
+    ? hovering
+      ? t('unfollow')
+      : t('following')
+    : (notFollowingLabel ?? t('follow'));
 
   return (
     <button

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Trash2, BadgeCheck } from 'lucide-react';
+import { Trash2, BadgeCheck, CornerDownRight } from 'lucide-react';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { ReactionBar } from './ReactionBar';
 import { relativeLabel } from '@/lib/utils/dates';
@@ -18,17 +18,25 @@ import type { FeedItem } from '@/lib/api/feed';
  */
 export function ThreadReply({
   reply,
-  inReplyTo,
   onDelete,
+  onReply,
 }: {
   reply: FeedItem;
-  inReplyTo?: string | null;
   onDelete?: (id: string) => void;
+  onReply?: (reply: FeedItem) => void;
 }) {
   const t = useTranslations('feed');
   const myId = useSession((s) => s.profile?.id);
   const isMine = reply.author?.id === myId;
   const href = reply.author?.username ? `/perfil/${reply.author.username}` : undefined;
+
+  // Replies are stored flat against the root (see migration 0057), so who this
+  // one is answering lives in the leading @handle the composer prefills. Lift
+  // it into the eyebrow and drop it from the text — showing it twice reads
+  // like the person typed the handle out for no reason.
+  const lead = /^@([A-Za-z0-9_.]{3,24})\s+/.exec(reply.body ?? '');
+  const answering = lead?.[1] ?? null;
+  const body = answering ? (reply.body ?? '').slice(lead![0].length) : reply.body;
 
   return (
     <div className="flex gap-2.5 py-3">
@@ -56,10 +64,15 @@ export function ThreadReply({
           {reply.edited_at && <span>· {t('edited')}</span>}
         </p>
 
-        {inReplyTo && <p className="eyebrow mt-0.5 text-muted-foreground">{t('inReplyTo', { handle: inReplyTo })}</p>}
+        {answering && (
+          <p className="eyebrow mt-0.5 flex items-center gap-1 text-muted-foreground">
+            <CornerDownRight className="h-3 w-3" />
+            {t('inReplyTo', { handle: answering })}
+          </p>
+        )}
 
-        <p className="mt-0.5 whitespace-pre-wrap text-small leading-relaxed">{reply.body}</p>
-        <ReactionBar item={reply} />
+        <p className="mt-0.5 whitespace-pre-wrap text-small leading-relaxed">{body}</p>
+        <ReactionBar item={reply} onReply={onReply ? () => onReply(reply) : undefined} />
       </div>
 
       {isMine && onDelete && (

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { MoreHorizontal, Link2, Flag, UserMinus, VolumeX, Ban, Trash2, UserPlus } from 'lucide-react';
+import { MoreHorizontal, Link2, Flag, UserMinus, VolumeX, Ban, Trash2, UserPlus, Pencil } from 'lucide-react';
 import { Sheet } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { deletePost, type FeedItem } from '@/lib/api/feed';
+import { deletePost, canStillEdit, type FeedItem } from '@/lib/api/feed';
+import { EditSheet } from './EditSheet';
 import { blockUser, muteUser, reportContent, followUser, unfollowUser, REPORT_REASONS, type ReportReason } from '@/lib/api/social';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
@@ -25,6 +26,7 @@ export function PostMenu({ item, isMine }: { item: FeedItem; isMine: boolean }) 
   const qc = useQueryClient();
   const me = useSession((s) => s.profile);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [following, setFollowing] = useState(item.author?.is_following ?? false);
@@ -32,8 +34,13 @@ export function PostMenu({ item, isMine }: { item: FeedItem; isMine: boolean }) 
   const author = item.author;
   const canAct = !!author && author.id !== me?.id;
 
+  // A post can be on screen in four places at once (timeline, thread sheet,
+  // permalink, a profile tab). Invalidate all of them, or an edit "reverts"
+  // the moment you navigate back.
   function refresh() {
-    qc.invalidateQueries({ queryKey: ['feed'] });
+    for (const key of ['feed', 'feed-thread', 'profile-posts', 'saved-posts']) {
+      qc.invalidateQueries({ queryKey: [key] });
+    }
   }
 
   async function copyLink() {
@@ -165,6 +172,20 @@ export function PostMenu({ item, isMine }: { item: FeedItem; isMine: boolean }) 
               <Flag className="h-4 w-4 text-muted-foreground" /> {t('report')}
             </button>
 
+            {/* The 5-minute door. Hidden once it has closed rather than shown
+                disabled: an option you cannot take is just noise. */}
+            {isMine && item.kind !== 'repost' && canStillEdit(item.created_at) && (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setEditing(true);
+                }}
+                className={row}
+              >
+                <Pencil className="h-4 w-4 text-muted-foreground" /> {t('edit')}
+              </button>
+            )}
+
             {isMine && (
               <button onClick={onDelete} className={cn(row, 'text-brote-coral')}>
                 <Trash2 className="h-4 w-4" /> {t('delete')}
@@ -173,6 +194,8 @@ export function PostMenu({ item, isMine }: { item: FeedItem; isMine: boolean }) 
           </div>
         )}
       </Sheet>
+
+      {isMine && <EditSheet item={item} open={editing} onOpenChange={setEditing} onEdited={refresh} />}
     </>
   );
 }
