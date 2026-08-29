@@ -148,8 +148,81 @@ export async function exportMyData(userId: string): Promise<Record<string, unkno
   };
 }
 
+/** The four buckets that can hold a file belonging to one person. */
+const USER_BUCKETS = ['feed', 'avatars', 'projects', 'verifications'] as const;
+
+/**
+ * Close the account, files included.
+ *
+ * The photos have to go first, and from here rather than from SQL: Supabase
+ * blocks direct DELETEs on `storage.objects` (trigger `storage.protect_delete`)
+ * because removing the row would strand the blob in S3 forever. So the sweep
+ * runs through the Storage API with this person's own session, and only then
+ * does the RPC drop the auth user — after which every table cascades.
+ *
+ * Every file lives under a folder named after the user id, which is also what
+ * the storage RLS policies key on, so this can only ever reach your own files.
+ *
+ * A bucket that fails to sweep does not abort the deletion: leaving somebody
+ * unable to close their account because one image would not list is worse than
+ * a stray file, and the account itself is what carries the personal data.
+ */
 export async function deleteMyAccount(): Promise<void> {
   const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    await Promise.all(
+      USER_BUCKETS.map(async (bucket) => {
+        try {
+          const { data } = await supabase.storage.from(bucket).list(user.id, { limit: 1000 });
+          const paths = (data ?? []).map((f) => `${user.id}/${f.name}`);
+          if (paths.length) await supabase.storage.from(bucket).remove(paths);
+        } catch {
+          /* see the note above: a stuck bucket must not block the deletion */
+        }
+      }),
+    );
+  }
+
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw error;
+}
+
+// ── Banderas de la Plaza ─────────────────────────────────────────────────────
+
+export interface PlazaFlags {
+  /** When they acknowledged that posts are public. */
+  consentAt: string | null;
+  /** Whether the "this is your first post" card has already been shown. */
+  firstPostSeen: boolean;
+  /** Real count from `profiles.posts_count` — used to detect the first post. */
+  postsCount: number;
+}
+
+export async function fetchPlazaFlags(userId: string): Promise<PlazaFlags> {
+  const { data } = await createClient()
+    .from('profiles')
+    .select('context, posts_count')
+    .eq('id', userId)
+    .single();
+  const plaza = ((data?.context as Record<string, unknown> | null)?.plaza ?? {}) as Record<string, unknown>;
+  return {
+    consentAt: typeof plaza.consent_at === 'string' ? plaza.consent_at : null,
+    firstPostSeen: plaza.first_post_seen === true,
+    postsCount: (data?.posts_count as number | null) ?? 0,
+  };
+}
+
+/**
+ * Merged server-side by `set_plaza_flag` rather than read-modify-write from
+ * here: two open tabs would otherwise overwrite each other's flags.
+ */
+export async function setPlazaFlag(
+  key: 'consent_at' | 'first_post_seen',
+  value: string | boolean = true,
+): Promise<void> {
+  await createClient().rpc('set_plaza_flag', { p_key: key, p_value: value });
 }

@@ -453,7 +453,23 @@ export default function AjustesPage() {
         </div>
       </Section>
 
-      <p className="pt-2 text-center text-caption text-muted-foreground">
+      {/* The legal layer has to be reachable from inside the app, not only from
+          the login screen somebody saw once. */}
+      <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-2 text-caption text-muted-foreground">
+        <Link href="/legal/normas" className="link-underline hover:text-foreground">
+          {tm('rulesTitle')}
+        </Link>
+        <span aria-hidden>·</span>
+        <Link href="/legal/terminos" className="link-underline hover:text-foreground">
+          {t('about')}
+        </Link>
+        <span aria-hidden>·</span>
+        <Link href="/legal/privacidad" className="link-underline hover:text-foreground">
+          {t('privacy')}
+        </Link>
+      </nav>
+
+      <p className="text-center text-caption text-muted-foreground">
         {BRAND.name} · {BRAND.tagline}
       </p>
 

@@ -6,6 +6,129 @@
 
 ## CURRENT STATE
 
+### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
+
+Calidad, seguridad y cierre. El feed dejó de terminarse, el ranking se ajustó
+contra datos reales, el onboarding siembra el grafo, la capa legal está
+completa, y el borrado de cuenta borra de verdad.
+
+**Base de datos** (repo `0065`–`0076`, todas aplicadas en vivo).
+- `0065_feed_ladder` — la escalera: cuando se acaban las publicaciones y las
+  noticias, el feed ofrece cuentas para descubrir, proyectos abiertos (los de tu
+  ciudad primero), acciones sin hacer y la próxima lección. Recién después
+  aparece el final honesto. Una cuenta infantil recibe solo acciones y lección.
+- `0066_ranking_pass` — **medido, no supuesto**: la primera página daba 19
+  noticias / 1 publicación (95 %) y tres medios se llevaban 17 de 20 lugares.
+  La diversidad de autor existía pero estaba exenta para `author_id is null`,
+  o sea que no tocaba al 99 % del feed. Se agregó diversidad por MEDIO (−12 por
+  nota extra) y un piso para lo humano (+45 sobre una noticia igual de reciente,
+  y seguir a alguien pasó de +60 a +80). Después: top-3 medios 12/20, medios
+  distintos 5 → 7, y las 3 publicaciones que existen entran en la página 1.
+- `0067` + `0068_erasure_storage` — consentimiento y borrado. `set_plaza_flag`
+  para las dos tarjetas de una sola vez, y `delete_my_account` revisado. La
+  primera versión intentaba borrar `storage.objects` desde SQL: no se puede
+  (trigger `storage.protect_delete`), así que el barrido de archivos pasó al
+  cliente por la API de Storage. **Faltaban las políticas de DELETE de
+  `projects` y `verifications`**: hasta acá nadie podía borrar sus propias fotos
+  de verificación ni al cerrar la cuenta.
+- `0069_timeline_perf` — `explain analyze` daba **175 ms** y 13.173 buffers. El
+  puntaje disparaba ~8 subconsultas correlacionadas por candidato (news ×2,
+  profiles ×3, follows ×2, feed_seen). Con `my_follows`/`my_followers`
+  materializados una vez y `news`/`profiles` por LEFT JOIN: **59 ms**, 4.597
+  buffers, y el orden resultante idéntico (mismos cursores página a página).
+- `0070_deterministic_diversity` — endurecimiento con una historia honesta
+  adentro: fui a buscar un bug de duplicados que resultó ser de mi banco de
+  pruebas (`v->'next_cursor'` sobre un null de JSON da `'null'::jsonb`, que no
+  es NULL de SQL, así que el bucle reempezaba). El feed estaba bien. El cambio
+  queda igual porque el riesgo es real: `row_number()` sobre filas que empatan
+  no tiene orden garantizado, y si el puntaje de una fila cambia entre páginas
+  el cursor deja de servir.
+- `0071_suggestions_kid_guard` — `suggested_accounts` excluía a los chicos como
+  resultado pero no como quien pregunta.
+- `0072_fix_plaza_flag` — **bug real y silencioso**: `jsonb_set` con
+  `create_missing` crea la última clave del camino, NO los niveles intermedios.
+  Sin `context->'plaza'` previo devolvía el jsonb original sin quejarse, así que
+  la función respondía `{"ok": true}` y no guardaba nada: el aviso de "esto es
+  público" volvía a aparecer en cada publicación, para siempre.
+- `0073_reactions_policy_split` — `feed_reactions` tenía dos políticas
+  permisivas de SELECT (una `FOR ALL` incluye SELECT). Se parte en
+  INSERT/UPDATE/DELETE. Permisos efectivos idénticos, una evaluación menos por
+  fila leída en la tabla más caliente.
+- `0074`/`0075_follow_requests` + `0076` — ver abajo.
+
+**Cliente**
+- `LadderCards` con eyebrow por peldaño (PARA DESCUBRIR · CERCA TUYO · PARA
+  HACER HOY · PARA APRENDER), y el final honesto sólo después.
+- Paso nuevo de onboarding: "¿A quién querés seguir?" con `suggested_accounts(6)`,
+  multi-selección y "Ahora no". Se saltea entero para cuentas infantiles, y los
+  puntitos de progreso cuentan los pasos que esa cuenta realmente ve.
+- Aviso de una sola vez antes de la primera publicación ("es público, con tu
+  nombre y tu Pip") y tarjeta "Tu primera publicación 🌱" con enlace al
+  permalink.
+- `FeedCard` memoizado; imágenes con caja de proporción fija (cero CLS).
+- `scripts/check-feed-cursor.mjs` (`npm run check:feed`): recorre el feed real
+  hasta el final y falla si hay un id repetido o si el puntaje sube.
+
+**Legal**
+- `/legal/normas` nuevo, en criollo, enlazado desde el composer, la hoja de
+  denuncia y Ajustes.
+- Términos: cláusula 6 nueva de contenido publicado (licencia, retiro,
+  denuncias, apelación, menores, derechos de autor y retirada).
+- Privacidad: qué expone un perfil público, qué NUNCA (barrio, guardados, qué
+  viste, a quién bloqueaste), las seis tablas nuevas, retención de `feed_seen`
+  (7 días) y qué sobrevive al borrado y por qué.
+
+**Verificado**
+- Cuenta nueva sin seguir a nadie: **576 items en 29 páginas, 0 duplicados**,
+  el cursor termina en null, y después la escalera da 6 tarjetas.
+- Borrado de cuenta con rastro en las 8 tablas: todo en 0, incluido `auth.users`.
+  La denuncia presentada sobrevive anonimizada.
+- Solicitudes de seguimiento: pedir → no queda como seguidora, no ve el perfil,
+  le llega la notificación → acepta → sí la sigue, la solicitud y la
+  notificación se van, y le avisan a quien pidió.
+
+---
+
+### El agujero que encontró la comparación con las redes de Meta
+
+Comparando función por función contra Instagram y Threads apareció una
+diferencia que no era de funcionalidad sino de seguridad:
+
+**`profile_visibility` existía y `follow_user` no lo miraba.** Un perfil en
+`followers` escondía correctamente números y publicaciones a quien no lo
+seguía… y cualquiera se volvía seguidor con un toque, sin permiso de nadie. El
+candado estaba puesto y la puerta de al lado, abierta. Y le pegaba justo a
+quien más importa: el default de una cuenta ADOLESCENTE es `followers`.
+
+`0075_follow_requests` agrega lo que toda red seria tiene:
+
+- `follow_requests` con RLS: cada quien ve lo que mandó y lo que recibió.
+- Seguir a una cuenta no pública deja una SOLICITUD y avisa.
+- Aceptar crea el follow y avisa a quien pidió. **Rechazar no avisa**: enterarte
+  de que te rechazaron es una invitación a insistir.
+- Dejar de seguir retira también una solicitud pendiente (es el mismo botón).
+- Bloquear borra las solicitudes pendientes en las dos direcciones.
+- El botón tiene cuatro estados: Seguir · Solicitado · Siguiendo · Dejar de
+  seguir, y `get_public_profile_v2` devuelve `requested` para que al volver al
+  perfil diga la verdad.
+
+---
+
+### Backlog deliberado (NO se construyó, y está bien)
+
+Mensajes directos (superficie de moderación entera + problema de menores),
+video, historias, vivo, carruseles, hashtags libres más allá de los 13 dominios,
+paleta de emoji, explorar algorítmico, traducción, encuestas, borradores,
+programar publicaciones, autocompletado de @menciones. Cada una es una fase
+propia y ninguna hace falta para probar el producto.
+
+**Lo que queda para mirar** (métricas de 02 §11): publicaciones por persona
+activa por semana, proporción de cuentas que siguen a ≥3, respuestas por
+publicación, denuncias por cada 1.000 publicaciones, y cuánto del feed es humano
+vs noticia — hoy 15 % humano, y sube solo cuando entre gente real.
+
+---
+
 ### F16 · LA PLAZA (Feed v2) — FASE 2 ENTREGADA (2026-08-27)
 
 Perfiles con números reales, hilos que se pueden linkear, replantar/citar/guardar/editar,
@@ -100,9 +223,7 @@ buscador, notificaciones sociales y la cola de moderación en `/panel`.
 **Concordancia de plural:** "y 1 personas más" → `{n, plural, ...}` en las dos
 lenguas, igual que "1 denuncias" en el panel.
 
-**Fase 3** (`06_PHASE_3.md`): escalera de contenido para cuentas nuevas, paso de
-seguir en el onboarding, `delete_my_account` extendido a las tablas nuevas,
-normas de comunidad enlazadas, y la pasada de rendimiento/accesibilidad.
+**Fase 3**: entregada el 2026-08-29 — ver el bloque de arriba. F16 completo.
 
 ---
 

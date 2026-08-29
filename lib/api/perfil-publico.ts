@@ -49,6 +49,8 @@ export interface ProfileViewer {
   is_blocked: boolean;
   /** False = the header is all you get. Decided by the RPC, never here. */
   can_see: boolean;
+  /** A follow request is pending — the account is not public. */
+  requested?: boolean;
 }
 
 export interface ProfileImpact {

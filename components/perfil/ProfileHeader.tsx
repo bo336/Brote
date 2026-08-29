@@ -93,7 +93,11 @@ export function ProfileHeader({
                 </button>
               )
             ) : (
-              <FollowButton targetId={profile.id} initialFollowing={viewer.is_following} />
+              <FollowButton
+                targetId={profile.id}
+                initialFollowing={viewer.is_following}
+                initialRequested={viewer.requested ?? false}
+              />
             )}
             <button
               onClick={share}

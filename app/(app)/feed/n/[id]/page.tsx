@@ -16,6 +16,7 @@ import { Composer } from '@/components/feed/Composer';
 import { ThreadReply } from '@/components/feed/ThreadReply';
 import { ReactionBar } from '@/components/feed/ReactionBar';
 import { getDomain } from '@/lib/domains';
+import { BRAND } from '@/lib/brand';
 import { fetchNewsItem, fetchDoSomething, fetchNewsPostId } from '@/lib/api/plaza';
 import { fetchThread, deletePost, type FeedItem } from '@/lib/api/feed';
 import { useSession } from '@/stores/session';
@@ -212,6 +213,16 @@ export default function NewsDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Attribution is not enough on its own: a rights holder needs somewhere
+          to write to (08 §2). One line, under the article, always. */}
+      <p className="text-caption leading-relaxed text-muted-foreground">
+        {tf('takedown')}{' '}
+        <a href={`mailto:${BRAND.contactEmail}`} className="link-underline text-primary">
+          {BRAND.contactEmail}
+        </a>
+        .
+      </p>
 
       {/* Below the content, never inside it — the reader finishes first. */}
       <AdSlot placement="news-article" className="pt-2" />

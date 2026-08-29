@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { BadgeCheck, ExternalLink, Sprout, Trophy, Clock } from 'lucide-react';
@@ -27,7 +27,13 @@ import { cn } from '@/lib/utils/cn';
  * The only Card-with-shadow objects here are the attached story and the
  * suggestion cards, because those genuinely are separate objects.
  */
-export function FeedCard({
+/**
+ * Memoised: a page is 20 of these, an infinite scroll keeps ~120 mounted, and
+ * every reaction anywhere re-renders the parent list. The item object is
+ * replaced only when the query refetches, so a shallow compare is exactly the
+ * right granularity.
+ */
+export const FeedCard = memo(function FeedCard({
   item,
   onReply,
   onSeen,
@@ -272,4 +278,4 @@ export function FeedCard({
       </div>
     </article>
   );
-}
+});

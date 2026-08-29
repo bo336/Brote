@@ -99,7 +99,7 @@ export function ReportSheet({
           ))}
           <p className="px-3 pt-2 text-caption leading-relaxed text-muted-foreground">
             {tm('rulesHint')}{' '}
-            <Link href="/legal/terminos" className="font-medium text-primary underline underline-offset-2">
+            <Link href="/legal/normas" className="font-medium text-primary underline underline-offset-2">
               {tm('rulesLink')}
             </Link>
           </p>

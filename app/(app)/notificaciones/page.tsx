@@ -18,6 +18,7 @@ import {
   AtSign,
   Repeat2,
   ShieldAlert,
+  UserRoundCheck,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,6 +27,9 @@ import { SectionHeader } from '@/components/ui/section';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { FollowButton } from '@/components/social/FollowButton';
+import { Button } from '@/components/ui/button';
+import { respondFollowRequest } from '@/lib/api/social';
+import { toast } from '@/stores/toast';
 import { useSession } from '@/stores/session';
 import { usePipStyles, type PipIdentity } from '@/hooks/use-pip-styles';
 import { fetchNotifications, markAllRead } from '@/lib/api/notifications';
@@ -49,6 +53,7 @@ const ICON: Record<string, typeof Bell> = {
   mention: AtSign,
   repost: Repeat2,
   moderation: ShieldAlert,
+  follow_request: UserRoundCheck,
 };
 
 /**
@@ -73,10 +78,11 @@ const TINT: Record<string, string> = {
   mention: '#B07CD6',
   repost: '#1FB57A',
   moderation: '#FF6B5E',
+  follow_request: '#5B6CF0',
 };
 
 /** Which filter chip each type belongs under. */
-const SOCIAL = new Set(['like', 'reply', 'follow', 'mention', 'repost', 'friend']);
+const SOCIAL = new Set(['like', 'reply', 'follow', 'mention', 'repost', 'friend', 'follow_request']);
 const PROGRESS = new Set(['rank_up', 'title', 'points', 'streak_risk', 'streak_lost', 'challenge', 'project']);
 
 type Filter = 'todo' | 'social' | 'progreso' | 'sistema';
@@ -263,6 +269,11 @@ function NotificationItem({ n, actor }: { n: NotificationRow; actor: PipIdentity
           body
         )}
 
+        {/* A request to follow a private account is answered here, in the one
+            place the person will actually see it. Rejecting says nothing back
+            to the requester on purpose. */}
+        {n.type === 'follow_request' && actorId && <FollowRequestActions requesterId={actorId} />}
+
         {/* "Seguir de vuelta", right where you read that someone followed you. */}
         {n.type === 'follow' && actorId && actor && !actor.is_following && (
           <div className="mt-2">
@@ -278,5 +289,40 @@ function NotificationItem({ n, actor }: { n: NotificationRow; actor: PipIdentity
 
       {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brote-coral" aria-label="No leída" />}
     </Card>
+  );
+}
+
+/**
+ * Accept or decline, inline. Once answered the row goes: the RPC deletes the
+ * notification along with the request, so refetching leaves nothing behind and
+ * there is no stale "quiere seguirte" to answer twice.
+ */
+function FollowRequestActions({ requesterId }: { requesterId: string }) {
+  // `tf` and not `t`: this file already uses `t` for the `notifications`
+  // namespace, and two different `t` in one file is how a key silently
+  // resolves against the wrong namespace.
+  const tf = useTranslations('feed');
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState<'accept' | 'reject' | null>(null);
+
+  async function respond(accept: boolean) {
+    if (busy) return;
+    setBusy(accept ? 'accept' : 'reject');
+    const res = await respondFollowRequest(requesterId, accept);
+    setBusy(null);
+    if (!res.ok) return toast.error(tf('followFailed'), res.error);
+    qc.invalidateQueries({ queryKey: ['notifications'] });
+    qc.invalidateQueries({ queryKey: ['public-profile'] });
+  }
+
+  return (
+    <div className="mt-2 flex gap-2">
+      <Button size="sm" loading={busy === 'accept'} onClick={() => respond(true)}>
+        {tf('acceptRequest')}
+      </Button>
+      <Button size="sm" variant="secondary" loading={busy === 'reject'} onClick={() => respond(false)}>
+        {tf('rejectRequest')}
+      </Button>
+    </div>
   );
 }

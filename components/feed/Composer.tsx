@@ -7,6 +7,9 @@ import { PipAvatar } from '@/components/pip/PipAvatar';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { createPost, uploadFeedImage, MAX_FEED_IMAGE_BYTES } from '@/lib/api/feed';
+import { fetchPlazaFlags, setPlazaFlag } from '@/lib/api/profile';
+import { PublicPostConsent } from './PublicPostConsent';
+import { FirstPostCard } from './FirstPostCard';
 import { DOMAINS, getDomain } from '@/lib/domains';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
@@ -57,6 +60,8 @@ export function Composer({
   const [image, setImage] = useState<{ url: string; preview: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dropped, setDropped] = useState<Set<string>>(new Set());
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [firstPostId, setFirstPostId] = useState<string | null>(null);
 
   const left = MAX - body.length;
   const isKid = profile?.accountType === 'kid';
@@ -73,7 +78,9 @@ export function Composer({
   // Topics inferred from #hashtags that match a real domain. Shown so they can
   // be dropped before posting rather than discovered afterwards.
   const inferred = useMemo(() => {
-    const found = DOMAINS.filter((d) => new RegExp(`#${d.slug}\\b`, 'i').test(body)).map((d) => d.slug);
+    const found = DOMAINS.filter((d) => new RegExp(`#${d.slug}\\b`, 'i').test(body)).map(
+      (d) => d.slug,
+    );
     return found.filter((s) => !dropped.has(s));
   }, [body, dropped]);
 
@@ -104,9 +111,47 @@ export function Composer({
     setUploading(false);
   }
 
+  /**
+   * Publishing has two one-time moments around it, and both are handled here
+   * rather than in the feed page: this is the component that knows a post is
+   * about to happen, and the only one that knows when it succeeded.
+   *
+   *   before → "lo que publicás es público" (legal, acknowledged once)
+   *   after  → "tu primera publicación" (only when it really is the first)
+   */
   async function submit() {
     const text = body.trim();
     if ((!text && !image) || busy) return;
+
+    // A reply or a quote is not the moment for the "your post is public"
+    // notice — the notice is about starting to publish, and it only ever needs
+    // to be answered once.
+    if (!parentId && profile?.id) {
+      const flags = await fetchPlazaFlags(profile.id).catch(() => null);
+      if (flags && !flags.consentAt) {
+        setConsentOpen(true);
+        return;
+      }
+    }
+    await publish();
+  }
+
+  async function acceptConsent() {
+    setBusy(true);
+    await setPlazaFlag('consent_at', new Date().toISOString()).catch(() => null);
+    setBusy(false);
+    setConsentOpen(false);
+    await publish();
+  }
+
+  async function publish() {
+    const text = body.trim();
+    if ((!text && !image) || busy) return;
+    const wasFirst = profile?.id
+      ? await fetchPlazaFlags(profile.id)
+          .then((f) => f.postsCount === 0 && !f.firstPostSeen)
+          .catch(() => false)
+      : false;
     setBusy(true);
     const res = await createPost({
       body: text,
@@ -126,128 +171,175 @@ export function Composer({
     setImage(null);
     setDropped(new Set());
     if (!compact) setOpen(false);
+    if (wasFirst && res.id && !parentId) setFirstPostId(res.id);
     // Held is not a failure: the text is in, waiting on a human. Saying so is
     // the difference between "under review" and "my post vanished".
     if (res.held) toast.warning(t('postHeld'), t('postHeldBody'));
     onPosted?.();
   }
 
+  const oneTimeCards = (
+    <>
+      <PublicPostConsent
+        open={consentOpen}
+        onOpenChange={setConsentOpen}
+        onAccept={acceptConsent}
+        busy={busy}
+      />
+      {firstPostId && (
+        <FirstPostCard
+          postId={firstPostId}
+          onDismiss={() => {
+            setFirstPostId(null);
+            void setPlazaFlag('first_post_seen', true);
+          }}
+        />
+      )}
+    </>
+  );
+
   // ── collapsed ─────────────────────────────────────────────────────────────
   if (!open) {
     return (
-      <div className="flex items-center gap-2.5 py-1">
-        <PipAvatar pipStyle={profile?.pipStyle} avatarUrl={profile?.avatarUrl} name={profile?.displayName} size={32} />
-        <button
-          onClick={() => setOpen(true)}
-          className="press flex-1 rounded-pill border border-border bg-surface-2 px-4 py-2.5 text-left text-small text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
-        >
-          {prompt}
-        </button>
-        {!isTeen && (
+      <>
+        {oneTimeCards}
+        <div className="flex items-center gap-2.5 py-1">
+          <PipAvatar
+            pipStyle={profile?.pipStyle}
+            avatarUrl={profile?.avatarUrl}
+            name={profile?.displayName}
+            size={32}
+          />
           <button
-            onClick={() => {
-              setOpen(true);
-              setTimeout(() => fileRef.current?.click(), 50);
-            }}
-            aria-label={t('addImage')}
-            className="press rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-primary"
+            onClick={() => setOpen(true)}
+            className="press flex-1 rounded-pill border border-border bg-surface-2 px-4 py-2.5 text-left text-small text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
           >
-            <ImagePlus className="h-5 w-5" />
+            {prompt}
           </button>
-        )}
-      </div>
+          {!isTeen && (
+            <button
+              onClick={() => {
+                setOpen(true);
+                setTimeout(() => fileRef.current?.click(), 50);
+              }}
+              aria-label={t('addImage')}
+              className="press rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-primary"
+            >
+              <ImagePlus className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+      </>
     );
   }
 
   // ── expanded ──────────────────────────────────────────────────────────────
   return (
-    <div className={cn('flex gap-2.5', compact ? 'items-start' : 'items-start')}>
-      <PipAvatar
-        pipStyle={profile?.pipStyle}
-        avatarUrl={profile?.avatarUrl}
-        name={profile?.displayName}
-        size={compact ? 30 : 36}
-      />
-      <div className="min-w-0 flex-1">
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value.slice(0, MAX))}
-          placeholder={prompt}
-          rows={compact ? 2 : 3}
-          autoFocus={autoFocus || !compact}
-          className="w-full resize-none rounded-card border border-border bg-surface px-3.5 py-2.5 text-body outline-none transition-[border-color,box-shadow] duration-150 focus:border-primary focus:shadow-[0_0_0_3px_rgb(31_181_122_/_0.14)]"
+    <>
+      {oneTimeCards}
+      <div className={cn('flex gap-2.5', compact ? 'items-start' : 'items-start')}>
+        <PipAvatar
+          pipStyle={profile?.pipStyle}
+          avatarUrl={profile?.avatarUrl}
+          name={profile?.displayName}
+          size={compact ? 30 : 36}
         />
+        <div className="min-w-0 flex-1">
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value.slice(0, MAX))}
+            placeholder={prompt}
+            rows={compact ? 2 : 3}
+            autoFocus={autoFocus || !compact}
+            className="w-full resize-none rounded-card border border-border bg-surface px-3.5 py-2.5 text-body outline-none transition-[border-color,box-shadow] duration-150 focus:border-primary focus:shadow-[0_0_0_3px_rgb(31_181_122_/_0.14)]"
+          />
 
-        {inferred.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {inferred.map((slug) => {
-              const d = getDomain(slug);
-              return (
-                <button key={slug} onClick={() => setDropped((s) => new Set(s).add(slug))} type="button">
-                  <Pill color={d?.color} size="sm">
-                    {d?.name_es ?? slug} <X className="h-3 w-3" />
-                  </Pill>
-                </button>
-              );
-            })}
-          </div>
-        )}
+          {inferred.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {inferred.map((slug) => {
+                const d = getDomain(slug);
+                return (
+                  <button
+                    key={slug}
+                    onClick={() => setDropped((s) => new Set(s).add(slug))}
+                    type="button"
+                  >
+                    <Pill color={d?.color} size="sm">
+                      {d?.name_es ?? slug} <X className="h-3 w-3" />
+                    </Pill>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-        {image && (
-          <div className="relative mt-2 overflow-hidden rounded-card border border-border">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image.preview} alt="" className="aspect-[4/3] w-full object-cover" />
-            <button
-              onClick={() => setImage(null)}
-              aria-label={t('removeImage')}
-              className="absolute right-2 top-2 rounded-full bg-black/55 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/75"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pickImage} />
-
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            {!isTeen && (
+          {image && (
+            <div className="relative mt-2 overflow-hidden rounded-card border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={image.preview} alt="" className="aspect-[4/3] w-full object-cover" />
               <button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading || !!image}
-                aria-label={t('addImage')}
-                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-primary disabled:opacity-40"
+                onClick={() => setImage(null)}
+                aria-label={t('removeImage')}
+                className="absolute right-2 top-2 rounded-full bg-black/55 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/75"
               >
-                <ImagePlus className="h-4.5 w-4.5" />
+                <X className="h-4 w-4" />
               </button>
-            )}
-            {/* Only shown once it matters, per the spec. */}
-            {left < 200 && (
-              <span className={cn('text-caption tnum', left < 60 ? 'text-brote-coral' : 'text-muted-foreground')}>
-                {t('charsLeft', { n: left })}
-              </span>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="flex items-center gap-1.5">
-            {!compact && (
-              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-                Cancelar
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={pickImage}
+          />
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
+              {!isTeen && (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading || !!image}
+                  aria-label={t('addImage')}
+                  className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-primary disabled:opacity-40"
+                >
+                  <ImagePlus className="h-4.5 w-4.5" />
+                </button>
+              )}
+              {/* Only shown once it matters, per the spec. */}
+              {left < 200 && (
+                <span
+                  className={cn(
+                    'tnum text-caption',
+                    left < 60 ? 'text-brote-coral' : 'text-muted-foreground',
+                  )}
+                >
+                  {t('charsLeft', { n: left })}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {!compact && (
+                <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="primary"
+                className="rounded-pill"
+                onClick={submit}
+                loading={busy || uploading}
+                disabled={!body.trim() && !image}
+              >
+                <Send className="h-3.5 w-3.5" /> {parentId ? 'Responder' : t('publish')}
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="primary"
-              className="rounded-pill"
-              onClick={submit}
-              loading={busy || uploading}
-              disabled={!body.trim() && !image}
-            >
-              <Send className="h-3.5 w-3.5" /> {parentId ? 'Responder' : t('publish')}
-            </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

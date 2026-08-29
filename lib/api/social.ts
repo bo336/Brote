@@ -28,6 +28,11 @@ export interface SocialAccount {
 export interface FollowResult {
   ok: boolean;
   following?: boolean;
+  /**
+   * True when the target's profile is not public: the follow did not happen,
+   * a request was left instead and they decide.
+   */
+  requested?: boolean;
   followers?: number;
   error?: string;
 }
@@ -111,4 +116,36 @@ export async function reportContent(input: {
   });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; already?: boolean; error?: string };
+}
+
+// ── Solicitudes para seguir ──────────────────────────────────────────────────
+
+export interface FollowRequest extends SocialAccount {
+  requested_at: string;
+}
+
+/**
+ * Who is waiting for you to let them in.
+ *
+ * Only exists because a profile that says "followers only" has to mean it:
+ * before this, anybody became a follower with one tap and the setting was
+ * decoration. It matters most for teen accounts, which default to that
+ * visibility.
+ */
+export async function fetchFollowRequests(): Promise<FollowRequest[]> {
+  const { data, error } = await createClient().rpc('my_follow_requests');
+  if (error) return [];
+  return (data ?? []) as FollowRequest[];
+}
+
+export async function respondFollowRequest(
+  requesterId: string,
+  accept: boolean,
+): Promise<{ ok: boolean; accepted?: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('respond_follow_request', {
+    p_requester: requesterId,
+    p_accept: accept,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; accepted?: boolean; error?: string };
 }

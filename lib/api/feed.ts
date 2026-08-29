@@ -246,3 +246,85 @@ export async function markSeen(ids: string[]): Promise<void> {
     /* ignore */
   }
 }
+
+// ── La escalera ──────────────────────────────────────────────────────────────
+
+export type LadderKind = 'discover' | 'project' | 'action' | 'lesson';
+
+export interface LadderDiscover {
+  ladder: 'discover';
+  id: string;
+  accounts: {
+    id: string;
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    pip_style: PipStyle | null;
+    rank_slug: string | null;
+    is_verified: boolean;
+    followers_count: number;
+    city: string | null;
+    bio?: string | null;
+    is_following?: boolean;
+  }[];
+}
+
+export interface LadderProject {
+  ladder: 'project';
+  id: string;
+  project: {
+    id: string;
+    title: string;
+    description: string | null;
+    city: string | null;
+    domain_slug: string | null;
+    image_url: string | null;
+    event_date: string | null;
+    participants: number;
+  };
+}
+
+export interface LadderAction {
+  ladder: 'action';
+  id: string;
+  action: {
+    id: string;
+    slug: string;
+    title_es: string;
+    short_es: string | null;
+    domain_slug: string | null;
+    base_points: number;
+    effort: string | null;
+    impact: string | null;
+  };
+}
+
+export interface LadderLesson {
+  ladder: 'lesson';
+  id: string;
+  lesson: {
+    id: string;
+    slug: string;
+    title_es: string;
+    summary_es: string | null;
+    domain_slug: string | null;
+    minutes: number | null;
+    reward_points: number | null;
+  };
+}
+
+export type LadderItem = LadderDiscover | LadderProject | LadderAction | LadderLesson;
+
+/**
+ * What the feed offers once the ranked river runs out.
+ *
+ * Asked for exactly once, when `next_cursor` comes back null — it is at most
+ * six cards, so there is nothing to paginate. It can legitimately come back
+ * empty (no open projects, every action done, every lesson finished), and only
+ * then does the honest end card belong on screen.
+ */
+export async function fetchLadder(): Promise<LadderItem[]> {
+  const { data, error } = await createClient().rpc('feed_ladder');
+  if (error) return [];
+  return ((data ?? {}) as { items?: LadderItem[] }).items ?? [];
+}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,9 +15,17 @@ import { FeedCard } from './FeedCard';
 import { WhoToFollow } from '@/components/social/WhoToFollow';
 import { NewPostsPill } from './NewPostsPill';
 import { MilestoneNotice } from './MilestoneNotice';
+import { LadderCards } from './LadderCards';
 import { useNewPosts } from '@/hooks/use-new-posts';
 import { useSession } from '@/stores/session';
-import { fetchFeedPage, markSeen, type FeedCursor, type FeedItem, type FeedTab } from '@/lib/api/feed';
+import {
+  fetchFeedPage,
+  fetchLadder,
+  markSeen,
+  type FeedCursor,
+  type FeedItem,
+  type FeedTab,
+} from '@/lib/api/feed';
 
 const PAGE_SIZE = 20;
 
@@ -143,6 +151,17 @@ export function InfiniteFeed({
     return () => io.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  /**
+   * The never-empty ladder. Only asked for once the ranked river is exhausted —
+   * `enabled` on `!hasNextPage` — so a normal scroll never pays for it.
+   */
+  const ladder = useQuery({
+    queryKey: ['feed-ladder'],
+    queryFn: fetchLadder,
+    enabled: !q.isLoading && !q.hasNextPage,
+    staleTime: 10 * 60_000,
+  });
+
   // Ads keep running through the one policy gate; kids never reach it anyway.
   const adAt = useMemo(() => new Set(feedAdIndices(items.length)), [items.length]);
 
@@ -212,7 +231,11 @@ export function InfiniteFeed({
         </div>
       )}
 
-      {!hasNextPage && (
+      {/* Before the end card, not instead of it: things to do when there is
+          nothing left to read. */}
+      {!hasNextPage && <LadderCards items={ladder.data ?? []} />}
+
+      {!hasNextPage && !ladder.isLoading && (
         <Card className="mt-4 flex flex-col items-center gap-2 p-6 text-center">
           <Pip size={56} mood="happy" />
           <p className="font-display text-h3 font-bold">{t('endTitle')}</p>
