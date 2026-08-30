@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Bell } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { useSession } from '@/stores/session';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
@@ -19,9 +19,15 @@ import { isStreakAtRisk } from '@/lib/streak';
 export function TopBar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const tp = useTranslations('proyectos');
   const tn = useTranslations('topbar');
+  const tf = useTranslations('feed');
   const profile = useSession((s) => s.profile);
   const unread = useSession((s) => s.unreadNotifications);
+
+  // Search belongs to the Plaza, so it appears with the Plaza. Kids have no
+  // search at all: they are never in results and never see other accounts.
+  const showSearch = pathname.startsWith('/feed') && profile?.accountType !== 'kid';
 
   const totalXp = profile?.totalXp ?? 0;
   const streak = profile?.currentStreak ?? 0;
@@ -29,8 +35,11 @@ export function TopBar() {
 
   const title = (() => {
     if (pathname === '/') return null; // Home shows the logo
+    // /feed shows no title either: its SectionTabs ARE the title, and stacking
+    // a heading on top of them just eats a row of a phone screen.
+    if (pathname.startsWith('/feed')) return null;
     if (pathname.startsWith('/acciones')) return t('acciones');
-    if (pathname.startsWith('/explorar')) return t('explorar');
+    if (pathname.startsWith('/proyectos')) return tp('title');
     if (pathname.startsWith('/ranking')) return t('ranking');
     if (pathname.startsWith('/perfil')) return t('perfil');
     return null;
@@ -48,6 +57,16 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {showSearch && (
+            <Link
+              href="/buscar"
+              prefetch={false}
+              aria-label={tf('search')}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+            >
+              <Search className="h-5 w-5" />
+            </Link>
+          )}
           <StreakFlame count={streak} atRisk={atRisk} size="sm" />
           <Link href="/perfil" prefetch={false} aria-label={`${tn('streakLabel')} · ${totalXp}`} className="hidden xs:flex">
             <PointsBadge value={totalXp} size="sm" animate />

@@ -10,8 +10,9 @@
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "gen:types": "supabase gen types typescript --project-id swdwulouasdnyorfhrjt > lib/supabase/database.types.ts",
-    "vapid": "web-push generate-vapid-keys"
+    "gen:types": "supabase gen types typescript --project-id swdwulouasdnyorfhrjt > lib/supabase/database.types.ts.tmp && mv lib/supabase/database.types.ts.tmp lib/supabase/database.types.ts",
+    "vapid": "web-push generate-vapid-keys",
+    "check:feed": "node scripts/check-feed-cursor.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -2,32 +2,60 @@
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight } from 'lucide-react';
+import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight, Bookmark } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactBenchmark } from '@/components/impacto/ImpactBenchmark';
 import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
+import { ProfileHeader } from '@/components/perfil/ProfileHeader';
+import { ProfileTabs } from '@/components/perfil/ProfileTabs';
 import { SectionHeader } from '@/components/ui/section';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
 import { fetchImpact } from '@/lib/api/profile';
+import { fetchPublicProfileV2 } from '@/lib/api/perfil-publico';
 import { formatPoints } from '@/lib/points';
+import { getRank } from '@/lib/ranks';
 
 const ImpactGlobe = dynamic(() => import('@/components/perfil/ImpactGlobe'), { ssr: false, loading: () => null });
 
+/**
+ * Your own profile.
+ *
+ * The header, the counts and the tabs are the *same components* everyone else
+ * sees on your profile — one implementation, so what you check here is what
+ * others actually get. Below that comes the half only you see: your world, your
+ * handprint and the shortcuts into the rest of the app.
+ */
 export default function PerfilPage() {
   const t = useTranslations('perfil');
+  const tp = useTranslations('perfilPublico');
+  const router = useRouter();
   const profile = useSession((s) => s.profile);
   const xp = profile?.totalXp ?? 0;
+  const isKid = profile?.accountType === 'kid';
 
-  const impactQ = useQuery({ queryKey: ['impact', profile?.id], queryFn: () => fetchImpact(profile!.id), enabled: !!profile?.id });
+  const impactQ = useQuery({
+    queryKey: ['impact', profile?.id],
+    queryFn: () => fetchImpact(profile!.id),
+    enabled: !!profile?.id,
+  });
+
+  // Read your own profile through the public RPC so the header shows exactly
+  // the numbers other people see — no locally-computed shadow copy to drift.
+  const publicQ = useQuery({
+    queryKey: ['public-profile', profile?.username],
+    queryFn: () => fetchPublicProfileV2(profile!.username!),
+    enabled: !!profile?.username,
+    staleTime: 60_000,
+  });
 
   const links = [
     { href: '/perfil/logros', icon: Award, label: t('logros') },
@@ -38,24 +66,20 @@ export default function PerfilPage() {
 
   return (
     <div className="space-y-6">
+      {publicQ.data?.ok && publicQ.data.profile ? (
+        <ProfileHeader
+          profile={publicQ.data.profile}
+          viewer={publicQ.data.viewer!}
+          onEdit={() => router.push('/perfil/ajustes')}
+        />
+      ) : (
+        <Skeleton className="h-52 w-full" />
+      )}
+
       <Card className="relative overflow-hidden p-4">
         {/* Faint rank-coloured wash so the identity card is not a plain box. */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-        <div className="relative flex items-center gap-4">
-          <Avatar name={profile?.displayName} src={profile?.avatarUrl} size={64} />
-          <div className="min-w-0 flex-1">
-            {profile?.equippedTitle && <span className="eyebrow block text-primary">{profile.equippedTitle}</span>}
-            <h1 className="truncate font-display text-h1 font-bold leading-tight">
-              {profile?.displayName ?? 'Tu perfil'}
-            </h1>
-            <p className="mt-0.5 truncate text-small text-muted-foreground">
-              {profile?.username ? `@${profile.username}` : 'Sin usuario'}
-              {profile?.city ? ` · ${profile.city}` : ''}
-            </p>
-            <AccountTypeBadge type={profile?.accountType} className="mt-1.5" />
-          </div>
-        </div>
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="relative flex items-center justify-between gap-3">
           <Link href="/perfil/rangos" aria-label="Ver todos los rangos" className="transition-transform hover:-translate-y-0.5">
             <RankBadge totalXp={xp} variant="full" size={56} />
           </Link>
@@ -64,6 +88,7 @@ export default function PerfilPage() {
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
+        <AccountTypeBadge type={profile?.accountType} className="relative mt-3" />
         {/* These were text buttons carrying an ASCII "→" and a 🌱, with no
             hover beyond a colour change. Icons + a real press state instead. */}
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -83,6 +108,17 @@ export default function PerfilPage() {
             Personalizá a Pip
           </Link>
         </div>
+        {/* Kids have no feed to save from, so the shortcut would lead nowhere. */}
+        {!isKid && (
+          <Link
+            href="/perfil/guardados"
+            className="press group mt-2 flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
+          >
+            <Bookmark className="h-4 w-4" />
+            {tp('tabSaved')}
+            <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        )}
         <Link
           href="/brote-plus"
           className="press group mt-2 flex items-center justify-center gap-2 rounded-button border border-brote-sun/40 bg-brote-sun/10 px-3 py-2.5 text-center text-small font-semibold text-brote-sun hover:bg-brote-sun/15 hover:shadow-sun-glow"
@@ -153,6 +189,11 @@ export default function PerfilPage() {
           );
         })}
       </div>
+
+      {/* Kids have no social feed at all (08 §2), so no tabs to show. */}
+      {!isKid && profile?.id && (
+        <ProfileTabs userId={profile.id} isMe displayName={profile.displayName ?? null} />
+      )}
     </div>
   );
 }

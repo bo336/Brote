@@ -14,6 +14,8 @@ import { Input, Select, Field } from '@/components/ui/input';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Mundo } from '@/components/mundo/Mundo';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { fetchSuggestedAccounts, followUser, type SocialAccount } from '@/lib/api/social';
 import { cn } from '@/lib/utils/cn';
 import { createClient } from '@/lib/supabase/client';
 import { completeActivity } from '@/lib/api/activities';
@@ -23,7 +25,17 @@ import { toast } from '@/stores/toast';
 import { saveOnboardingProfile, finishOnboarding } from '@/app/onboarding/actions';
 import type { ActivityRow } from '@/lib/supabase/rows';
 
-const STEPS = 6;
+/**
+ * 0 bienvenida · 1 nombre/provincia/tipo · 2 intereses · 3 a quién seguir ·
+ * 4 contexto · 5 tu mundo · 6 primera acción.
+ *
+ * El paso 3 no existe para una cuenta infantil: no sigue a nadie, no aparece
+ * en sugerencias, y ofrecerle gente sería ofrecerle algo que el servidor le va
+ * a negar. Por eso los pasos se saltean en vez de esconderse, y los puntitos de
+ * progreso cuentan los que esa cuenta realmente va a ver.
+ */
+const STEPS = 7;
+const FOLLOW_STEP = 3;
 
 interface Ctx {
   balcon: boolean;
@@ -46,6 +58,9 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   const [otherCity, setOtherCity] = useState('');
   const [interests, setInterests] = useState<Set<string>>(new Set());
   const [ctx, setCtx] = useState<Ctx>({ balcon: false, jardin: false, auto: false, bici: false, mascota: false, compra: null });
+  const [suggested, setSuggested] = useState<SocialAccount[] | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [following, setFollowing] = useState(false);
   const [firstAction, setFirstAction] = useState<ActivityRow | null>(null);
   const [actionDone, setActionDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -62,6 +77,37 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
       .maybeSingle()
       .then(({ data }) => setFirstAction((data as ActivityRow | null) ?? null));
   }, []);
+
+  const isKid = accountType === 'kid';
+
+  // Asked for when the step opens, not on mount: `suggested_accounts` reads the
+  // saved profile, and until step 2 persists there is nothing to match on.
+  useEffect(() => {
+    if (step !== FOLLOW_STEP || suggested !== null) return;
+    fetchSuggestedAccounts(6).then(setSuggested).catch(() => setSuggested([]));
+  }, [step, suggested]);
+
+  function togglePick(id: string) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  /**
+   * The single highest-leverage step in the whole flow: an account that follows
+   * nobody on day one sees a feed with no people in it, and never comes back.
+   * Failures are swallowed on purpose — a follow that does not stick must not
+   * trap somebody inside onboarding.
+   */
+  async function followPicked() {
+    if (following) return;
+    setFollowing(true);
+    await Promise.all(Array.from(picked).map((id) => followUser(id).catch(() => null)));
+    setFollowing(false);
+    setStep(FOLLOW_STEP + 1);
+  }
 
   function toggleInterest(slug: string) {
     setInterests((prev) => {
@@ -86,12 +132,24 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
 
   function nextFrom(current: number) {
     if (current === 1 && !name.trim()) return;
-    if (current === 2 && interests.size < 3) {
-      toast.warning(t('interestsMin'));
+    if (current === 2) {
+      if (interests.size < 3) {
+        toast.warning(t('interestsMin'));
+        return;
+      }
+      // Save here so the account type and interests are real by the time
+      // `suggested_accounts` runs on the next step.
+      persist();
+      setStep(isKid ? FOLLOW_STEP + 1 : FOLLOW_STEP);
       return;
     }
-    if (current === 3) persist(); // save before showing the world
+    if (current === 4) persist(); // save the context before showing the world
     setStep((s) => Math.min(STEPS - 1, s + 1));
+  }
+
+  function back() {
+    // Walking backwards has to skip the same step going the other way.
+    setStep((s) => (isKid && s === FOLLOW_STEP + 1 ? s - 2 : s - 1));
   }
 
   async function doFirstAction() {
@@ -118,17 +176,20 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
       {/* Progress dots + back */}
       <div className="z-10 mb-4 flex items-center gap-3">
         {step > 0 && step < STEPS - 1 && (
-          <button onClick={() => setStep((s) => s - 1)} aria-label={tc('back')} className="text-muted-foreground">
+          <button onClick={back} aria-label={tc('back')} className="text-muted-foreground">
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
         <div className="flex flex-1 items-center justify-center gap-1.5">
-          {Array.from({ length: STEPS }).map((_, i) => (
-            <span
-              key={i}
-              className={cn('h-1.5 rounded-pill transition-all', i === step ? 'w-6 bg-primary' : 'w-1.5 bg-border')}
-            />
-          ))}
+          {Array.from({ length: STEPS })
+            .map((_, i) => i)
+            .filter((i) => !(isKid && i === FOLLOW_STEP))
+            .map((i) => (
+              <span
+                key={i}
+                className={cn('h-1.5 rounded-pill transition-all', i === step ? 'w-6 bg-primary' : 'w-1.5 bg-border')}
+              />
+            ))}
         </div>
         <div className="w-5" />
       </div>
@@ -257,7 +318,77 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
               </div>
             )}
 
-            {step === 3 && (
+            {step === FOLLOW_STEP && (
+              <div className="flex flex-1 flex-col">
+                <StepTitle pip="happy" title={t('followTitle')} subtitle={t('followHelp')} />
+                <div className="mt-5 space-y-2">
+                  {suggested === null ? (
+                    [0, 1, 2].map((i) => <div key={i} className="skeleton h-[68px] rounded-card" />)
+                  ) : suggested.length === 0 ? (
+                    <p className="text-small leading-relaxed text-muted-foreground">{t('followEmpty')}</p>
+                  ) : (
+                    suggested.map((a) => {
+                      const active = picked.has(a.id);
+                      return (
+                        <button
+                          key={a.id}
+                          onClick={() => togglePick(a.id)}
+                          aria-pressed={active}
+                          className={cn(
+                            'press flex w-full items-center gap-3 rounded-card border p-3 text-left transition-colors',
+                            active
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border bg-surface hover:border-primary/30',
+                          )}
+                        >
+                          <PipAvatar
+                            pipStyle={a.pip_style}
+                            avatarUrl={a.avatar_url}
+                            name={a.display_name}
+                            rankSlug={a.rank_slug}
+                            size={40}
+                            ring
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-small font-semibold">
+                              {a.display_name ?? a.username}
+                            </span>
+                            <span className="eyebrow block truncate text-muted-foreground">
+                              {['@' + (a.username ?? ''), a.city].filter(Boolean).join(' · ')}
+                            </span>
+                          </span>
+                          <span
+                            className={cn(
+                              'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border',
+                              active ? 'border-primary bg-primary text-primary-foreground' : 'border-border',
+                            )}
+                          >
+                            {active && <Check className="h-3.5 w-3.5" />}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+                <Spacer />
+                <div className="flex gap-3">
+                  <Button variant="ghost" className="flex-1" onClick={() => setStep(FOLLOW_STEP + 1)}>
+                    {t('followSkip')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-[2]"
+                    loading={following}
+                    disabled={picked.size === 0}
+                    onClick={followPicked}
+                  >
+                    {t('followCta', { n: picked.size })}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('contextTitle')} subtitle={t('contextHelp')} />
                 <div className="mt-5 flex flex-wrap gap-2">
@@ -277,30 +408,30 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                 </div>
                 <Spacer />
                 <div className="flex gap-3">
-                  <Button variant="ghost" className="flex-1" onClick={() => nextFrom(3)}>
+                  <Button variant="ghost" className="flex-1" onClick={() => nextFrom(4)}>
                     {tc('skip')}
                   </Button>
-                  <Button variant="primary" className="flex-[2]" onClick={() => nextFrom(3)}>
+                  <Button variant="primary" className="flex-[2]" onClick={() => nextFrom(4)}>
                     {tc('continue')}
                   </Button>
                 </div>
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('mundoTitle')} subtitle={t('mundoBody')} />
                 <div className="mt-5">
                   <Mundo height={280} interactive={false} />
                 </div>
                 <Spacer />
-                <Button block variant="primary" onClick={() => setStep(5)}>
+                <Button block variant="primary" onClick={() => setStep(6)}>
                   {tc('continue')}
                 </Button>
               </div>
             )}
 
-            {step === 5 && (
+            {step === 6 && (
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="celebrating" title={t('firstActionTitle')} subtitle={t('firstActionBody')} />
                 <div className="mt-6">

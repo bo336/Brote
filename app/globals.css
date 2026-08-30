@@ -213,6 +213,22 @@
   }
 }
 
+/*
+ * The wide shell.
+ *
+ * Every screen in the app is a single ~672px column, which is the right width
+ * for reading on any device. La Plaza is the one exception: on a large screen
+ * it has a genuine second column (who to follow, topics), and squeezing that
+ * into 672px would make both halves worse.
+ *
+ * Done with :has() rather than by making the shell layout route-aware, because
+ * the layout is a server component with no access to the pathname — and a
+ * client effect that widens the shell after hydration would flash.
+ */
+main:has(> [data-shell='wide']) {
+  max-width: 72rem;
+}
+
 /* Respect reduced-motion: neutralize big animations (§2.5). Functionality stays. */
 @media (prefers-reduced-motion: reduce) {
   *,

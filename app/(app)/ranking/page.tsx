@@ -40,7 +40,8 @@ function compDaysLeft(endsAt: string): string {
   const d = Math.ceil(ms / 86_400_000);
   return d === 1 ? 'termina hoy' : `${d} días`;
 }
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { usePipStyles } from '@/hooks/use-pip-styles';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
 import type { LeaderboardEntry } from '@/lib/supabase/rows';
@@ -57,6 +58,11 @@ function List({
   myId?: string;
   emptyMessage: string;
 }) {
+  const entries = query.data ?? [];
+  // The leaderboard RPCs do not carry pip_style, so it comes in one batched
+  // lookup here rather than thirteen rewritten functions.
+  const pips = usePipStyles(entries.map((e) => e.user_id));
+
   if (query.isLoading) {
     return (
       <div className="space-y-2">
@@ -66,12 +72,17 @@ function List({
       </div>
     );
   }
-  const entries = query.data ?? [];
   if (entries.length === 0) return <EmptyState message={emptyMessage} />;
   return (
     <div className="space-y-2">
       {entries.map((e) => (
-        <LeaderboardRow key={e.user_id} entry={e} isMe={e.user_id === myId} metric={metric} />
+        <LeaderboardRow
+          key={e.user_id}
+          entry={e}
+          isMe={e.user_id === myId}
+          metric={metric}
+          pipStyle={pips.data?.[e.user_id]?.pip_style ?? null}
+        />
       ))}
     </div>
   );
@@ -126,6 +137,9 @@ function RankingInner() {
     enabled: !!myId,
     refetchInterval: 60_000,
   });
+  // weekly_league does not return pip_style either; one batched lookup covers
+  // the whole cohort of 20.
+  const leaguePips = usePipStyles((leagueQ.data?.rows ?? []).map((r) => r.user_id));
 
   // Someone opening an invite link (?amigo=CODE) gets the code applied for
   // them — the point of a link is that it does the work.
@@ -147,6 +161,9 @@ function RankingInner() {
     return () => {
       cancelled = true;
     };
+    // Deliberately keyed on the code alone: adding `friendsQ`/`router` would
+    // re-run this whenever their identity changed and re-apply the invite.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inviteCode]);
 
   return (
@@ -202,7 +219,7 @@ function RankingInner() {
                       >
                         {r.pos}
                       </span>
-                      <Avatar name={r.display_name} src={r.avatar_url} size={34} />
+                      <PipAvatar pipStyle={leaguePips.data?.[r.user_id]?.pip_style ?? null} avatarUrl={r.avatar_url} name={r.display_name} rankSlug={r.rank_slug} size={34} ring />
                       <span className="min-w-0 flex-1 truncate text-small font-medium">
                         <span className="link-underline">{r.display_name ?? r.username ?? 'Alguien'}</span>
                         {isMe && <span className="text-muted-foreground"> (vos)</span>}

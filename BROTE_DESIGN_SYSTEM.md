@@ -173,6 +173,22 @@ user-visible, elements that only change on `:active`.
   and sub-nav), Competencias, Aprendé, Brote+, Notificaciones, onboarding, `/panel`, and the app
   shell (top bar + bottom tab bar). Applied as refinement, not replacement: same palette, same
   layouts, corrected details.
+- **La Plaza** (feed, perfiles, moderación) — 2026-08-29. The whole social surface: ranked feed with
+  the never-empty ladder, public profiles on shared `ProfileHeader`/`ProfileStats`/`ProfileTabs`,
+  thread permalinks with OG cards, search, social notifications, the moderation queue in `/panel`,
+  and the community rules page. One new layout rule: `data-shell="wide"` widens the app shell for
+  `/feed` only (see the `main:has(...)` rule in `globals.css`) so the Plaza can have a right rail on
+  a large screen — it is the only screen that earns a second column.
+
+### Primitives added in the Plaza pass
+
+| Component | Path | What it is |
+|---|---|---|
+| `<PipAvatar>` | `components/pip/PipAvatar.tsx` | The identity everywhere: photo → Pip → neutral Pip, with a rank ring. Wraps `Pip` without touching it. |
+| `<FollowButton>` | `components/social/FollowButton.tsx` | Four states — Seguir · Solicitado · Siguiendo · Dejar de seguir. Optimistic, rolls back on refusal. |
+| `<AccountRow>` / `<AccountListPage>` | `components/social/` | One person in a list; the followers/following pages are the same component twice. |
+| `<LadderCards>` | `components/feed/LadderCards.tsx` | The tail of the feed: people, projects, actions, a lesson — each with its own section eyebrow. |
+| `<ChipRail>` filters | reused | Now also the notification filter and the moderation queue status. |
 
 ### Shared primitives added in that pass
 

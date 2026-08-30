@@ -17,6 +17,17 @@ competitive, AI-personalized experience. Built to run **entirely on free tiers**
 - **Progression** — 11 ranks × 5 divisions, titles, badges, points (one XP currency).
 - **Social** — global / neighborhood / friends / per-domain leaderboards, community
   projects with a Leaflet/OSM map, news.
+- **La Plaza** — the social feed. A ranked timeline that mixes what people post with
+  environmental news from real publishers, plus *Siguiendo* (chronological) and
+  *Novedades* (news only). Follow, reply, replant/quote, save, edit for five minutes;
+  public profiles with every real stat; shareable thread permalinks with OG cards;
+  search across accounts, topics and stories; block, mute and report with a real
+  moderation queue behind them. It never dead-ends: when the ranked river runs out it
+  offers people to follow, an open project near you, an action you have not done and
+  the next lesson — then, and only then, says you are up to date.
+  **Age policy is enforced in the RPCs, not the UI**: kid accounts get a news-only feed
+  and no social surface at all; teen accounts post text only and default to a private
+  profile, which now means a real follow request rather than a one-tap follow.
 - **AI (server-side, cached, graceful fallbacks)** — Gemini photo verification,
   personalized recommendations, and Spanish news summaries.
 - **Spanish-first** (Argentine voseo), English-ready via `next-intl`.
