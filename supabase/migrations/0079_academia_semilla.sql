@@ -34,11 +34,16 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare
   c record; v_pl uuid; v_hermanos jsonb; v_ops jsonb; v_clave text;
   v_n int := 0; v_saltados int := 0; v_i int; v_seed bigint; v_mc record; v_k int;
+  v_par int; v_off int; v_izq jsonb; v_der jsonb; v_clave_obj jsonb;
 begin
   for c in
     select co.id, co.slug, co.titulo_es, co.enunciado_es, co.detalle_es, co.rama_slug,
            co.anillo, co.dificultad_base, co.age_groups, co.fuente_id,
-           min(h.gajo_id) as gajo_id
+           -- Postgres no tiene min(uuid). array_agg ordenado hace lo mismo y
+           -- deja explicito que se elige UNO cualquiera pero siempre el mismo,
+           -- que es lo unico que importa: el gajo solo sirve para excluir
+           -- hermanos del propio gajo al armar distractores.
+           (array_agg(h.gajo_id order by h.gajo_id))[1] as gajo_id
     from ac_conceptos co
     join ac_hoja_conceptos hc on hc.concepto_id = co.id
     join ac_hojas h on h.id = hc.hoja_id and h.status = 'aprobado'
@@ -87,7 +92,7 @@ begin
       where co2.rama_slug = c.rama_slug and co2.id <> c.id and h2.gajo_id <> c.gajo_id
         and co2.status = 'aprobado' and co2.age_groups @> c.age_groups
       group by co2.id, co2.titulo_es, co2.enunciado_es, co2.slug
-      limit 3) s;
+      limit 6) s;
 
     if v_hermanos is null or jsonb_array_length(v_hermanos) < 3 then
       v_saltados := v_saltados + 1;
@@ -177,6 +182,65 @@ begin
       jsonb_build_object('region', 'general'), c.age_groups, c.anillo, c.dificultad_base + 0.2, 'aprobado')
     on conflict (plantilla_id, seed) do update set payload_publico = excluded.payload_publico,
       solucion = excluded.solucion, age_groups = excluded.age_groups, status = 'aprobado';
+
+    -- ── 3.b · emparejar: cuatro ideas con sus cuatro nombres ────────────────
+    -- MEDIDO, no supuesto: con solo dos plantillas graduadas por concepto el
+    -- techo de una sesion eran cuatro pasos —una hoja nombra 2,06 conceptos en
+    -- promedio y el compositor nunca repite plantilla dentro de una sesion— y
+    -- 345 de las 360 hojas quedaban por debajo del minimo de siete pasos.
+    -- Estas dos plantillas de emparejar suben el techo a ocho.
+    for v_par in 1..(case when jsonb_array_length(v_hermanos) >= 6 then 2 else 1 end) loop
+      v_off := (v_par - 1) * 3;
+
+      insert into ac_plantillas (tipo, titulo_interno, enunciado_tpl, slots, solucion_tpl, distractores,
+                                 age_groups, anillo_min, dificultad_base, fuente_id, generator_hash, status)
+      values ('emparejar', 'Emparejar · ' || c.titulo_es,
+              'Emparejá cada idea con el nombre que le corresponde.',
+              jsonb_build_object('derivada', true),
+              jsonb_build_object('estrategia', 'derivada', 'concepto', c.slug),
+              jsonb_build_object('estrategia', 'vecinos'),
+              c.age_groups, c.anillo, c.dificultad_base + 0.1, c.fuente_id,
+              'der.em' || v_par || '.' || c.slug, 'aprobado')
+      on conflict (tipo, generator_hash) do update set titulo_interno = excluded.titulo_interno,
+        age_groups = excluded.age_groups, anillo_min = excluded.anillo_min, status = 'aprobado'
+      returning id into v_pl;
+      insert into ac_plantilla_conceptos (plantilla_id, concepto_id, peso)
+      values (v_pl, c.id, 1.0) on conflict (plantilla_id, concepto_id) do nothing;
+
+      -- Izquierda: los titulos. El item 1 es el concepto propio; 2 a 4 son
+      -- hermanos, tomados de una ventana distinta segun v_par.
+      v_izq := '[]'::jsonb;
+      for v_i in 1..4 loop
+        v_izq := v_izq || jsonb_build_array(jsonb_build_object('id', 'i' || v_i, 'texto',
+          case when v_i = 1 then c.titulo_es
+               else v_hermanos -> (v_off + v_i - 2) ->> 'titulo' end));
+      end loop;
+
+      -- Derecha: los enunciados, rotados una posicion para que el orden
+      -- guardado no sea la identidad. El barajado por entrega vuelve a moverlos.
+      v_der := '[]'::jsonb; v_clave_obj := '{}'::jsonb;
+      for v_i in 1..4 loop
+        v_k := (v_i % 4) + 1;
+        v_der := v_der || jsonb_build_array(jsonb_build_object('id', 'd' || v_i, 'texto',
+          case when v_k = 1 then c.enunciado_es
+               else v_hermanos -> (v_off + v_k - 2) ->> 'enunciado' end));
+        v_clave_obj := v_clave_obj || jsonb_build_object('i' || v_k, 'd' || v_i);
+      end loop;
+
+      insert into ac_items (plantilla_id, seed, payload_publico, solucion, slot_valores,
+                            age_groups, anillo_min, dificultad, status)
+      values (v_pl, v_seed + 10 + v_par,
+        jsonb_build_object('tipo', 'emparejar',
+          'enunciado', 'Emparejá cada idea con el nombre que le corresponde.',
+          'izquierda', v_izq, 'derecha', v_der, 'ayuda', null),
+        jsonb_build_object('clave', v_clave_obj,
+          'explicacion', c.titulo_es || ': ' || c.enunciado_es,
+          'fuente_id', c.fuente_id),
+        jsonb_build_object('region', 'general'), c.age_groups, c.anillo,
+        c.dificultad_base + 0.1, 'aprobado')
+      on conflict (plantilla_id, seed) do update set payload_publico = excluded.payload_publico,
+        solucion = excluded.solucion, age_groups = excluded.age_groups, status = 'aprobado';
+    end loop;
 
     -- ── 4 · mito o dato, si hay creencias documentadas ──────────────────────
     if exists (select 1 from ac_misconceptions where concepto_id = c.id) then
