@@ -105,3 +105,158 @@ clean build).
 *(Bugs, shortcuts taken, things to revisit. Don't lose these.)*
 
 - (none yet)
+
+---
+
+# LA ACADEMIA — FASE 1 (El Bosque) · ENTREGADA
+
+> Pack: `ACADEMIA/` en la raíz del repo. Fase 1 = motor + contenido, **sin UI**.
+> `/aprender` sigue mostrando la pantalla vieja, que es exactamente lo que la
+> fase pide. La fase 2 construye la experiencia.
+
+## ▶ NEXT EXACT TASK (Academia)
+
+> **Fase 2 — La experiencia.** Pegarle al agente `ACADEMIA/prompts/PHASE-2.md`
+> completo y nada más. Todo lo que esa fase necesita del servidor ya existe y
+> está verificado contra la base viva: `academia_arbol`, `academia_gajo`,
+> `academia_start_session`, `academia_answer`, `academia_finish_session`,
+> `academia_riego`, `academia_abandonar`, `academia_estado` y
+> `academia_accion_sugerida`, más `lib/api/academia.ts` que los envuelve tipados.
+
+## Qué quedó
+
+**Migraciones** (aplicadas en vivo y commiteadas, cuerpo a cuerpo idénticas —
+lo verifica `node scripts/check-academia-parity.mjs` contra `md5(prosrc)`):
+
+- `0077_academia_core.sql` — 20 tablas, enums, índices, RLS, trigger anticiclos,
+  4 filas de `app_settings` y los helpers chicos.
+- `0078_academia_motor.sql` — el compositor, el corrector de los 12 tipos, la
+  economía, el gancho de acción. 21 funciones.
+- `0079_academia_semilla.sql` — `ac_sembrar_derivados()`, el ensamblador que
+  construye dentro de Postgres los ítems derivados de cada concepto.
+
+**Contenido** (`scripts/academia/**` → `supabase/seed-academia.sql`):
+
+| | |
+|---|---|
+| fuentes | 56 |
+| anillos · ramas · gajos · hojas | 4 · 14 · 105 · 360 |
+| **conceptos** | **491**, los 491 con fuente |
+| sensibles | 23, **ninguno apto `kid`** |
+| prerrequisitos | 527 (469 duros), DAG acíclico |
+| misconceptions | 41, todas con corrección y fuente |
+| plantillas · ítems | 2.570 · 5.638 |
+| rama más profunda | `animales`: 97 conceptos en 16 gajos (la siguiente tiene 7) |
+
+**Cliente** — `lib/academia/types.ts`, `lib/academia/schemas.ts`,
+`lib/api/academia.ts`. Cero componentes, cero rutas nuevas.
+
+## Mapeo de las 10 lecciones viejas (PHASE-1 §5)
+
+Los 47 pasos están en `scripts/academia/plantillas/legado.mjs`, con su texto y
+sus explicaciones literales: 17 `info` → microlectura, 20 `quiz` →
+opcion_multiple, 10 `truefalse` → mito_o_dato. Los pasos de una misma lección
+son variantes de una plantilla, así que son 30 plantillas y 47 ítems.
+
+| lección vieja | conceptos nuevos |
+|---|---|
+| `agua-invisible` | `agua.agua_virtual` |
+| `residuos-que-pasa` | `residuos.metano_de_relleno`, `residuos.fraccion_organica`, `residuos.jerarquia_residuos`, `residuos.contaminacion_cruzada` |
+| `energia-fantasma` | `energia.consumo_fantasma` |
+| `clima-basico` | `aire_suelo.efecto_invernadero_natural`, `aire_suelo.efecto_intensificado`, `tronco.stock_vs_flujo` |
+| `reciclaje-bien` | `residuos.contaminacion_cruzada`, `residuos.reciclar_no_es_infinito`, `residuos.que_es_reciclable` |
+| `movilidad-real` | `movilidad.pasajero_km`, `movilidad.volar_pesa` |
+| `comida-huella` | `alimentacion.huella_por_alimento`, `alimentacion.transporte_es_poco`, `alimentacion.desperdicio_un_tercio` |
+| `greenwashing` | `consumo.greenwashing`, `consumo.pecados_del_greenwashing` |
+| `biodiversidad` | `animales.polinizacion`, `animales.perdida_de_habitat`, `animales.especie_clave` |
+| `economia-circular` | `consumo.economia_circular`, `consumo.derecho_a_reparar` |
+
+`lessons`, `lesson_steps`, `user_lessons`, `learning_path()`, `lesson_detail()`
+y `complete_lesson()` **siguen intactos**: son el rollback hasta la fase 3.
+
+## Decisiones
+
+- **Numeración 0077–0079, no 0038–0040.** El pack fue escrito cuando el repo
+  iba por 0037; hoy va por 0076. La regla real —secuencial, nunca reusada— se
+  respeta.
+- **Tres archivos de migración, no uno.** Esquema, motor y ensamblador. Aplicar
+  ~2.000 líneas de una sola vez por un canal remoto es exactamente el fallo
+  parcial que la idempotencia intenta evitar.
+- **Ítems materializados, no virtuales.** El spec permite guardar solo
+  `(plantilla_id, seed)` y renderizar al vuelo. Se eligió materializar: el par
+  sigue guardado en `ac_entregas`, así que la fase 3 puede pasar a render
+  diferido detrás de la misma interfaz sin perder el registro histórico.
+- **Ítems derivados de cada concepto.** Las 74 plantillas autoradas prueban que
+  la abstracción sirve, pero tocan un puñado de conceptos. `ac_sembrar_derivados()`
+  cubre los 491 con microlectura, dos de opción múltiple (en las dos direcciones
+  de reconocimiento, hasta 3 ítems cada una) y dos de emparejar. Sin eso,
+  "se puede componer una sesión para cualquier gajo de anillo 1" era falso.
+- **Distractores de conceptos hermanos** (misma rama, distinto gajo) en las
+  derivadas: es la tercera estrategia del cascade, la de último recurso, y es
+  válida acá porque cada opción es una afirmación real con su fuente y la
+  pregunta es cuál describe ESTE concepto.
+- **Columnas agregadas a `ac_items`**: `slot_valores` (permite elegir el
+  isomorfo que le habla a esta persona), `age_groups` y `anillo_min`.
+- **`academia_abandonar` es un RPC nuevo**, no está en la lista de
+  13-data-model.md §6, pero 12-economy §1 y ACCEPTANCE exigen el reembolso.
+- **Piso de adivinanza del Elo.** El spec escribe `k = 1` para tipos abiertos,
+  lo que daría `P = 1` y haría que acertar BAJE theta. Implementado como
+  `g = 1/k` con k ≥ 2 y `g = 0` en los abiertos.
+- **`ac_sembrar_derivados()` va en una migración**, no en el seed: es una
+  función, y las funciones se versionan en migraciones.
+
+## Bugs propios encontrados y corregidos (todos, jugando contra la base viva)
+
+1. **`emparejar` y `clasificar_en_cestos` eran incorregibles.** Su clave es un
+   OBJETO y el bloque que la traduce a tokens asumía array: reventaba con
+   *cannot extract elements from an object*. Dos de los doce tipos, muertos.
+2. **La clave revelada salía desordenada.** En las secuencias el ORDEN es la
+   respuesta, y se armaba filtrando por pertenencia, así que volvía ordenada por
+   posición del token. La pantalla habría mostrado la secuencia correcta mal.
+3. **`min(uuid)` no existe en Postgres.** `ac_sembrar_derivados` no corría.
+4. **La latencia se medía con `now()`**, que está congelado dentro de una
+   transacción: varias respuestas seguidas daban 0 ms y se marcaban todas como
+   imposibles, suprimiendo las semillas en silencio. Ahora usa `clock_timestamp()`.
+5. **`latente` apagaba ramas enteras.** Bastaba con que UNO de los conceptos de
+   un gajo tuviera un prereq sin cumplir. Medido: cinco ramas sin un solo gajo
+   disponible en una cuenta nueva. Ahora un gajo está latente solo si TODOS sus
+   conceptos están bloqueados, y un prereq del mismo gajo no bloquea.
+6. **El techo de una sesión eran 4 pasos.** Dos plantillas graduadas por
+   concepto × 2,06 conceptos por hoja, y el compositor nunca repite plantilla.
+   345 de 360 hojas quedaban por debajo del mínimo de 7. Se agregaron las dos
+   de emparejar: techo mínimo 8.
+7. **Repetir una hoja daba 2 pasos.** Cada plantilla derivada emitía un solo
+   ítem, así que la ventana de exclusión de 14 días vaciaba el pool. Ahora las
+   de opción múltiple emiten hasta 3 ítems con juegos de distractores distintos,
+   y el relleno de la sesión llega hasta los conceptos del gajo. Tres vueltas
+   seguidas a la misma hoja: 9, 9 y 9 pasos, cero ítems repetidos.
+
+## Desviaciones
+
+- **`npm run gen:types` no se pudo correr**: falta `SUPABASE_ACCESS_TOKEN`. El
+  archivo `lib/supabase/database.types.ts` quedó intacto (el guard de `.tmp`
+  hizo su trabajo) y sigue siendo la forma permisiva deliberada que describe su
+  propio encabezado, con los tipos precisos a mano en `lib/supabase/rows.ts`. La
+  superficie que la fase 1 expone al cliente son RPC, y sus tipos precisos están
+  en `lib/academia/types.ts`. **Owner action item abajo.**
+- **El XP de la Academia no cuenta para la liga semanal todavía.** Las cinco
+  funciones de liga leen `activity_completions.points_awarded`, y escribir ahí
+  inflaría las cifras de impacto y el crecimiento del mundo (0033 lo prohíbe
+  explícitamente). Cambiarlas es tocar `Ranking`, que AGENT-RULES §1 pone fuera
+  de alcance. El XP sí suma a `profiles.total_xp` (rangos, tablero global,
+  títulos) y la racha sí se mantiene. **Owner action item abajo.**
+- **El seed se aplicó en vivo por `pg_net`**, no por el script de
+  `service_role`: `SUPABASE_SERVICE_ROLE_KEY` está vacía en `.env.local`. Se
+  descargó `supabase/seed-academia.sql` desde el commit en GitHub y se verificó
+  el md5 contra el archivo local ANTES de ejecutarlo.
+  `scripts/apply-academia-seed.mjs` queda listo para cuando la clave exista.
+
+## Owner action items (Academia)
+
+- Poner `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (Supabase → Project Settings
+  → API → service_role). Habilita `scripts/apply-academia-seed.mjs`.
+- Hacer `supabase login` o exportar `SUPABASE_ACCESS_TOKEN` y correr
+  `npm run gen:types`.
+- Decidir si el XP de la Academia debe contar para la liga semanal. Si sí, el
+  cambio limpio es un helper `brote_xp_semanal(uuid)` que sume las dos fuentes y
+  que usen las cinco funciones de liga.
