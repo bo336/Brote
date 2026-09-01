@@ -771,7 +771,7 @@ declare
   v_elegido text; v_nota text; v_misc text;
   v_theta real; v_resp int; v_kk real; v_p real; v_fuerza real := 0;
   v_seguidas int; v_requeue boolean := false; v_nuevo_orden int;
-  v_clave_tokens jsonb := '[]'::jsonb; v_id text; v_val numeric; v_obj numeric;
+  v_clave_tokens jsonb; v_id text; v_val numeric; v_obj numeric;
   v_tol numeric; v_rec boolean := false;
 begin
   if v_uid is null then raise exception 'No autenticado' using errcode = 'P0001'; end if;
@@ -1011,14 +1011,39 @@ begin
    where pc.plantilla_id = v_e.plantilla_id order by pc.peso desc limit 1;
 
   -- La clave se devuelve en el espacio de tokens de ESTA entrega, para que la
-  -- pantalla pueda marcar la opción correcta sin saber nada del ítem.
-  if ac_token_key(v_tipo) is not null then
-    select coalesce(jsonb_agg('t' || k), '[]'::jsonb) into v_clave_tokens
+  -- pantalla pueda marcar lo correcto sin saber nada del ítem.
+  --
+  -- Dos formas de clave, y las dos importan:
+  --   ARRAY  la lista de ids correctos. En las secuencias el ORDEN es la
+  --          respuesta, así que se mapea recorriendo la clave y no filtrando
+  --          por pertenencia: filtrar devolvía los tokens en orden de posición
+  --          y la pantalla habría mostrado una secuencia correcta mal ordenada.
+  --   OBJETO `emparejar` y `clasificar_en_cestos` mapean una cosa con otra. Una
+  --          de las dos puntas es un token de esta entrega y la otra no.
+  -- La versión anterior asumía siempre array y reventaba con
+  -- "cannot extract elements from an object" en esos dos tipos.
+  if ac_token_key(v_tipo) is null then
+    v_clave_tokens := null;
+  elsif jsonb_typeof(v_clave) = 'array' then
+    select coalesce(jsonb_agg(tok order by ord), '[]'::jsonb) into v_clave_tokens
     from (
-      select generate_subscripts(v_e.perm, 1) as k
-    ) s
-    where (v_item.payload_publico -> ac_token_key(v_tipo) -> (v_e.perm[s.k] - 1) ->> 'id')
-          in (select jsonb_array_elements_text(coalesce(v_clave, '[]'::jsonb)));
+      select c.ord, 't' || s.k as tok
+      from jsonb_array_elements_text(v_clave) with ordinality c(cid, ord)
+      join (select generate_subscripts(v_e.perm, 1) as k) s
+        on (v_item.payload_publico -> ac_token_key(v_tipo) -> (v_e.perm[s.k] - 1) ->> 'id') = c.cid
+    ) z;
+  elsif jsonb_typeof(v_clave) = 'object' and v_tipo = 'emparejar' then
+    -- izquierda (id estable del ítem) → token de la derecha barajada
+    select coalesce(jsonb_object_agg(kv.key, 't' || s.k), '{}'::jsonb) into v_clave_tokens
+    from jsonb_each_text(v_clave) kv
+    join (select generate_subscripts(v_e.perm, 1) as k) s
+      on (v_item.payload_publico -> 'derecha' -> (v_e.perm[s.k] - 1) ->> 'id') = kv.value;
+  elsif jsonb_typeof(v_clave) = 'object' then
+    -- ficha (token barajado) → cesto (id estable, su nombre ya está a la vista)
+    select coalesce(jsonb_object_agg('t' || s.k, kv.value), '{}'::jsonb) into v_clave_tokens
+    from jsonb_each_text(v_clave) kv
+    join (select generate_subscripts(v_e.perm, 1) as k) s
+      on (v_item.payload_publico -> 'fichas' -> (v_e.perm[s.k] - 1) ->> 'id') = kv.key;
   end if;
 
   return jsonb_build_object(
@@ -1028,7 +1053,7 @@ begin
     -- La explicación va SIEMPRE, se haya acertado o no: la explicación es el
     -- contenido, no un premio.
     'explicacion', v_sol->>'explicacion',
-    'clave', coalesce(v_clave_tokens, '[]'::jsonb),
+    'clave', v_clave_tokens,
     'clave_cruda', case when ac_token_key(v_tipo) is null then v_clave end,
     'nota_opcion', v_nota,
     'misconception', v_misc,
