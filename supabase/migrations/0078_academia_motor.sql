@@ -595,6 +595,21 @@ begin
     from ac_hoja_conceptos hc
     join ac_conceptos c on c.id = hc.concepto_id
     where hc.hoja_id = v_hoja.id and c.status = 'aprobado' and c.age_groups @> array[v_acc];
+
+    -- Y detras, los demas conceptos del MISMO gajo. Van al final del relleno, o
+    -- sea que solo entran cuando los de la hoja no alcanzan para llenar la
+    -- sesion. Pasa de verdad al repetir una hoja: la ventana de exclusion de 14
+    -- dias saca todo lo ya visto y una hoja nombra dos conceptos en promedio,
+    -- asi que la segunda vuelta se quedaba en seis pasos. El gajo es la unidad
+    -- tematica coherente, asi que completar con sus vecinos no desvia la sesion.
+    select v_relleno || coalesce(array_agg(c.id order by c.dificultad_base), '{}')
+      into v_relleno
+    from ac_hojas h2
+    join ac_hoja_conceptos hc2 on hc2.hoja_id = h2.id
+    join ac_conceptos c on c.id = hc2.concepto_id
+    where h2.gajo_id = v_hoja.gajo_id and h2.status = 'aprobado'
+      and c.status = 'aprobado' and c.age_groups @> array[v_acc]
+      and not (c.id = any(v_relleno));
   end if;
 
   -- repaso vencido: R < 0.9, el más olvidado primero
