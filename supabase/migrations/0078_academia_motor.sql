@@ -792,7 +792,11 @@ begin
       'mensaje', 'Esta sesión venció. Empezá una nueva cuando quieras.');
   end if;
 
-  v_lat := greatest(0, (extract(epoch from (now() - v_e.issued_at)) * 1000)::int);
+  -- clock_timestamp() y NO now(): now() esta congelado en el instante en que
+  -- arranco la transaccion, asi que si varias respuestas cayeran alguna vez en
+  -- la misma transaccion todas medirian 0 ms y las marcaria a todas como
+  -- imposibles. La latencia es tiempo de pared, no tiempo de transaccion.
+  v_lat := greatest(0, (extract(epoch from (clock_timestamp() - v_e.issued_at)) * 1000)::int);
 
   -- El candado. Si otra llamada llegó primero, `found` es falso y no se corrige
   -- dos veces ni se premia dos veces.
