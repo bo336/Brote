@@ -260,3 +260,10 @@ y `complete_lesson()` **siguen intactos**: son el rollback hasta la fase 3.
 - Decidir si el XP de la Academia debe contar para la liga semanal. Si sí, el
   cambio limpio es un helper `brote_xp_semanal(uuid)` que sume las dos fuentes y
   que usen las cinco funciones de liga.
+- **Encontrado de paso, FUERA de alcance (AGENT-RULES §8):**
+  `supabase/migrations/0050_social_notifications.sql:45` tiene la clave `anon`
+  del proyecto escrita a mano dentro de una función. Es la clave pública
+  (`NEXT_PUBLIC_SUPABASE_ANON_KEY`), así que no es una filtración, pero queda
+  clavada en el repo y no rota junto con el proyecto. No se tocó porque es una
+  migración ya aplicada y ajena a la Academia. Conviene moverla a
+  `app_settings` o a Vault y regenerarla si alguna vez se rota.
