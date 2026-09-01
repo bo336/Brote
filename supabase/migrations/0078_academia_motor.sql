@@ -240,17 +240,33 @@ begin
     from gc left join mios m on m.concepto_id = gc.concepto_id
     group by gc.gajo_id
   ),
-  -- Prerrequisito duro incumplido que cae FUERA del propio gajo. Es lo que la
-  -- UI nombra en el tooltip de un gajo latente.
-  falta as (
-    select gc.gajo_id,
-           min(gp.slug) filter (where coalesce(m2.mastery_ema, 0) < 0.85) as gajo_falta_slug,
-           min(gp.titulo_es) filter (where coalesce(m2.mastery_ema, 0) < 0.85) as gajo_falta
+  -- Conceptos con un prerrequisito duro sin cumplir que ADEMAS cae fuera del
+  -- propio gajo. Si el prereq esta en el mismo gajo no bloquea nada: se hacen
+  -- en orden ahi adentro.
+  bloq as (
+    select distinct gc.gajo_id, gc.concepto_id,
+           gp.slug as falta_slug, gp.titulo_es as falta_titulo
     from gc
     join ac_concepto_prereq pr on pr.concepto_id = gc.concepto_id and pr.fuerza >= 0.8
     left join mios m2 on m2.concepto_id = pr.requiere_id
-    join gc gc2 on gc2.concepto_id = pr.requiere_id and gc2.gajo_id <> gc.gajo_id
-    join ac_gajos gp on gp.id = gc2.gajo_id
+    left join gc gsame on gsame.gajo_id = gc.gajo_id and gsame.concepto_id = pr.requiere_id
+    left join gc gotro on gotro.concepto_id = pr.requiere_id and gotro.gajo_id <> gc.gajo_id
+    left join ac_gajos gp on gp.id = gotro.gajo_id
+    where coalesce(m2.mastery_ema, 0) < 0.85
+      and gsame.concepto_id is null
+  ),
+  -- MEDIDO: marcar el gajo entero como latente porque UNO de sus conceptos
+  -- tenia un prereq dejaba cinco ramas sin un solo gajo disponible en una
+  -- cuenta nueva, y 10-el-bosque.md §3 es explicito: "nunca se bloquea una
+  -- rama entera, solo gajos individuales". Latente ahora significa lo que
+  -- deberia significar: no se puede empezar por NINGUN lado.
+  falta as (
+    select gc.gajo_id,
+           count(distinct gc.concepto_id) as n_conceptos,
+           count(distinct b.concepto_id)  as n_bloqueados,
+           min(b.falta_titulo) as gajo_falta,
+           min(b.falta_slug)   as gajo_falta_slug
+    from gc left join bloq b on b.gajo_id = gc.gajo_id and b.concepto_id = gc.concepto_id
     group by gc.gajo_id
   ),
   hojas_hechas as (
@@ -271,7 +287,7 @@ begin
            f.gajo_falta, f.gajo_falta_slug,
            case
              when g.anillo > v_anillo then 'latente'
-             when f.gajo_falta is not null then 'latente'
+             when f.n_conceptos > 0 and f.n_bloqueados >= f.n_conceptos then 'latente'
              when coalesce(a.m, 0) >= 0.85 and coalesce(a.f, 0) < 0.6 then 'marchito'
              when coalesce(a.m, 0) >= 0.85 then 'frondoso'
              when coalesce(a.vistos, 0) > 0 then 'en_curso'
