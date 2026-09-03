@@ -13,6 +13,8 @@ import * as THREE from 'three';
 
 export interface FlatOptions {
   color?: THREE.ColorRepresentation;
+  /** The sky, the mist wall and the stars carry their colour per vertex. */
+  vertexColors?: boolean;
   map?: THREE.Texture | null;
   transparent?: boolean;
   opacity?: number;
@@ -23,6 +25,7 @@ export interface FlatOptions {
 export function createFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({
     color: opts.color ?? 0xffffff,
+    vertexColors: opts.vertexColors ?? false,
     map: opts.map ?? null,
     transparent: opts.transparent ?? true,
     opacity: opts.opacity ?? 1,

@@ -11,6 +11,7 @@
  * `Math.random()` is banned here (`01-RULES.md` §3.11).
  */
 import { LAYOUT, TERRAIN } from './config';
+import { islandRadius, tierForRegion } from './progression';
 import { hashInt, mulberry32 } from './rng';
 import { fbm, isPlantable, makeLayout, snapToLand, terrainHeight, type WorldLayout } from './terrain';
 import type { FeatureId, RegionId, VerbId, WorldConfig } from './types';
@@ -91,10 +92,28 @@ export interface IslandLayout {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** A region's centre in world units. */
-function regionCentre(id: RegionId, R: number): [number, number] {
+/**
+ * A region's centre in world units — **fixed from day one**.
+ *
+ * The distance is measured against the radius of the tier that UNLOCKS the
+ * region, not the island's current radius. That is what makes "the island's full
+ * extent exists in the data from day one" true (`08-WORLD-AND-PROGRESSION.md`
+ * §1): El Jardín sits at the same coordinates whether you are tier 2 or tier 9,
+ * so growing the island reveals it rather than moving everything that was
+ * already there.
+ *
+ * Before its tier, a region's centre is simply outside the coastline — which is
+ * exactly where the ghosted silhouette belongs.
+ */
+export function regionCentre(id: RegionId): [number, number] {
   const spec = REGION_SPECS[id];
-  return [Math.cos(spec.angle) * spec.dist * R, Math.sin(spec.angle) * spec.dist * R];
+  const r = islandRadius(tierForRegion(id)) * spec.dist;
+  return [Math.cos(spec.angle) * r, Math.sin(spec.angle) * r];
+}
+
+/** A region's influence radius, on the same fixed scale as its centre. */
+function regionRadius(id: RegionId): number {
+  return REGION_SPECS[id].radiusFrac * islandRadius(tierForRegion(id));
 }
 
 /** Which region a point belongs to — nearest unlocked anchor wins. */
@@ -110,6 +129,22 @@ export function regionAt(x: number, z: number, regions: readonly RegionAnchor[])
     }
   }
   return best;
+}
+
+/**
+ * The rim radius at an angle, interpolated between coastline samples. The
+ * ground mesh builds its outer ring from this, and the character controller
+ * pushes back against it — so the land you can see is exactly the land you can
+ * walk on.
+ */
+export function coastRadiusAt(coastline: Float32Array, angleRad: number): number {
+  const n = coastline.length;
+  const t = (((angleRad / (Math.PI * 2)) % 1) + 1) % 1;
+  const f = t * n;
+  const i = Math.floor(f);
+  const a = coastline[i % n]!;
+  const b = coastline[(i + 1) % n]!;
+  return a + (b - a) * (f - i);
 }
 
 /**
@@ -144,6 +179,13 @@ function buildTerrainLayout(R: number, seed: number, features: readonly FeatureI
   base.seed = seed;
   if (!features.includes('river')) base.rivers = [];
   if (!hasMountain) base.mountains = [];
+  // La Pradera's puddle is a shallow lake. Carving it through the SAME height
+  // function means `isWater`, `isPlantable` and the water mesh all understand
+  // it without a single line of special-casing.
+  if (features.includes('puddle')) {
+    const [px, pz] = regionCentre('pradera');
+    base.lakes.push({ x: px * LAYOUT.puddleOffsetFrac, z: pz * LAYOUT.puddleOffsetFrac, r: R * LAYOUT.puddleRadiusFrac, depth: LAYOUT.puddleDepthM });
+  }
   return base;
 }
 
@@ -178,7 +220,7 @@ function buildScatter(terrain: WorldLayout, regions: RegionAnchor[], seed: numbe
 /** Fixed structures. One per feature, placed relative to its region's anchor. */
 function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: readonly FeatureId[]): AnchorPoint[] {
   const out: AnchorPoint[] = [];
-  const at = (id: RegionId): [number, number] => regionCentre(id, terrain.R);
+  const at = (id: RegionId): [number, number] => regionCentre(id);
   const push = (id: string, feature: FeatureId, x: number, z: number, rotY: number) => {
     if (!features.includes(feature)) return;
     out.push({ id, feature, x, z, rotY });
@@ -186,6 +228,7 @@ function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: r
   // El Mojón sits on the path between El Claro and La Pradera, from tier 1.
   const [px, pz] = at('pradera');
   push('mojon', 'mojon', px * 0.42, pz * 0.42, Math.atan2(-pz, -px));
+  push('charco', 'puddle', px * LAYOUT.puddleOffsetFrac, pz * LAYOUT.puddleOffsetFrac, 0);
   const [jx, jz] = at('jardin');
   push('banco', 'bench', jx * 1.05, jz * 1.05, Math.atan2(-jz, -jx));
   push('compostera', 'compost', jx * 0.78, jz * 1.18, 0);
@@ -238,8 +281,8 @@ export function buildLayout(userId: string, cfg: WorldConfig): IslandLayout {
   const R = cfg.radius;
 
   const regions: RegionAnchor[] = (Object.keys(REGION_SPECS) as RegionId[]).map((id) => {
-    const [x, z] = regionCentre(id, R);
-    return { id, x, z, radius: REGION_SPECS[id].radiusFrac * R, unlocked: cfg.regions.includes(id) };
+    const [x, z] = regionCentre(id);
+    return { id, x, z, radius: regionRadius(id), unlocked: cfg.regions.includes(id) };
   });
 
   const terrain = buildTerrainLayout(R, seed, cfg.features);
@@ -256,7 +299,7 @@ export function buildLayout(userId: string, cfg: WorldConfig): IslandLayout {
   const snowLine = cfg.features.includes('snow') ? peak * LAYOUT.snowLineFrac : null;
 
   // The spawn is always El Claro, on plantable ground, at the centre.
-  const claro = regionCentre('claro', R);
+  const claro = regionCentre('claro');
   const spawn = isPlantable(claro[0], claro[1], terrain)
     ? claro
     : (snapToLand(claro[0], claro[1], terrain, mulberry32(seed)) ?? claro);

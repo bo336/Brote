@@ -10,8 +10,10 @@
  *  - re-tuned to `clay.water` / `clay.waterDeep` / `clay.foam`;
  *  - **the foam edge is painted hard**, not a soft gradient — clay water has a
  *    drawn shoreline;
- *  - swell count comes from the quality tier, not from a constant;
- *  - caustics below T2 and specular below T2 are compiled out entirely.
+ *  - swell count, specular and caustics come from the quality tier as UNIFORMS,
+ *    not defines, so changing tier costs three floats instead of a shader
+ *    recompile — a tier change may never drop a frame
+ *    (`07-RENDER-ARCHITECTURE.md` §4.3).
  *
  * Water is the only reflective surface in the game, and therefore the thing the
  * eye goes to. That is deliberate.
@@ -24,6 +26,7 @@ import { CLAY } from '../palette';
 const vertexShader = /* glsl */ `
   uniform float uTime;
   uniform float uFlow;
+  uniform float uSwells;
   attribute float aDepth;
   varying float vDepth;
   varying vec2 vWorld;
@@ -32,17 +35,14 @@ const vertexShader = /* glsl */ `
     vDepth = aDepth;
     vWorld = vec2(position.x, position.z);
     float t = uTime * uFlow;
-    // Swell one is always present; swell two compiles in from T2 up.
+    // Swell one is always present; swell two switches on from T2 up.
     float w1 = sin(position.x * 3.1 + t * 1.05) * cos(position.z * 2.6 - t * 0.8);
-    float w2 = 0.0;
-    #if BH_SWELLS > 1
-      w2 = sin(position.x * 7.3 - t * 1.7 + position.z * 5.1) * 0.45;
-    #endif
+    float w2 = sin(position.x * 7.3 - t * 1.7 + position.z * 5.1) * 0.45;
     float amp = clamp(vDepth * 2.2, 0.05, 1.0) * 0.022;
     vec3 p = position;
-    #if BH_SWELLS > 0
-      p.y += (w1 + w2) * amp;
-    #endif
+    // uSwells is 0, 1 or 2 by quality tier. A uniform rather than a define,
+    // because a tier change must never recompile a shader.
+    p.y += (w1 * step(0.5, uSwells) + w2 * step(1.5, uSwells)) * amp;
     // Approximate the normal from the same wave field, for the specular.
     float dx = cos(position.x * 3.1 + t * 1.05) * 3.1;
     float dz = -sin(position.z * 2.6 - t * 0.8) * 2.6;
@@ -60,6 +60,8 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uSun;
   uniform float uDepthScale;
   uniform float uFoamWidth;
+  uniform float uSpecular;
+  uniform float uCaustics;
   varying float vDepth;
   varying vec2 vWorld;
   varying vec3 vNormalW;
@@ -75,17 +77,18 @@ const fragmentShader = /* glsl */ `
     float d = clamp(vDepth / uDepthScale, 0.0, 1.0);
     vec3 col = mix(uShallow, uDeep, pow(d, 0.7));
 
-    #ifdef BH_CAUSTICS
+    if (uCaustics > 0.0) {
       vec2 q = vWorld * 5.0;
       float caus = noise(q + vec2(uTime * 0.35 * uFlow, -uTime * 0.28 * uFlow));
       caus = pow(caus, 3.0);
-      col += vec3(0.85, 0.95, 0.8) * caus * (1.0 - d) * 0.35;
-    #endif
+      col += vec3(0.85, 0.95, 0.8) * caus * (1.0 - d) * 0.35 * uCaustics;
+    }
 
-    #ifdef BH_SPECULAR
+    // Water is the ONLY place a specular highlight is allowed, and only at T2+.
+    if (uSpecular > 0.0) {
       float spec = pow(max(dot(normalize(vNormalW), normalize(uSun)), 0.0), 48.0);
-      col += vec3(1.0) * spec * 0.55;
-    #endif
+      col += vec3(1.0) * spec * 0.55 * uSpecular;
+    }
 
     // The shoreline foam. A HARD painted edge, not a soft gradient: clay water
     // has a drawn line where it meets the land.
@@ -117,22 +120,23 @@ export interface WaterMaterial extends THREE.ShaderMaterial {
 }
 
 /** Swells, caustics and specular all come from the tier — never a constant. */
-function definesFor(tier: QualityTier): Record<string, string | number> {
-  const defines: Record<string, string | number> = { BH_SWELLS: tier === 0 ? 0 : tier === 1 ? 1 : 2 };
-  if (tier >= 3) {
-    defines.BH_CAUSTICS = 1;
-    defines.BH_SPECULAR = 1;
-  } else if (tier === 2) {
-    defines.BH_SPECULAR = 1;
-  }
-  return defines;
+export function waterTierUniforms(tier: QualityTier): { swells: number; specular: number; caustics: number } {
+  return {
+    swells: tier === 0 ? 0 : tier === 1 ? 1 : 2,
+    specular: tier >= 2 ? 1 : 0,
+    caustics: tier >= 3 ? 1 : 0,
+  };
 }
 
 export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
   const base = new THREE.Color(opts.color ?? CLAY.water);
+  const tierUniforms = waterTierUniforms(opts.tier);
   const uniforms: Record<string, THREE.IUniform> = {
     uTime: { value: 0 },
     uFlow: { value: opts.flow ?? 1 },
+    uSwells: { value: tierUniforms.swells },
+    uSpecular: { value: tierUniforms.specular },
+    uCaustics: { value: tierUniforms.caustics },
     uShallow: { value: base.clone().lerp(new THREE.Color(CLAY.foam), 0.45) },
     uDeep: { value: new THREE.Color(CLAY.waterDeep) },
     uFoam: { value: new THREE.Color(CLAY.foam) },
@@ -145,7 +149,6 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
     uniforms,
     vertexShader,
     fragmentShader,
-    defines: definesFor(opts.tier),
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
@@ -158,4 +161,12 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
 export function tickWater(mat: WaterMaterial, timeS: number, flow?: number): void {
   mat.waterUniforms.uTime!.value = timeS;
   if (flow !== undefined) mat.waterUniforms.uFlow!.value = flow;
+}
+
+/** Retune for a new quality tier. Three floats; no recompile, no dropped frame. */
+export function setWaterTier(mat: WaterMaterial, tier: QualityTier): void {
+  const t = waterTierUniforms(tier);
+  mat.waterUniforms.uSwells!.value = t.swells;
+  mat.waterUniforms.uSpecular!.value = t.specular;
+  mat.waterUniforms.uCaustics!.value = t.caustics;
 }

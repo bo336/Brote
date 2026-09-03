@@ -31,11 +31,13 @@ function clayKey(o: ClayOptions): string {
     o.wobble === false ? '-' : 'b',
     o.heightFog === false ? '-' : 'f',
     o.ao === false ? '-' : 'a',
+    o.rim === false ? '-' : 'r',
     o.vertexColors === false ? '-' : 'c',
     o.transparent ? 't' : '-',
     o.side ?? THREE.FrontSide,
     o.wobbleScale ?? 1,
     String(o.color ?? ''),
+    o.alphaMap?.uuid ?? '-',
   ].join(':');
 }
 
@@ -63,12 +65,28 @@ export function getWaterMaterial(opts: WaterOptions): WaterMaterial {
 }
 
 export function getFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMaterial {
-  const key = `${String(opts.color ?? '')}:${opts.map?.uuid ?? ''}:${opts.opacity ?? 1}:${opts.side ?? ''}:${opts.depthWrite ?? ''}`;
+  const key = [
+    String(opts.color ?? ''), opts.map?.uuid ?? '', opts.opacity ?? 1,
+    opts.side ?? '', opts.depthWrite ?? '', opts.vertexColors ? 'vc' : '-',
+  ].join(':');
   const hit = flatCache.get(key);
   if (hit) return hit;
   const mat = createFlatMaterial(opts);
   flatCache.set(key, mat);
   return mat;
+}
+
+/**
+ * The one flat, vertex-coloured, transparent material.
+ *
+ * The sky dome, the mist wall, the ghosted silhouette behind it and the
+ * interaction cue all use it. They look nothing alike, but they are all
+ * unlit surfaces whose colour and opacity live in `attributes.color` — and the
+ * budget of eight live materials (`06-ART-DIRECTION.md` §4) has no room for
+ * four separate ones.
+ */
+export function getOverlayMaterial(): THREE.MeshBasicMaterial {
+  return getFlatMaterial({ vertexColors: true, transparent: true, depthWrite: false, opacity: 1 });
 }
 
 /**

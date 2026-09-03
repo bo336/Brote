@@ -31,6 +31,15 @@ export interface WorldMood {
   fogDensity: number;
   /** Seconds, for the wind term only. The wobble is deliberately static. */
   time: number;
+  /**
+   * The wobble and wind amplitudes, which the QUALITY TIER zeroes at T0.
+   *
+   * They are uniforms rather than defines for the same reason the water's
+   * swells are: a tier change may never recompile a shader, and a recompile is
+   * a visible hitch on cheap Android (`07-RENDER-ARCHITECTURE.md` §4.3).
+   */
+  wobbleAmp: number;
+  windAmp: number;
 }
 
 export interface ClayOptions {
@@ -46,10 +55,19 @@ export interface ClayOptions {
    * reference surface, so it opts out — otherwise the terrain darkens itself.
    */
   ao?: boolean;
+  /**
+   * The Fresnel rim makes an object read as a solid volume by catching light on
+   * its silhouette. On a large ground plane **every** fragment is at a grazing
+   * angle, so the same term stops being an edge and becomes a wash — it turned
+   * a green pradera warm brown. Terrain opts out.
+   */
+  rim?: boolean;
   vertexColors?: boolean;
   transparent?: boolean;
   side?: THREE.Side;
   color?: THREE.ColorRepresentation;
+  /** Pip's pattern atlas, used as an alpha mask over the body's own colour. */
+  alphaMap?: THREE.Texture | null;
 }
 
 export interface ClayMaterial extends THREE.MeshLambertMaterial {
@@ -122,6 +140,7 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
     transparent: opts.transparent ?? false,
     side: opts.side ?? THREE.FrontSide,
     color: opts.color ?? 0xffffff,
+    alphaMap: opts.alphaMap ?? null,
   }) as ClayMaterial;
 
   const uniforms = defaultUniforms();
@@ -135,6 +154,7 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (opts.wind) defines.push('#define BH_WIND');
   if (opts.heightFog ?? true) defines.push('#define BH_HEIGHT_FOG');
   if (opts.ao ?? true) defines.push('#define BH_AO');
+  if (opts.rim ?? true) defines.push('#define BH_RIM');
   const defineBlock = defines.join('\n');
 
   mat.onBeforeCompile = (shader) => {
@@ -190,9 +210,11 @@ ${CLAY_FRAG_HEAD}`),
       // the bands. Added, never multiplied.
       '#include <opaque_fragment>',
       /* glsl */ `
-        vec3 bhViewDir = normalize(vViewPosition);
-        float bhRim = pow(1.0 - clamp(dot(normalize(vNormal), bhViewDir), 0.0, 1.0), uRimPower);
-        outgoingLight += uRimColor * bhRim * uRimStrength;
+        #ifdef BH_RIM
+          vec3 bhViewDir = normalize(vViewPosition);
+          float bhRim = pow(1.0 - clamp(dot(normalize(vNormal), bhViewDir), 0.0, 1.0), uRimPower);
+          outgoingLight += uRimColor * bhRim * uRimStrength;
+        #endif
         #include <opaque_fragment>
       `,
     );
@@ -232,5 +254,7 @@ export function applyMood(mat: ClayMaterial, mood: WorldMood): void {
   u.uFogFar!.value = mood.fogFar;
   u.uFogDensity!.value = mood.fogDensity;
   u.uTime!.value = mood.time;
+  u.uWobbleAmp!.value = mood.wobbleAmp;
+  u.uWindAmp!.value = mood.windAmp;
 }
 

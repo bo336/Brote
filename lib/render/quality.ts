@@ -74,7 +74,7 @@ export interface TierHints {
   hardwareConcurrency?: number;
   prefersReducedMotion?: boolean;
   /** The user's saved `detailMode`, which always wins. */
-  detailMode?: 'auto' | 'high' | 'low';
+  detailMode?: 'auto' | 'high' | 'mid' | 'low';
   /** `?mundoTier=0..3`, for testing. Overrides everything. */
   forced?: number | null;
 }
@@ -87,6 +87,7 @@ export interface TierHints {
 export function initialTier(hints: TierHints = {}): QualityTier {
   if (hints.forced != null && hints.forced >= 0 && hints.forced <= 3) return Math.floor(hints.forced) as QualityTier;
   if (hints.detailMode === 'low') return 0;
+  if (hints.detailMode === 'mid') return 2;
   if (hints.detailMode === 'high') return 3;
   let tier: QualityTier = 1;
   if ((hints.hardwareConcurrency ?? 4) < 4) tier = 0;

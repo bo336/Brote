@@ -22,6 +22,7 @@ export const ISLAND_RADIUS_BY_TIER = [18, 24, 30, 34, 38, 42, 48, 54, 57, 60, 60
 /** Pip is 0.55 m tall; every other size in the game is judged against it (`06` §9). */
 export const PIP_HEIGHT_M = 0.55;
 
+
 /** The three heights the art direction fixes (`06-ART-DIRECTION.md` §9). */
 export const SCALE_REFERENCE = {
   firstTreeM: 3, // a tier-4 sapling, grown
@@ -32,6 +33,8 @@ export const SCALE_REFERENCE = {
 /** Terrain baking. Nothing may call `terrainHeight()` per frame — bake, then sample. */
 export const TERRAIN = {
   bakeBudgetMs: 150, // over this, chunk across frames or use a worker (`01-RULES` §3.8)
+  bakeResolution: 160, // ONE resolution for collision, whatever the quality tier
+  frameClampS: 0.05, // the longest step the controller will integrate in one go
   normalEpsilon: 0.06, // finite-difference step for `terrainNormal` (ported verbatim)
   plantableMargin: 0.25, // metres of shoreline kept clear of props (ported verbatim)
   plantableMinHeight: 0.04, // clearance above WATER_LEVEL before a spot is land (ported)
@@ -65,6 +68,9 @@ export const LAYOUT = {
   claroRadiusFrac: 0.3, // El Claro sits at the centre and is a little tighter
   isletDistanceFrac: 1.18, // El Islote sits this far out, across the water
   snowLineFrac: 0.62, // snow starts this far up the summit, before season modifiers
+  puddleOffsetFrac: 1.15, // the tier-2 puddle sits just past La Pradera's centre
+  puddleRadiusFrac: 0.11, // its surface radius, as a fraction of R
+  puddleDepthM: 0.16, // shallow on purpose — you fill a can from it, you do not swim
 } as const;
 
 // ── Movement (`10-CONTROLS-AND-CAMERA.md` §2) ───────────────────────────────
@@ -106,6 +112,9 @@ export const CAMERA = {
   aspectDistanceMax: 1.6, // distance multiplier clamp, high end
   portraitLookLiftM: 0.35, // raise the look-at in portrait so the joystick misses Pip
   recentreDelayS: 2.5, // auto-recentre behind Pip after this much idle camera input
+  recentreLambdaScale: 0.35, // …and eases round at a fraction of the follow rate
+  lookAheadM: 0.4, // the look-at sits this far ahead of Pip, along their facing
+  lookHeightFrac: 0.6, // …and this far up Pip's own height
   occlusionMarginM: 0.4, // pull in to the hit point minus this
   occlusionInLambda: 14, // fast in…
   occlusionOutLambda: 3, // …slow out
@@ -275,9 +284,6 @@ export const CEREMONY = {
 
 // ── Time of day, seasons, liveliness ────────────────────────────────────────
 
-/** Light presets cross-fade over this; it is not a continuous sun sim (`06` §6). */
-export const LIGHT_PRESET_CROSSFADE_S = 2;
-
 /** Southern-hemisphere season starts as `[month 1-12, day]` (`08` §9). */
 export const SEASON_STARTS = {
   verano: [12, 21],
@@ -313,76 +319,13 @@ export const LEARNING = {
   gameplayTextMaxWords: 25, // …and no gameplay text exceeds 25
 } as const;
 
-// ── Render loop and the quality monitor (`07-RENDER-ARCHITECTURE.md` §4) ────
-
-export const RENDER_LOOP = {
-  idleDemandDelayS: 4, // drop to frameloop="demand" after this much idle
-} as const;
-
-export const QUALITY_MONITOR = {
-  medianWindowFrames: 90, // a rolling median, not an instantaneous reading
-  demoteAfterS: 3, // below the tier's target for this long → demote immediately
-  promoteMargin: 0.35, // need +35% headroom above target…
-  promoteAfterS: 20, // …sustained for this long, to promote once
-  promoteCooldownS: 60, // then wait this long before promoting again
-  demoteLockoutS: 60, // a demotion locks out promotion for this long. Never oscillate.
-} as const;
-
-// ── Art direction (`06-ART-DIRECTION.md` §4-7) ──────────────────────────────
+// ── The render half of this file ────────────────────────────────────────────
 
 /**
- * The palette cream. Every world colour is desaturated toward it by 8-15%, which
- * is what makes six different biomes share one material feel. It lives here, in
- * the pure layer, because chalking is colour maths and `lib/world/biome.ts` runs
- * it — `lib/render/palette.ts` re-exports the same function, so there is one
- * implementation and one target colour, not two.
+ * The art-direction, Pip and performance constants live in `config.render.ts`
+ * and are re-exported here, so `lib/world/config` remains the single import
+ * path for every tunable in the game (`01-RULES.md` §3.9) while no file exceeds
+ * 400 lines (§3.2). The split is along a real seam: everything below this line
+ * is consumed by `lib/render/**`, and nothing above it is.
  */
-export const CHALK_TARGET = '#F7F5EF';
-
-
-/** The clay material's uniform defaults. One material system, one look. */
-export const CLAY = {
-  bandCount: 3, // light quantised into shadow / mid / lit
-  bandSoftness: 0.06, // transition width between bands
-  rimPower: 2.5, // pow(1 - dot(N, V), rimPower)
-  rimStrength: 0.35, // added, never multiplied
-  aoStrength: 0.45, // baked vertical AO — this replaces SSAO entirely
-  aoHeightM: 0.6, // smoothstep distance up from an object's base
-  chalkAmount: 0.12, // desaturation toward the palette cream; the spec says 8-15%
-} as const;
-
-/** The static, world-position-driven handmade wobble. Off at T0, off on movers. */
-export const WOBBLE = { freq: 0.35, amp: 0.022 } as const;
-
-/** Wind animates foliage only — one implementation, not three (`06` §5). */
-export const WIND = { amp: 0.06, hz: 0.35, gustHz: 0.11, heightBias: 1.6 } as const;
-
-/** Fog is the depth cue in this game; there is no depth of field (`06` §4). */
-export const FOG = { nearFraction: 0.35 } as const;
-
-/** Blob shadows: one InstancedMesh for every shadow in the game (`06` §7). */
-export const BLOB_SHADOW = {
-  textureSize: 64, // one generated radial-gradient canvas texture
-  maxOpacity: 0.32,
-  fadeHeightM: 3, // fully faded once the caster is this far above the ground
-} as const;
-
-// ── Share card and poster (`07-RENDER-ARCHITECTURE.md` §1) ──────────────────
-
-export const SHARE_CARD = {
-  width: 1080, // the 9:16-ish portrait card…
-  height: 1350,
-  squareSize: 1080, // …and the 1:1 variant of the same composition
-  shotHeightPct: 0.76, // the world shot covers the top of the card
-  bandFadeStartPx: 140, // where the brand band's gradient begins
-} as const;
-
-// ── Performance ceilings (`07-RENDER-ARCHITECTURE.md` §6), indexed by tier ──
-
-/** OURS, not an industry budget: hypotheses, validated on the reference device. */
-export const PERF_CEILINGS = [
-  { drawCalls: 25, triangles: 35_000, geometries: 25, textures: 6, textureMB: 8, frameMs: 33 },
-  { drawCalls: 45, triangles: 70_000, geometries: 40, textures: 8, textureMB: 12, frameMs: 33 },
-  { drawCalls: 90, triangles: 160_000, geometries: 70, textures: 12, textureMB: 24, frameMs: 22 },
-  { drawCalls: 160, triangles: 400_000, geometries: 120, textures: 20, textureMB: 48, frameMs: 16 },
-] as const;
+export * from './config.render';

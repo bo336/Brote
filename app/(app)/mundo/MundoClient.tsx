@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 
 import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
-import { useSettings } from '@/stores/settings';
 
 /**
  * The code-split boundary.
@@ -24,10 +23,22 @@ interface MundoClientProps {
   perf: boolean;
   /** `?mundoTier=0..3` forces a quality tier, for testing. */
   forcedTier: number | null;
+  /** From `profiles.mundo_state`, read on the server. Never written from here. */
+  userId: string;
+  tier: number;
+  worldIndex: number;
+  liveliness: number;
 }
 
-export function MundoClient({ perf, forcedTier }: MundoClientProps) {
-  // The user's own quality setting always wins over any measurement we make.
-  const detailMode = useSettings((s) => s.detailMode);
-  return <MundoGame perf={perf} forcedTier={forcedTier} detailMode={detailMode} />;
+export function MundoClient({ perf, forcedTier, userId, tier, worldIndex, liveliness }: MundoClientProps) {
+  return (
+    <MundoGame
+      perf={perf}
+      forcedTier={forcedTier}
+      userId={userId}
+      tier={tier}
+      worldIndex={worldIndex}
+      liveliness={liveliness}
+    />
+  );
 }

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
+import { parseMundoState } from '@/lib/mundo';
 import { MundoClient } from './MundoClient';
 
 /**
@@ -47,7 +48,24 @@ export default async function MundoPage({ searchParams }: PageProps) {
 
   if (!(await mundoEnabled(supabase))) redirect('/perfil');
 
+  // One read, on the server. `mundo_state` is computed by Postgres and the world
+  // only ever reads it (`15-DATA-MODEL.md` §1). Phase 4 replaces this with the
+  // single `world_bootstrap()` round trip.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('mundo_state')
+    .eq('id', user.id)
+    .maybeSingle();
+  const mundo = parseMundoState(profile?.mundo_state);
+
   return (
-    <MundoClient perf={searchParams.perf === '1'} forcedTier={parseTier(searchParams.mundoTier)} />
+    <MundoClient
+      perf={searchParams.perf === '1'}
+      forcedTier={parseTier(searchParams.mundoTier)}
+      userId={user.id}
+      tier={mundo.rankTier}
+      worldIndex={mundo.worldIndex}
+      liveliness={mundo.liveliness}
+    />
   );
 }

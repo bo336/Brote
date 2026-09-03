@@ -73,6 +73,49 @@ export const LIGHT = {
   nightFill: '#2A3A54', // night sky bounce
 } as const;
 
+/**
+ * Pip's body palettes, as `[body, bodyDeep, leaf, leafDeep]`.
+ *
+ * The first six are the **free set, verbatim from `components/pip/Pip.tsx`** —
+ * do not re-pick them, and do not let them drift: `pip.test.ts` reads both files
+ * and fails if they disagree. They are duplicated here rather than imported
+ * because `lib/render` may not import `components/**` (`07-RENDER` §2), and
+ * because a 32 px avatar must never pull in the renderer.
+ *
+ * The last five are the paid set from the live `cosmetics` table
+ * (`09-PIP.md` §4), derived in the same shape and chalked to the world ramp.
+ * **Both sets must render** — the old 3D Pip was a green blob that ignored
+ * customisation entirely (`02-AUDIT.md` §5).
+ */
+export const PIP_PALETTES: Record<string, readonly [string, string, string, string]> = {
+  clasico: ['#9CC93B', '#6FBF73', '#1FB57A', '#0E7A52'],
+  cielo: ['#7EC8E3', '#4FA3C7', '#2DB4D4', '#1E88A8'],
+  coral: ['#FF8A76', '#E86A5A', '#FF6B5E', '#C74A3E'],
+  lavanda: ['#B99AE8', '#9A7BD0', '#B07CD6', '#8A5CB8'],
+  sol: ['#FFD27A', '#F4A62A', '#FFB23E', '#E8950E'],
+  noche: ['#7B8AF5', '#5B6CF0', '#6FBF73', '#0E7A52'],
+  aurora: ['#8FE3C2', '#5FC79E', '#B08CE8', '#6E4FA8'],
+  bosque: ['#3E8C5C', '#2C6B45', '#1FB57A', '#0E7A52'],
+  atardecer: ['#FFB07A', '#E8875A', '#FF8A3D', '#C75E28'],
+  glaciar: ['#BFE4F0', '#8CC4D8', '#7EC8E3', '#3D7E96'],
+  cosmos: ['#6B5AA8', '#4A3D7A', '#9A7BD0', '#3A2E5E'],
+};
+
+/** Tier 11 hard-overrides to the `sol` set with a slow shimmer (`09-PIP.md` §4). */
+export const PIP_GOLDEN = PIP_PALETTES.sol!;
+
+/** Pip's non-palette colours: eyes, mouth, cheeks, the aura. */
+export const PIP_PARTS = {
+  eye: '#0C1A13', // ink, so the face reads at 32 px and at 3 m
+  shine: '#FFFFFF',
+  mouth: '#0C1A13',
+  cheek: '#FF8A76',
+  aura: '#1FB57A',
+  auraGolden: '#FFB23E',
+  metal: '#A8A296',
+  cloth: '#F7F5EF',
+} as const;
+
 /** The one allowed gradient, for the tier-up title card and nothing else in-world. */
 export const HERO_GRADIENT = 'linear-gradient(115deg, #0E7A52 0%, #1FB57A 45%, #FFB23E 100%)';
 
