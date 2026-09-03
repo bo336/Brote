@@ -179,6 +179,33 @@ user-visible, elements that only change on `:active`.
   and the community rules page. One new layout rule: `data-shell="wide"` widens the app shell for
   `/feed` only (see the `main:has(...)` rule in `globals.css`) so the Plaza can have a right rail on
   a large screen — it is the only screen that earns a second column.
+- **La Academia** (El Bosque) — 2026-09-02. The learning section, rebuilt from the ground up:
+  a drawn SVG forest at `/aprender`, branch and gajo screens, a full-bleed session player, and
+  fourteen exercise renderers. Notes for anyone extending it:
+  - The forest is **inline SVG with one `<use>` per gajo** — 135 nodes for the whole 14-branch,
+    105-gajo tree, off-screen gajos culled on scroll. Native scrolling, custom zoom. No WebGL,
+    no canvas, no tree library.
+  - **`data-shell="wide"` gains a second user**: `/aprender`. The forest needs the width for the
+    same reason the Plaza does.
+  - The player escapes the shell with `fixed inset-0 z-[45]` — above the bottom tab bar (`z-40`),
+    below `<Sheet>` (`z-50`). A session is one thing at a time.
+  - **No drag-and-drop library.** Every "drag" type is tap-to-select → tap-to-place, which is the
+    primary path and not a fallback: it is what makes them keyboard- and screen-reader-operable.
+    Pointer events plus framer-motion `layout` do the rest.
+  - Domain colours come from `lib/domains.ts` for branches, gajos and accents. The brand gradient
+    appears **once**, on the `/aprender` headline.
+
+### Primitives added in the Academia pass
+
+| Component | Path | What it is |
+|---|---|---|
+| `<ArbolBosque>` | `components/academia/ArbolBosque.tsx` | The drawn forest. Roving tabindex + arrow keys, pinch/ctrl-wheel zoom, viewport culling. |
+| `<Ficha>` / `<Ranura>` | `components/academia/ejercicios/piezas.tsx` | The two shapes every exercise is built from: a thing you pick and a place it goes. Both real `<button>`s, both ≥44 px. |
+| `useReportar` | idem | Reports an answer upward without depending on the parent memoising its callback. |
+| `useAnuncio` | idem | The Spanish live region every placement and removal is announced through. |
+| `<FuerzaMedidor>` | `components/academia/FuerzaMedidor.tsx` | Mastery × retrievability, 0..1. Colour shifts as a concept fades — it is what makes "watering" mean something. |
+| `<FuenteChip>` | `components/academia/FuenteChip.tsx` | Where the claim came from. Present on every correction, always tappable. |
+| `<SaviaMedidor>` | `components/academia/SaviaMedidor.tsx` | The daily limit, or a Brote+ chip in its place — the absence of the meter *is* the benefit. |
 
 ### Primitives added in the Plaza pass
 

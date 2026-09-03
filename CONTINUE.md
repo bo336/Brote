@@ -108,13 +108,189 @@ clean build).
 
 ---
 
+# LA ACADEMIA — FASE 2 (La experiencia) · ENTREGADA
+
+> Pack: `ACADEMIA/` en `C:/Users/Usuario/Desktop/bauti/ACADEMIA`. Fase 2 = la UI
+> entera. `/aprender` ya es El Bosque; la pantalla vieja de lecciones se retiró.
+
+## ▶ NEXT EXACT TASK (Academia)
+
+> **Fase 3.** Pegarle al agente `ACADEMIA/prompts/PHASE-3.md` completo. Antes de
+> arrancar, decidir los dos ítems de dueño de abajo (liga semanal y
+> `SUPABASE_ACCESS_TOKEN`): el primero es el único punto de ACCEPTANCE de la
+> fase 2 que quedó sin cumplir.
+
+## Qué quedó
+
+**Rutas** (todas bajo `app/(app)/aprender/`)
+
+| ruta | qué es |
+|---|---|
+| `/aprender` | El Bosque: el árbol dibujado, la tira de cifras, la recomendación, la lista de riego y las 14 ramas |
+| `/aprender/[rama]` | Una rama por dentro, con conmutador de anillo. **No hace consulta nueva**: reusa el caché del árbol |
+| `/aprender/g/[gajo]` | Las hojas de un gajo y la fuerza real de cada concepto. Acá se gasta la savia |
+| `/aprender/sesion/[id]` | El jugador, a pantalla completa |
+| `/aprender/riego` | Arranca un repaso y se va al jugador. Gratis, siempre |
+
+**El árbol** — `lib/academia/bosque.ts` (geometría pura, sin React) +
+`components/academia/ArbolBosque.tsx`. Medido sobre la estructura real
+(14 ramas, 105 gajos): **135 nodos SVG**, cero gajos fuera del lienzo, cero
+superposiciones. Recorte por ventana visible, así que en pantalla se dibujan
+entre 20 y 40 a la vez.
+
+**Los 14 renderers** — `components/academia/ejercicios/`. Sin librería de
+arrastre: todo es tocar-para-elegir → tocar-para-colocar, con `<button>` reales,
+región viva en castellano y objetivos de 44 px.
+
+**Migración `0080_academia_experience.sql`** (aplicada en vivo y commiteada,
+md5 idéntico verificado con `node scripts/check-academia-parity.mjs`):
+
+- `academia_arbol` ahora devuelve `racha` y las semillas. Ya llamaba a
+  `academia_estado()` adentro para la savia: devolver el resto de esa misma
+  llamada es lo que permite que la pantalla haga UN viaje.
+- `ac_rebarajar(payload, tipo, perm)` — aplica una permutación ya guardada.
+- `academia_pendientes(sesion)` — los pasos sin responder de una sesión viva.
+- Backfill aditivo: `solucion.clave = solucion.valor` en las estimaciones.
+
+## Bugs propios encontrados y corregidos
+
+1. **Una sesión con UNA respuesta mal no se podía cerrar nunca.** Bug de la fase
+   1 que la fase 2 destapó al jugar de verdad. `academia_answer` re-encola el
+   error creando una entrega nueva en el bloque 100+, pero solo devolvía la
+   bandera `reencolada: true` — ni el `entrega_id` nuevo ni el payload. Y
+   `academia_finish_session` cuenta TODAS las entregas sin responder. Medido
+   contra la base viva: 8 errores → 8 re-encoladas → `finish` devolvía
+   `incompleta, pendientes=8`, y no había forma de pedirlas. Lo cierra
+   `academia_pendientes`, que además resuelve recargar la página en medio de
+   una sesión (la savia se cobra al empezar: un F5 costaba una hoja del día).
+2. **Bucle de render infinito en los tres tipos de ordenar.** El `Secuenciador`
+   recibía `onOrden` como arrow en línea; su identidad cambiaba en cada render,
+   entraba en las dependencias del efecto, el efecto llamaba al padre con un
+   objeto nuevo, el padre re-renderizaba. React lo cortaba con "Maximum update
+   depth exceeded" apenas se completaba el orden. Se arregló de raíz para los
+   doce con `useReportar`, que compara el VALOR de la respuesta y guarda el
+   callback en un ref: ahora el renderer es correcto con cualquier padre,
+   memoice o no.
+3. **El jugador pisaba la respuesta inicial del ejercicio.** Los efectos de los
+   hijos corren antes que los del padre, así que el `setRespuesta(null)` del
+   cambio de paso borraba lo que el renderer nuevo acababa de reportar. Rompía
+   `estimacion_numerica` (el rango arranca en el medio) y
+   `detectar_greenwashing` (no marcar nada es una respuesta válida): el botón
+   "Comprobar" quedaba muerto hasta tocar algo.
+4. **Las etiquetas de rama se salían del lienzo.** Ancladas hacia afuera de la
+   punta, "Consumo Responsable" y "Animales y Vida Silvestre" quedaban cortadas.
+   Ahora se leen hacia adentro, que además es la dirección en que se lee el árbol.
+5. **El tronco era un tablón y las ramas cables.** Los dos eran trazos de ancho
+   fijo. Ahora son contornos rellenos con afinamiento real.
+6. **`/aprender/[slug]` chocaba con `/aprender/[rama]`.** Next no admite dos
+   nombres de segmento dinámico en el mismo nivel, así que retirar la pantalla
+   vieja no era opcional: era condición para que la rama existiera.
+
+## ACCEPTANCE fase 2, línea por línea
+
+**El Bosque** — `/aprender` una sola llamada ✓ · SVG dibujado ✓ · los cinco
+estados distintos y distinguibles en escala de grises ✓ · 135 nodos ✓ ·
+colores de dominio de `lib/domains.ts` ✓ · **un** momento de gradiente ✓ ·
+tira oscura con cifras reales y `<CountUp>` ✓ · el latente nombra su
+prerrequisito (en la fila, en la aria-label del árbol y en la pantalla del
+gajo) ✓ · fallo/vacío con `<EmptyState>` + Pip + reintentar ✓.
+
+**Jugador** — `<ProgressBar>` recibe 0..1 ✓ · la retroalimentación sube y el
+ejercicio queda a la vista ✓ · chip de fuente en cada paso corregido ✓ · sin
+sacudida, sin flash rojo, sin sonido de error ✓ · re-encolado una vez ✓ · Pip
+tres veces exactas (apertura, `recuperacion`, resultados) ✓ · salir pregunta y
+reembolsa cuando corresponde ✓ · la respuesta nunca está en el cliente antes de
+corregir (`sinRespuesta()` lo verifica en el borde; `academia_pendientes`
+medido sin fuga) ✓.
+
+**Tipos de ejercicio** — los 14 con renderer ✓ · sin librería de arrastre ✓ ·
+todo por tocar-elegir → tocar-colocar ✓ · teclado + región viva ✓ ·
+`EstimacionNumerica` con `<input type="range">` real, `aria-valuetext` en
+castellano **y el valor verdadero contra lo adivinado** ✓ (requirió el backfill
+de `clave`) · `MapaLocalizar` con alternativas nombradas ✓ ·
+`RankingImpacto` revela el orden correcto y los números viven en la explicación
+con su fuente ✓.
+
+Los doce fueron ejercitados en un banco de pruebas y **cada uno emite
+exactamente la forma que espera el corrector SQL**: `{elegido}`, `{es_dato}`,
+`{orden}`, `{cadena}`, `{asignacion}`, `{pares}`, `{valor}`, `{marcados}`,
+`{region}`, `{huecos}`. La corrección se comprobó marcando bien / mal / "era".
+
+**Resultados y economía** — orden Pip → puntaje → XP y semillas → conceptos →
+gancho de acción → navegación ✓ · el gancho tiene peso de CTA primario y va a
+`/acciones/[slug]` ✓ · medidor de savia para gratuitos, chip para suscriptores ✓ ·
+savia agotada: reloj → regar gratis → acción real → una línea de Brote+ ✓ ·
+sin intersticial, sin segunda superficie de venta, sin camino de anuncios y sin
+línea de suscripción en cuentas `kid` ✓ · la racha se mantiene ✓ ·
+**la liga semanal NO ✗ — ver desviaciones**.
+
+**Oficio** — divisores de pelo, `<Reveal>`, `<CountUp>`, `<Skeleton>` sin
+spinners pelados, hover Y presión, `prefers-reduced-motion`, foco visible,
+44 px, cinco pestañas ✓.
+
+## Desviaciones
+
+- **El XP de la Academia sigue sin contar para la liga semanal.** Es el único
+  punto de ACCEPTANCE de la fase 2 sin cumplir. Son NUEVE funciones (no cinco,
+  como decía la nota de la fase 1) que leen `activity_completions.points_awarded`:
+  `weekly_league`, `weekly_leaderboard`, `city_leaderboard_weekly`,
+  `domain_leaderboard_weekly`, `friend_leaderboard_weekly`,
+  `get_user_weekly_position`, `my_weekly_points`, `brote_league_rollover` y
+  `brote_weekly_recap`. Reescribirlas es tocar Ranking, que AGENT-RULES §1 pone
+  fuera de alcance, y no se puede probar de punta a punta sin sesión iniciada.
+  **Owner action item abajo.** La racha sí se mantiene y el XP sí suma a
+  `profiles.total_xp`.
+- **No se pudo verificar la UI con una sesión real iniciada.** La app pide
+  autenticación y crear cuentas o escribir contraseñas está fuera de lo que
+  puedo hacer. Se verificó lo que sí se puede sin eso, que es casi todo:
+  el motor jugado de punta a punta contra la base viva (sesión de 9 pasos, 8
+  errores, re-encolado, cierre, XP, semillas y gancho de acción reales), la
+  geometría del árbol renderizada con la estructura real, y los 14 renderers
+  ejercitados en un banco de pruebas temporal bajo `/legal` — creado, usado y
+  borrado. Lo que queda sin comprobar con ojos es el encadenado de pantallas
+  con datos propios: recorrer `/aprender` → gajo → sesión → resultados logueado.
+- **`lib/api/aprender.ts` se borró junto con `LessonPlayer.tsx`.** El pack pedía
+  retirar el reproductor y los cuerpos de las pantallas viejas; el envoltorio
+  quedaba sin un solo consumidor. Las tablas y los RPC (`lessons`,
+  `lesson_steps`, `user_lessons`, `learning_path()`, `lesson_detail()`,
+  `complete_lesson()`) **siguen intactos**, que es lo que no se recupera con un
+  `git revert`.
+- **`academia_enabled = false` no cae a la pantalla vieja**, porque la pantalla
+  vieja ya no existe. Cae a `<EnPausa>`: Pip, el motivo, y una salida a
+  Acciones. Sin botón de reintentar, porque reintentar no la va a encender.
+- **`components/feed/LadderCards.tsx` cambió una línea.** Su peldaño de lección
+  apuntaba a `/aprender/[slug]`, ruta que ahora es la rama. Lo rompía mi cambio,
+  así que lo arreglé yo: ahora apunta a `/aprender`.
+- **`app/(app)/page.tsx` cambió dos líneas** (import + una fila) para que la
+  puerta de Hoy sea `<EntradaAcademia>`, que muestra la savia real.
+- **El motivo de la recomendación lo escribe el servidor.** `siguiente.razon`
+  sale de `academia_arbol` porque depende de datos que solo el servidor tiene
+  (qué está marchito, qué quedó a medias, qué le interesa). Es contenido, como
+  `bajada_es`, y no pasa por next-intl. Las cuatro claves `razon*` que había
+  escrito se borraron para no dejar strings muertos.
+
+## Owner action items (Academia, fase 2)
+
+- **Decidir la liga semanal.** Si el XP de la Academia tiene que contar, el
+  cambio limpio es un helper `brote_xp_semanal(uuid, tstzrange)` que sume
+  `activity_completions.points_awarded` y el XP de `ac_sesiones` cerradas, y que
+  lo usen las nueve funciones de arriba. Es una migración nueva, no un refactor
+  de Ranking, pero toca sus resultados y hay que mirarla.
+- Sigue pendiente de la fase 1: `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`, y
+  `supabase login` / `SUPABASE_ACCESS_TOKEN` para poder correr `npm run gen:types`.
+- Jugar una sesión completa logueado, en un teléfono, y mirar el árbol con el
+  pulgar. Es lo único que no pude comprobar.
+
+
+---
+
 # LA ACADEMIA — FASE 1 (El Bosque) · ENTREGADA
 
 > Pack: `ACADEMIA/` en la raíz del repo. Fase 1 = motor + contenido, **sin UI**.
 > `/aprender` sigue mostrando la pantalla vieja, que es exactamente lo que la
 > fase pide. La fase 2 construye la experiencia.
 
-## ▶ NEXT EXACT TASK (Academia)
+## Lo que pedía la fase 2 (cumplido — ver la sección de abajo)
 
 > **Fase 2 — La experiencia.** Pegarle al agente `ACADEMIA/prompts/PHASE-2.md`
 > completo y nada más. Todo lo que esa fase necesita del servidor ya existe y
