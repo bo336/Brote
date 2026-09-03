@@ -105,3 +105,531 @@ clean build).
 *(Bugs, shortcuts taken, things to revisit. Don't lose these.)*
 
 - (none yet)
+
+---
+
+# LA ACADEMIA — FASE 3 (El motor infinito) · ENTREGADA · SECCIÓN CERRADA
+
+> Las tres fases están hechas. `docs/ACADEMIA.md` es el mapa completo para quien
+> tenga que tocar esto sin haberlo escrito: cómo funciona cada pieza, por qué
+> está así, y dónde está cada constante.
+
+## ▶ NEXT EXACT TASK (Academia)
+
+> **Ninguna: la sección está cerrada.** Lo que queda son tres decisiones de
+> dueño, listadas abajo. La primera —la clave de Gemini— es la única que
+> desbloquea algo que hoy no funciona.
+
+## Qué quedó
+
+**Migraciones** (todas aplicadas en vivo y commiteadas; las 45 funciones de la
+Academia son byte a byte idénticas entre el repo y la base, verificado con
+`node scripts/check-academia-parity.mjs` contra `md5(prosrc)`):
+
+| | |
+|---|---|
+| `0081` | esquema del pipeline: pgvector, cola de generación, presupuesto, cola de revisión, propuestas, bandits |
+| `0082` | el motor: piso de pool, grounding, dedupe, ingesta, cribado, barandas de currículum, mantenimiento nocturno |
+| `0083` | cola de revisión y métricas del panel, y el gancho de acción medido |
+| `0084` | enganche a `daily_maintenance()` |
+| `0085` | `academia_riego` como tipo de notificación |
+| `0086` | pgvector en el `search_path` de las dos funciones que comparan vectores |
+| `0087` | `text[] \|\| 'literal'` no agrega un elemento |
+| `0088` | cerrar un anillo y abrir el siguiente |
+| `0089` | el camino viejo de lecciones marcado obsoleto (sin borrar nada) |
+| `0090` | los tres horarios del pipeline en pg_cron |
+
+**Edge function** `academia-generate` (desplegada, v2): `plan` · `submit` ·
+`poll` · `propose` · `estado`. Extiende `_shared/gemini.ts` con lote y
+embeddings —no es un segundo cliente— y trae su registro de prompts versionado.
+
+**Panel**: `ColaAcademia` y `MetricasAcademia` en `/panel`. La cola renderiza
+cada ítem con el MISMO `<Ejercicio>` que ve quien juega.
+
+## Bugs propios encontrados y corregidos
+
+Los tres primeros aparecieron corriendo el motor contra la base viva, no
+leyendo el código.
+
+1. **`text[] || 'literal'` no agrega un elemento.** Postgres lee el literal sin
+   tipo como un *array literal* y revienta con `malformed array literal: "kid"`.
+   Rompía el ruteo obligatorio a revisión humana —la regla de seguridad más
+   importante de la fase— y era imposible marcar un ítem como `kid` o
+   `sensible`. Andaba con `format()`, de tipo conocido, y fallaba justo con las
+   constantes. También estaba, latente, en el cribado psicométrico.
+2. **pgvector no se resolvía.** Todas las funciones declaran
+   `set search_path = public` —que es la regla correcta— pero pgvector vive en
+   `extensions`: el TIPO se encuentra calificado y el OPERADOR `<=>` no.
+   `academia_gen_contexto` devolvía "sin contexto" y el lote no se armaba nunca.
+3. **`notifications.type` es un enum, no texto libre.** El aviso nocturno de
+   riego reventaba. Va en su propia migración porque agregar un valor a un enum
+   y usarlo no se puede hacer en la misma transacción.
+4. **Los anillos nunca se cerraban.** `ac_user_anillo.cerrado_at` existía desde
+   0077 y NADA lo escribía, así que `max(anillo) where cerrado_at is null` daba
+   1 para siempre y los gajos de anillo 2 quedaban `latente` eternamente. El
+   árbol no crecía. Lo cierra `academia_cerrar_anillo()`.
+5. **La compuerta de "la correcta es la más larga" rechazaba ítems buenos.** Con
+   1,6× se disparaba con "El agua usada para producirlo" (29 caracteres) contra
+   "El agua de red" (14) — ahí no hay pista, hay una respuesta que necesita más
+   palabras. Ahora exige 2,5× Y cuarenta caracteres de diferencia.
+
+## Verificado contra la base viva
+
+**Grounding — la compuerta que importa.** Cita literal → pasa. Cita inventada
+(«…el 93 por ciento de los hogares ya lo hace») → `cita_no_literal`. Una
+verdadera y una falsa → rechazado igual. Sin afirmaciones → rechazado.
+
+**La cadena de ingesta, siete casos:**
+
+| caso | resultado |
+|---|---|
+| cita literal, sin duplicado, adulto | `aprobado` |
+| cita **inventada** | rechazado · `grounding` |
+| casi duplicado | rechazado · `duplicado` (similitud **0,9806** > umbral 0,93) |
+| apto `kid` | `en_revision` · `["kid"]` |
+| concepto sensible | `en_revision` · `["sensible"]` |
+| el juez lo marcó | `en_revision` · `["juez"]` |
+| juez: factual 3 de 5 | `en_revision` · `["juez"]` |
+
+**Ítems `kid` aprobados sin que una persona los lea: 0.**
+
+**Idempotencia.** `plan` con el mismo límite dos veces: la primera encoló 1, la
+segunda encoló 0 (`repetidas: 1`). Una re-corrida ciega es un no-op.
+
+**Decaimiento.** Gajo `agua.ciclo-y-cuenca`, 5 conceptos con maestría 0,95
+vistos hoy → **frondoso, 95 %**. Se envejece `last_seen` 45 días y nada más →
+**marchito, 34 %**, y aparece en la lista de riego del bosque.
+`academia_mantenimiento_diario()` genera 1 aviso y `daily_maintenance()` corre
+entera con el enganche puesto.
+
+**Barandas de currículum, en SQL.** Rama que no existe → «no se crean ramas
+nuevas». Anillo 99 con techo 6 → rechazado. Prerrequisito fantasma → rechazado.
+Propuesta válida → sin problemas.
+
+**Compuertas 2 y 3** (Zod + determinísticas), ejercitadas sobre el archivo real:
+**26 de 26** casos como se esperaba — los 12 tipos aceptan un ítem válido y 14
+modos de falla se rechazan cada uno con su motivo.
+
+**Aislamiento.** `anon` y `authenticated` no pueden leer NINGUNA de las once
+tablas con respuestas dentro (`ac_items`, `ac_plantillas`,
+`ac_plantilla_conceptos`, `ac_misconceptions`, `ac_entregas`,
+`ac_generacion_solicitudes`, `ac_revision_cola`, `ac_propuestas`,
+`ac_gancho_eventos`, `ac_bandit_tipo`, `ac_generacion_presupuesto`): RLS
+activa, cero políticas, permisos revocados.
+
+**Degradación.** Con Gemini caído, `submit` devuelve
+`{ok:false, error:"gemini_no_disponible"}` con HTTP 200, la solicitud queda
+`pendiente` (no se pierde ni va a carta muerta), no se gastó un centavo, y la
+app se comporta exactamente como sin pipeline.
+
+## Números medidos al cierre
+
+| | |
+|---|---|
+| ítems aprobados | 5.638 · 0 en revisión · 0 retirados |
+| pools `(concepto, tipo)` bajo el piso de 40 | 1.578 de 1.578 |
+| dificultad de los ítems | −1,4 · mediana 0,0 · 1,7 |
+| **respuestas en producción** | **0** |
+| sesiones terminadas en producción | 0 |
+| gasto de generación este mes | US$ 0,00 de 20,00 |
+
+## Desviaciones — lo que NO se pudo hacer, y por qué
+
+1. **No corrió un lote real de Gemini.** `GEMINI_API_KEY` **no está cargada** en
+   los secretos de las funciones de este proyecto: `submit` devuelve
+   `no_api_key`. No es algo que pueda resolver — cargar una clave de API es del
+   dueño. Todo el resto del pipeline está verificado sin ella (arriba), pero el
+   punto de ACCEPTANCE «un lote real completó submit → poll → ingest → gates →
+   review → approved → served» **queda sin cumplir**. `academia_generacion_enabled`
+   quedó en **`false`**, que es exactamente lo que la fase pide: encenderlo solo
+   si una corrida salió limpia. **Owner action item.**
+2. **El acierto de primera vuelta no se pudo medir.** La banda objetivo es
+   0,78–0,86 y en la base hay **0 respuestas de producción**: todas las pruebas
+   de las tres fases se hicieron en transacciones revertidas. Medir sobre cero
+   sería inventar un número. `/panel` muestra "sin datos" a propósito, y avisa
+   cuando el valor cae fuera de la banda. **Owner action item.**
+3. **El XP de la Academia sigue sin contar para la liga semanal.** Se arrastra
+   de la fase 2. Son NUEVE funciones que leen
+   `activity_completions.points_awarded`; reescribirlas es tocar Ranking, que
+   AGENT-RULES §1 deja fuera de alcance, y no se puede probar de punta a punta
+   sin sesión iniciada. La racha sí se mantiene y el XP sí suma a
+   `profiles.total_xp`. **Owner action item.**
+4. **Thompson sampling: cortado limpio, no a medias.** La tabla
+   `ac_bandit_tipo` existe y está lista, pero nada la alimenta ni la lee todavía.
+   El muestreo necesita datos de respuesta que hoy no existen (ver 2), y un
+   bandit sobre cero observaciones es ruido con nombre de algoritmo. La fase lo
+   marca como opcional; queda como tabla vacía documentada, sin código muerto.
+5. **Numeración 0081–0090, no 0040.** Misma razón que en las fases 1 y 2: el
+   pack fue escrito cuando el repo iba por 0037.
+6. **`daily_maintenance()` se engancha con un parche, no con una copia.** La
+   función es de otro linaje (0013, 0016, 0018, 0019). Pegar una copia de su
+   cuerpo acá fijaría la versión de hoy y revertiría en silencio el trabajo de
+   quien la toque después. El parche es idempotente y falla ruidosamente si no
+   encuentra el anclaje.
+7. **Las tablas viejas de lecciones NO se borraron**, por diseño:
+   `user_lessons` tiene filas de gente real. Quedan marcadas obsoletas con
+   `comment on table` (0089).
+
+## Owner action items (Academia)
+
+1. **Cargar `GEMINI_API_KEY`** en Supabase → Edge Functions → Secrets. Sin eso
+   el pipeline no puede correr. Después: `academia-generate` con
+   `{"accion":"plan"}`, `{"accion":"submit","cuantas":1}`, esperar el lote (hasta
+   24 h), `{"accion":"poll"}`, revisar lo que caiga en `/panel`, y recién ahí
+   poner `academia_generacion_enabled = true` desde el panel.
+2. **Medir el acierto de primera vuelta** cuando haya uso real (unas 200
+   respuestas alcanzan). Está en `/panel`. Si queda fuera de 0,78–0,86: por
+   encima, bajar `P*` en `ac_elegir_item`; por debajo, revisar las
+   `dificultad_base` de las plantillas. Anotar el antes y el después.
+3. **Decidir la liga semanal.** Si el XP de la Academia tiene que contar, el
+   cambio limpio es un helper `brote_xp_semanal(uuid, tstzrange)` que sume las
+   dos fuentes y que usen las nueve funciones de liga.
+4. **Definir la cadencia de revisión.** La cola no tiene dueño asignado. Con la
+   generación encendida, mirarla una vez por día alcanza; `/panel` muestra la
+   antigüedad de la más vieja.
+5. **Cuándo borrar las tablas viejas.** `lessons`, `lesson_steps` y
+   `user_lessons` están marcadas obsoletas. Exportar `user_lessons` antes.
+6. Sigue pendiente de la fase 1: `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`, y
+   `supabase login` / `SUPABASE_ACCESS_TOKEN` para correr `npm run gen:types`.
+7. **Jugar una sesión completa logueado, en un teléfono.** Es lo único de las
+   tres fases que no pude comprobar: la app pide autenticación y crear cuentas
+   o escribir contraseñas está fuera de lo que puedo hacer.
+
+
+---
+
+# LA ACADEMIA — FASE 2 (La experiencia) · ENTREGADA
+
+> Pack: `ACADEMIA/` en `C:/Users/Usuario/Desktop/bauti/ACADEMIA`. Fase 2 = la UI
+> entera. `/aprender` ya es El Bosque; la pantalla vieja de lecciones se retiró.
+
+## Lo que pedía la fase 3 (cumplido — ver arriba)
+
+> **Fase 3.** Pegarle al agente `ACADEMIA/prompts/PHASE-3.md` completo. Antes de
+> arrancar, decidir los dos ítems de dueño de abajo (liga semanal y
+> `SUPABASE_ACCESS_TOKEN`): el primero es el único punto de ACCEPTANCE de la
+> fase 2 que quedó sin cumplir.
+
+## Qué quedó
+
+**Rutas** (todas bajo `app/(app)/aprender/`)
+
+| ruta | qué es |
+|---|---|
+| `/aprender` | El Bosque: el árbol dibujado, la tira de cifras, la recomendación, la lista de riego y las 14 ramas |
+| `/aprender/[rama]` | Una rama por dentro, con conmutador de anillo. **No hace consulta nueva**: reusa el caché del árbol |
+| `/aprender/g/[gajo]` | Las hojas de un gajo y la fuerza real de cada concepto. Acá se gasta la savia |
+| `/aprender/sesion/[id]` | El jugador, a pantalla completa |
+| `/aprender/riego` | Arranca un repaso y se va al jugador. Gratis, siempre |
+
+**El árbol** — `lib/academia/bosque.ts` (geometría pura, sin React) +
+`components/academia/ArbolBosque.tsx`. Medido sobre la estructura real
+(14 ramas, 105 gajos): **135 nodos SVG**, cero gajos fuera del lienzo, cero
+superposiciones. Recorte por ventana visible, así que en pantalla se dibujan
+entre 20 y 40 a la vez.
+
+**Los 14 renderers** — `components/academia/ejercicios/`. Sin librería de
+arrastre: todo es tocar-para-elegir → tocar-para-colocar, con `<button>` reales,
+región viva en castellano y objetivos de 44 px.
+
+**Migración `0080_academia_experience.sql`** (aplicada en vivo y commiteada,
+md5 idéntico verificado con `node scripts/check-academia-parity.mjs`):
+
+- `academia_arbol` ahora devuelve `racha` y las semillas. Ya llamaba a
+  `academia_estado()` adentro para la savia: devolver el resto de esa misma
+  llamada es lo que permite que la pantalla haga UN viaje.
+- `ac_rebarajar(payload, tipo, perm)` — aplica una permutación ya guardada.
+- `academia_pendientes(sesion)` — los pasos sin responder de una sesión viva.
+- Backfill aditivo: `solucion.clave = solucion.valor` en las estimaciones.
+
+## Bugs propios encontrados y corregidos
+
+1. **Una sesión con UNA respuesta mal no se podía cerrar nunca.** Bug de la fase
+   1 que la fase 2 destapó al jugar de verdad. `academia_answer` re-encola el
+   error creando una entrega nueva en el bloque 100+, pero solo devolvía la
+   bandera `reencolada: true` — ni el `entrega_id` nuevo ni el payload. Y
+   `academia_finish_session` cuenta TODAS las entregas sin responder. Medido
+   contra la base viva: 8 errores → 8 re-encoladas → `finish` devolvía
+   `incompleta, pendientes=8`, y no había forma de pedirlas. Lo cierra
+   `academia_pendientes`, que además resuelve recargar la página en medio de
+   una sesión (la savia se cobra al empezar: un F5 costaba una hoja del día).
+2. **Bucle de render infinito en los tres tipos de ordenar.** El `Secuenciador`
+   recibía `onOrden` como arrow en línea; su identidad cambiaba en cada render,
+   entraba en las dependencias del efecto, el efecto llamaba al padre con un
+   objeto nuevo, el padre re-renderizaba. React lo cortaba con "Maximum update
+   depth exceeded" apenas se completaba el orden. Se arregló de raíz para los
+   doce con `useReportar`, que compara el VALOR de la respuesta y guarda el
+   callback en un ref: ahora el renderer es correcto con cualquier padre,
+   memoice o no.
+3. **El jugador pisaba la respuesta inicial del ejercicio.** Los efectos de los
+   hijos corren antes que los del padre, así que el `setRespuesta(null)` del
+   cambio de paso borraba lo que el renderer nuevo acababa de reportar. Rompía
+   `estimacion_numerica` (el rango arranca en el medio) y
+   `detectar_greenwashing` (no marcar nada es una respuesta válida): el botón
+   "Comprobar" quedaba muerto hasta tocar algo.
+4. **Las etiquetas de rama se salían del lienzo.** Ancladas hacia afuera de la
+   punta, "Consumo Responsable" y "Animales y Vida Silvestre" quedaban cortadas.
+   Ahora se leen hacia adentro, que además es la dirección en que se lee el árbol.
+5. **El tronco era un tablón y las ramas cables.** Los dos eran trazos de ancho
+   fijo. Ahora son contornos rellenos con afinamiento real.
+6. **`/aprender/[slug]` chocaba con `/aprender/[rama]`.** Next no admite dos
+   nombres de segmento dinámico en el mismo nivel, así que retirar la pantalla
+   vieja no era opcional: era condición para que la rama existiera.
+
+## ACCEPTANCE fase 2, línea por línea
+
+**El Bosque** — `/aprender` una sola llamada ✓ · SVG dibujado ✓ · los cinco
+estados distintos y distinguibles en escala de grises ✓ · 135 nodos ✓ ·
+colores de dominio de `lib/domains.ts` ✓ · **un** momento de gradiente ✓ ·
+tira oscura con cifras reales y `<CountUp>` ✓ · el latente nombra su
+prerrequisito (en la fila, en la aria-label del árbol y en la pantalla del
+gajo) ✓ · fallo/vacío con `<EmptyState>` + Pip + reintentar ✓.
+
+**Jugador** — `<ProgressBar>` recibe 0..1 ✓ · la retroalimentación sube y el
+ejercicio queda a la vista ✓ · chip de fuente en cada paso corregido ✓ · sin
+sacudida, sin flash rojo, sin sonido de error ✓ · re-encolado una vez ✓ · Pip
+tres veces exactas (apertura, `recuperacion`, resultados) ✓ · salir pregunta y
+reembolsa cuando corresponde ✓ · la respuesta nunca está en el cliente antes de
+corregir (`sinRespuesta()` lo verifica en el borde; `academia_pendientes`
+medido sin fuga) ✓.
+
+**Tipos de ejercicio** — los 14 con renderer ✓ · sin librería de arrastre ✓ ·
+todo por tocar-elegir → tocar-colocar ✓ · teclado + región viva ✓ ·
+`EstimacionNumerica` con `<input type="range">` real, `aria-valuetext` en
+castellano **y el valor verdadero contra lo adivinado** ✓ (requirió el backfill
+de `clave`) · `MapaLocalizar` con alternativas nombradas ✓ ·
+`RankingImpacto` revela el orden correcto y los números viven en la explicación
+con su fuente ✓.
+
+Los doce fueron ejercitados en un banco de pruebas y **cada uno emite
+exactamente la forma que espera el corrector SQL**: `{elegido}`, `{es_dato}`,
+`{orden}`, `{cadena}`, `{asignacion}`, `{pares}`, `{valor}`, `{marcados}`,
+`{region}`, `{huecos}`. La corrección se comprobó marcando bien / mal / "era".
+
+**Resultados y economía** — orden Pip → puntaje → XP y semillas → conceptos →
+gancho de acción → navegación ✓ · el gancho tiene peso de CTA primario y va a
+`/acciones/[slug]` ✓ · medidor de savia para gratuitos, chip para suscriptores ✓ ·
+savia agotada: reloj → regar gratis → acción real → una línea de Brote+ ✓ ·
+sin intersticial, sin segunda superficie de venta, sin camino de anuncios y sin
+línea de suscripción en cuentas `kid` ✓ · la racha se mantiene ✓ ·
+**la liga semanal NO ✗ — ver desviaciones**.
+
+**Oficio** — divisores de pelo, `<Reveal>`, `<CountUp>`, `<Skeleton>` sin
+spinners pelados, hover Y presión, `prefers-reduced-motion`, foco visible,
+44 px, cinco pestañas ✓.
+
+## Desviaciones
+
+- **El XP de la Academia sigue sin contar para la liga semanal.** Es el único
+  punto de ACCEPTANCE de la fase 2 sin cumplir. Son NUEVE funciones (no cinco,
+  como decía la nota de la fase 1) que leen `activity_completions.points_awarded`:
+  `weekly_league`, `weekly_leaderboard`, `city_leaderboard_weekly`,
+  `domain_leaderboard_weekly`, `friend_leaderboard_weekly`,
+  `get_user_weekly_position`, `my_weekly_points`, `brote_league_rollover` y
+  `brote_weekly_recap`. Reescribirlas es tocar Ranking, que AGENT-RULES §1 pone
+  fuera de alcance, y no se puede probar de punta a punta sin sesión iniciada.
+  **Owner action item abajo.** La racha sí se mantiene y el XP sí suma a
+  `profiles.total_xp`.
+- **No se pudo verificar la UI con una sesión real iniciada.** La app pide
+  autenticación y crear cuentas o escribir contraseñas está fuera de lo que
+  puedo hacer. Se verificó lo que sí se puede sin eso, que es casi todo:
+  el motor jugado de punta a punta contra la base viva (sesión de 9 pasos, 8
+  errores, re-encolado, cierre, XP, semillas y gancho de acción reales), la
+  geometría del árbol renderizada con la estructura real, y los 14 renderers
+  ejercitados en un banco de pruebas temporal bajo `/legal` — creado, usado y
+  borrado. Lo que queda sin comprobar con ojos es el encadenado de pantallas
+  con datos propios: recorrer `/aprender` → gajo → sesión → resultados logueado.
+- **`lib/api/aprender.ts` se borró junto con `LessonPlayer.tsx`.** El pack pedía
+  retirar el reproductor y los cuerpos de las pantallas viejas; el envoltorio
+  quedaba sin un solo consumidor. Las tablas y los RPC (`lessons`,
+  `lesson_steps`, `user_lessons`, `learning_path()`, `lesson_detail()`,
+  `complete_lesson()`) **siguen intactos**, que es lo que no se recupera con un
+  `git revert`.
+- **`academia_enabled = false` no cae a la pantalla vieja**, porque la pantalla
+  vieja ya no existe. Cae a `<EnPausa>`: Pip, el motivo, y una salida a
+  Acciones. Sin botón de reintentar, porque reintentar no la va a encender.
+- **`components/feed/LadderCards.tsx` cambió una línea.** Su peldaño de lección
+  apuntaba a `/aprender/[slug]`, ruta que ahora es la rama. Lo rompía mi cambio,
+  así que lo arreglé yo: ahora apunta a `/aprender`.
+- **`app/(app)/page.tsx` cambió dos líneas** (import + una fila) para que la
+  puerta de Hoy sea `<EntradaAcademia>`, que muestra la savia real.
+- **El motivo de la recomendación lo escribe el servidor.** `siguiente.razon`
+  sale de `academia_arbol` porque depende de datos que solo el servidor tiene
+  (qué está marchito, qué quedó a medias, qué le interesa). Es contenido, como
+  `bajada_es`, y no pasa por next-intl. Las cuatro claves `razon*` que había
+  escrito se borraron para no dejar strings muertos.
+
+## Owner action items (Academia, fase 2)
+
+- **Decidir la liga semanal.** Si el XP de la Academia tiene que contar, el
+  cambio limpio es un helper `brote_xp_semanal(uuid, tstzrange)` que sume
+  `activity_completions.points_awarded` y el XP de `ac_sesiones` cerradas, y que
+  lo usen las nueve funciones de arriba. Es una migración nueva, no un refactor
+  de Ranking, pero toca sus resultados y hay que mirarla.
+- Sigue pendiente de la fase 1: `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`, y
+  `supabase login` / `SUPABASE_ACCESS_TOKEN` para poder correr `npm run gen:types`.
+- Jugar una sesión completa logueado, en un teléfono, y mirar el árbol con el
+  pulgar. Es lo único que no pude comprobar.
+
+
+---
+
+# LA ACADEMIA — FASE 1 (El Bosque) · ENTREGADA
+
+> Pack: `ACADEMIA/` en la raíz del repo. Fase 1 = motor + contenido, **sin UI**.
+> `/aprender` sigue mostrando la pantalla vieja, que es exactamente lo que la
+> fase pide. La fase 2 construye la experiencia.
+
+## Lo que pedía la fase 2 (cumplido — ver la sección de abajo)
+
+> **Fase 2 — La experiencia.** Pegarle al agente `ACADEMIA/prompts/PHASE-2.md`
+> completo y nada más. Todo lo que esa fase necesita del servidor ya existe y
+> está verificado contra la base viva: `academia_arbol`, `academia_gajo`,
+> `academia_start_session`, `academia_answer`, `academia_finish_session`,
+> `academia_riego`, `academia_abandonar`, `academia_estado` y
+> `academia_accion_sugerida`, más `lib/api/academia.ts` que los envuelve tipados.
+
+## Qué quedó
+
+**Migraciones** (aplicadas en vivo y commiteadas, cuerpo a cuerpo idénticas —
+lo verifica `node scripts/check-academia-parity.mjs` contra `md5(prosrc)`):
+
+- `0077_academia_core.sql` — 20 tablas, enums, índices, RLS, trigger anticiclos,
+  4 filas de `app_settings` y los helpers chicos.
+- `0078_academia_motor.sql` — el compositor, el corrector de los 12 tipos, la
+  economía, el gancho de acción. 21 funciones.
+- `0079_academia_semilla.sql` — `ac_sembrar_derivados()`, el ensamblador que
+  construye dentro de Postgres los ítems derivados de cada concepto.
+
+**Contenido** (`scripts/academia/**` → `supabase/seed-academia.sql`):
+
+| | |
+|---|---|
+| fuentes | 56 |
+| anillos · ramas · gajos · hojas | 4 · 14 · 105 · 360 |
+| **conceptos** | **491**, los 491 con fuente |
+| sensibles | 23, **ninguno apto `kid`** |
+| prerrequisitos | 527 (469 duros), DAG acíclico |
+| misconceptions | 41, todas con corrección y fuente |
+| plantillas · ítems | 2.570 · 5.638 |
+| rama más profunda | `animales`: 97 conceptos en 16 gajos (la siguiente tiene 7) |
+
+**Cliente** — `lib/academia/types.ts`, `lib/academia/schemas.ts`,
+`lib/api/academia.ts`. Cero componentes, cero rutas nuevas.
+
+## Mapeo de las 10 lecciones viejas (PHASE-1 §5)
+
+Los 47 pasos están en `scripts/academia/plantillas/legado.mjs`, con su texto y
+sus explicaciones literales: 17 `info` → microlectura, 20 `quiz` →
+opcion_multiple, 10 `truefalse` → mito_o_dato. Los pasos de una misma lección
+son variantes de una plantilla, así que son 30 plantillas y 47 ítems.
+
+| lección vieja | conceptos nuevos |
+|---|---|
+| `agua-invisible` | `agua.agua_virtual` |
+| `residuos-que-pasa` | `residuos.metano_de_relleno`, `residuos.fraccion_organica`, `residuos.jerarquia_residuos`, `residuos.contaminacion_cruzada` |
+| `energia-fantasma` | `energia.consumo_fantasma` |
+| `clima-basico` | `aire_suelo.efecto_invernadero_natural`, `aire_suelo.efecto_intensificado`, `tronco.stock_vs_flujo` |
+| `reciclaje-bien` | `residuos.contaminacion_cruzada`, `residuos.reciclar_no_es_infinito`, `residuos.que_es_reciclable` |
+| `movilidad-real` | `movilidad.pasajero_km`, `movilidad.volar_pesa` |
+| `comida-huella` | `alimentacion.huella_por_alimento`, `alimentacion.transporte_es_poco`, `alimentacion.desperdicio_un_tercio` |
+| `greenwashing` | `consumo.greenwashing`, `consumo.pecados_del_greenwashing` |
+| `biodiversidad` | `animales.polinizacion`, `animales.perdida_de_habitat`, `animales.especie_clave` |
+| `economia-circular` | `consumo.economia_circular`, `consumo.derecho_a_reparar` |
+
+`lessons`, `lesson_steps`, `user_lessons`, `learning_path()`, `lesson_detail()`
+y `complete_lesson()` **siguen intactos**: son el rollback hasta la fase 3.
+
+## Decisiones
+
+- **Numeración 0077–0079, no 0038–0040.** El pack fue escrito cuando el repo
+  iba por 0037; hoy va por 0076. La regla real —secuencial, nunca reusada— se
+  respeta.
+- **Tres archivos de migración, no uno.** Esquema, motor y ensamblador. Aplicar
+  ~2.000 líneas de una sola vez por un canal remoto es exactamente el fallo
+  parcial que la idempotencia intenta evitar.
+- **Ítems materializados, no virtuales.** El spec permite guardar solo
+  `(plantilla_id, seed)` y renderizar al vuelo. Se eligió materializar: el par
+  sigue guardado en `ac_entregas`, así que la fase 3 puede pasar a render
+  diferido detrás de la misma interfaz sin perder el registro histórico.
+- **Ítems derivados de cada concepto.** Las 74 plantillas autoradas prueban que
+  la abstracción sirve, pero tocan un puñado de conceptos. `ac_sembrar_derivados()`
+  cubre los 491 con microlectura, dos de opción múltiple (en las dos direcciones
+  de reconocimiento, hasta 3 ítems cada una) y dos de emparejar. Sin eso,
+  "se puede componer una sesión para cualquier gajo de anillo 1" era falso.
+- **Distractores de conceptos hermanos** (misma rama, distinto gajo) en las
+  derivadas: es la tercera estrategia del cascade, la de último recurso, y es
+  válida acá porque cada opción es una afirmación real con su fuente y la
+  pregunta es cuál describe ESTE concepto.
+- **Columnas agregadas a `ac_items`**: `slot_valores` (permite elegir el
+  isomorfo que le habla a esta persona), `age_groups` y `anillo_min`.
+- **`academia_abandonar` es un RPC nuevo**, no está en la lista de
+  13-data-model.md §6, pero 12-economy §1 y ACCEPTANCE exigen el reembolso.
+- **Piso de adivinanza del Elo.** El spec escribe `k = 1` para tipos abiertos,
+  lo que daría `P = 1` y haría que acertar BAJE theta. Implementado como
+  `g = 1/k` con k ≥ 2 y `g = 0` en los abiertos.
+- **`ac_sembrar_derivados()` va en una migración**, no en el seed: es una
+  función, y las funciones se versionan en migraciones.
+
+## Bugs propios encontrados y corregidos (todos, jugando contra la base viva)
+
+1. **`emparejar` y `clasificar_en_cestos` eran incorregibles.** Su clave es un
+   OBJETO y el bloque que la traduce a tokens asumía array: reventaba con
+   *cannot extract elements from an object*. Dos de los doce tipos, muertos.
+2. **La clave revelada salía desordenada.** En las secuencias el ORDEN es la
+   respuesta, y se armaba filtrando por pertenencia, así que volvía ordenada por
+   posición del token. La pantalla habría mostrado la secuencia correcta mal.
+3. **`min(uuid)` no existe en Postgres.** `ac_sembrar_derivados` no corría.
+4. **La latencia se medía con `now()`**, que está congelado dentro de una
+   transacción: varias respuestas seguidas daban 0 ms y se marcaban todas como
+   imposibles, suprimiendo las semillas en silencio. Ahora usa `clock_timestamp()`.
+5. **`latente` apagaba ramas enteras.** Bastaba con que UNO de los conceptos de
+   un gajo tuviera un prereq sin cumplir. Medido: cinco ramas sin un solo gajo
+   disponible en una cuenta nueva. Ahora un gajo está latente solo si TODOS sus
+   conceptos están bloqueados, y un prereq del mismo gajo no bloquea.
+6. **El techo de una sesión eran 4 pasos.** Dos plantillas graduadas por
+   concepto × 2,06 conceptos por hoja, y el compositor nunca repite plantilla.
+   345 de 360 hojas quedaban por debajo del mínimo de 7. Se agregaron las dos
+   de emparejar: techo mínimo 8.
+7. **Repetir una hoja daba 2 pasos.** Cada plantilla derivada emitía un solo
+   ítem, así que la ventana de exclusión de 14 días vaciaba el pool. Ahora las
+   de opción múltiple emiten hasta 3 ítems con juegos de distractores distintos,
+   y el relleno de la sesión llega hasta los conceptos del gajo. Tres vueltas
+   seguidas a la misma hoja: 9, 9 y 9 pasos, cero ítems repetidos.
+
+## Desviaciones
+
+- **`npm run gen:types` no se pudo correr**: falta `SUPABASE_ACCESS_TOKEN`. El
+  archivo `lib/supabase/database.types.ts` quedó intacto (el guard de `.tmp`
+  hizo su trabajo) y sigue siendo la forma permisiva deliberada que describe su
+  propio encabezado, con los tipos precisos a mano en `lib/supabase/rows.ts`. La
+  superficie que la fase 1 expone al cliente son RPC, y sus tipos precisos están
+  en `lib/academia/types.ts`. **Owner action item abajo.**
+- **El XP de la Academia no cuenta para la liga semanal todavía.** Las cinco
+  funciones de liga leen `activity_completions.points_awarded`, y escribir ahí
+  inflaría las cifras de impacto y el crecimiento del mundo (0033 lo prohíbe
+  explícitamente). Cambiarlas es tocar `Ranking`, que AGENT-RULES §1 pone fuera
+  de alcance. El XP sí suma a `profiles.total_xp` (rangos, tablero global,
+  títulos) y la racha sí se mantiene. **Owner action item abajo.**
+- **El seed se aplicó en vivo por `pg_net`**, no por el script de
+  `service_role`: `SUPABASE_SERVICE_ROLE_KEY` está vacía en `.env.local`. Se
+  descargó `supabase/seed-academia.sql` desde el commit en GitHub y se verificó
+  el md5 contra el archivo local ANTES de ejecutarlo.
+  `scripts/apply-academia-seed.mjs` queda listo para cuando la clave exista.
+
+## Owner action items (Academia)
+
+- Poner `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (Supabase → Project Settings
+  → API → service_role). Habilita `scripts/apply-academia-seed.mjs`.
+- Hacer `supabase login` o exportar `SUPABASE_ACCESS_TOKEN` y correr
+  `npm run gen:types`.
+- Decidir si el XP de la Academia debe contar para la liga semanal. Si sí, el
+  cambio limpio es un helper `brote_xp_semanal(uuid)` que sume las dos fuentes y
+  que usen las cinco funciones de liga.
+- **Encontrado de paso, FUERA de alcance (AGENT-RULES §8):**
+  `supabase/migrations/0050_social_notifications.sql:45` tiene la clave `anon`
+  del proyecto escrita a mano dentro de una función. Es la clave pública
+  (`NEXT_PUBLIC_SUPABASE_ANON_KEY`), así que no es una filtración, pero queda
+  clavada en el repo y no rota junto con el proyecto. No se tocó porque es una
+  migración ya aplicada y ajena a la Academia. Conviene moverla a
+  `app_settings` o a Vault y regenerarla si alguna vez se rota.

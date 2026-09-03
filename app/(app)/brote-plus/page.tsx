@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   FlaskConical,
   BarChart3,
+  Droplet,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,12 @@ import { haptic } from '@/lib/utils/haptics';
  */
 const PERKS = [
   { Icon: Ban, tint: '#FF6B5E', title: 'Cero publicidad', body: 'Nunca más un anuncio en toda la app.' },
+  {
+    Icon: Droplet,
+    tint: '#2DB4D4',
+    title: 'Savia ilimitada en la Academia',
+    body: 'Todas las hojas que quieras por día. Regar sigue siendo gratis para todo el mundo.',
+  },
   { Icon: Globe2, tint: '#2DB4D4', title: 'Biomas exclusivos', body: 'Paletas y mundos que solo tienen los suscriptores.' },
   { Icon: Shirt, tint: '#9CC93B', title: 'Accesorios premium para Pip', body: 'Sombreros, anteojos y estampas exclusivas.' },
   { Icon: ShieldCheck, tint: '#1FB57A', title: '2 protectores de racha por mes', body: 'Para esos días en los que la vida se complica.' },

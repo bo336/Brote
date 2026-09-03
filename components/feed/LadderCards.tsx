@@ -173,7 +173,14 @@ function LadderCard({ item }: { item: LadderItem }) {
 
   return (
     <Link
-      href={`/aprender/${item.lesson.slug}`}
+      /*
+       * La Academia (fase 2) retiró `/aprender/[slug]`, la pantalla vieja de
+       * lecciones, y su ruta ahora la ocupa la rama del bosque. Este peldaño
+       * sigue apuntando a la sección, que es lo que la persona espera al
+       * tocarlo; el mapeo lección → hoja nueva vive en
+       * `scripts/academia/plantillas/legado.mjs` y lo cierra la fase 3.
+       */
+      href="/aprender"
       className="press group flex items-start gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-brote-sun/15">

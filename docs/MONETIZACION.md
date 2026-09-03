@@ -11,10 +11,22 @@
   - Biomas exclusivos y paletas premium para tus mundos (aurora, sakura, coral).
   - Accesorios premium para Pip / avatar (F9).
   - 2 protectores de racha por mes (gratis: hay que ganarlos).
+  - **Savia ilimitada en la Academia**: sin tope de hojas nuevas por día. El plan
+    gratuito trae 5 y el medidor ni siquiera se dibuja para quien tiene Brote+.
+    Regar —repasar lo que ya se sabe— es gratis para todo el mundo y siempre lo va
+    a ser: el límite frena territorio nuevo, nunca la retención de lo aprendido.
   - Estadísticas avanzadas + recap semanal narrado por IA.
   - Insignia Brote+ en rankings y perfil.
 - **Por qué funciona:** el usuario ya invirtió semanas en su mundo → pagar por embellecerlo
   es proteger su inversión emocional (mismo loop de Duolingo Super/Forest Pro).
+
+> **Costo del contenido de la Academia.** El pipeline genera en LOTE (mitad del
+> precio del modo interactivo) y contra un piso de pool, no contra un reloj:
+> solo se fabrica lo que alguien está por necesitar. Hay un tope mensual duro en
+> `app_settings.academia_presupuesto_centavos` (arranca en US$ 20) que se
+> consulta ANTES de cada envío; al llegar, la generación se detiene y lo
+> registra — nunca baja una compuerta de calidad para seguir corriendo. El gasto
+> del mes se ve en `/panel`.
 
 ### 1.2 Semillas (moneda blanda) + tienda de cosméticos
 - Se GANAN con retos/objetivos/ligas (nunca caducan). Compran: decoraciones del mundo,
@@ -58,6 +70,10 @@ Cobrar antes de tener retención mata el embudo.
 
 ## 3. Qué NO hacer
 - Banners de publicidad. Paywall del core loop (acciones/mundo/rachas SIEMPRE gratis).
+- Cobrar por repasar. En la Academia la savia limita hojas NUEVAS; el riego es
+  gratis. Cobrar por retener lo aprendido sería vender el olvido.
+- Vender la suscripción dentro de una cuenta `kid`. La pantalla de savia agotada
+  no muestra la línea de Brote+ si la cuenta es de un menor.
 - Vender datos. Notificaciones spam (max 1/día + recap semanal).
 
 ## 4. Métricas que mandan

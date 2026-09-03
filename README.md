@@ -28,8 +28,21 @@ competitive, AI-personalized experience. Built to run **entirely on free tiers**
   **Age policy is enforced in the RPCs, not the UI**: kid accounts get a news-only feed
   and no social surface at all; teen accounts post text only and default to a private
   profile, which now means a real follow request rather than a one-tap follow.
+- **La Academia** — the learning section, and the one thing here that is not a
+  quiz app. A drawn SVG forest you navigate by prerequisite: 14 branches, 105
+  clusters, 491 concepts, each with a real source. A leaf has no fixed content —
+  it names concepts, and the session is composed at open time from an item pool,
+  targeted by Elo at an 82% success rate. **Mastery decays**: a cluster you
+  learned and left alone withers, and watering it back is always free. Twelve
+  graded exercise types, every one of them fully playable by tap-to-select and by
+  keyboard, with no drag-and-drop library. Every session ends on a real action.
+  See [`docs/ACADEMIA.md`](docs/ACADEMIA.md).
 - **AI (server-side, cached, graceful fallbacks)** — Gemini photo verification,
-  personalized recommendations, and Spanish news summaries.
+  personalized recommendations, Spanish news summaries, and the Academia's
+  content pipeline: batch generation, grounded in cited sources with a literal
+  substring check, embedding dedupe, an LLM judge, and a human review queue in
+  `/panel`. Nothing generated reaches anyone unreviewed, and with Gemini
+  unavailable the app behaves exactly as it does without it.
 - **Spanish-first** (Argentine voseo), English-ready via `next-intl`.
 
 ## 🧱 Stack
@@ -83,5 +96,6 @@ Everything runs on free tiers; launch on the free `*.vercel.app` subdomain.
 See [`BUILD_SPEC_1.md`](BUILD_SPEC_1.md) §16 for the full map. Highlights:
 `app/(app)/` (the authenticated shell + screens), `app/(auth)/`,
 `components/` (`ui/`, `mundo/`, `rewards/`, `pip/`, …), `lib/` (`brand`, `ranks`,
-`points`, `mundo`, `recommendations`, `supabase/`, `api/`), `stores/` (Zustand),
-`messages/` (i18n).
+`points`, `mundo`, `recommendations`, `academia/`, `supabase/`, `api/`),
+`stores/` (Zustand), `messages/` (i18n).
+The Academia has its own map in [`docs/ACADEMIA.md`](docs/ACADEMIA.md).

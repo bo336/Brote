@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, GraduationCap, Newspaper, Users } from 'lucide-react';
+import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, Newspaper, Users } from 'lucide-react';
 import { Mundo } from '@/components/mundo/Mundo';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
+import { EntradaAcademia } from '@/components/academia/EntradaAcademia';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
 import { NewsNudge } from '@/components/plaza/NewsNudge';
 import { SectionHeader } from '@/components/ui/section';
@@ -192,18 +193,14 @@ export default function HoyPage() {
           renders so it can actually be discovered. */}
       <RoutineSection />
 
-      {/* Aprendé (F15.17). The mobile tab bar keeps five tabs, so this card is
-          how the learning path is discovered on a phone.
+      {/* La Academia. The mobile tab bar keeps five tabs, so this row is how the
+          section is discovered on a phone — and since phase 2 it shows the real
+          sap left today instead of a description that never changes.
           The news row below used a 📰 emoji as its icon, which §0 forbids for
           anything functional, and tinted its tile with `bg-brote-aqua/15` — a
           colour that did not exist, so the tile rendered transparent. */}
       <section className="space-y-2.5">
-        <LinkRow
-          href="/aprender"
-          icon={<GraduationCap className="h-5 w-5" />}
-          title="Aprendé sobre lo que hacés"
-          description="Lecciones cortas, con preguntas y respuestas explicadas"
-        />
+        <EntradaAcademia />
         {/* Always-present way into the feed (F15.19). The floating nudge below
             is the once-a-day prompt; this is the permanent door, so news access
             never depends on catching a transient banner. */}
