@@ -82,7 +82,7 @@ export interface Veredicto {
  * Las comprobaciones determinísticas. Gratis, y atajan la mayoría de lo que
  * sale mal.
  */
-export function determinísticas(tipo: string, c: Candidato): Veredicto {
+export function deterministicas(tipo: string, c: Candidato): Veredicto {
   const fallas: string[] = [];
   const p = c.payload_publico as Record<string, unknown>;
   const sol = c.solucion as Record<string, unknown>;
@@ -132,11 +132,20 @@ export function determinísticas(tipo: string, c: Candidato): Veredicto {
       if (!correcta) {
         fallas.push('la clave no apunta a ninguna opción');
       } else if (arr.length > 1) {
-        // La correcta no puede ser sistemáticamente la más larga: es la pista
-        // más vieja del mundo y se detecta contando caracteres.
-        const largos = arr.map((o) => o.texto.length);
+        // La correcta no puede ser la más larga por goleada: es la pista más
+        // vieja del mundo y se detecta contando caracteres.
+        //
+        // MEDIDO: con un umbral de 1,6x esto rechazaba ítems perfectamente
+        // buenos — "El agua usada para producirlo" (29) contra "El agua de
+        // red" (14) ya lo disparaba, y ahí no hay ninguna pista, hay una
+        // respuesta que necesita más palabras. Se pide 2,5x Y cuarenta
+        // caracteres de diferencia: eso ya no es una respuesta más explicada,
+        // es un párrafo entre monosílabos.
         const maxOtros = Math.max(...arr.filter((o) => o.id !== clave[0]).map((o) => o.texto.length));
-        if (correcta.texto.length > maxOtros * 1.6) fallas.push('la correcta es mucho más larga que el resto');
+        const largo = correcta.texto.length;
+        if (largo > maxOtros * 2.5 && largo - maxOtros > 40) {
+          fallas.push('la correcta es mucho más larga que el resto');
+        }
       }
     }
   }
@@ -232,7 +241,7 @@ export function validar(tipo: string, crudo: unknown): { ok: true; candidato: Ca
   if (!payload.success) {
     return { ok: false, fallas: payload.error.issues.map((i) => `payload.${i.path.join('.')}: ${i.message}`) };
   }
-  const det = determinísticas(tipo, sobre.data);
+  const det = deterministicas(tipo, sobre.data);
   if (!det.ok) return { ok: false, fallas: det.fallas };
   return { ok: true, candidato: sobre.data };
 }

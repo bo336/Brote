@@ -11,6 +11,8 @@ import { Reveal } from '@/components/ui/reveal';
 import { FuerzaMedidor } from '@/components/academia/FuerzaMedidor';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import type { ResultadoSesion } from '@/lib/academia/types';
+import { cerrarAnillo, marcarGancho } from '@/lib/api/academia';
+import { esFallo } from '@/lib/academia/types';
 import { useRewards } from '@/stores/rewards';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
@@ -32,10 +34,12 @@ import { getDomainColor } from '@/lib/domains';
  */
 export function Resultados({
   resultado,
+  sesionId,
   ramaSlug,
   onCerrar,
 }: {
   resultado: ResultadoSesion;
+  sesionId: string;
   ramaSlug: string;
   onCerrar: () => void;
 }) {
@@ -68,7 +72,23 @@ export function Resultados({
       if (x?.name_es) eventos.push({ kind: 'badge', name: x.name_es, rarity: x.rarity ?? 'comun' });
     }
     if (eventos.length) useRewards.getState().enqueue(eventos);
-  }, [resultado]);
+
+    // El gancho se muestra: queda registrado para poder calcular la tasa de
+    // toques. Es la métrica que dice si la sección cumple su única promesa.
+    if (resultado.accion) void marcarGancho(sesionId, resultado.accion.id, 'mostrado');
+
+    // ¿Se cerró un anillo? Se pregunta ACÁ y no en `finish_session` porque el
+    // cierre depende del estado del árbol entero, no de esta sesión. La
+    // ceremonia va por la MISMA cola de premios que todo lo demás.
+    void (async () => {
+      const r = await cerrarAnillo();
+      if (!esFallo(r) && r.cerrado && r.anillo) {
+        useRewards.getState().enqueue([
+          { kind: 'anilloUp', anillo: r.anillo, nombre: r.nombre ?? '' },
+        ]);
+      }
+    })();
+  }, [resultado, sesionId]);
 
   const titulo =
     resultado.score >= 100
@@ -159,7 +179,13 @@ export function Resultados({
               </div>
               <p className="mt-3 text-caption leading-relaxed text-muted-foreground">{t('accionCuerpo')}</p>
               <Button asChild block className="mt-3">
-                <Link href={`/acciones/${resultado.accion.slug}`} onClick={onCerrar}>
+                <Link
+                  href={`/acciones/${resultado.accion.slug}`}
+                  onClick={() => {
+                    if (resultado.accion) void marcarGancho(sesionId, resultado.accion.id, 'tocado');
+                    onCerrar();
+                  }}
+                >
                   {t('accionCta')}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>

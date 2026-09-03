@@ -150,6 +150,42 @@ export function abandonarSesion(sesionId: string): Promise<Resultado<{ ok: true;
 }
 
 /**
+ * ¿Se cerró un anillo con esta sesión?
+ *
+ * Un anillo se cierra cuando todos sus gajos alcanzables están frondosos. Hasta
+ * la fase 3 nadie escribía `cerrado_at`, así que el árbol nunca ganaba anillos
+ * y los gajos del anillo 2 se quedaban latentes para siempre.
+ */
+export function cerrarAnillo(): Promise<
+  Resultado<{ ok: true; cerrado: boolean; anillo?: number; nombre?: string }>
+> {
+  return rpc<{ ok: true; cerrado: boolean; anillo?: number; nombre?: string }>('academia_cerrar_anillo');
+}
+
+/**
+ * Deja constancia de que el gancho de acción se mostró, y de si se tocó.
+ *
+ * Sin esto la tasa de toques no se puede calcular, y es la métrica que dice si
+ * la sección está cumpliendo su única promesa: que aprender termine en hacer.
+ * No bloquea nada: si falla, se pierde una medición, no una acción.
+ */
+export async function marcarGancho(
+  sesionId: string,
+  accionId: string,
+  evento: 'mostrado' | 'tocado',
+): Promise<void> {
+  try {
+    await createClient().rpc('academia_gancho', {
+      p_sesion_id: sesionId,
+      p_accion_id: accionId,
+      p_evento: evento,
+    });
+  } catch {
+    /* medir no puede romper la pantalla */
+  }
+}
+
+/**
  * El gancho de acción de una hoja.
  *
  * Devuelve `null` —no un error— cuando no hay ninguna acción elegible: una

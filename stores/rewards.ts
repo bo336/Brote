@@ -7,7 +7,9 @@ export type RewardEvent =
   | { id: string; kind: 'badge'; name: string; rarity: string }
   | { id: string; kind: 'sessionBonus'; points: number }
   | { id: string; kind: 'firstAction' }
-  | { id: string; kind: 'worldComplete'; completedIndex: number; newIndex: number };
+  | { id: string; kind: 'worldComplete'; completedIndex: number; newIndex: number }
+  /* La Academia: se cerró un anillo del bosque y se abrió el siguiente. */
+  | { id: string; kind: 'anilloUp'; anillo: number; nombre: string };
 
 /** Distributive Omit so each union member keeps its discriminant-specific props. */
 type DistributiveOmit<T, K extends keyof any> = T extends unknown ? Omit<T, K> : never;

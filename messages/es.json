@@ -387,17 +387,18 @@
     "about": "Acerca de"
   },
   "rewards": {
+    "anilloUp": "El bosque ganó un anillo",
+    "divisionUp": "¡{rank}!",
+    "firstAction": "¡Tu primera acción! 🌱",
+    "keepGrowing": "Seguí creciendo",
+    "newBadge": "Nueva medalla: {badge}",
+    "newTitle": "Nuevo título: {title}",
     "pointsEarned": "+{points} puntos",
     "rankUp": "¡Subiste a {rank}!",
-    "divisionUp": "¡{rank}!",
-    "newTitle": "Nuevo título: {title}",
-    "newBadge": "Nueva medalla: {badge}",
-    "streakUp": "¡Racha de {count}! 🔥",
-    "sessionBonus": "¡Set completo! +{points}",
-    "firstAction": "¡Tu primera acción! 🌱",
-    "verified": "¡Verificada! +{bonus} de bonus",
     "rejected": "No pudimos verificarla. Probá con otra foto.",
-    "keepGrowing": "Seguí creciendo"
+    "sessionBonus": "¡Set completo! +{points}",
+    "streakUp": "¡Racha de {count}! 🔥",
+    "verified": "¡Verificada! +{bonus} de bonus"
   },
   "notifications": {
     "title": "Notificaciones",

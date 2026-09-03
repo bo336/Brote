@@ -16,6 +16,8 @@ import {
   type AdminDashboard,
 } from '@/lib/api/admin';
 import { ModerationQueue } from '@/components/panel/ModerationQueue';
+import { ColaAcademia } from '@/components/panel/ColaAcademia';
+import { MetricasAcademia } from '@/components/panel/MetricasAcademia';
 import { toast } from '@/stores/toast';
 
 /**
@@ -242,6 +244,12 @@ export default function PanelPage() {
       {/* Moderation sits high on this screen on purpose: it is the only part
           of the panel where somebody is waiting on the other side. */}
       <ModerationQueue pass={pass} />
+
+      {/* La Academia. La cola va antes que los números por el mismo motivo que
+          la moderación: es lo único de acá que bloquea contenido. Nada generado
+          llega a nadie hasta que alguien lo mira. */}
+      <ColaAcademia pass={pass} />
+      <MetricasAcademia pass={pass} />
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Jugadores simulados</h2>

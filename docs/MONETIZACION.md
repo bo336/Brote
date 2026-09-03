@@ -20,6 +20,14 @@
 - **Por qué funciona:** el usuario ya invirtió semanas en su mundo → pagar por embellecerlo
   es proteger su inversión emocional (mismo loop de Duolingo Super/Forest Pro).
 
+> **Costo del contenido de la Academia.** El pipeline genera en LOTE (mitad del
+> precio del modo interactivo) y contra un piso de pool, no contra un reloj:
+> solo se fabrica lo que alguien está por necesitar. Hay un tope mensual duro en
+> `app_settings.academia_presupuesto_centavos` (arranca en US$ 20) que se
+> consulta ANTES de cada envío; al llegar, la generación se detiene y lo
+> registra — nunca baja una compuerta de calidad para seguir corriendo. El gasto
+> del mes se ve en `/panel`.
+
 ### 1.2 Semillas (moneda blanda) + tienda de cosméticos
 - Se GANAN con retos/objetivos/ligas (nunca caducan). Compran: decoraciones del mundo,
   accesorios de Pip, temas de la app.

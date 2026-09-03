@@ -108,12 +108,202 @@ clean build).
 
 ---
 
+# LA ACADEMIA — FASE 3 (El motor infinito) · ENTREGADA · SECCIÓN CERRADA
+
+> Las tres fases están hechas. `docs/ACADEMIA.md` es el mapa completo para quien
+> tenga que tocar esto sin haberlo escrito: cómo funciona cada pieza, por qué
+> está así, y dónde está cada constante.
+
+## ▶ NEXT EXACT TASK (Academia)
+
+> **Ninguna: la sección está cerrada.** Lo que queda son tres decisiones de
+> dueño, listadas abajo. La primera —la clave de Gemini— es la única que
+> desbloquea algo que hoy no funciona.
+
+## Qué quedó
+
+**Migraciones** (todas aplicadas en vivo y commiteadas; las 45 funciones de la
+Academia son byte a byte idénticas entre el repo y la base, verificado con
+`node scripts/check-academia-parity.mjs` contra `md5(prosrc)`):
+
+| | |
+|---|---|
+| `0081` | esquema del pipeline: pgvector, cola de generación, presupuesto, cola de revisión, propuestas, bandits |
+| `0082` | el motor: piso de pool, grounding, dedupe, ingesta, cribado, barandas de currículum, mantenimiento nocturno |
+| `0083` | cola de revisión y métricas del panel, y el gancho de acción medido |
+| `0084` | enganche a `daily_maintenance()` |
+| `0085` | `academia_riego` como tipo de notificación |
+| `0086` | pgvector en el `search_path` de las dos funciones que comparan vectores |
+| `0087` | `text[] \|\| 'literal'` no agrega un elemento |
+| `0088` | cerrar un anillo y abrir el siguiente |
+| `0089` | el camino viejo de lecciones marcado obsoleto (sin borrar nada) |
+| `0090` | los tres horarios del pipeline en pg_cron |
+
+**Edge function** `academia-generate` (desplegada, v2): `plan` · `submit` ·
+`poll` · `propose` · `estado`. Extiende `_shared/gemini.ts` con lote y
+embeddings —no es un segundo cliente— y trae su registro de prompts versionado.
+
+**Panel**: `ColaAcademia` y `MetricasAcademia` en `/panel`. La cola renderiza
+cada ítem con el MISMO `<Ejercicio>` que ve quien juega.
+
+## Bugs propios encontrados y corregidos
+
+Los tres primeros aparecieron corriendo el motor contra la base viva, no
+leyendo el código.
+
+1. **`text[] || 'literal'` no agrega un elemento.** Postgres lee el literal sin
+   tipo como un *array literal* y revienta con `malformed array literal: "kid"`.
+   Rompía el ruteo obligatorio a revisión humana —la regla de seguridad más
+   importante de la fase— y era imposible marcar un ítem como `kid` o
+   `sensible`. Andaba con `format()`, de tipo conocido, y fallaba justo con las
+   constantes. También estaba, latente, en el cribado psicométrico.
+2. **pgvector no se resolvía.** Todas las funciones declaran
+   `set search_path = public` —que es la regla correcta— pero pgvector vive en
+   `extensions`: el TIPO se encuentra calificado y el OPERADOR `<=>` no.
+   `academia_gen_contexto` devolvía "sin contexto" y el lote no se armaba nunca.
+3. **`notifications.type` es un enum, no texto libre.** El aviso nocturno de
+   riego reventaba. Va en su propia migración porque agregar un valor a un enum
+   y usarlo no se puede hacer en la misma transacción.
+4. **Los anillos nunca se cerraban.** `ac_user_anillo.cerrado_at` existía desde
+   0077 y NADA lo escribía, así que `max(anillo) where cerrado_at is null` daba
+   1 para siempre y los gajos de anillo 2 quedaban `latente` eternamente. El
+   árbol no crecía. Lo cierra `academia_cerrar_anillo()`.
+5. **La compuerta de "la correcta es la más larga" rechazaba ítems buenos.** Con
+   1,6× se disparaba con "El agua usada para producirlo" (29 caracteres) contra
+   "El agua de red" (14) — ahí no hay pista, hay una respuesta que necesita más
+   palabras. Ahora exige 2,5× Y cuarenta caracteres de diferencia.
+
+## Verificado contra la base viva
+
+**Grounding — la compuerta que importa.** Cita literal → pasa. Cita inventada
+(«…el 93 por ciento de los hogares ya lo hace») → `cita_no_literal`. Una
+verdadera y una falsa → rechazado igual. Sin afirmaciones → rechazado.
+
+**La cadena de ingesta, siete casos:**
+
+| caso | resultado |
+|---|---|
+| cita literal, sin duplicado, adulto | `aprobado` |
+| cita **inventada** | rechazado · `grounding` |
+| casi duplicado | rechazado · `duplicado` (similitud **0,9806** > umbral 0,93) |
+| apto `kid` | `en_revision` · `["kid"]` |
+| concepto sensible | `en_revision` · `["sensible"]` |
+| el juez lo marcó | `en_revision` · `["juez"]` |
+| juez: factual 3 de 5 | `en_revision` · `["juez"]` |
+
+**Ítems `kid` aprobados sin que una persona los lea: 0.**
+
+**Idempotencia.** `plan` con el mismo límite dos veces: la primera encoló 1, la
+segunda encoló 0 (`repetidas: 1`). Una re-corrida ciega es un no-op.
+
+**Decaimiento.** Gajo `agua.ciclo-y-cuenca`, 5 conceptos con maestría 0,95
+vistos hoy → **frondoso, 95 %**. Se envejece `last_seen` 45 días y nada más →
+**marchito, 34 %**, y aparece en la lista de riego del bosque.
+`academia_mantenimiento_diario()` genera 1 aviso y `daily_maintenance()` corre
+entera con el enganche puesto.
+
+**Barandas de currículum, en SQL.** Rama que no existe → «no se crean ramas
+nuevas». Anillo 99 con techo 6 → rechazado. Prerrequisito fantasma → rechazado.
+Propuesta válida → sin problemas.
+
+**Compuertas 2 y 3** (Zod + determinísticas), ejercitadas sobre el archivo real:
+**26 de 26** casos como se esperaba — los 12 tipos aceptan un ítem válido y 14
+modos de falla se rechazan cada uno con su motivo.
+
+**Aislamiento.** `anon` y `authenticated` no pueden leer NINGUNA de las once
+tablas con respuestas dentro (`ac_items`, `ac_plantillas`,
+`ac_plantilla_conceptos`, `ac_misconceptions`, `ac_entregas`,
+`ac_generacion_solicitudes`, `ac_revision_cola`, `ac_propuestas`,
+`ac_gancho_eventos`, `ac_bandit_tipo`, `ac_generacion_presupuesto`): RLS
+activa, cero políticas, permisos revocados.
+
+**Degradación.** Con Gemini caído, `submit` devuelve
+`{ok:false, error:"gemini_no_disponible"}` con HTTP 200, la solicitud queda
+`pendiente` (no se pierde ni va a carta muerta), no se gastó un centavo, y la
+app se comporta exactamente como sin pipeline.
+
+## Números medidos al cierre
+
+| | |
+|---|---|
+| ítems aprobados | 5.638 · 0 en revisión · 0 retirados |
+| pools `(concepto, tipo)` bajo el piso de 40 | 1.578 de 1.578 |
+| dificultad de los ítems | −1,4 · mediana 0,0 · 1,7 |
+| **respuestas en producción** | **0** |
+| sesiones terminadas en producción | 0 |
+| gasto de generación este mes | US$ 0,00 de 20,00 |
+
+## Desviaciones — lo que NO se pudo hacer, y por qué
+
+1. **No corrió un lote real de Gemini.** `GEMINI_API_KEY` **no está cargada** en
+   los secretos de las funciones de este proyecto: `submit` devuelve
+   `no_api_key`. No es algo que pueda resolver — cargar una clave de API es del
+   dueño. Todo el resto del pipeline está verificado sin ella (arriba), pero el
+   punto de ACCEPTANCE «un lote real completó submit → poll → ingest → gates →
+   review → approved → served» **queda sin cumplir**. `academia_generacion_enabled`
+   quedó en **`false`**, que es exactamente lo que la fase pide: encenderlo solo
+   si una corrida salió limpia. **Owner action item.**
+2. **El acierto de primera vuelta no se pudo medir.** La banda objetivo es
+   0,78–0,86 y en la base hay **0 respuestas de producción**: todas las pruebas
+   de las tres fases se hicieron en transacciones revertidas. Medir sobre cero
+   sería inventar un número. `/panel` muestra "sin datos" a propósito, y avisa
+   cuando el valor cae fuera de la banda. **Owner action item.**
+3. **El XP de la Academia sigue sin contar para la liga semanal.** Se arrastra
+   de la fase 2. Son NUEVE funciones que leen
+   `activity_completions.points_awarded`; reescribirlas es tocar Ranking, que
+   AGENT-RULES §1 deja fuera de alcance, y no se puede probar de punta a punta
+   sin sesión iniciada. La racha sí se mantiene y el XP sí suma a
+   `profiles.total_xp`. **Owner action item.**
+4. **Thompson sampling: cortado limpio, no a medias.** La tabla
+   `ac_bandit_tipo` existe y está lista, pero nada la alimenta ni la lee todavía.
+   El muestreo necesita datos de respuesta que hoy no existen (ver 2), y un
+   bandit sobre cero observaciones es ruido con nombre de algoritmo. La fase lo
+   marca como opcional; queda como tabla vacía documentada, sin código muerto.
+5. **Numeración 0081–0090, no 0040.** Misma razón que en las fases 1 y 2: el
+   pack fue escrito cuando el repo iba por 0037.
+6. **`daily_maintenance()` se engancha con un parche, no con una copia.** La
+   función es de otro linaje (0013, 0016, 0018, 0019). Pegar una copia de su
+   cuerpo acá fijaría la versión de hoy y revertiría en silencio el trabajo de
+   quien la toque después. El parche es idempotente y falla ruidosamente si no
+   encuentra el anclaje.
+7. **Las tablas viejas de lecciones NO se borraron**, por diseño:
+   `user_lessons` tiene filas de gente real. Quedan marcadas obsoletas con
+   `comment on table` (0089).
+
+## Owner action items (Academia)
+
+1. **Cargar `GEMINI_API_KEY`** en Supabase → Edge Functions → Secrets. Sin eso
+   el pipeline no puede correr. Después: `academia-generate` con
+   `{"accion":"plan"}`, `{"accion":"submit","cuantas":1}`, esperar el lote (hasta
+   24 h), `{"accion":"poll"}`, revisar lo que caiga en `/panel`, y recién ahí
+   poner `academia_generacion_enabled = true` desde el panel.
+2. **Medir el acierto de primera vuelta** cuando haya uso real (unas 200
+   respuestas alcanzan). Está en `/panel`. Si queda fuera de 0,78–0,86: por
+   encima, bajar `P*` en `ac_elegir_item`; por debajo, revisar las
+   `dificultad_base` de las plantillas. Anotar el antes y el después.
+3. **Decidir la liga semanal.** Si el XP de la Academia tiene que contar, el
+   cambio limpio es un helper `brote_xp_semanal(uuid, tstzrange)` que sume las
+   dos fuentes y que usen las nueve funciones de liga.
+4. **Definir la cadencia de revisión.** La cola no tiene dueño asignado. Con la
+   generación encendida, mirarla una vez por día alcanza; `/panel` muestra la
+   antigüedad de la más vieja.
+5. **Cuándo borrar las tablas viejas.** `lessons`, `lesson_steps` y
+   `user_lessons` están marcadas obsoletas. Exportar `user_lessons` antes.
+6. Sigue pendiente de la fase 1: `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`, y
+   `supabase login` / `SUPABASE_ACCESS_TOKEN` para correr `npm run gen:types`.
+7. **Jugar una sesión completa logueado, en un teléfono.** Es lo único de las
+   tres fases que no pude comprobar: la app pide autenticación y crear cuentas
+   o escribir contraseñas está fuera de lo que puedo hacer.
+
+
+---
+
 # LA ACADEMIA — FASE 2 (La experiencia) · ENTREGADA
 
 > Pack: `ACADEMIA/` en `C:/Users/Usuario/Desktop/bauti/ACADEMIA`. Fase 2 = la UI
 > entera. `/aprender` ya es El Bosque; la pantalla vieja de lecciones se retiró.
 
-## ▶ NEXT EXACT TASK (Academia)
+## Lo que pedía la fase 3 (cumplido — ver arriba)
 
 > **Fase 3.** Pegarle al agente `ACADEMIA/prompts/PHASE-3.md` completo. Antes de
 > arrancar, decidir los dos ítems de dueño de abajo (liga semanal y

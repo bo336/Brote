@@ -387,17 +387,18 @@
     "about": "About"
   },
   "rewards": {
+    "anilloUp": "Your forest gained a ring",
+    "divisionUp": "{rank}!",
+    "firstAction": "Your first action! 🌱",
+    "keepGrowing": "Keep growing",
+    "newBadge": "New badge: {badge}",
+    "newTitle": "New title: {title}",
     "pointsEarned": "+{points} points",
     "rankUp": "You reached {rank}!",
-    "divisionUp": "{rank}!",
-    "newTitle": "New title: {title}",
-    "newBadge": "New badge: {badge}",
-    "streakUp": "{count}-day streak! 🔥",
-    "sessionBonus": "Set complete! +{points}",
-    "firstAction": "Your first action! 🌱",
-    "verified": "Verified! +{bonus} bonus",
     "rejected": "We couldn't verify it. Try another photo.",
-    "keepGrowing": "Keep growing"
+    "sessionBonus": "Set complete! +{points}",
+    "streakUp": "{count}-day streak! 🔥",
+    "verified": "Verified! +{bonus} bonus"
   },
   "notifications": {
     "title": "Notifications",

@@ -131,6 +131,7 @@ export function Jugador({ sesion }: { sesion: Sesion }) {
     return (
       <Resultados
         resultado={resultado}
+        sesionId={sesion.sesion_id}
         ramaSlug={sesion.rama_slug}
         onCerrar={() => {
           cerrar();

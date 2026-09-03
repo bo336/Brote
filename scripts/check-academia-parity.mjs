@@ -30,6 +30,12 @@ const ARCHIVOS = [
   'supabase/migrations/0078_academia_motor.sql',
   'supabase/migrations/0079_academia_semilla.sql',
   'supabase/migrations/0080_academia_experience.sql',
+  'supabase/migrations/0081_academia_pipeline.sql',
+  'supabase/migrations/0082_academia_motor_infinito.sql',
+  'supabase/migrations/0083_academia_panel.sql',
+  'supabase/migrations/0086_academia_vector_searchpath.sql',
+  'supabase/migrations/0087_academia_motivos_texto.sql',
+  'supabase/migrations/0088_academia_anillos.sql',
 ];
 
 // El delimitador de comillas de dólar no siempre es $fn$ —0079 usa $sem$— así

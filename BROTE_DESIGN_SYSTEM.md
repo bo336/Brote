@@ -194,6 +194,16 @@ user-visible, elements that only change on `:active`.
     Pointer events plus framer-motion `layout` do the rest.
   - Domain colours come from `lib/domains.ts` for branches, gajos and accents. The brand gradient
     appears **once**, on the `/aprender` headline.
+  - **Phase 3 (2026-09-03)** added the content pipeline behind it. Two notes that
+    matter for the UI: the review queue in `/panel` renders each generated item
+    with the **same `<Ejercicio>` component players get**, because reviewing an
+    exercise by reading its JSON is how broken exercises get approved; and the
+    ring-unlock ceremony goes through the existing `stores/rewards` queue as a
+    new `anilloUp` event rather than a second overlay system.
+  - Any `app_settings` row that is a boolean or a number renders itself in
+    `/panel` with no screen change. Four kill switches ride on that:
+    `academia_enabled`, `academia_generacion_enabled`, `academia_savia_libre`,
+    `academia_semillas_dia`.
 
 ### Primitives added in the Academia pass
 
