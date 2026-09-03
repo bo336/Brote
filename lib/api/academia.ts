@@ -82,6 +82,23 @@ export async function empezarRiego(): Promise<Resultado<Sesion>> {
   return r.ok ? validarPasos(r) : r;
 }
 
+/**
+ * Los pasos de una sesión en curso que siguen sin responder.
+ *
+ * NO empieza nada y NO cuesta savia: relee una sesión que ya existe. Se usa
+ * para dos cosas, y las dos son necesarias:
+ *
+ *   1. El paso re-encolado. `academia_answer` crea una entrega nueva cuando
+ *      algo sale mal, pero solo devuelve la bandera; el `entrega_id` nuevo se
+ *      pide acá. Sin esto la sesión no se puede cerrar nunca.
+ *   2. Recargar la página. La savia se cobra al empezar, así que perder los
+ *      pasos por un F5 sería perder una hoja del día.
+ */
+export async function fetchPendientes(sesionId: string): Promise<Resultado<Sesion>> {
+  const r = await rpc<Sesion>('academia_pendientes', { p_sesion_id: sesionId });
+  return r.ok ? validarPasos(r) : r;
+}
+
 function validarPasos(sesion: Sesion): Sesion {
   const pasos: PasoSesion[] = [];
   for (const paso of sesion.pasos) {

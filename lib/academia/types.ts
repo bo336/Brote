@@ -259,6 +259,16 @@ export interface Arbol {
   /** null cuando la persona tiene Brote+: la ausencia del medidor ES el beneficio. */
   savia: SaviaEstado | null;
   pro: boolean;
+  /**
+   * Racha y semillas viajan acá desde 0080. `academia_arbol` ya llamaba a
+   * `academia_estado()` para la savia: devolver el resto de esa misma llamada
+   * es lo que le permite a la pantalla del bosque hacer UN solo viaje
+   * (15-ui-motion.md §1).
+   */
+  racha: number;
+  semillas_hoy: number;
+  semillas_tope: number;
+  semillas_saldo: number;
 }
 
 // ── Un gajo por dentro ───────────────────────────────────────────────────────

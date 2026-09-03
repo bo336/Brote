@@ -29,6 +29,7 @@ const ARCHIVOS = [
   'supabase/migrations/0077_academia_core.sql',
   'supabase/migrations/0078_academia_motor.sql',
   'supabase/migrations/0079_academia_semilla.sql',
+  'supabase/migrations/0080_academia_experience.sql',
 ];
 
 // El delimitador de comillas de dólar no siempre es $fn$ —0079 usa $sem$— así
@@ -52,6 +53,11 @@ for (const f of ARCHIVOS) {
   }
 }
 
+// Una migración posterior REEMPLAZA a la anterior: si una función aparece dos
+// veces, la que la base tiene guardada es la última que se aplicó.
+const ultima = new Map(out.map((o) => [o.nombre, o]));
+out.length = 0;
+out.push(...ultima.values());
 out.sort((a, b) => a.nombre.localeCompare(b.nombre));
 for (const o of out) console.log(o.nombre.padEnd(26), o.md5, String(o.largo).padStart(6));
 console.log(`\n${out.length} funciones en los archivos de migración.`);

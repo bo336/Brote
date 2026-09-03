@@ -369,7 +369,12 @@ function construirItem(p, v, inc, vi, ci) {
         ...base,
         min: v.min, max: v.max, paso: v.paso, unidad: v.unidad, escala: v.escala ?? 'lineal',
       };
-      solucion = { ...solucion, valor: v.valor, unidad: v.unidad };
+      // `clave` es, en todos los tipos, LA RESPUESTA. Acá la respuesta es el
+      // número, así que va también en `clave`: `academia_answer` devuelve
+      // `clave_cruda` = `solucion->'clave'` en los tipos sin colección de
+      // tokens, y sin esto la pantalla no tenía forma de mostrar cuánto era
+      // en realidad — solo si la estimación cayó cerca o lejos.
+      solucion = { ...solucion, valor: v.valor, unidad: v.unidad, clave: v.valor };
       break;
 
     case 'detectar_greenwashing': {
