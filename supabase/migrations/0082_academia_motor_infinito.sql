@@ -308,9 +308,9 @@ end $fn$;
  */
 create or replace function academia_cribado_psicometrico(p_seco boolean default false)
 returns jsonb language plpgsql volatile security definer set search_path = public as $fn$
-declare v_ids uuid[] := '{}'; v_motivos jsonb := '[]'::jsonb; r record;
+declare v_ids uuid[] := '{}'; v_motivos jsonb := '[]'::jsonb; v_it record;
 begin
-  for r in
+  for v_it in
     with resp as (
       select e.item_id,
              count(*) as n,
@@ -337,20 +337,20 @@ begin
   loop
     declare v_m text[] := '{}';
     begin
-      if r.p_correct < 0.15 then v_m := v_m || 'demasiado_dificil'; end if;
-      if r.p_correct > 0.95 then v_m := v_m || 'demasiado_facil'; end if;
-      if r.disc is not null and r.disc < 0.10 then v_m := v_m || 'no_discrimina'; end if;
-      if r.lat_fam is not null and r.lat_fam > 0
-         and (r.lat_mediana > r.lat_fam * 3 or r.lat_mediana < r.lat_fam / 3) then
+      if v_it.p_correct < 0.15 then v_m := v_m || 'demasiado_dificil'; end if;
+      if v_it.p_correct > 0.95 then v_m := v_m || 'demasiado_facil'; end if;
+      if v_it.disc is not null and v_it.disc < 0.10 then v_m := v_m || 'no_discrimina'; end if;
+      if v_it.lat_fam is not null and v_it.lat_fam > 0
+         and (v_it.lat_mediana > v_it.lat_fam * 3 or v_it.lat_mediana < v_it.lat_fam / 3) then
         v_m := v_m || 'latencia_atipica';
       end if;
 
       if array_length(v_m, 1) is not null then
-        v_ids := v_ids || r.item_id;
+        v_ids := v_ids || v_it.item_id;
         v_motivos := v_motivos || jsonb_build_array(jsonb_build_object(
-          'item_id', r.item_id, 'n', r.n,
-          'p_correct', round(r.p_correct::numeric, 3),
-          'discriminacion', round(coalesce(r.disc, 0)::numeric, 3),
+          'item_id', v_it.item_id, 'n', v_it.n,
+          'p_correct', round(v_it.p_correct::numeric, 3),
+          'discriminacion', round(coalesce(v_it.disc, 0)::numeric, 3),
           'motivos', to_jsonb(v_m)));
       end if;
     end;
