@@ -640,5 +640,131 @@
     "tabTopics": "Temas",
     "title": "Buscar",
     "typeMore": "Escribí al menos dos letras."
+  },
+  "mundo": {
+    "poster": {
+      "enter": "Entrar a tu isla",
+      "growth": "{actual} de {objetivo}"
+    },
+    "loading": {
+      "title": "Preparando tu isla…",
+      "slow": "¿Querés entrar en calidad baja? Va a andar más rápido."
+    },
+    "exit": "Volver",
+    "error": {
+      "webgl": "Tu isla no puede abrirse en este navegador. Podés verla igual acá.",
+      "lost": "Se cortó el dibujo. Reintentando…"
+    },
+    "offline": "Sin conexión. Lo que hagas se guarda y se sincroniza después.",
+    "onboard": {
+      "walk": "Tocá y arrastrá para caminar",
+      "plant": "Plantá tu primera semilla acá",
+      "planted": "Ya cambiaste algo. Eso queda.",
+      "choose": "¿Qué querés cuidar primero?",
+      "chip": {
+        "agua": "El agua",
+        "residuos": "Los residuos",
+        "transporte": "Cómo me muevo"
+      },
+      "promise": "Esto aparece cuando subas de rango.",
+      "ask": "Registrá tu primera acción real y guardá tu isla."
+    },
+    "verb": {
+      "walk": "caminar",
+      "plant": "plantar",
+      "water": "regar",
+      "log": "registrar",
+      "climb": "trepar",
+      "forage": "recolectar",
+      "glide": "planear",
+      "rest": "descansar",
+      "swim": "nadar",
+      "fish": "pescar",
+      "scale": "escalar",
+      "cave": "explorar la cueva",
+      "track": "rastrear",
+      "sail": "navegar",
+      "observe": "observar",
+      "mentor": "sembrar en otro mundo"
+    },
+    "tierup": {
+      "title": "{rank}",
+      "newverb": "Ahora podés {verbo}.",
+      "share": "Guardar el antes y después",
+      "skip": "Saltear",
+      "t1": "Tu isla arranca: un claro de tierra, un sendero y Pip.",
+      "t2": "Salió el pasto. Tu isla dejó de ser tierra pelada.",
+      "t3": "Florecieron. Las mariposas llegaron solas atrás.",
+      "t4": "Tu primer árbol. Le va a llevar años, y ya empezó.",
+      "t5": "Los arbustos trajeron el primer nido.",
+      "t6": "La copa se cerró. Abajo ya hay sombra.",
+      "t7": "Tu río nace de {litros} litros que no gastaste.",
+      "t8": "El monte se levantó con {acciones} acciones tuyas.",
+      "t9": "Llegó la nieve. El aire de tu isla está más limpio.",
+      "t10": "Se despejó el horizonte. Hay otra orilla.",
+      "t11": "Gaia. Tu isla ya puede sembrar otras."
+    },
+    "world": {
+      "complete": "Completaste un mundo. Tu isla cambió de color."
+    },
+    "mojon": {
+      "title": "Tu impacto real",
+      "medido": "medido",
+      "estimado": "estimado",
+      "rango": "rango {min} – {max}",
+      "deesto": "De esto nació: {lista}",
+      "juntos": "Entre todos: {total}",
+      "como": "¿Cómo lo calculamos?",
+      "metodo": "Contamos solo acciones registradas. Los estimados usan promedios y los mostramos con rango. Versión {v}."
+    },
+    "locked": {
+      "hint": "Algo está creciendo del otro lado de la niebla.",
+      "swim": "Todavía no sabés nadar.",
+      "climb": "Esa pared es para más adelante.",
+      "prop": "Te faltan semillas para esto."
+    },
+    "return": {
+      "1": "Mientras no estabas, floreció el jazmín.",
+      "2": "Volvió el zorzal. Está en el mismo árbol de siempre.",
+      "3": "Creció la mora. Ya se puede juntar.",
+      "4": "El río bajó un poco. Se ve el fondo cerca de la orilla.",
+      "5": "Nada cambió mucho. La isla estuvo tranquila."
+    },
+    "set": {
+      "quality": {
+        "label": "Calidad del mundo",
+        "auto": "Automática",
+        "low": "Baja",
+        "mid": "Media",
+        "high": "Alta"
+      },
+      "motion": "Reducir movimiento",
+      "autocam": "Centrar la cámara sola",
+      "sens": "Sensibilidad de la cámara",
+      "sound": "Sonido",
+      "music": "Música",
+      "text": "Tamaño de texto",
+      "vibrate": "Vibración"
+    },
+    "chore": {
+      "regar_canteros": "Regar los canteros",
+      "podar_seco": "Sacar las ramas secas",
+      "juntar_ramas": "Juntar la leña caída",
+      "limpiar_orilla": "Limpiar la orilla",
+      "llenar_comedero": "Llenar el comedero",
+      "guiar_bicho": "Acompañar al bicho perdido",
+      "barrer_sendero": "Barrer el sendero",
+      "dar_vuelta_compost": "Dar vuelta la compostera",
+      "colgar_farol": "Colgar el farol",
+      "ajustar_puente": "Ajustar la soga del puente"
+    },
+    "event": {
+      "incendio": "El incendio",
+      "creciente": "La creciente",
+      "nido": "El nido caído",
+      "residuos": "Residuos en la playa",
+      "sequia": "La sequía",
+      "visitante": "La visitante"
+    }
   }
 }

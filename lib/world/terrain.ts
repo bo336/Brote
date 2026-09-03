@@ -1,14 +1,20 @@
 /**
- * Terrain engine for Tu Mundo (v7).
+ * The terrain engine, ported from `lib/mundo/terrain.ts`.
  *
- * ONE height function drives everything: the ground mesh, where water sits,
- * and where every tree/rock/animal is placed. That shared source of truth is
- * what turns a pile of shapes on a disc into a real miniature landscape —
- * lakes live inside carved basins, rivers run in channels, and nothing ever
- * floats or intersects the ground.
+ * ONE height function drives everything: the ground mesh, where water sits, and
+ * where every tree, rock and animal is placed. That shared source of truth is
+ * what turns a pile of shapes on a disc into a real miniature landscape.
  *
- * Units: 1 = one world unit. Water sits at y = WATER_LEVEL.
+ * The maths is unchanged (`02-AUDIT.md` §8 — it was the strongest engineering in
+ * the old feature). What changed is the CALL FREQUENCY: the old `Ground` ran
+ * `terrainHeight` + `slopeAt` over a 132² grid on every re-render, hundreds of
+ * thousands of noise evaluations synchronously, which is why tapping the world
+ * froze it. Now it is baked ONCE into a `Float32Array` and sampled bilinearly.
+ * **Nothing in the game may call `terrainHeight()` per frame again.**
  */
+import { TERRAIN, WATER_LEVEL } from './config';
+
+export { WATER_LEVEL };
 
 // ── Deterministic noise ─────────────────────────────────────────────────────
 
@@ -51,8 +57,6 @@ export function fbm(x: number, z: number, octaves = 4): number {
 
 // ── World layout ────────────────────────────────────────────────────────────
 
-export const WATER_LEVEL = 0;
-
 export interface LakeSpec {
   x: number;
   z: number;
@@ -86,7 +90,7 @@ export interface WorldLayout {
 }
 
 /**
- * Build the layout for a world. Lakes/rivers/mountains appear as the world
+ * Build the layout for a world. Lakes, rivers and mountains appear as the world
  * grows, and their positions are deterministic per world index.
  */
 export function makeLayout(worldIndex: number, R: number, hasPond: boolean): WorldLayout {
@@ -125,7 +129,7 @@ export function makeLayout(worldIndex: number, R: number, hasPond: boolean): Wor
 
 // ── Geometry helpers ────────────────────────────────────────────────────────
 
-/** Distance from point to a segment (for river carving). */
+/** Distance from a point to a segment (for river carving). */
 function distToSegment(px: number, pz: number, ax: number, az: number, bx: number, bz: number): number {
   const dx = bx - ax;
   const dz = bz - az;
@@ -149,7 +153,7 @@ export function riverProgress(px: number, pz: number, r: RiverSpec): number {
 
 /**
  * Ground elevation at (x, z). Above WATER_LEVEL is land; below it is lake bed.
- * Pure and cheap: safe to call per-vertex and per-placement.
+ * Pure, but NOT cheap — call it at bake time, never per frame.
  */
 export function terrainHeight(x: number, z: number, L: WorldLayout): number {
   const d = Math.hypot(x, z);
@@ -208,7 +212,7 @@ export function terrainHeight(x: number, z: number, L: WorldLayout): number {
 
 /** Surface normal from finite differences — used for slope-aware placement. */
 export function terrainNormal(x: number, z: number, L: WorldLayout): [number, number, number] {
-  const e = 0.06;
+  const e = TERRAIN.normalEpsilon;
   const hL = terrainHeight(x - e, z, L);
   const hR = terrainHeight(x + e, z, L);
   const hD = terrainHeight(x, z - e, L);
@@ -220,24 +224,24 @@ export function terrainNormal(x: number, z: number, L: WorldLayout): [number, nu
   return [nx / len, ny / len, nz / len];
 }
 
-/** 0 (flat) → 1 (vertical). Steep ground gets rock instead of grass/trees. */
+/** 0 (flat) → 1 (vertical). Steep ground gets rock instead of grass or trees. */
 export function slopeAt(x: number, z: number, L: WorldLayout): number {
   const n = terrainNormal(x, z, L);
   return Math.max(0, Math.min(1, 1 - n[1]));
 }
 
-/** True where a point is under water (inside a lake or river channel). */
+/** True where a point is under water (inside a lake or a river channel). */
 export function isWater(x: number, z: number, L: WorldLayout): boolean {
   return terrainHeight(x, z, L) < WATER_LEVEL;
 }
 
 /** True where something can be planted: on land, not too steep, inside the isle. */
-export function isPlantable(x: number, z: number, L: WorldLayout, margin = 0.25): boolean {
+export function isPlantable(x: number, z: number, L: WorldLayout, margin = TERRAIN.plantableMargin): boolean {
   const d = Math.hypot(x, z);
   if (d > L.R - margin) return false;
   const h = terrainHeight(x, z, L);
-  if (h < WATER_LEVEL + 0.04) return false; // shoreline stays clear
-  if (slopeAt(x, z, L) > 0.55) return false; // cliffs stay bare
+  if (h < WATER_LEVEL + TERRAIN.plantableMinHeight) return false; // shoreline stays clear
+  if (slopeAt(x, z, L) > TERRAIN.plantableMaxSlope) return false; // cliffs stay bare
   return true;
 }
 
@@ -250,18 +254,94 @@ export function snapToLand(
   z: number,
   L: WorldLayout,
   rng: () => number,
-  margin = 0.25,
+  margin = TERRAIN.plantableMargin,
 ): [number, number] | null {
   if (isPlantable(x, z, L, margin)) return [x, z];
-  for (let i = 1; i <= 14; i++) {
-    const step = 0.16 * i;
+  for (let i = 1; i <= TERRAIN.snapRings; i++) {
+    const step = TERRAIN.snapStep * i;
     const a = rng() * Math.PI * 2;
-    for (let k = 0; k < 6; k++) {
-      const ang = a + (k / 6) * Math.PI * 2;
+    for (let k = 0; k < TERRAIN.snapAnglesPerRing; k++) {
+      const ang = a + (k / TERRAIN.snapAnglesPerRing) * Math.PI * 2;
       const nx = x + Math.cos(ang) * step;
       const nz = z + Math.sin(ang) * step;
       if (isPlantable(nx, nz, L, margin)) return [nx, nz];
     }
   }
   return null;
+}
+
+// ── The baked heightfield ───────────────────────────────────────────────────
+
+/**
+ * A square grid of heights covering `[-extent, +extent]` on both axes.
+ * `res × res` samples, row-major, `z` slowest. One `Float32Array`, no objects.
+ */
+export interface Heightfield {
+  res: number;
+  /** Half-width of the covered square, in metres. */
+  extent: number;
+  /** Metres between adjacent samples. */
+  step: number;
+  data: Float32Array;
+}
+
+/**
+ * Bake the height function once. This is the whole point of the port: the ONLY
+ * place `terrainHeight` runs at scale, behind the loading state, never during
+ * interaction. Cost is `res²` evaluations — see `TERRAIN.bakeBudgetMs`.
+ */
+export function bakeHeightfield(layout: WorldLayout, res: number): Heightfield {
+  const n = Math.max(2, Math.floor(res));
+  // The cliff and the soft coastal push-back both live just outside R, so the
+  // field covers a little more than the island itself.
+  const extent = layout.R * (1 + TERRAIN.plantableMargin);
+  const step = (extent * 2) / (n - 1);
+  const data = new Float32Array(n * n);
+  for (let iz = 0; iz < n; iz++) {
+    const z = -extent + iz * step;
+    const row = iz * n;
+    for (let ix = 0; ix < n; ix++) {
+      data[row + ix] = terrainHeight(-extent + ix * step, z, layout);
+    }
+  }
+  return { res: n, extent, step, data };
+}
+
+/** Bilinear height lookup. This is what the character controller calls. */
+export function sampleHeight(hf: Heightfield, x: number, z: number): number {
+  const { res, extent, step, data } = hf;
+  const gx = (x + extent) / step;
+  const gz = (z + extent) / step;
+  const ix = Math.floor(gx);
+  const iz = Math.floor(gz);
+  // Clamp to the last full cell so the interpolation always has four corners.
+  const cx = ix < 0 ? 0 : ix > res - 2 ? res - 2 : ix;
+  const cz = iz < 0 ? 0 : iz > res - 2 ? res - 2 : iz;
+  const fx = gx - cx < 0 ? 0 : gx - cx > 1 ? 1 : gx - cx;
+  const fz = gz - cz < 0 ? 0 : gz - cz > 1 ? 1 : gz - cz;
+  const r0 = cz * res + cx;
+  const r1 = r0 + res;
+  const h00 = data[r0]!;
+  const h10 = data[r0 + 1]!;
+  const h01 = data[r1]!;
+  const h11 = data[r1 + 1]!;
+  const top = h00 + (h10 - h00) * fx;
+  const bot = h01 + (h11 - h01) * fx;
+  return top + (bot - top) * fz;
+}
+
+/** Normal from the baked field, by central difference on one cell. */
+export function sampleNormal(hf: Heightfield, x: number, z: number): [number, number, number] {
+  const e = hf.step;
+  const nx = sampleHeight(hf, x - e, z) - sampleHeight(hf, x + e, z);
+  const nz = sampleHeight(hf, x, z - e) - sampleHeight(hf, x, z + e);
+  const ny = 2 * e;
+  const len = Math.hypot(nx, ny, nz) || 1;
+  return [nx / len, ny / len, nz / len];
+}
+
+/** Slope from the baked field. 0 flat → 1 vertical. */
+export function sampleSlope(hf: Heightfield, x: number, z: number): number {
+  const n = sampleNormal(hf, x, z);
+  return Math.max(0, Math.min(1, 1 - n[1]));
 }

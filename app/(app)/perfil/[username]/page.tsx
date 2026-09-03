@@ -16,11 +16,12 @@ import { ProfileTabs } from '@/components/perfil/ProfileTabs';
 import { fetchPublicProfileV2 } from '@/lib/api/perfil-publico';
 import type { MundoState } from '@/lib/mundo';
 
-// The 3D world is heavy and is the reward, not the reputation — it loads last.
-const Mundo = dynamic(() => import('@/components/mundo/Mundo').then((m) => m.Mundo), {
-  ssr: false,
-  loading: () => <Skeleton className="h-[280px] w-full rounded-card" />,
-});
+// The world is the reward, not the reputation, so it still comes last on the
+// page — but it is now one <img>, not a WebGL context (07-RENDER §1).
+const MundoPoster = dynamic(
+  () => import('@/components/mundo3d/poster/MundoPoster').then((m) => m.MundoPoster),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full rounded-card" /> },
+);
 
 /**
  * Someone else's profile.
@@ -99,11 +100,14 @@ export default function PublicProfilePage() {
           {profile.mundo_state ? (
             <section>
               <SectionHeader eyebrow={t('theReward')} title={t('theirWorld')} />
-              <div className="overflow-hidden rounded-card shadow-soft-lg">
-                {/* interactive={false}: visiting must never let you water or
-                    care for someone else's world as if it were yours. */}
-                <Mundo mundo={profile.mundo_state as MundoState} height={280} interactive={false} />
-              </div>
+              {/* interactive={false}: their island is shown, but it is not a
+                  door — only your own poster leads into /mundo. */}
+              <MundoPoster
+                mundo={profile.mundo_state as MundoState}
+                height={280}
+                interactive={false}
+                className="shadow-soft-lg"
+              />
             </section>
           ) : null}
         </>
