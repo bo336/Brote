@@ -70,6 +70,24 @@ export interface RiverSpec {
   from: [number, number];
   to: [number, number];
   width: number;
+  /**
+   * How deep the channel is carved, in metres. Optional so the ported
+   * `makeLayout` keeps its original behaviour; the region-driven layout sets it
+   * so El Río reads as a river rather than a damp stripe.
+   */
+  depth?: number;
+}
+
+/**
+ * El Islote: a second small landmass across the water, reached by boat at
+ * tier 10. It sits outside the main coastline and gets its own ground mesh.
+ */
+export interface IsletSpec {
+  x: number;
+  z: number;
+  r: number;
+  /** Height of its crown above the water line. */
+  h: number;
 }
 
 export interface MountainSpec {
@@ -85,6 +103,8 @@ export interface WorldLayout {
   lakes: LakeSpec[];
   rivers: RiverSpec[];
   mountains: MountainSpec[];
+  /** `null` before tier 10. */
+  islet: IsletSpec | null;
   /** Seed so two worlds with the same index look identical everywhere. */
   seed: number;
 }
@@ -124,7 +144,7 @@ export function makeLayout(worldIndex: number, R: number, hasPond: boolean): Wor
   if (worldIndex >= 4) mountains.push({ x: -R * 0.3, z: -R * 0.72, r: R * 0.3, h: 0.8 });
   if (worldIndex >= 6) mountains.push({ x: R * 0.12, z: -R * 0.78, r: R * 0.24, h: 0.6 });
 
-  return { R, lakes, rivers, mountains, seed };
+  return { R, lakes, rivers, mountains, islet: null, seed };
 }
 
 // ── Geometry helpers ────────────────────────────────────────────────────────
@@ -196,13 +216,26 @@ export function terrainHeight(x: number, z: number, L: WorldLayout): number {
     const halfW = r.width * 1.5;
     if (rd < halfW) {
       const t = 1 - rd / halfW;
-      h -= Math.pow(smooth(t), 0.9) * 0.3;
+      h -= Math.pow(smooth(t), 0.9) * (r.depth ?? 0.3);
+    }
+  }
+
+  // El Islote: a separate crown of land out past the coastline. It is added
+  // before the coastal falloff so the falloff does not flatten it.
+  if (L.islet) {
+    const id = Math.hypot(x - L.islet.x, z - L.islet.z);
+    if (id < L.islet.r) {
+      const t = 1 - id / L.islet.r;
+      h += Math.pow(smooth(t), 1.3) * L.islet.h;
     }
   }
 
   // Coastal falloff: the last stretch before the rim eases down to the cliff.
+  // The islet lives beyond it and is exempt — otherwise the falloff would drown
+  // the one piece of land the boat exists to reach.
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r;
   const coast = L.R * 0.86;
-  if (d > coast) {
+  if (d > coast && !onIslet) {
     const t = Math.min(1, (d - coast) / (L.R - coast));
     h = h * (1 - smooth(t) * 0.55) - smooth(t) * 0.06;
   }
@@ -235,14 +268,38 @@ export function isWater(x: number, z: number, L: WorldLayout): boolean {
   return terrainHeight(x, z, L) < WATER_LEVEL;
 }
 
-/** True where something can be planted: on land, not too steep, inside the isle. */
-export function isPlantable(x: number, z: number, L: WorldLayout, margin = TERRAIN.plantableMargin): boolean {
+/**
+ * True where something can be planted: on land, not too steep, inside the isle.
+ *
+ * "Inside the isle" now means the main island **or El Islote** — the islet is
+ * outside the main radius by definition, and a rule that says nothing grows
+ * there would leave the one place you have to sail to bare, and would refuse to
+ * let the player put a bench on it. Same two ground tests either way.
+ */
+export function isPlantable(x: number, z: number, L: WorldLayout, margin: number = TERRAIN.plantableMargin): boolean {
   const d = Math.hypot(x, z);
-  if (d > L.R - margin) return false;
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r - margin;
+  if (d > L.R - margin && !onIslet) return false;
   const h = terrainHeight(x, z, L);
   if (h < WATER_LEVEL + TERRAIN.plantableMinHeight) return false; // shoreline stays clear
   if (slopeAt(x, z, L) > TERRAIN.plantableMaxSlope) return false; // cliffs stay bare
   return true;
+}
+
+/**
+ * Ground a rock can sit on.
+ *
+ * A boulder does not need soil — it needs somewhere that is not a lake and not
+ * a vertical face. El Monte asks for rock more than anything else it has, and
+ * `isPlantable` rejects every square metre of it, so without this the mountain
+ * is a bare cone and the region character is a lie.
+ */
+export function isRockable(x: number, z: number, L: WorldLayout, margin: number = TERRAIN.plantableMargin): boolean {
+  const d = Math.hypot(x, z);
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r - margin;
+  if (d > L.R - margin && !onIslet) return false;
+  if (terrainHeight(x, z, L) < WATER_LEVEL + TERRAIN.plantableMinHeight) return false;
+  return slopeAt(x, z, L) <= TERRAIN.rockMaxSlope;
 }
 
 /**
@@ -254,7 +311,7 @@ export function snapToLand(
   z: number,
   L: WorldLayout,
   rng: () => number,
-  margin = TERRAIN.plantableMargin,
+  margin: number = TERRAIN.plantableMargin,
 ): [number, number] | null {
   if (isPlantable(x, z, L, margin)) return [x, z];
   for (let i = 1; i <= TERRAIN.snapRings; i++) {
@@ -286,15 +343,37 @@ export interface Heightfield {
 }
 
 /**
+ * The resolution to bake an island at.
+ *
+ * A fixed grid count would give a tier-1 island a 0.2 m step and a tier-11
+ * island a 1 m one — the same number of samples spread over eleven times the
+ * area. This targets a constant **step size** instead, clamped at both ends so a
+ * small island is not over-sampled and the largest one still bakes inside
+ * `TERRAIN.bakeBudgetMs` on a cheap phone.
+ */
+export function bakeResolutionFor(layout: WorldLayout): number {
+  const span = fieldExtent(layout) * 2;
+  const res = Math.ceil(span / TERRAIN.bakeStepM) + 1;
+  return Math.min(TERRAIN.bakeResolutionMax, Math.max(TERRAIN.bakeResolutionMin, res));
+}
+
+/** How far the field has to reach: the island, its margin, and El Islote. */
+function fieldExtent(layout: WorldLayout): number {
+  let extent = layout.R * (1 + TERRAIN.plantableMargin);
+  if (layout.islet) {
+    extent = Math.max(extent, Math.hypot(layout.islet.x, layout.islet.z) + layout.islet.r * 1.3);
+  }
+  return extent;
+}
+
+/**
  * Bake the height function once. This is the whole point of the port: the ONLY
  * place `terrainHeight` runs at scale, behind the loading state, never during
  * interaction. Cost is `res²` evaluations — see `TERRAIN.bakeBudgetMs`.
  */
 export function bakeHeightfield(layout: WorldLayout, res: number): Heightfield {
   const n = Math.max(2, Math.floor(res));
-  // The cliff and the soft coastal push-back both live just outside R, so the
-  // field covers a little more than the island itself.
-  const extent = layout.R * (1 + TERRAIN.plantableMargin);
+  const extent = fieldExtent(layout);
   const step = (extent * 2) / (n - 1);
   const data = new Float32Array(n * n);
   for (let iz = 0; iz < n; iz++) {

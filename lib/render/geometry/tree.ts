@@ -13,6 +13,8 @@
 import * as THREE from 'three';
 
 import { mulberry32 } from '@/lib/world/rng';
+import { CLAY } from '../palette';
+import { paintVertical } from './build';
 
 export type TreeSpecies = 'pine' | 'oak' | 'birch' | 'bush';
 
@@ -92,16 +94,57 @@ const PARAMS: Record<TreeSpecies, SpeciesParams> = {
 };
 
 /** LOD trims recursion depth, leaf count and trunk segments — never the shape. */
-const LOD_TRIM: Record<TreeLod, { levels: number; leaves: number; radialSegments: number }> = {
-  0: { levels: 0, leaves: 1, radialSegments: 7 },
-  1: { levels: -1, leaves: 0.6, radialSegments: 5 },
-  2: { levels: -2, leaves: 0.34, radialSegments: 4 },
+const LOD_TRIM: Record<TreeLod, { levels: number; leaves: number; radialSegments: number; cards: number }> = {
+  // `cards` is how many crossed planes make one cluster. Near, three read as a
+  // mass; far, one double-faced card is a silhouette and the difference is not
+  // visible — which is the whole point of having LODs.
+  0: { levels: 0, leaves: 1, radialSegments: 7, cards: 3 },
+  1: { levels: -1, leaves: 0.6, radialSegments: 5, cards: 2 },
+  2: { levels: -2, leaves: 0.34, radialSegments: 4, cards: 1 },
 };
 
 /**
  * Grow one tree. Deterministic from `(species, seed, lod)` — the same seed gives
  * the same tree on every device, which is what makes the island reproducible.
  */
+/**
+ * One cluster of foliage, as **crossed, double-faced cards**.
+ *
+ * A single quad at a random angle is not a leaf cluster — it is a slab. Seen
+ * from the side it is a line, seen from behind it is nothing at all, because
+ * the clay material is `FrontSide` (and giving foliage its own double-sided
+ * material would spend one of the eight, `07-RENDER-ARCHITECTURE.md` §5). So
+ * the volume is built into the geometry instead: three cards through a common
+ * centre, each emitted twice back-to-back. The cluster reads as a mass from
+ * every angle and costs one material of nobody's. How many planes make a
+ * cluster is an LOD decision — see `LOD_TRIM`.
+ */
+function leafCluster(
+  out: Piece[],
+  quad: THREE.BufferGeometry,
+  centre: THREE.Vector3,
+  size: number,
+  cards: number,
+  rng: () => number,
+): void {
+  // One shared tilt per cluster, so the cards stay a single mass rather than
+  // splaying into separate flakes.
+  const tiltX = (rng() - 0.5) * 0.5;
+  const tiltZ = (rng() - 0.5) * 0.5;
+  const yaw0 = rng() * Math.PI * 2;
+  for (let c = 0; c < cards; c++) {
+    const yaw = yaw0 + (c / cards) * Math.PI;
+    for (let face = 0; face < 2; face++) {
+      const m = new THREE.Matrix4();
+      const q = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(tiltX, yaw + face * Math.PI, tiltZ),
+      );
+      m.compose(centre, q, new THREE.Vector3(size, size, size));
+      out.push({ geo: quad, matrix: m });
+    }
+  }
+}
+
 export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): TreeBuild {
   const rng = mulberry32(seed);
   const params = PARAMS[species];
@@ -130,12 +173,7 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
       for (let i = 0; i < n; i++) {
         const size = params.leafSize * (0.75 + rng() * 0.5);
         const off = new THREE.Vector3((rng() - 0.5) * 0.16, (rng() - 0.5) * 0.16, (rng() - 0.5) * 0.16);
-        const lm = new THREE.Matrix4();
-        const lq = new THREE.Quaternion().setFromEuler(
-          new THREE.Euler((rng() - 0.5) * 1.4, rng() * Math.PI * 2, (rng() - 0.5) * 1.4),
-        );
-        lm.compose(end.clone().add(off), lq, new THREE.Vector3(size, size, size));
-        leaves.push({ geo: quad, matrix: lm });
+        leafCluster(leaves, quad, end.clone().add(off), size, trim.cards, rng);
       }
       return;
     }
@@ -159,12 +197,7 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
         const t = 0.25 + rng() * 0.7;
         const p = origin.clone().addScaledVector(dir, len * t);
         const size = params.leafSize * (0.8 + rng() * 0.5);
-        const lm = new THREE.Matrix4();
-        const lq = new THREE.Quaternion().setFromEuler(
-          new THREE.Euler((rng() - 0.5) * 1.2, rng() * Math.PI * 2, (rng() - 0.5) * 1.2),
-        );
-        lm.compose(p, lq, new THREE.Vector3(size, size, size));
-        leaves.push({ geo: quad, matrix: lm });
+        leafCluster(leaves, quad, p, size, trim.cards, rng);
       }
     }
   }
@@ -174,8 +207,12 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
   const lean = new THREE.Vector3((rng() - 0.5) * 0.12, 1, (rng() - 0.5) * 0.12).normalize();
   branch(new THREE.Vector3(0, 0, 0), species === 'bush' ? up : lean, params.trunkH, params.trunkR, 0);
 
-  const woodGeo = mergePieces(wood);
-  const leavesGeo = mergePieces(leaves);
+  // **Paint both halves.** The clay material runs with `vertexColors`, and an
+  // unbound `color` attribute reads as black in WebGL — which is exactly what
+  // the trees were, while every other scatter shape came out of `build.ts`
+  // already painted. Bark darkens toward the roots, canopy toward its underside.
+  const woodGeo = paintVertical(mergePieces(wood), CLAY.barkDeep, CLAY.bark, 0.9);
+  const leavesGeo = paintVertical(mergePieces(leaves), CLAY.leafDeep, CLAY.leaf, 0.75);
   cyl.dispose();
   quad.dispose();
   return { wood: woodGeo, leaves: leavesGeo, height: maxY };

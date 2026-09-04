@@ -50,7 +50,10 @@ export const TIERS: Record<QualityTier, TierParams> = {
   },
   1: {
     name: 'bajo', dprCap: 1.0, antialias: false, postProcessing: false, realShadows: false,
-    blobShadows: true, terrainGrid: 96, grassTufts: 250, flowers: 60, trees: 60, treeLods: 2,
+    // T1 takes the far tree silhouette, not the mid one: it shared T2's LOD
+    // until a tier-11 island put it 410 triangles over its own ceiling, and a
+    // 30 fps phone is the last place to spend them on canopy interiors.
+    blobShadows: true, terrainGrid: 96, grassTufts: 250, flowers: 60, trees: 60, treeLods: 1,
     rocks: 30, groundDetail: 60, fauna: 4, particles: 80, water: 1, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 60, targetFps: 30,
   },

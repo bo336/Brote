@@ -33,12 +33,15 @@ export const SCALE_REFERENCE = {
 /** Terrain baking. Nothing may call `terrainHeight()` per frame — bake, then sample. */
 export const TERRAIN = {
   bakeBudgetMs: 150, // over this, chunk across frames or use a worker (`01-RULES` §3.8)
-  bakeResolution: 160, // ONE resolution for collision, whatever the quality tier
+  bakeStepM: 0.45, // target metres between collision samples, whatever the tier
+  bakeResolutionMin: 96, // …clamped, so a small island is not over-sampled…
+  bakeResolutionMax: 224, // …and a tier-11 island still bakes inside the budget
   frameClampS: 0.05, // the longest step the controller will integrate in one go
   normalEpsilon: 0.06, // finite-difference step for `terrainNormal` (ported verbatim)
   plantableMargin: 0.25, // metres of shoreline kept clear of props (ported verbatim)
   plantableMinHeight: 0.04, // clearance above WATER_LEVEL before a spot is land (ported)
   plantableMaxSlope: 0.55, // 0 flat … 1 vertical; cliffs stay bare (ported)
+  rockMaxSlope: 0.92, // …but a rock sits where nothing grows; only a wall is bare
   snapRings: 14, // spiral search rings used by `snapToLand` (ported)
   snapAnglesPerRing: 6, // angles tried per ring (ported)
   snapStep: 0.16, // metres added per ring of the spiral (ported)
@@ -61,7 +64,16 @@ export const LAYOUT = {
   bayAngleRad: 2.35, // where the bay cuts in…
   bayAmp: 0.14, // …and by how much
   goldenAngle: 2.399963, // the spiral that spreads scatter points without clumping
-  scatterPoolMax: 512, // the deterministic pool; quality tiers take a prefix of it
+  scatterPoolMax: 2000, // the deterministic pool; quality tiers take a prefix of it
+  // How the pool is divided by the stable `roll` value. The shares are sized to
+  // the T3 budgets in `lib/render/quality.ts` — a 3.5% band for trees left a
+  // tier-11 island with fifteen of them against a budget of a hundred and
+  // eighty, which read as an empty field.
+  shareGrass: 0.58,
+  shareFlowers: 0.16,
+  shareTrees: 0.14,
+  shareRocks: 0.08,
+  shareSprouts: 0.04,
   scatterMinSpacingM: 0.34, // rejection distance between two scatter points
   scatterRadiusBias: 0.85, // <1 pulls the spiral inward, away from the shoreline
   regionRadiusFrac: 0.34, // a region's influence radius as a fraction of R
@@ -71,6 +83,18 @@ export const LAYOUT = {
   puddleOffsetFrac: 1.15, // the tier-2 puddle sits just past La Pradera's centre
   puddleRadiusFrac: 0.11, // its surface radius, as a fraction of R
   puddleDepthM: 0.16, // shallow on purpose — you fill a can from it, you do not swim
+  mountainRadiusFrac: 0.42, // El Monte's footprint, as a fraction of its tier's radius
+  shoulderOffsetFrac: 0.72, // a second, lower mass so the massif is not one cone
+  shoulderHeightFrac: 0.55, // …at this fraction of the summit height
+  lagoonRadiusFrac: 0.3, // La Laguna's surface
+  lagoonDepthM: 1.4, // deep enough to swim in, which is the tier-7 verb
+  riverSourceFrac: 0.72, // the water breaks out of the rock this far up the mountain
+  riverWidthM: 1.6, // the channel at rest; the impact mirror widens it 0.8 → 3.2
+  riverDepthM: 1.1, // carved deep enough to read as a river, not a damp stripe
+  isletRadiusFrac: 0.15, // El Islote — a SMALL islet, not a second island
+  isletHeightM: 2.6, // …and how far its crown stands above the water line
+  isletScatter: 48, // scatter points on the islet, which the main spiral misses
+  steepScatter: 260, // rock-only points on ground too steep to plant (El Monte, La Cumbre)
 } as const;
 
 // ── Movement (`10-CONTROLS-AND-CAMERA.md` §2) ───────────────────────────────
@@ -118,6 +142,9 @@ export const CAMERA = {
   occlusionMarginM: 0.4, // pull in to the hit point minus this
   occlusionInLambda: 14, // fast in…
   occlusionOutLambda: 3, // …slow out
+  occlusionSamples: 6, // height probes along the boom; 6 is enough for a hillside
+  occlusionClearanceM: 0.5, // keep the boom this far above the ground it passes over
+  occlusionMinM: 2.2, // never pull closer than this, however steep the slope
   pinchMinM: 4, // pinch distance clamp, near
   pinchMaxM: 11, // pinch distance clamp, far
 } as const;

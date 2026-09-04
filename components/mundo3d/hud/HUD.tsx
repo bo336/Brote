@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Settings2, Sprout } from 'lucide-react';
 
+import { useEffect } from 'react';
+
 import { INTERACT, JOYSTICK } from '@/lib/world/config';
 import { ActionButton } from '../interaction/ActionButton';
 import { Joystick } from '../control/Joystick';
@@ -22,12 +24,28 @@ import { useSessionStore } from '../state/useSessionStore';
  * minimap, notifications, any upsell. Those live in the app, at the Mojón, or
  * in the Bitácora.
  */
+/** How long a locked-verb hint stays on screen. */
+const HINT_MS = 2600;
+
 export function HUD({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useTranslations('mundo');
   const router = useRouter();
   const semillas = usePlayerStore((s) => s.semillas);
   const hud = useSessionStore((s) => s.hud);
+  const lockedHint = useSessionStore((s) => s.lockedHint);
+  const setLockedHint = useSessionStore((s) => s.setLockedHint);
   const playing = hud === 'play';
+
+  /**
+   * A soft barrier says one sentence and then gets out of the way. Never a
+   * modal, never a nag, and never an invisible wall with no explanation
+   * (`10-CONTROLS-AND-CAMERA.md` §2.6).
+   */
+  useEffect(() => {
+    if (!lockedHint) return;
+    const id = setTimeout(() => setLockedHint(null), HINT_MS);
+    return () => clearTimeout(id);
+  }, [lockedHint, setLockedHint]);
 
   const safeTop = { top: `max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px)` };
 
@@ -67,6 +85,15 @@ export function HUD({ onOpenSettings }: { onOpenSettings: () => void }) {
           <Settings2 className="h-5 w-5" aria-hidden />
         </button>
       </div>
+
+      {lockedHint && (
+        <p
+          className="absolute inset-x-0 bottom-32 mx-auto w-fit rounded-pill bg-brote-ink/70 px-4 py-2 text-center text-small text-white backdrop-blur-sm"
+          role="status"
+        >
+          {t(`locked.${lockedHint === 'swim' ? 'swim' : 'climb'}`)}
+        </p>
+      )}
 
       {playing && (
         <div className="pointer-events-auto">

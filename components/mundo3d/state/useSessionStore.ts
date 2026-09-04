@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-import type { Interactable, QualityTier, TimeOfDay } from '@/lib/world/types';
+import type { Interactable, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
 export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene';
@@ -24,12 +24,18 @@ interface SessionStoreState {
   timeOfDay: TimeOfDay;
   /** `prefers-reduced-motion`, or the in-game toggle. */
   reducedMotion: boolean;
+  /**
+   * The verb the player just needed and does not have. Drives the one-line
+   * hint at a soft barrier; cleared after a few seconds by the HUD.
+   */
+  lockedHint: VerbId | null;
   setReady: (ready: boolean) => void;
   setActive: (active: Interactable | null) => void;
   setHud: (hud: HudMode) => void;
   setTier: (tier: QualityTier) => void;
   setTimeOfDay: (timeOfDay: TimeOfDay) => void;
   setReducedMotion: (reducedMotion: boolean) => void;
+  setLockedHint: (verb: VerbId | null) => void;
 }
 
 export const useSessionStore = create<SessionStoreState>((set) => ({
@@ -39,6 +45,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   tier: 1,
   timeOfDay: 'dia',
   reducedMotion: false,
+  lockedHint: null,
   setReady: (ready) => set({ ready }),
   setActive: (active) =>
     set((s) => (s.active?.id === active?.id ? s : { active })),
@@ -46,4 +53,5 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setTier: (tier) => set({ tier }),
   setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
+  setLockedHint: (lockedHint) => set((s) => (s.lockedHint === lockedHint ? s : { lockedHint })),
 }));

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import type * as THREE from 'three';
 
 import { PERF_CEILINGS, QUALITY_MONITOR } from '@/lib/world/config';
 import { liveMaterialCount } from '@/lib/render/materials';
@@ -34,6 +35,9 @@ export interface PerfStats {
   materials: number;
   tier: QualityTier;
   heapMB: number | null;
+  /** Meshes in the scene, and how many of them the renderer actually drew. */
+  meshes: number;
+  instances: number;
 }
 
 const WINDOW = QUALITY_MONITOR.medianWindowFrames;
@@ -46,6 +50,7 @@ const scratch = new Float32Array(WINDOW);
 const stats: PerfStats = {
   fps: 0, medianMs: 0, p95Ms: 0, calls: 0, triangles: 0,
   geometries: 0, textures: 0, materials: 0, tier: 1, heapMB: null,
+  meshes: 0, instances: 0,
 };
 let head = 0;
 let filled = 0;
@@ -63,7 +68,9 @@ function readHeapMB(): number | null {
 /** Lives inside `<Canvas>`. Samples only — it renders nothing. */
 export function PerfProbe({ tier }: { tier: QualityTier }) {
   const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
   const lastHeapAtRef = useRef(0);
+  const lastSceneAtRef = useRef(0);
 
   useFrame((_, delta) => {
     const ms = delta * 1000;
@@ -93,6 +100,21 @@ export function PerfProbe({ tier }: { tier: QualityTier }) {
     if (now - lastHeapAtRef.current > 1000) {
       lastHeapAtRef.current = now;
       stats.heapMB = readHeapMB();
+    }
+    // Walking the graph is not free either. Once a second is enough to notice
+    // that a pool exists but is never drawn, which is the failure this catches.
+    if (now - lastSceneAtRef.current > 1000) {
+      lastSceneAtRef.current = now;
+      let meshes = 0;
+      let instances = 0;
+      scene.traverse((o) => {
+        const mesh = o as THREE.Mesh & { isInstancedMesh?: boolean; count?: number };
+        if (!mesh.isMesh) return;
+        meshes++;
+        if (mesh.isInstancedMesh) instances += mesh.count ?? 0;
+      });
+      stats.meshes = meshes;
+      stats.instances = instances;
     }
   });
 
@@ -134,6 +156,8 @@ export function PerfOverlay() {
       <Row label="geometries" value={snap.geometries} ceiling={ceil.geometries} />
       <Row label="textures" value={snap.textures} ceiling={ceil.textures} />
       <Row label="materials" value={snap.materials} ceiling={8} />
+      <Row label="meshes" value={snap.meshes} />
+      <Row label="instances" value={snap.instances} />
       <Row label="heap MB" value={snap.heapMB ?? 'n/d'} />
     </div>
   );

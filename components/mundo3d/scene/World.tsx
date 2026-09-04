@@ -1,19 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { PIP_HEIGHT_M, TERRAIN, WIND, WOBBLE } from '@/lib/world/config';
-import { bakeHeightfield, sampleHeight } from '@/lib/world/terrain';
+import { PIP_HEIGHT_M, TERRAIN, VERB_TIMING, WIND, WOBBLE } from '@/lib/world/config';
+import { seasonFor } from '@/lib/world/season';
+import { haptic } from '@/lib/utils/haptics';
+import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
 import { getFlatMaterial, getTexture } from '@/lib/render/materials';
 import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
-import type { QualityTier, TimeOfDay } from '@/lib/world/types';
-import { CharacterController } from '../control/CharacterController';
+import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
+import { SEMILLAS } from '@/lib/world/config';
+import { CharacterController, type PropCollider } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
 import { ProximityDetector } from '../interaction/ProximityDetector';
@@ -21,6 +24,9 @@ import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
+import { VerbRuntime, type VerbResult } from '../verbs/runtime';
+import { useVerbSpots, type VerbSpot } from '../verbs/register';
+import { Fauna } from './Fauna';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
@@ -40,18 +46,27 @@ import { Water } from './Water';
  * re-baked. The quality tier changes what the ground *looks* like, never where
  * it *is* — otherwise a promotion would move the floor under Pip mid-step.
  */
+const EMPTY_PLACEMENTS: readonly Placement[] = [];
+
 export function World({
   tier,
   timeOfDay,
   monitor,
   onTierChange,
   cameraRef,
+  placements = EMPTY_PLACEMENTS,
+  demoProps = false,
+  onAdvanceTime,
 }: {
   tier: QualityTier;
   timeOfDay: TimeOfDay;
   monitor: QualityMonitor;
   onTierChange: (tier: QualityTier) => void;
   cameraRef: React.MutableRefObject<FollowCamera | null>;
+  placements?: readonly Placement[];
+  demoProps?: boolean;
+  /** `descansar` hands time forward; the route owns which preset comes next. */
+  onAdvanceTime?: () => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const scene = useThree((s) => s.scene);
@@ -78,10 +93,14 @@ export function World({
    */
   const groundTier = useRef(tier).current;
   const lastStateRef = useRef(usePlayerStore.getState().state);
+  const season = useMemo(() => seasonFor(new Date()), []);
+  const addSemillas = usePlayerStore((s) => s.addSemillas);
+  const setVerb = usePlayerStore((s) => s.setVerb);
+  const setLockedHint = useSessionStore((s) => s.setLockedHint);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
-    () => (layout ? bakeHeightfield(layout.terrain, TERRAIN.bakeResolution) : null),
+    () => (layout ? bakeHeightfield(layout.terrain, bakeResolutionFor(layout.terrain)) : null),
     [layout],
   );
 
@@ -92,11 +111,19 @@ export function World({
     [heightfield, layout, config],
   );
 
+  /** Props become things you walk around, not things you walk through. */
+  const onColliders = useCallback(
+    (colliders: PropCollider[]) => controller?.setColliders(colliders),
+    [controller],
+  );
+
   useEffect(() => {
     if (!layout || !heightfield) return;
     const [sx, sz] = layout.spawn;
     resetPlayerTransform(sx, sampleHeight(heightfield, sx, sz), sz);
     const follow = new FollowCamera({ camera, reducedMotion });
+    // The boom needs the ground so it can duck under the hillside.
+    follow.setTerrain(heightfield);
     follow.snap();
     cameraRef.current = follow;
     setReady(true);
@@ -162,6 +189,57 @@ export function World({
     invalidate();
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
 
+  /**
+   * The verb runtime. Completing a verb pays semillas and **never XP** — the
+   * one-way valve is the product's premise, and `no-xp.test.ts` greps this whole
+   * tree to keep it that way (`11-GAME-LOOP.md` §1).
+   */
+  const onVerbFinish = useCallback(
+    (result: VerbResult) => {
+      setVerb(null);
+      controller?.setLocked(false);
+      if (!result.success) return;
+      // Sound, motion and haptic together: one alone reads as a bug (`10` §6).
+      haptic(result.verb === 'fish' ? 'success' : 'medium');
+      if (result.verb === 'forage') addSemillas(SEMILLAS.forageMin);
+      if (result.verb === 'log') addSemillas(SEMILLAS.censusFirst);
+    },
+    [controller, setVerb, addSemillas],
+  );
+
+  const runtime = useMemo(() => new VerbRuntime(onVerbFinish), [onVerbFinish]);
+
+  /**
+   * Using a verb. `sail` and `rest` change how movement works rather than
+   * pausing it, so they go to the controller; everything else is a timed action.
+   */
+  const onUseVerb = useCallback(
+    (spot: VerbSpot) => {
+      if (!controller) return;
+      setVerb(spot.verb);
+      if (spot.verb === 'sail') {
+        controller.boardBoat();
+        return;
+      }
+      if (spot.verb === 'rest') {
+        // Resting advances the time of day one preset — the only control over
+        // time the player has (`10-CONTROLS-AND-CAMERA.md` §3).
+        controller.setLocked(true);
+        window.setTimeout(() => {
+          controller.setLocked(false);
+          setVerb(null);
+          onAdvanceTime?.();
+        }, VERB_TIMING.restAdvanceS * 1000);
+        return;
+      }
+      controller.setLocked(true);
+      runtime.begin(spot.verb, spot.id);
+    },
+    [controller, runtime, setVerb, onAdvanceTime],
+  );
+
+  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb);
+
   useFrame((state, delta) => {
     // Clamp: a tab that was backgrounded must not teleport Pip across the island.
     const dt = Math.min(delta, TERRAIN.frameClampS);
@@ -177,6 +255,14 @@ export function World({
     }
     follow.update(dt);
     shadows.update(heightfield);
+    // A verb in progress is cancelled by walking away from what it was for.
+    runtime.cancelIfTargetLost(useSessionStore.getState().active?.id ?? null);
+    runtime.update(dt);
+
+    // A soft barrier owes the player a sentence. The store setter is
+    // identity-comparing, so repeating the same hint costs no re-render.
+    const blocked = controller.takeBlocked();
+    if (blocked) setLockedHint(blocked);
 
     const promoted = monitor.sample(delta * 1000, state.clock.elapsedTime * 1000);
     if (promoted !== null) onTierChange(promoted);
@@ -189,8 +275,17 @@ export function World({
       <Sky palette={palette} timeOfDay={timeOfDay} tier={tier} />
       <Island heightfield={heightfield} layout={layout} palette={palette} tier={groundTier} />
       <Water heightfield={heightfield} layout={layout} palette={palette} tier={tier} flow={mirror.riverFlow} />
-      <Vegetation heightfield={heightfield} layout={layout} config={config} tier={tier} />
-      <Props heightfield={heightfield} layout={layout} config={config} />
+      <Vegetation heightfield={heightfield} layout={layout} config={config} tier={tier} biome={biome} />
+      <Props
+        heightfield={heightfield}
+        layout={layout}
+        mirror={mirror}
+        timeOfDay={timeOfDay}
+        placements={placements}
+        demo={demoProps}
+        onColliders={onColliders}
+      />
+      <Fauna heightfield={heightfield} layout={layout} config={config} tier={tier} liveliness={liveliness} />
       <MistWall layout={layout} config={config} palette={palette} />
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />

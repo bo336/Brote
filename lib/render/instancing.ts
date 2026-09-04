@@ -115,7 +115,23 @@ export class InstancePool {
   commit(): void {
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    this.recomputeBounds();
+  }
+
+  /**
+   * Bounds over every ALLOCATED instance, not over the visible count.
+   *
+   * `InstancedMesh.computeBoundingSphere()` walks `mesh.count`, and placement
+   * happens before the quality tier sets that count — so computing bounds the
+   * obvious way produced an empty sphere at the origin and three frustum-culled
+   * the whole pool, permanently. A field of grass that exists, is uploaded, and
+   * is never drawn, with nothing in the scene graph to show for it.
+   */
+  private recomputeBounds(): void {
+    const visible = this.mesh.count;
+    this.mesh.count = this.used;
     this.mesh.computeBoundingSphere();
+    this.mesh.count = visible;
   }
 
   /**

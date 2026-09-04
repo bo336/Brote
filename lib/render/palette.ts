@@ -10,7 +10,7 @@
  * maths, not rendering, and the pure layer needs it to build biome ramps. It is
  * re-exported here so the render layer has one obvious door and one implementation.
  */
-import { biomeConfig, chalk, type BiomeConfig } from '@/lib/world/biome';
+import { biomeConfig, chalk, mixColors, type BiomeConfig } from '@/lib/world/biome';
 import type { TimeOfDay } from '@/lib/world/types';
 
 export { chalk };
@@ -56,6 +56,8 @@ export const CLAY = {
   leaf: '#3CB371', // canopy
   leafDeep: '#0E7A52', // canopy underside
   bark: '#8C6E52', // trunks, wood props
+  barkDeep: '#6B5340', // wood in shadow, legs, undersides
+  barkRoof: '#A8784E', // the warmer wood of a roof or a lid
   stone: '#A8A296', // rock, mountain
   stoneDeep: '#7A756B', // cliff shadow, cave
   snow: '#F2EFE6', // snow, tier 9+
@@ -160,6 +162,36 @@ export const PRESETS: Record<TimeOfDay, LightPreset> = {
   },
 };
 
+/**
+ * **Sky and fog per time of day.** A preset is "a set of light colours and
+ * intensities *plus fog and sky colours*" (`06-ART-DIRECTION.md` §6) — an
+ * earlier version authored only the light rig and branched the sky on `noche`
+ * alone, which made dawn, midday and dusk the same picture under a slightly
+ * different lamp.
+ *
+ * Each entry carries the biome's own sky **toward** a tint rather than
+ * replacing it, so world 3 still reads as world 3 at sunset.
+ */
+interface SkyPreset {
+  /** Tint and strength for the top of the dome… */
+  top: string;
+  topMix: number;
+  /** …and for the horizon band, which is also the fog colour. */
+  horizon: string;
+  horizonMix: number;
+}
+
+const SKIES: Record<TimeOfDay, SkyPreset> = {
+  // First light: a cool violet overhead, apricot along the horizon.
+  amanecer: { top: '#6E7BA8', topMix: 0.42, horizon: '#F6C89A', horizonMix: 0.6 },
+  // Midday is the authored biome sky, untouched. This is the reference frame.
+  dia: { top: BRAND.cream, topMix: 0, horizon: BRAND.cream, horizonMix: 0 },
+  // Dusk: the deepest sky of the three lit presets, and the warmest horizon.
+  atardecer: { top: '#3E5480', topMix: 0.5, horizon: '#F79A5B', horizonMix: 0.7 },
+  // Night keeps its own ink; the mix is a full replacement.
+  noche: { top: BRAND.inkSoft, topMix: 1, horizon: LIGHT.nightFill, horizonMix: 1 },
+};
+
 export interface WorldPalette {
   ground: string;
   grass: string;
@@ -183,7 +215,11 @@ export interface WorldPalette {
  */
 export function paletteFor(biome: BiomeConfig, tod: TimeOfDay): WorldPalette {
   const c = biome.chalked;
-  const night = tod === 'noche';
+  const sky = SKIES[tod];
+  // The horizon and the fog are the same colour by construction: fog is the
+  // sky seen through the air in front of it, and any gap between the two reads
+  // as a seam at the coastline.
+  const horizon = mixColors(c.skyHorizon, sky.horizon, sky.horizonMix);
   return {
     ground: c.ground,
     grass: c.grass,
@@ -193,9 +229,9 @@ export function paletteFor(biome: BiomeConfig, tod: TimeOfDay): WorldPalette {
     water: c.water,
     waterDeep: chalk(CLAY.waterDeep),
     foam: CLAY.foam,
-    skyTop: night ? BRAND.inkSoft : c.skyTop,
-    skyHorizon: night ? LIGHT.nightFill : c.skyHorizon,
-    fog: night ? LIGHT.nightFill : c.skyHorizon,
+    skyTop: mixColors(c.skyTop, sky.top, sky.topMix),
+    skyHorizon: horizon,
+    fog: horizon,
     light: PRESETS[tod],
   };
 }

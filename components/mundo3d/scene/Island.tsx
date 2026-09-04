@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 
-import { buildGround, buildIslandBody } from '@/lib/render/geometry/terrain';
+import { buildGround, buildIslandBody, buildIsletGround } from '@/lib/render/geometry/terrain';
 import { getClayMaterial } from '@/lib/render/materials';
 import { TIERS } from '@/lib/render/quality';
 import type { WorldPalette } from '@/lib/render/palette';
@@ -49,14 +49,21 @@ export function Island({
     [heightfield, layout, palette, grid],
   );
   const body = useMemo(() => buildIslandBody(heightfield, layout), [heightfield, layout]);
+  /** El Islote, when the tier has put one across the water. */
+  const islet = useMemo(
+    () => (layout.terrain.islet ? buildIsletGround(heightfield, layout.terrain.islet, palette) : null),
+    [heightfield, layout, palette],
+  );
 
   useEffect(() => () => ground.dispose(), [ground]);
   useEffect(() => () => body.dispose(), [body]);
+  useEffect(() => () => islet?.dispose(), [islet]);
 
   return (
     <group name="island">
       <mesh geometry={ground} material={material} receiveShadow={false} />
       <mesh geometry={body} material={material} />
+      {islet && <mesh geometry={islet} material={material} />}
     </group>
   );
 }

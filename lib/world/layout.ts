@@ -10,33 +10,17 @@
  *
  * `Math.random()` is banned here (`01-RULES.md` §3.11).
  */
-import { LAYOUT, TERRAIN } from './config';
+import { LAYOUT, SCALE_REFERENCE, TERRAIN } from './config';
+import { CACHE_SPOTS, REGION_SPECS, regionCentre, regionRadius } from './regions';
 import { islandRadius, tierForRegion } from './progression';
 import { hashInt, mulberry32 } from './rng';
-import { fbm, isPlantable, makeLayout, snapToLand, terrainHeight, type WorldLayout } from './terrain';
+import {
+  fbm, isPlantable, isRockable, snapToLand, terrainHeight,
+  type IsletSpec, type LakeSpec, type MountainSpec, type RiverSpec, type WorldLayout,
+} from './terrain';
 import type { FeatureId, RegionId, VerbId, WorldConfig } from './types';
 
-/** Where a region sits, in fractions of the island radius. Constant for everyone. */
-interface RegionSpec {
-  /** Direction from the island centre, radians. */
-  angle: number;
-  /** Distance from centre as a fraction of R. */
-  dist: number;
-  /** Influence radius as a fraction of R. */
-  radiusFrac: number;
-}
-
-const REGION_SPECS: Record<RegionId, RegionSpec> = {
-  claro: { angle: 0, dist: 0, radiusFrac: LAYOUT.claroRadiusFrac }, // always the spawn
-  pradera: { angle: 0.35, dist: 0.52, radiusFrac: LAYOUT.regionRadiusFrac },
-  jardin: { angle: 2.05, dist: 0.5, radiusFrac: LAYOUT.regionRadiusFrac },
-  arboleda: { angle: 3.6, dist: 0.55, radiusFrac: LAYOUT.regionRadiusFrac },
-  rio: { angle: 1.15, dist: 0.66, radiusFrac: LAYOUT.regionRadiusFrac },
-  monte: { angle: -1.75, dist: 0.6, radiusFrac: LAYOUT.regionRadiusFrac },
-  cumbre: { angle: -1.75, dist: 0.72, radiusFrac: LAYOUT.regionRadiusFrac * 0.7 },
-  islote: { angle: 0.9, dist: LAYOUT.isletDistanceFrac, radiusFrac: LAYOUT.regionRadiusFrac * 0.6 },
-  monumento: { angle: -1.75, dist: 0.72, radiusFrac: LAYOUT.regionRadiusFrac * 0.35 },
-};
+export { regionCentre } from './regions';
 
 export interface RegionAnchor {
   id: RegionId;
@@ -53,6 +37,11 @@ export interface ScatterPoint {
   region: RegionId;
   /** 0..1, stable per point — drives species pick, scale jitter and tint. */
   roll: number;
+  /**
+   * Ground too steep to plant, where only rock belongs. Marked rather than
+   * re-derived, so the renderer never has to sample the slope to find out.
+   */
+  steep?: boolean;
 }
 
 export interface AnchorPoint {
@@ -91,30 +80,6 @@ export interface IslandLayout {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
-/**
- * A region's centre in world units — **fixed from day one**.
- *
- * The distance is measured against the radius of the tier that UNLOCKS the
- * region, not the island's current radius. That is what makes "the island's full
- * extent exists in the data from day one" true (`08-WORLD-AND-PROGRESSION.md`
- * §1): El Jardín sits at the same coordinates whether you are tier 2 or tier 9,
- * so growing the island reveals it rather than moving everything that was
- * already there.
- *
- * Before its tier, a region's centre is simply outside the coastline — which is
- * exactly where the ghosted silhouette belongs.
- */
-export function regionCentre(id: RegionId): [number, number] {
-  const spec = REGION_SPECS[id];
-  const r = islandRadius(tierForRegion(id)) * spec.dist;
-  return [Math.cos(spec.angle) * r, Math.sin(spec.angle) * r];
-}
-
-/** A region's influence radius, on the same fixed scale as its centre. */
-function regionRadius(id: RegionId): number {
-  return REGION_SPECS[id].radiusFrac * islandRadius(tierForRegion(id));
-}
 
 /** Which region a point belongs to — nearest unlocked anchor wins. */
 export function regionAt(x: number, z: number, regions: readonly RegionAnchor[]): RegionId {
@@ -168,25 +133,82 @@ function buildCoastline(R: number, seed: number): Float32Array {
   return out;
 }
 
-/** Build the height-function layout from the FEATURES the tier actually granted. */
+/**
+ * Build the height-function layout from the FEATURES the tier granted, placing
+ * each one **at its region's anchor**.
+ *
+ * The ported `makeLayout` is still exported from `terrain.ts` and still tested,
+ * but it gates its content on a world index and puts everything at fixed
+ * fractions of the radius — which has nothing to do with where El Río and El
+ * Monte actually are. This builds the same `WorldLayout` shape from the region
+ * table instead, so the river runs through La Laguna and the mountain rises
+ * under La Cumbre.
+ */
 function buildTerrainLayout(R: number, seed: number, features: readonly FeatureId[]): WorldLayout {
-  const hasPond = features.includes('pond');
-  const hasMountain = features.includes('mountain');
-  // `makeLayout` gates its own content on a world index; feed it the index that
-  // corresponds to what this tier unlocked, so the ported maths stays untouched.
-  const index = hasMountain ? 6 : hasPond ? 2 : 1;
-  const base = makeLayout(index, R, hasPond);
-  base.seed = seed;
-  if (!features.includes('river')) base.rivers = [];
-  if (!hasMountain) base.mountains = [];
-  // La Pradera's puddle is a shallow lake. Carving it through the SAME height
-  // function means `isWater`, `isPlantable` and the water mesh all understand
-  // it without a single line of special-casing.
+  const lakes: LakeSpec[] = [];
+  const rivers: RiverSpec[] = [];
+  const mountains: MountainSpec[] = [];
+  let islet: IsletSpec | null = null;
+
+  // La Pradera's puddle. Carving it through the SAME height function means
+  // `isWater`, `isPlantable` and the water mesh all understand it without a
+  // single line of special-casing.
   if (features.includes('puddle')) {
     const [px, pz] = regionCentre('pradera');
-    base.lakes.push({ x: px * LAYOUT.puddleOffsetFrac, z: pz * LAYOUT.puddleOffsetFrac, r: R * LAYOUT.puddleRadiusFrac, depth: LAYOUT.puddleDepthM });
+    lakes.push({
+      x: px * LAYOUT.puddleOffsetFrac,
+      z: pz * LAYOUT.puddleOffsetFrac,
+      r: islandRadius(2) * LAYOUT.puddleRadiusFrac,
+      depth: LAYOUT.puddleDepthM,
+    });
   }
-  return base;
+
+  // El Monte, and above it La Cumbre. One mass: the snow line is a height mask
+  // on the same mountain, not a second mountain (`08` §1).
+  const [mx, mz] = regionCentre('monte');
+  if (features.includes('mountain')) {
+    mountains.push({
+      x: mx,
+      z: mz,
+      r: islandRadius(8) * LAYOUT.mountainRadiusFrac,
+      h: SCALE_REFERENCE.summitM,
+    });
+    // A shoulder, so the massif is not one cone.
+    mountains.push({
+      x: mx * LAYOUT.shoulderOffsetFrac,
+      z: mz * LAYOUT.shoulderOffsetFrac,
+      r: islandRadius(8) * LAYOUT.mountainRadiusFrac * 0.55,
+      h: SCALE_REFERENCE.summitM * LAYOUT.shoulderHeightFrac,
+    });
+  }
+
+  // La Laguna, and the river that leaves it for the sea.
+  if (features.includes('pond')) {
+    const [rx, rz] = regionCentre('rio');
+    lakes.push({ x: rx, z: rz, r: islandRadius(7) * LAYOUT.lagoonRadiusFrac, depth: LAYOUT.lagoonDepthM });
+    if (features.includes('river')) {
+      // The water breaks out of the rock at the mountain's foot and runs past
+      // the lagoon to the coast — which is the shape the tier-7 ceremony
+      // animates (`08-WORLD-AND-PROGRESSION.md` §5).
+      const source: [number, number] = features.includes('mountain')
+        ? [mx * LAYOUT.riverSourceFrac, mz * LAYOUT.riverSourceFrac]
+        : [rx * LAYOUT.riverSourceFrac, rz * LAYOUT.riverSourceFrac];
+      const dir = Math.atan2(rz, rx);
+      rivers.push({
+        from: source,
+        to: [Math.cos(dir) * (R + 1), Math.sin(dir) * (R + 1)],
+        width: LAYOUT.riverWidthM,
+        depth: LAYOUT.riverDepthM,
+      });
+    }
+  }
+
+  if (features.includes('islet')) {
+    const [ix, iz] = regionCentre('islote');
+    islet = { x: ix, z: iz, r: islandRadius(10) * LAYOUT.isletRadiusFrac, h: LAYOUT.isletHeightM };
+  }
+
+  return { R, lakes, rivers, mountains, islet, seed };
 }
 
 /**
@@ -213,6 +235,54 @@ function buildScatter(terrain: WorldLayout, regions: RegionAnchor[], seed: numbe
     }
     if (tooClose) continue;
     out.push({ x, z, region: regionAt(x, z, regions), roll: rng() });
+  }
+
+  // **Rock on steep ground.** `snapToLand` rejects everything above the
+  // plantable slope, which is all of El Monte and most of La Cumbre — so the
+  // spiral above never puts a single thing on the mountain, however much rock
+  // the region asks for. This second pass walks the same spiral accepting the
+  // steeper limit, and forces each point's roll into the rock band so only the
+  // rock pools can ever claim it. Nothing grows up there; it just stops being
+  // a bare cone.
+  const rockBandStart =
+    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers + LAYOUT.shareTrees;
+  let steep = 0;
+  for (let i = 0; i < LAYOUT.steepScatter * 6 && steep < LAYOUT.steepScatter; i++) {
+    const a = i * LAYOUT.goldenAngle;
+    const r = terrain.R * LAYOUT.scatterRadiusBias * Math.sqrt(i / (LAYOUT.steepScatter * 6));
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    // Only ground the first pass could NOT use, so the two never compete.
+    if (isPlantable(x, z, terrain) || !isRockable(x, z, terrain)) continue;
+    let tooClose = false;
+    for (const p of out) {
+      if ((p.x - x) * (p.x - x) + (p.z - z) * (p.z - z) < minSq) {
+        tooClose = true;
+        break;
+      }
+    }
+    if (tooClose) continue;
+    out.push({
+      x, z,
+      region: regionAt(x, z, regions),
+      roll: rockBandStart + rng() * (1 - rockBandStart),
+      steep: true,
+    });
+    steep++;
+  }
+
+  // El Islote sits outside the main spiral, and an island you sail to had
+  // better have something growing on it. Its own small spiral, same rules.
+  const islet = terrain.islet;
+  if (islet) {
+    for (let i = 0; i < LAYOUT.isletScatter * 3 && out.length < LAYOUT.scatterPoolMax + LAYOUT.isletScatter; i++) {
+      const a = i * LAYOUT.goldenAngle;
+      const r = islet.r * LAYOUT.scatterRadiusBias * Math.sqrt(i / (LAYOUT.isletScatter * 3));
+      const x = islet.x + Math.cos(a) * r;
+      const z = islet.z + Math.sin(a) * r;
+      if (!isPlantable(x, z, terrain)) continue;
+      out.push({ x, z, region: 'islote', roll: rng() });
+    }
   }
   return out;
 }
@@ -249,25 +319,24 @@ function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: r
 }
 
 /**
- * Traversal caches: 6-10 hidden spots per unlocked region, each reachable only
- * with a verb the player might hold. Movement itself is the reward, so these are
- * small — a semillas cache or a rare sighting, never progression.
+ * Traversal caches from the authored table above. A cache the player cannot yet
+ * reach is simply not generated — the verbs they hold are the point, and an
+ * unreachable marker on the map is a nag, not a promise.
  */
-function buildCaches(regions: RegionAnchor[], terrain: WorldLayout, verbs: readonly VerbId[]): TraversalCache[] {
+function buildCaches(regions: RegionAnchor[], verbs: readonly VerbId[]): TraversalCache[] {
   const out: TraversalCache[] = [];
-  const reach: VerbId[] = ['walk', 'climb', 'glide', 'swim', 'scale', 'sail'];
-  const usable = reach.filter((v) => verbs.includes(v));
   for (const region of regions) {
     if (!region.unlocked) continue;
-    const rng = mulberry32(hashInt(`cache:${region.id}`) ^ terrain.seed);
-    const count = Math.floor(rng() * 5) + 6; // 6..10
-    for (let i = 0; i < count; i++) {
-      const a = rng() * Math.PI * 2;
-      const d = region.radius * (0.35 + rng() * 0.6);
-      const x = region.x + Math.cos(a) * d;
-      const z = region.z + Math.sin(a) * d;
-      if (Math.hypot(x, z) > terrain.R - TERRAIN.plantableMargin) continue;
-      out.push({ x, z, region: region.id, verb: usable[Math.floor(rng() * usable.length)] ?? 'walk' });
+    const spec = REGION_SPECS[region.id];
+    for (const [dist, offset, verb] of CACHE_SPOTS[region.id]) {
+      if (!verbs.includes(verb)) continue;
+      const angle = spec.angle + offset;
+      out.push({
+        x: region.x + Math.cos(angle) * region.radius * dist,
+        z: region.z + Math.sin(angle) * region.radius * dist,
+        region: region.id,
+        verb,
+      });
     }
   }
   return out;
@@ -289,7 +358,7 @@ export function buildLayout(userId: string, cfg: WorldConfig): IslandLayout {
   const coastline = buildCoastline(R, seed);
   const scatter = buildScatter(terrain, regions, seed);
   const anchors = buildAnchors(regions, terrain, cfg.features);
-  const caches = buildCaches(regions, terrain, cfg.verbs);
+  const caches = buildCaches(regions, cfg.verbs);
 
   const river = terrain.rivers[0];
   const riverPath: [number, number][] | null = river ? [river.from, river.to] : null;

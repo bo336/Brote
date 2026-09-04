@@ -256,6 +256,72 @@ export function buildIslandBody(hf: Heightfield, layout: IslandLayout, segments 
   return geo;
 }
 
+/**
+ * El Islote's own ground: a small disc across the water, with its own rim.
+ *
+ * It gets a separate mesh because the main island's ground is bounded by the
+ * coastline function and the islet lives outside it — which is exactly what
+ * makes it a place you have to sail to (`08-WORLD-AND-PROGRESSION.md` §1).
+ */
+export function buildIsletGround(
+  hf: Heightfield,
+  islet: { x: number; z: number; r: number },
+  palette: WorldPalette,
+  segments = 32,
+): THREE.BufferGeometry {
+  ramp.sand.set(CLAY.sand);
+  ramp.soil.set(palette.ground);
+  ramp.soilDeep.set(CLAY.soilDeep);
+  ramp.grass.set(palette.grass);
+  ramp.grassDeep.set(CLAY.grassDeep);
+  ramp.stone.set(CLAY.stone);
+  ramp.snow.set(CLAY.snow);
+
+  const rings = Math.max(4, Math.floor(segments / 2));
+  const vertexCount = 1 + segments * rings;
+  const position = new Float32Array(vertexCount * 3);
+  const color = new Float32Array(vertexCount * 3);
+  const indices: number[] = [];
+
+  const write = (v: number, x: number, z: number) => {
+    const h = sampleHeight(hf, x, z);
+    groundColor(scratch, x, z, h, sampleSlope(hf, x, z), 0.35, null);
+    position[v * 3] = x;
+    position[v * 3 + 1] = h;
+    position[v * 3 + 2] = z;
+    color[v * 3] = scratch.r;
+    color[v * 3 + 1] = scratch.g;
+    color[v * 3 + 2] = scratch.b;
+  };
+
+  write(0, islet.x, islet.z);
+  for (let ring = 1; ring <= rings; ring++) {
+    for (let s = 0; s < segments; s++) {
+      const angle = (s / segments) * Math.PI * 2;
+      const radius = islet.r * (ring / rings);
+      write(1 + (ring - 1) * segments + s, islet.x + Math.cos(angle) * radius, islet.z + Math.sin(angle) * radius);
+    }
+  }
+  // Wound to face the sky, for the same reason the main ground is.
+  for (let s = 0; s < segments; s++) indices.push(0, 1 + ((s + 1) % segments), 1 + s);
+  for (let ring = 1; ring < rings; ring++) {
+    const inner = 1 + (ring - 1) * segments;
+    const outer = 1 + ring * segments;
+    for (let s = 0; s < segments; s++) {
+      const n = (s + 1) % segments;
+      indices.push(inner + s, outer + n, outer + s);
+      indices.push(inner + s, inner + n, outer + n);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(position, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(color, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export interface WaterMesh {
   geometry: THREE.BufferGeometry;
   /** The deepest point, for the shader's depth normalisation. */

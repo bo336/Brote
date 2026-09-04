@@ -14,81 +14,7 @@ import * as THREE from 'three';
 
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY } from '../palette';
-
-const scratchColor = new THREE.Color();
-const scratchColorB = new THREE.Color();
-
-/**
- * Paint a geometry with a vertical ramp: `low` at its base, `high` at its top.
- * This is the whole colour pipeline for scatter — one attribute, no material.
- */
-function paintVertical(geo: THREE.BufferGeometry, low: string, high: string, softness = 1): THREE.BufferGeometry {
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const colors = new Float32Array(pos.count * 3);
-  geo.computeBoundingBox();
-  const box = geo.boundingBox!;
-  const span = Math.max(1e-4, box.max.y - box.min.y);
-  scratchColor.set(low);
-  scratchColorB.set(high);
-  for (let i = 0; i < pos.count; i++) {
-    const t = Math.pow(Math.min(1, Math.max(0, (pos.getY(i) - box.min.y) / span)), softness);
-    colors[i * 3] = scratchColor.r + (scratchColorB.r - scratchColor.r) * t;
-    colors[i * 3 + 1] = scratchColor.g + (scratchColorB.g - scratchColor.g) * t;
-    colors[i * 3 + 2] = scratchColor.b + (scratchColorB.b - scratchColor.b) * t;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return geo;
-}
-
-/** Paint every vertex one colour. For pieces that do not need a ramp. */
-function paintFlat(geo: THREE.BufferGeometry, hex: string): THREE.BufferGeometry {
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const colors = new Float32Array(pos.count * 3);
-  scratchColor.set(hex);
-  for (let i = 0; i < pos.count; i++) {
-    colors[i * 3] = scratchColor.r;
-    colors[i * 3 + 1] = scratchColor.g;
-    colors[i * 3 + 2] = scratchColor.b;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return geo;
-}
-
-/** Merge a list of already-transformed geometries into one. */
-function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
-  let total = 0;
-  for (const p of parts) total += (p.attributes.position as THREE.BufferAttribute).count;
-  const position = new Float32Array(total * 3);
-  const normal = new Float32Array(total * 3);
-  const color = new Float32Array(total * 3);
-  let offset = 0;
-  for (const p of parts) {
-    const g = p.index ? p.toNonIndexed() : p;
-    const gp = g.attributes.position as THREE.BufferAttribute;
-    const gn = g.attributes.normal as THREE.BufferAttribute;
-    const gc = g.attributes.color as THREE.BufferAttribute | undefined;
-    for (let i = 0; i < gp.count; i++) {
-      const o = (offset + i) * 3;
-      position[o] = gp.getX(i);
-      position[o + 1] = gp.getY(i);
-      position[o + 2] = gp.getZ(i);
-      normal[o] = gn.getX(i);
-      normal[o + 1] = gn.getY(i);
-      normal[o + 2] = gn.getZ(i);
-      color[o] = gc ? gc.getX(i) : 1;
-      color[o + 1] = gc ? gc.getY(i) : 1;
-      color[o + 2] = gc ? gc.getZ(i) : 1;
-    }
-    offset += gp.count;
-    if (g !== p) g.dispose();
-    p.dispose();
-  }
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.BufferAttribute(position, 3));
-  out.setAttribute('normal', new THREE.BufferAttribute(normal, 3));
-  out.setAttribute('color', new THREE.BufferAttribute(color, 3));
-  return out;
-}
+import { mergePainted, paintFlat, paintVertical } from './build';
 
 /**
  * One blade: a tapered, slightly curved strip. Three segments is enough for the
@@ -124,7 +50,7 @@ export function grassTuft(seed = 1): THREE.BufferGeometry {
     b.translate((rng() - 0.5) * 0.05, 0, (rng() - 0.5) * 0.05);
     parts.push(b);
   }
-  return merge(parts);
+  return mergePainted(parts);
 }
 
 /**
@@ -156,7 +82,7 @@ export function flower(variant = 0, accent: string = CLAY.leaf): THREE.BufferGeo
   centre.translate(0, height + 0.008, 0);
   parts.push(paintFlat(centre, CLAY.sand));
 
-  return merge(parts);
+  return mergePainted(parts);
 }
 
 /**
@@ -192,7 +118,7 @@ export function fern(seed = 1): THREE.BufferGeometry {
     b.rotateY((i / fronds) * Math.PI * 2 + rng() * 0.4);
     parts.push(b);
   }
-  return merge(parts);
+  return mergePainted(parts);
 }
 
 /** A reed: one tall straight blade for the waterline. */
@@ -211,7 +137,7 @@ export function mushroom(seed = 1): THREE.BufferGeometry {
   const cap = new THREE.SphereGeometry(0.045 + rng() * 0.02, 7, 5, 0, Math.PI * 2, 0, Math.PI / 2);
   cap.scale(1, 0.7, 1);
   cap.translate(0, h, 0);
-  return merge([paintFlat(stem, CLAY.sand), paintFlat(cap, CLAY.soil)]);
+  return mergePainted([paintFlat(stem, CLAY.sand), paintFlat(cap, CLAY.soil)]);
 }
 
 /**
@@ -234,5 +160,5 @@ export function sprout(seed = 1): THREE.BufferGeometry {
     leaf.translate(0, h * 0.85, 0);
     parts.push(paintFlat(leaf, i === 0 ? CLAY.leaf : CLAY.leafDeep));
   }
-  return merge(parts);
+  return mergePainted(parts);
 }

@@ -15,58 +15,9 @@ import * as THREE from 'three';
 
 import { PIP } from '@/lib/world/config';
 import { CLAY, PIP_PARTS, PIP_PALETTES } from '../palette';
+import { mergePainted, paintFlat as paint } from './build';
 
-const scratch = new THREE.Color();
-
-/** Paint every vertex one colour — the only colour channel Pip uses. */
-function paint(geo: THREE.BufferGeometry, hex: string): THREE.BufferGeometry {
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const colors = new Float32Array(pos.count * 3);
-  scratch.set(hex);
-  for (let i = 0; i < pos.count; i++) {
-    colors[i * 3] = scratch.r;
-    colors[i * 3 + 1] = scratch.g;
-    colors[i * 3 + 2] = scratch.b;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return geo;
-}
-
-/** Merge painted parts into one geometry, so a hat is one child, not five. */
-export function mergePainted(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
-  let total = 0;
-  for (const p of parts) total += (p.attributes.position as THREE.BufferAttribute).count;
-  const position = new Float32Array(total * 3);
-  const normal = new Float32Array(total * 3);
-  const color = new Float32Array(total * 3);
-  let offset = 0;
-  for (const p of parts) {
-    const g = p.index ? p.toNonIndexed() : p;
-    const gp = g.attributes.position as THREE.BufferAttribute;
-    const gn = g.attributes.normal as THREE.BufferAttribute;
-    const gc = g.attributes.color as THREE.BufferAttribute | undefined;
-    for (let i = 0; i < gp.count; i++) {
-      const o = (offset + i) * 3;
-      position[o] = gp.getX(i);
-      position[o + 1] = gp.getY(i);
-      position[o + 2] = gp.getZ(i);
-      normal[o] = gn.getX(i);
-      normal[o + 1] = gn.getY(i);
-      normal[o + 2] = gn.getZ(i);
-      color[o] = gc ? gc.getX(i) : 1;
-      color[o + 1] = gc ? gc.getY(i) : 1;
-      color[o + 2] = gc ? gc.getZ(i) : 1;
-    }
-    offset += gp.count;
-    if (g !== p) g.dispose();
-    p.dispose();
-  }
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.BufferAttribute(position, 3));
-  out.setAttribute('normal', new THREE.BufferAttribute(normal, 3));
-  out.setAttribute('color', new THREE.BufferAttribute(color, 3));
-  return out;
-}
+export { mergePainted };
 
 // ── Hats ────────────────────────────────────────────────────────────────────
 

@@ -25,6 +25,9 @@ import { World } from './scene/World';
 
 const DEV = process.env.NODE_ENV !== 'production';
 
+/** The four presets, in the order resting walks through them. */
+const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
+
 /**
  * The perf harness is reached only from a branch the bundler folds away in
  * production — `DEV` is a literal `false` there, so these `import()` calls are
@@ -66,6 +69,8 @@ export interface MundoGameProps {
    * and the art pass screenshots each of the four presets through it.
    */
   timeOfDay?: TimeOfDay;
+  /** Lay one of each placeable prop out around the spawn, for review. */
+  demoProps?: boolean;
 }
 
 /**
@@ -88,6 +93,7 @@ export default function MundoGame({
   worldIndex = 1,
   liveliness = 0.5,
   timeOfDay: timeOfDayOverride,
+  demoProps = false,
 }: MundoGameProps) {
   const detailMode = useSettings((s) => s.detailMode);
   const reduceMotionSetting = useSettings((s) => s.reduceMotion);
@@ -102,8 +108,19 @@ export default function MundoGame({
 
   const [tier, setTier] = useState<QualityTier>(1);
   const [frameloop, setFrameloop] = useState<'always' | 'demand'>('always');
-  const [derivedTimeOfDay] = useState<TimeOfDay>(() => (isNight() ? 'noche' : 'dia'));
+  const [derivedTimeOfDay, setDerivedTimeOfDay] = useState<TimeOfDay>(() => (isNight() ? 'noche' : 'dia'));
   const timeOfDay = timeOfDayOverride ?? derivedTimeOfDay;
+
+  /**
+   * `descansar` advances the time of day one preset — **the only control over
+   * time the player has** (`10-CONTROLS-AND-CAMERA.md` §3).
+   */
+  const advanceTime = useCallback(() => {
+    setDerivedTimeOfDay((current) => {
+      const i = TIME_ORDER.indexOf(current);
+      return TIME_ORDER[(i + 1) % TIME_ORDER.length]!;
+    });
+  }, []);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -207,8 +224,11 @@ export default function MundoGame({
       onPointerUp={drag.onPointerUp}
       onPointerCancel={drag.onPointerUp}
     >
+      {/* A measurement run holds the loop open: `demand` gaps are not frames,
+          the probe rejects them, and a harness that samples nothing measures
+          nothing (`07-RENDER-ARCHITECTURE.md` §6). */}
       <Canvas
-        frameloop={hud === 'play' ? frameloop : 'demand'}
+        frameloop={hud !== 'play' ? 'demand' : perf ? 'always' : frameloop}
         dpr={params.dprCap}
         camera={{
           fov: CAMERA.fov,
@@ -237,6 +257,8 @@ export default function MundoGame({
           monitor={monitor}
           onTierChange={onTierChange}
           cameraRef={cameraRef}
+          demoProps={demoProps}
+          onAdvanceTime={advanceTime}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>

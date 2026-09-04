@@ -23,7 +23,8 @@ import { PIP } from '@/lib/world/config';
 import type { PipCosmetics } from '@/lib/world/types';
 import type { PipStage } from '@/lib/mundo';
 import { PIP_PARTS } from '../palette';
-import { buildGlasses, buildHat, mergePainted, paletteFor } from './pip-cosmetics';
+import { mergePainted, paintFlat as paint } from './build';
+import { buildGlasses, buildHat, paletteFor } from './pip-cosmetics';
 import { patternOffset } from './pip-patterns';
 
 export { buildGlasses, buildHat } from './pip-cosmetics';
@@ -70,20 +71,6 @@ function repaint(mesh: THREE.Mesh, hex: string): void {
     arr[i + 2] = scratchColor.b;
   }
   attr.needsUpdate = true;
-}
-
-/** Paint a fresh geometry one flat colour. */
-function paint(geo: THREE.BufferGeometry, hex: string): THREE.BufferGeometry {
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const colors = new Float32Array(pos.count * 3);
-  scratchColor.set(hex);
-  for (let i = 0; i < pos.count; i++) {
-    colors[i * 3] = scratchColor.r;
-    colors[i * 3 + 1] = scratchColor.g;
-    colors[i * 3 + 2] = scratchColor.b;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return geo;
 }
 
 /** The body: a sphere, squashed and tapered toward the crown. Clay, not a ball. */

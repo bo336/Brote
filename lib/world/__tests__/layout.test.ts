@@ -3,7 +3,8 @@ import { test } from 'node:test';
 
 import { buildLayout, regionAt } from '../layout';
 import { cumulativeState } from '../progression';
-import { isPlantable } from '../terrain';
+import { isPlantable, isRockable } from '../terrain';
+import { LAYOUT } from '../config';
 
 const USER = '3f1c0e2a-0000-4000-8000-000000000001';
 const OTHER = '9b7d5a11-0000-4000-8000-000000000002';
@@ -39,14 +40,36 @@ test('but the region structure is identical for everyone', () => {
   assert.deepEqual(a, b);
 });
 
-test('every scatter point lands on plantable ground', () => {
+test('every scatter point lands on ground that can hold it', () => {
+  // Anything that grows needs plantable ground. Rock only needs ground that is
+  // not a lake and not a wall — that is the whole of El Monte, which the
+  // plantable test rejects. A point on ground too steep to plant must therefore
+  // carry a roll inside the rock band, so no pool but rock can ever claim it.
+  const ROCK_BAND_START =
+    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers + LAYOUT.shareTrees;
   for (const tier of [1, 5, 8, 11]) {
     const layout = buildLayout(USER, cumulativeState(tier));
     assert.ok(layout.scatter.length > 0, `tier ${tier} produced no scatter points`);
     for (const p of layout.scatter) {
-      assert.ok(isPlantable(p.x, p.z, layout.terrain), `tier ${tier}: (${p.x}, ${p.z}) is not plantable`);
+      if (isPlantable(p.x, p.z, layout.terrain)) continue;
+      assert.ok(
+        isRockable(p.x, p.z, layout.terrain),
+        `tier ${tier}: (${p.x}, ${p.z}) holds nothing at all`,
+      );
+      assert.ok(
+        p.roll >= ROCK_BAND_START,
+        `tier ${tier}: (${p.x}, ${p.z}) is too steep to plant but its roll ${p.roll} is not in the rock band`,
+      );
     }
   }
+});
+
+test('the mountain is not a bare cone', () => {
+  // El Monte asks for more rock than anything else it has. Before the steep
+  // pass existed it received exactly zero scatter points at every tier.
+  const layout = buildLayout(USER, cumulativeState(11));
+  const onMonte = layout.scatter.filter((p) => p.region === 'monte');
+  assert.ok(onMonte.length > 0, 'El Monte received no scatter points at all');
 });
 
 test('scatter points respect the minimum spacing and stay inside the island', () => {

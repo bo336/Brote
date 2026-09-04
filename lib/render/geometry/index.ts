@@ -9,6 +9,9 @@
 import type * as THREE from 'three';
 
 import { growTree, type TreeBuild, type TreeLod, type TreeSpecies } from './tree';
+import { disposeFauna } from './fauna';
+import { disposeProps } from './props';
+import { disposeStructures } from './structures';
 
 const cache = new Map<string, THREE.BufferGeometry>();
 const treeCache = new Map<string, TreeBuild>();
@@ -38,6 +41,11 @@ export function liveGeometryCount(): number {
 }
 
 export function disposeAll(): void {
+  // The prop, structure and fauna builders keep their own caches, because each
+  // is built lazily on first use and shared by every instance of it.
+  disposeProps();
+  disposeStructures();
+  disposeFauna();
   for (const geo of cache.values()) geo.dispose();
   for (const t of treeCache.values()) {
     t.wood.dispose();
@@ -48,4 +56,7 @@ export function disposeAll(): void {
 }
 
 export { growTree, mergePieces } from './tree';
+export { buildProp, buildMovingPart, propFootprint, PROP_IDS, PROP_SPECS } from './props';
+export { buildStructure } from './structures';
+export { buildFauna, type FaunaKind } from './fauna';
 export type { TreeBuild, TreeLod, TreeSpecies } from './tree';
