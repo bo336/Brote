@@ -1,14 +1,20 @@
 /**
- * Terrain engine for Tu Mundo (v7).
+ * The terrain engine, ported from `lib/mundo/terrain.ts`.
  *
- * ONE height function drives everything: the ground mesh, where water sits,
- * and where every tree/rock/animal is placed. That shared source of truth is
- * what turns a pile of shapes on a disc into a real miniature landscape —
- * lakes live inside carved basins, rivers run in channels, and nothing ever
- * floats or intersects the ground.
+ * ONE height function drives everything: the ground mesh, where water sits, and
+ * where every tree, rock and animal is placed. That shared source of truth is
+ * what turns a pile of shapes on a disc into a real miniature landscape.
  *
- * Units: 1 = one world unit. Water sits at y = WATER_LEVEL.
+ * The maths is unchanged (`02-AUDIT.md` §8 — it was the strongest engineering in
+ * the old feature). What changed is the CALL FREQUENCY: the old `Ground` ran
+ * `terrainHeight` + `slopeAt` over a 132² grid on every re-render, hundreds of
+ * thousands of noise evaluations synchronously, which is why tapping the world
+ * froze it. Now it is baked ONCE into a `Float32Array` and sampled bilinearly.
+ * **Nothing in the game may call `terrainHeight()` per frame again.**
  */
+import { TERRAIN, WATER_LEVEL } from './config';
+
+export { WATER_LEVEL };
 
 // ── Deterministic noise ─────────────────────────────────────────────────────
 
@@ -51,8 +57,6 @@ export function fbm(x: number, z: number, octaves = 4): number {
 
 // ── World layout ────────────────────────────────────────────────────────────
 
-export const WATER_LEVEL = 0;
-
 export interface LakeSpec {
   x: number;
   z: number;
@@ -66,6 +70,24 @@ export interface RiverSpec {
   from: [number, number];
   to: [number, number];
   width: number;
+  /**
+   * How deep the channel is carved, in metres. Optional so the ported
+   * `makeLayout` keeps its original behaviour; the region-driven layout sets it
+   * so El Río reads as a river rather than a damp stripe.
+   */
+  depth?: number;
+}
+
+/**
+ * El Islote: a second small landmass across the water, reached by boat at
+ * tier 10. It sits outside the main coastline and gets its own ground mesh.
+ */
+export interface IsletSpec {
+  x: number;
+  z: number;
+  r: number;
+  /** Height of its crown above the water line. */
+  h: number;
 }
 
 export interface MountainSpec {
@@ -81,12 +103,14 @@ export interface WorldLayout {
   lakes: LakeSpec[];
   rivers: RiverSpec[];
   mountains: MountainSpec[];
+  /** `null` before tier 10. */
+  islet: IsletSpec | null;
   /** Seed so two worlds with the same index look identical everywhere. */
   seed: number;
 }
 
 /**
- * Build the layout for a world. Lakes/rivers/mountains appear as the world
+ * Build the layout for a world. Lakes, rivers and mountains appear as the world
  * grows, and their positions are deterministic per world index.
  */
 export function makeLayout(worldIndex: number, R: number, hasPond: boolean): WorldLayout {
@@ -120,12 +144,12 @@ export function makeLayout(worldIndex: number, R: number, hasPond: boolean): Wor
   if (worldIndex >= 4) mountains.push({ x: -R * 0.3, z: -R * 0.72, r: R * 0.3, h: 0.8 });
   if (worldIndex >= 6) mountains.push({ x: R * 0.12, z: -R * 0.78, r: R * 0.24, h: 0.6 });
 
-  return { R, lakes, rivers, mountains, seed };
+  return { R, lakes, rivers, mountains, islet: null, seed };
 }
 
 // ── Geometry helpers ────────────────────────────────────────────────────────
 
-/** Distance from point to a segment (for river carving). */
+/** Distance from a point to a segment (for river carving). */
 function distToSegment(px: number, pz: number, ax: number, az: number, bx: number, bz: number): number {
   const dx = bx - ax;
   const dz = bz - az;
@@ -149,7 +173,7 @@ export function riverProgress(px: number, pz: number, r: RiverSpec): number {
 
 /**
  * Ground elevation at (x, z). Above WATER_LEVEL is land; below it is lake bed.
- * Pure and cheap: safe to call per-vertex and per-placement.
+ * Pure, but NOT cheap — call it at bake time, never per frame.
  */
 export function terrainHeight(x: number, z: number, L: WorldLayout): number {
   const d = Math.hypot(x, z);
@@ -192,13 +216,26 @@ export function terrainHeight(x: number, z: number, L: WorldLayout): number {
     const halfW = r.width * 1.5;
     if (rd < halfW) {
       const t = 1 - rd / halfW;
-      h -= Math.pow(smooth(t), 0.9) * 0.3;
+      h -= Math.pow(smooth(t), 0.9) * (r.depth ?? 0.3);
+    }
+  }
+
+  // El Islote: a separate crown of land out past the coastline. It is added
+  // before the coastal falloff so the falloff does not flatten it.
+  if (L.islet) {
+    const id = Math.hypot(x - L.islet.x, z - L.islet.z);
+    if (id < L.islet.r) {
+      const t = 1 - id / L.islet.r;
+      h += Math.pow(smooth(t), 1.3) * L.islet.h;
     }
   }
 
   // Coastal falloff: the last stretch before the rim eases down to the cliff.
+  // The islet lives beyond it and is exempt — otherwise the falloff would drown
+  // the one piece of land the boat exists to reach.
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r;
   const coast = L.R * 0.86;
-  if (d > coast) {
+  if (d > coast && !onIslet) {
     const t = Math.min(1, (d - coast) / (L.R - coast));
     h = h * (1 - smooth(t) * 0.55) - smooth(t) * 0.06;
   }
@@ -208,7 +245,7 @@ export function terrainHeight(x: number, z: number, L: WorldLayout): number {
 
 /** Surface normal from finite differences — used for slope-aware placement. */
 export function terrainNormal(x: number, z: number, L: WorldLayout): [number, number, number] {
-  const e = 0.06;
+  const e = TERRAIN.normalEpsilon;
   const hL = terrainHeight(x - e, z, L);
   const hR = terrainHeight(x + e, z, L);
   const hD = terrainHeight(x, z - e, L);
@@ -220,25 +257,49 @@ export function terrainNormal(x: number, z: number, L: WorldLayout): [number, nu
   return [nx / len, ny / len, nz / len];
 }
 
-/** 0 (flat) → 1 (vertical). Steep ground gets rock instead of grass/trees. */
+/** 0 (flat) → 1 (vertical). Steep ground gets rock instead of grass or trees. */
 export function slopeAt(x: number, z: number, L: WorldLayout): number {
   const n = terrainNormal(x, z, L);
   return Math.max(0, Math.min(1, 1 - n[1]));
 }
 
-/** True where a point is under water (inside a lake or river channel). */
+/** True where a point is under water (inside a lake or a river channel). */
 export function isWater(x: number, z: number, L: WorldLayout): boolean {
   return terrainHeight(x, z, L) < WATER_LEVEL;
 }
 
-/** True where something can be planted: on land, not too steep, inside the isle. */
-export function isPlantable(x: number, z: number, L: WorldLayout, margin = 0.25): boolean {
+/**
+ * True where something can be planted: on land, not too steep, inside the isle.
+ *
+ * "Inside the isle" now means the main island **or El Islote** — the islet is
+ * outside the main radius by definition, and a rule that says nothing grows
+ * there would leave the one place you have to sail to bare, and would refuse to
+ * let the player put a bench on it. Same two ground tests either way.
+ */
+export function isPlantable(x: number, z: number, L: WorldLayout, margin: number = TERRAIN.plantableMargin): boolean {
   const d = Math.hypot(x, z);
-  if (d > L.R - margin) return false;
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r - margin;
+  if (d > L.R - margin && !onIslet) return false;
   const h = terrainHeight(x, z, L);
-  if (h < WATER_LEVEL + 0.04) return false; // shoreline stays clear
-  if (slopeAt(x, z, L) > 0.55) return false; // cliffs stay bare
+  if (h < WATER_LEVEL + TERRAIN.plantableMinHeight) return false; // shoreline stays clear
+  if (slopeAt(x, z, L) > TERRAIN.plantableMaxSlope) return false; // cliffs stay bare
   return true;
+}
+
+/**
+ * Ground a rock can sit on.
+ *
+ * A boulder does not need soil — it needs somewhere that is not a lake and not
+ * a vertical face. El Monte asks for rock more than anything else it has, and
+ * `isPlantable` rejects every square metre of it, so without this the mountain
+ * is a bare cone and the region character is a lie.
+ */
+export function isRockable(x: number, z: number, L: WorldLayout, margin: number = TERRAIN.plantableMargin): boolean {
+  const d = Math.hypot(x, z);
+  const onIslet = L.islet !== null && Math.hypot(x - L.islet.x, z - L.islet.z) < L.islet.r - margin;
+  if (d > L.R - margin && !onIslet) return false;
+  if (terrainHeight(x, z, L) < WATER_LEVEL + TERRAIN.plantableMinHeight) return false;
+  return slopeAt(x, z, L) <= TERRAIN.rockMaxSlope;
 }
 
 /**
@@ -250,14 +311,14 @@ export function snapToLand(
   z: number,
   L: WorldLayout,
   rng: () => number,
-  margin = 0.25,
+  margin: number = TERRAIN.plantableMargin,
 ): [number, number] | null {
   if (isPlantable(x, z, L, margin)) return [x, z];
-  for (let i = 1; i <= 14; i++) {
-    const step = 0.16 * i;
+  for (let i = 1; i <= TERRAIN.snapRings; i++) {
+    const step = TERRAIN.snapStep * i;
     const a = rng() * Math.PI * 2;
-    for (let k = 0; k < 6; k++) {
-      const ang = a + (k / 6) * Math.PI * 2;
+    for (let k = 0; k < TERRAIN.snapAnglesPerRing; k++) {
+      const ang = a + (k / TERRAIN.snapAnglesPerRing) * Math.PI * 2;
       const nx = x + Math.cos(ang) * step;
       const nz = z + Math.sin(ang) * step;
       if (isPlantable(nx, nz, L, margin)) return [nx, nz];
@@ -265,3 +326,12 @@ export function snapToLand(
   }
   return null;
 }
+
+// ── The baked heightfield ───────────────────────────────────────────────────
+
+// It lives in `heightfield.ts` and is re-exported here, so every existing
+// import keeps working and there is still one obvious door to the terrain.
+export {
+  bakeHeightfield, bakeResolutionFor, sampleHeight, sampleNormal, sampleSlope,
+} from './heightfield';
+export type { Heightfield } from './heightfield';

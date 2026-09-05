@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
-import { Mundo } from '@/components/mundo/Mundo';
+import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
 import { ImpactBenchmark } from '@/components/impacto/ImpactBenchmark';
 import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
 import { ProfileHeader } from '@/components/perfil/ProfileHeader';
@@ -131,9 +131,7 @@ export default function PerfilPage() {
 
       <section>
         <SectionHeader eyebrow="Tu progreso" title="Tu mundo" />
-        <div className="overflow-hidden rounded-card shadow-soft-lg">
-          <Mundo mundo={profile?.mundoState} height={320} />
-        </div>
+        <MundoPoster mundo={profile?.mundoState} height={320} className="shadow-soft-lg" />
       </section>
 
       {/* Impacto / handprint */}

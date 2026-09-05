@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, Newspaper, Users } from 'lucide-react';
-import { Mundo } from '@/components/mundo/Mundo';
+import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
 import { EntradaAcademia } from '@/components/academia/EntradaAcademia';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
@@ -103,13 +103,11 @@ export default function HoyPage() {
 
       {/* Tu Mundo hero — the one hero media per page, so it carries the
           signature leaf notch (§4). */}
-      <Link
-        href="/perfil"
-        aria-label={t('tapWorld')}
-        className="group block overflow-hidden rounded-card leaf-clip shadow-soft-lg transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.005]"
-      >
-        <Mundo mundo={profile?.mundoState} height={320} />
-      </Link>
+      <MundoPoster
+        mundo={profile?.mundoState}
+        height={320}
+        className="leaf-clip shadow-soft-lg"
+      />
 
       {/* Streak at risk */}
       {atRisk && (

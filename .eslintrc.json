@@ -3,5 +3,71 @@
   "extends": ["next/core-web-vitals", "prettier"],
   "rules": {
     "@next/next/no-img-element": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["lib/world/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["three", "three/*", "@react-three/*"],
+                "message": "lib/world is pure logic. three.js belongs in lib/render."
+              },
+              {
+                "group": ["react", "react-dom", "next", "next/*"],
+                "message": "lib/world is pure logic. React and Next belong in components/ and app/."
+              },
+              {
+                "group": ["@/components/*", "@/app/*", "@/stores/*", "@/hooks/*", "@/lib/render", "@/lib/render/*"],
+                "message": "lib/world must not depend on any layer above it."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["lib/render/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react-dom", "next", "next/*", "@react-three/*"],
+                "message": "lib/render is three.js only. React lives in components/mundo3d."
+              },
+              {
+                "group": ["@/components/*", "@/app/*", "@/stores/*", "@/hooks/*"],
+                "message": "lib/render must not depend on any layer above it."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["components/mundo3d/poster/**/*.tsx", "components/mundo3d/poster/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["three", "three/*", "@react-three/*"],
+                "message": "The poster is a static image. It must never import three."
+              },
+              {
+                "group": ["@/lib/render", "@/lib/render/*", "../../../lib/render/*"],
+                "message": "The poster must not import lib/render — that is the 3D bundle."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

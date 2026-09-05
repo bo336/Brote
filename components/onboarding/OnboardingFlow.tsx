@@ -12,7 +12,7 @@ import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
 import { Input, Select, Field } from '@/components/ui/input';
 import { DomainIcon } from '@/components/icons/DomainIcon';
-import { Mundo } from '@/components/mundo/Mundo';
+import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
 import { DailyActionRow } from '@/components/acciones/DailyActionRow';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { fetchSuggestedAccounts, followUser, type SocialAccount } from '@/lib/api/social';
@@ -422,7 +422,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('mundoTitle')} subtitle={t('mundoBody')} />
                 <div className="mt-5">
-                  <Mundo height={280} interactive={false} />
+                  <MundoPoster height={280} interactive={false} />
                 </div>
                 <Spacer />
                 <Button block variant="primary" onClick={() => setStep(6)}>
