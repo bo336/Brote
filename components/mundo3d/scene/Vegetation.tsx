@@ -15,6 +15,7 @@ import { CAMERA, LAYOUT } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import { DOMAIN_COLORS } from '@/lib/render/palette';
 import type { IslandLayout, ScatterPoint } from '@/lib/world/layout';
+import { BANDS, forRegion, interleaveSteep, pick, thin } from '@/lib/world/bands';
 import { REGION_CHARACTER } from '@/lib/world/regions';
 import type { BiomeConfig } from '@/lib/world/biome';
 import { sampleHeight, sampleSlope, type Heightfield } from '@/lib/world/terrain';
@@ -91,36 +92,6 @@ interface PoolSet {
   sprouts: InstancePool;
   trees: { wood: InstancePool; leaves: InstancePool }[];
   all: InstancePool[];
-}
-
-/**
- * The pool is divided by the stable `roll` value into one contiguous band per
- * kind, sized to the T3 budget. Bands are cumulative, so adding one never moves
- * the points already assigned to another.
- */
-const BANDS = {
-  sprouts: [0, LAYOUT.shareSprouts],
-  grass: [LAYOUT.shareSprouts, LAYOUT.shareSprouts + LAYOUT.shareGrass],
-  flowers: [
-    LAYOUT.shareSprouts + LAYOUT.shareGrass,
-    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers,
-  ],
-  trees: [
-    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers,
-    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers + LAYOUT.shareTrees,
-  ],
-  rocks: [
-    LAYOUT.shareSprouts + LAYOUT.shareGrass + LAYOUT.shareFlowers + LAYOUT.shareTrees,
-    1,
-  ],
-} as const;
-
-/** One variant's slice of a band, so three variants split it evenly. */
-function pick(points: ScatterPoint[], band: readonly [number, number], variant: number, variants: number): ScatterPoint[] {
-  const width = (band[1] - band[0]) / variants;
-  const from = band[0] + variant * width;
-  const to = from + width;
-  return points.filter((p) => p.roll >= from && p.roll < to);
 }
 
 export function Vegetation({
@@ -221,10 +192,6 @@ export function Vegetation({
     /** …and where each one sits in its pool, so the fade can find it again. */
     const canopies: Canopy[] = [];
 
-    /** Keep a point with probability `density`, deterministically per point. */
-    const thin = (list: ScatterPoint[], density: number) =>
-      density >= 1 ? list : list.filter((p) => ((p.roll * 977) % 1) < density);
-
     const place = (
       pool: InstancePool,
       list: ScatterPoint[],
@@ -275,34 +242,6 @@ export function Vegetation({
         }
       }
       pool.commit();
-    };
-
-    /** The share of a band a region actually wants, from its character. */
-    const forRegion = (list: ScatterPoint[], key: 'grass' | 'flowers' | 'rocks' | 'trees') =>
-      list.filter((p) => ((p.roll * 331) % 1) < Math.min(1, REGION_CHARACTER[p.region][key]));
-
-    /**
-     * Rock on the mountain, interleaved rather than appended.
-     *
-     * `resize` trims a pool to a **prefix** of what was placed, so anything at
-     * the back of the list vanishes at low tiers. The steep points all come
-     * from El Monte and La Cumbre and sit at the end of the scatter array, so
-     * appending them would leave the mountain bare on exactly the devices most
-     * likely to be looking at it. One steep for every three flat keeps both in
-     * any prefix.
-     */
-    const interleaveSteep = (list: ScatterPoint[]) => {
-      const steep = list.filter((p) => p.steep);
-      const flat = list.filter((p) => !p.steep);
-      if (steep.length === 0) return flat;
-      const out: ScatterPoint[] = [];
-      let si = 0;
-      for (let i = 0; i < flat.length; i++) {
-        out.push(flat[i]!);
-        if (i % 3 === 2 && si < steep.length) out.push(steep[si++]!);
-      }
-      for (; si < steep.length; si++) out.push(steep[si]!);
-      return out;
     };
 
     if (config.tier >= 2) {
