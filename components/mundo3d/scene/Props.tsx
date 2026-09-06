@@ -11,6 +11,7 @@ import { WIND } from '@/lib/world/config';
 import type { IslandLayout } from '@/lib/world/layout';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { MirrorParams, Placement, PropId, TimeOfDay } from '@/lib/world/types';
+import type { BlobShadowPool } from '@/lib/render/shadows';
 import type { PropCollider } from '../control/CharacterController';
 
 /**
@@ -26,6 +27,8 @@ const SWAY_HZ = WIND.hz * 0.6;
 const SWAY_AMPLITUDE = 0.06;
 /** Where the demo set is laid out, in metres from the spawn. */
 const DEMO_RING_M = 4.2;
+/** Blob footprint for a fixed structure, in metres. Props use their own. */
+const STRUCTURE_SHADOW = 0.55;
 
 /** Where each prop's moving part is mounted, relative to the prop's origin. */
 const MOVING_MOUNTS: Partial<Record<PropId, [number, number, number]>> = {
@@ -45,6 +48,8 @@ interface PropsProps {
    */
   demo?: boolean;
   onColliders?: (colliders: PropCollider[]) => void;
+  /** Structures and props take a static blob, so they sit on the ground. */
+  shadows?: BlobShadowPool;
 }
 
 interface Placed {
@@ -59,7 +64,7 @@ interface Placed {
 }
 
 export function Props({
-  heightfield, layout, mirror, timeOfDay, placements, demo = false, onColliders,
+  heightfield, layout, mirror, timeOfDay, placements, demo = false, onColliders, shadows,
 }: PropsProps) {
   // Wood, stone and cloth all sit still: they take the wobble, never the wind.
   const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
@@ -114,6 +119,26 @@ export function Props({
       })
       .filter((p): p is Placed => p !== null);
   }, [demo, placements, layout, heightfield]);
+
+  /**
+   * Ground everything. A bench with no shadow reads as a bench hovering over a
+   * lawn, and the whole island looked like a sticker sheet until this existed.
+   */
+  useEffect(() => {
+    if (!shadows) return;
+    const placedShadows: number[] = [];
+    for (const st of structures) {
+      const slot = shadows.addStatic(heightfield, st.position[0], st.position[2], STRUCTURE_SHADOW);
+      if (slot >= 0) placedShadows.push(slot);
+    }
+    for (const p of placed) {
+      const slot = shadows.addStatic(heightfield, p.position[0], p.position[2], propFootprint(p.slug));
+      if (slot >= 0) placedShadows.push(slot);
+    }
+    return () => {
+      for (const slot of placedShadows) shadows.releaseStatic(slot);
+    };
+  }, [shadows, structures, placed, heightfield]);
 
   /** Everything solid becomes a collider, so props are things you walk around. */
   useEffect(() => {

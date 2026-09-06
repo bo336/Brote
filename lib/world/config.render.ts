@@ -117,7 +117,9 @@ export const FOG = { nearFraction: 0.35 } as const;
 /** Blob shadows: one InstancedMesh for every shadow in the game (`06` §7). */
 export const BLOB_SHADOW = {
   textureSize: 64, // one generated radial-gradient canvas texture
-  maxOpacity: 0.32,
+  // 0.32 was too faint to ground anything once the decal stopped being eaten by
+  // the terrain; 0.85 read as a hole. Judged from screenshots at seven metres.
+  maxOpacity: 0.45,
   fadeHeightM: 3, // fully faded once the caster is this far above the ground
 } as const;
 

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 
 import { CAMERA, JOYSTICK, RENDER_LOOP } from '@/lib/world/config';
 import { isNight } from '@/lib/utils/dates';
+import { pipStageForTier } from '@/lib/mundo';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
@@ -21,9 +22,14 @@ import { SettingsSheet } from './hud/SettingsSheet';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useWorldStore } from './state/useWorldStore';
+import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
 
 const DEV = process.env.NODE_ENV !== 'production';
+
+/** The tiers that light Pip up, from `08-WORLD-AND-PROGRESSION.md` §5.1. */
+const AURA_TIER = 8;
+const GOLDEN_TIER = 11;
 
 /** The four presets, in the order resting walks through them. */
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -101,6 +107,7 @@ export default function MundoGame({
   const sensitivity = useSettings((s) => s.cameraSensitivityX);
 
   const hydrate = useWorldStore((s) => s.hydrate);
+  const setAppearance = usePlayerStore((s) => s.setAppearance);
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
@@ -140,6 +147,21 @@ export default function MundoGame({
       impact: { water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0 },
     });
   }, [hydrate, userId, worldTier, worldIndex, liveliness]);
+
+  /**
+   * **Pip's stage.** The store defaults to `seed`, `applyStage` hides the leaves
+   * at seed, and nothing ever called this — so Pip was a bare ball at tier 11
+   * with the sprout that gives the game its name missing entirely. The stage
+   * comes from `lib/mundo.ts`, the same function the profile uses, so the Pip in
+   * the world and the Pip on the profile can never disagree.
+   */
+  useEffect(() => {
+    setAppearance({
+      stage: pipStageForTier(worldTier),
+      golden: worldTier >= GOLDEN_TIER,
+      aura: worldTier >= AURA_TIER,
+    });
+  }, [setAppearance, worldTier]);
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).

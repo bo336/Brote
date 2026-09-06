@@ -82,25 +82,31 @@ interface SpeciesParams {
   spread: number;
   drop: number;
   leafSize: number;
-  leafPer: number;
 }
 
 /** Growth rules per species, verbatim from the old `Vegetation.tsx`. */
 const PARAMS: Record<TreeSpecies, SpeciesParams> = {
-  pine: { trunkH: 1.5, trunkR: 0.075, levels: 4, kids: [3, 3, 2], spread: 0.62, drop: 0.66, leafSize: 0.42, leafPer: 3 },
-  oak: { trunkH: 0.95, trunkR: 0.1, levels: 4, kids: [3, 3, 2], spread: 1.02, drop: 0.72, leafSize: 0.52, leafPer: 4 },
-  birch: { trunkH: 1.35, trunkR: 0.055, levels: 3, kids: [2, 3], spread: 0.78, drop: 0.7, leafSize: 0.4, leafPer: 3 },
-  bush: { trunkH: 0.24, trunkR: 0.045, levels: 3, kids: [4, 3], spread: 1.25, drop: 0.74, leafSize: 0.34, leafPer: 3 },
+  pine: { trunkH: 1.5, trunkR: 0.075, levels: 4, kids: [3, 3, 2], spread: 0.62, drop: 0.66, leafSize: 0.42 },
+  oak: { trunkH: 0.95, trunkR: 0.1, levels: 4, kids: [3, 3, 2], spread: 1.02, drop: 0.72, leafSize: 0.52 },
+  birch: { trunkH: 1.35, trunkR: 0.055, levels: 3, kids: [2, 3], spread: 0.78, drop: 0.7, leafSize: 0.4 },
+  bush: { trunkH: 0.24, trunkR: 0.045, levels: 3, kids: [4, 3], spread: 1.25, drop: 0.74, leafSize: 0.34 },
 };
 
-/** LOD trims recursion depth, leaf count and trunk segments — never the shape. */
-const LOD_TRIM: Record<TreeLod, { levels: number; leaves: number; radialSegments: number; cards: number }> = {
-  // `cards` is how many crossed planes make one cluster. Near, three read as a
-  // mass; far, one double-faced card is a silhouette and the difference is not
-  // visible — which is the whole point of having LODs.
-  0: { levels: 0, leaves: 1, radialSegments: 7, cards: 3 },
-  1: { levels: -1, leaves: 0.6, radialSegments: 5, cards: 2 },
-  2: { levels: -2, leaves: 0.34, radialSegments: 4, cards: 1 },
+/** LOD trims recursion depth, blob count and trunk segments — never the shape. */
+const LOD_TRIM: Record<TreeLod, { levels: number; radialSegments: number; blobs: number; segW: number; segH: number }> = {
+  // `blobs` is how many rounded masses hang at each branch tip; `segW`/`segH`
+  // how round each one is. Near, overlapping blobs read as a canopy; far, one
+  // is a silhouette and the difference is not visible — the point of LODs.
+  //
+  // A **low-segment sphere, not an icosahedron.** An icosahedron at detail 0 is
+  // twenty large triangles, and scaled unevenly under a random rotation it reads
+  // as a shard — sharp-cornered, in an art direction whose first rule is that
+  // clay has no corners. Detail 1 is round but 80 faces, which put T3 449k
+  // triangles against a 400k ceiling. A 6x4 sphere is 36 faces and actually
+  // round.
+  0: { levels: 0, radialSegments: 7, blobs: 1, segW: 6, segH: 4 },
+  1: { levels: -1, radialSegments: 5, blobs: 1, segW: 5, segH: 3 },
+  2: { levels: -2, radialSegments: 4, blobs: 1, segW: 4, segH: 3 },
 };
 
 /**
@@ -108,42 +114,50 @@ const LOD_TRIM: Record<TreeLod, { levels: number; leaves: number; radialSegments
  * the same tree on every device, which is what makes the island reproducible.
  */
 /**
- * One cluster of foliage, as **crossed, double-faced cards**.
+ * One mass of foliage, as **rounded blobs**.
  *
- * A single quad at a random angle is not a leaf cluster — it is a slab. Seen
- * from the side it is a line, seen from behind it is nothing at all, because
- * the clay material is `FrontSide` (and giving foliage its own double-sided
- * material would spend one of the eight, `07-RENDER-ARCHITECTURE.md` §5). So
- * the volume is built into the geometry instead: three cards through a common
- * centre, each emitted twice back-to-back. The cluster reads as a mass from
- * every angle and costs one material of nobody's. How many planes make a
- * cluster is an LOD decision — see `LOD_TRIM`.
+ * This was flat cards, and cards were wrong twice over. They were single-sided
+ * against a `FrontSide` material, so half of every canopy was missing; and once
+ * that was fixed by crossing and doubling them, a canopy was still a stack of
+ * planes — in an art direction whose first rule is that **clay has no corners**
+ * (`06-ART-DIRECTION.md` §2). Every other shape in the game is a bevelled solid.
+ * The trees were the one thing still built out of billboards, and they read as
+ * slabs from every angle because that is what they were.
+ *
+ * A low-segment sphere is about the same triangle cost as the crossed cards it
+ * replaces, needs no double-siding, and is a volume rather than a picture of
+ * one.
  */
-function leafCluster(
+function leafBlob(
   out: Piece[],
-  quad: THREE.BufferGeometry,
+  blob: THREE.BufferGeometry,
   centre: THREE.Vector3,
   size: number,
-  cards: number,
+  count: number,
   rng: () => number,
 ): void {
-  // One shared tilt per cluster, so the cards stay a single mass rather than
-  // splaying into separate flakes.
-  const tiltX = (rng() - 0.5) * 0.5;
-  const tiltZ = (rng() - 0.5) * 0.5;
-  const yaw0 = rng() * Math.PI * 2;
-  for (let c = 0; c < cards; c++) {
-    const yaw = yaw0 + (c / cards) * Math.PI;
-    for (let face = 0; face < 2; face++) {
-      const m = new THREE.Matrix4();
-      const q = new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(tiltX, yaw + face * Math.PI, tiltZ),
-      );
-      m.compose(centre, q, new THREE.Vector3(size, size, size));
-      out.push({ geo: quad, matrix: m });
-    }
+  for (let i = 0; i < count; i++) {
+    // The first sits on the tip; any others cluster around it, so a canopy has
+    // a lumpy silhouette instead of a row of identical balls.
+    const off = i === 0 ? 0 : size * 0.55;
+    const a = rng() * Math.PI * 2;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
+    );
+    scratchCentre.set(
+      centre.x + Math.cos(a) * off,
+      centre.y + (rng() - 0.5) * off,
+      centre.z + Math.sin(a) * off,
+    );
+    // Slightly flattened: foliage spreads wider than it is tall.
+    const r = size * (0.7 + rng() * 0.62);
+    m.compose(scratchCentre, q, new THREE.Vector3(r, r * 0.78, r));
+    out.push({ geo: blob, matrix: m });
   }
 }
+
+const scratchCentre = new THREE.Vector3();
 
 export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): TreeBuild {
   const rng = mulberry32(seed);
@@ -155,7 +169,8 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
   let maxY = 0;
 
   const cyl = new THREE.CylinderGeometry(1, 1, 1, trim.radialSegments, 1, true);
-  const quad = new THREE.PlaneGeometry(1, 1);
+  // One unit blob, instanced into the merge by matrix — never rebuilt per leaf.
+  const blob = new THREE.SphereGeometry(1, trim.segW, trim.segH);
 
   function branch(origin: THREE.Vector3, dir: THREE.Vector3, len: number, radius: number, depth: number) {
     const end = origin.clone().addScaledVector(dir, len);
@@ -169,12 +184,9 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
 
     if (depth >= levels - 1 || len < 0.12) {
       // Tip: a small cluster of crossed leaf cards.
-      const n = Math.max(1, Math.round(params.leafPer * trim.leaves));
-      for (let i = 0; i < n; i++) {
-        const size = params.leafSize * (0.75 + rng() * 0.5);
-        const off = new THREE.Vector3((rng() - 0.5) * 0.16, (rng() - 0.5) * 0.16, (rng() - 0.5) * 0.16);
-        leafCluster(leaves, quad, end.clone().add(off), size, trim.cards, rng);
-      }
+      // One canopy mass per tip, sized from the species. This used to be a
+      // count of cards; a blob is big enough that one does the work.
+      leafBlob(leaves, blob, end.clone(), params.leafSize * 1.15, trim.blobs, rng);
       return;
     }
 
@@ -192,12 +204,10 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
 
     // Pines also carry foliage along the trunk, not only at the tips.
     if (species === 'pine' && depth <= 1) {
-      const n = Math.max(1, Math.round(4 * trim.leaves));
-      for (let i = 0; i < n; i++) {
-        const t = 0.25 + rng() * 0.7;
+      for (let i = 0; i < 2; i++) {
+        const t = 0.3 + rng() * 0.6;
         const p = origin.clone().addScaledVector(dir, len * t);
-        const size = params.leafSize * (0.8 + rng() * 0.5);
-        leafCluster(leaves, quad, p, size, trim.cards, rng);
+        leafBlob(leaves, blob, p, params.leafSize * 0.95, trim.blobs, rng);
       }
     }
   }
@@ -214,6 +224,6 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
   const woodGeo = paintVertical(mergePieces(wood), CLAY.barkDeep, CLAY.bark, 0.9);
   const leavesGeo = paintVertical(mergePieces(leaves), CLAY.leafDeep, CLAY.leaf, 0.75);
   cyl.dispose();
-  quad.dispose();
+  blob.dispose();
   return { wood: woodGeo, leaves: leavesGeo, height: maxY };
 }

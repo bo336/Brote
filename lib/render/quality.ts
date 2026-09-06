@@ -59,13 +59,13 @@ export const TIERS: Record<QualityTier, TierParams> = {
   },
   2: {
     name: 'medio', dprCap: 1.25, antialias: true, postProcessing: false, realShadows: false,
-    blobShadows: true, terrainGrid: 128, grassTufts: 700, flowers: 140, trees: 110, treeLods: 2,
+    blobShadows: true, terrainGrid: 128, grassTufts: 1100, flowers: 140, trees: 110, treeLods: 2,
     rocks: 60, groundDetail: 180, fauna: 8, particles: 200, water: 2, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 80, targetFps: 45,
   },
   3: {
     name: 'alto', dprCap: 1.75, antialias: true, postProcessing: true, realShadows: true,
-    blobShadows: true, terrainGrid: 160, grassTufts: 1500, flowers: 260, trees: 180, treeLods: 3,
+    blobShadows: true, terrainGrid: 160, grassTufts: 2600, flowers: 260, trees: 180, treeLods: 3,
     rocks: 90, groundDetail: 350, fauna: 14, particles: 400, water: 3, wobble: true, wind: true,
     heightFog: true, renderDistanceM: 110, targetFps: 60,
   },

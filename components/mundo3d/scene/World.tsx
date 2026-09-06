@@ -15,7 +15,7 @@ import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
 import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
-import { SEMILLAS } from '@/lib/world/config';
+import { BLOB_SHADOW, SEMILLAS } from '@/lib/world/config';
 import { CharacterController, type PropCollider } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
@@ -47,6 +47,12 @@ import { Water } from './Water';
  * it *is* — otherwise a promotion would move the floor under Pip mid-step.
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
+/**
+ * Static shadow slots: the T3 tree and rock budgets, plus the structures and
+ * placed props. Sized once at the ceiling, like every other pool, so changing
+ * tier never allocates.
+ */
+const STATIC_SHADOWS = TIERS[3].trees + TIERS[3].rocks + 64;
 
 export function World({
   tier,
@@ -140,9 +146,17 @@ export function World({
   // ── Blob shadows: one instanced mesh, one draw call, every shadow in the game.
   const shadowMaterial = useMemo(() => {
     const map = getTexture('blob-shadow', buildBlobTexture);
-    return getFlatMaterial({ map, transparent: true, opacity: 0.32, depthWrite: false });
+    return getFlatMaterial({
+      map, transparent: true, opacity: BLOB_SHADOW.maxOpacity, depthWrite: false, polygonOffset: -4,
+    });
   }, []);
-  const shadows = useMemo(() => new BlobShadowPool(shadowMaterial, TIERS[3].fauna + 4), [shadowMaterial]);
+  // Movers: Pip, plus room for the fauna when they get shadows. Statics: every
+  // tree, rock, structure and placed prop on the island — they are what made
+  // the world look like it was floating over its own ground.
+  const shadows = useMemo(
+    () => new BlobShadowPool(shadowMaterial, TIERS[3].fauna + 4, STATIC_SHADOWS),
+    [shadowMaterial],
+  );
   useEffect(() => {
     scene.add(shadows.mesh);
     return () => {
@@ -153,7 +167,9 @@ export function World({
   useEffect(() => {
     const root = pipRef.current.root;
     if (!root) return;
-    const slot = shadows.attach(root, PIP_HEIGHT_M * 0.42);
+    // A touch wider than Pip is, so the shadow reads past his own silhouette —
+    // from behind at -28 degrees his body covers most of what sits under him.
+    const slot = shadows.attach(root, PIP_HEIGHT_M * 0.5);
     return () => shadows.detach(slot);
   }, [shadows]);
 
@@ -275,7 +291,14 @@ export function World({
       <Sky palette={palette} timeOfDay={timeOfDay} tier={tier} />
       <Island heightfield={heightfield} layout={layout} palette={palette} tier={groundTier} />
       <Water heightfield={heightfield} layout={layout} palette={palette} tier={tier} flow={mirror.riverFlow} />
-      <Vegetation heightfield={heightfield} layout={layout} config={config} tier={tier} biome={biome} />
+      <Vegetation
+        heightfield={heightfield}
+        layout={layout}
+        config={config}
+        tier={tier}
+        biome={biome}
+        shadows={shadows}
+      />
       <Props
         heightfield={heightfield}
         layout={layout}
@@ -284,6 +307,7 @@ export function World({
         placements={placements}
         demo={demoProps}
         onColliders={onColliders}
+        shadows={shadows}
       />
       <Fauna heightfield={heightfield} layout={layout} config={config} tier={tier} liveliness={liveliness} />
       <MistWall layout={layout} config={config} palette={palette} />

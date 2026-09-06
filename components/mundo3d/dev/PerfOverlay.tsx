@@ -72,6 +72,17 @@ export function PerfProbe({ tier }: { tier: QualityTier }) {
   const lastHeapAtRef = useRef(0);
   const lastSceneAtRef = useRef(0);
 
+  // The scene, on `window`, for the dev console. The overlay's whole reason to
+  // exist is catching "a pool exists but is never drawn"; when its counters say
+  // something is wrong, the next question is always "wrong how", and that needs
+  // the graph itself. Dev-only, like the rest of this file.
+  useEffect(() => {
+    (window as unknown as { __brote?: unknown }).__brote = { scene, gl };
+    return () => {
+      delete (window as unknown as { __brote?: unknown }).__brote;
+    };
+  }, [scene, gl]);
+
   useFrame((_, delta) => {
     const ms = delta * 1000;
     // A `frameloop="demand"` gap is not a slow frame — it is the absence of one.

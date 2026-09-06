@@ -256,9 +256,19 @@ export const MIRROR_RANGE = {
   riverFlow: [0.2, 1.0], // shader swell speed
   waterfallGain: [0.0, 1.0], // sheet width, particle count and audio gain together
   pondArea: [0.3, 1.0], // scale factor
-  fogDensity: [1.0, 0.25], // inverse: more impact, less haze
-  fogFar: [45, 110], // metres — clean air is literally how far you can see
-  skySaturation: [0.7, 1.0],
+  // **The dirty end of the air is hazy, not a whiteout.**
+  //
+  // `13-IMPACT-MIRROR.md` §2 is explicit that the debris field on the beach is
+  // "the one place the world begins in a worse state". Fog at density 1.0 and a
+  // 45 m far plane was a second one, and a louder one: with the camera seven
+  // metres out, everything past the next rise washed to flat cream. A brand-new
+  // player — and, until phase 4 wires the real totals, *every* player — saw the
+  // ugliest frame the renderer can produce. The mirror still more than halves
+  // the haze and nearly doubles the view; it just no longer starts by hiding
+  // the world it is meant to be showing off.
+  fogDensity: [0.55, 0.15], // inverse: more impact, less haze
+  fogFar: [70, 130], // metres — clean air is literally how far you can see
+  skySaturation: [0.85, 1.0],
   debrisCount: [40, 0], // instances; only ever shrinks, never added to
   compostScale: [0.2, 1.0],
   lanternCount: [0, 14], // instances lit at night

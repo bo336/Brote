@@ -42,6 +42,21 @@ const ramp = {
 const SAND_TO_GRASS = 0.09;
 /** How far the deep tones fold in with height, for value structure. */
 const DEPTH_SHADE = 0.45;
+/**
+ * How strongly the fine patch mask breaks the ground up.
+ *
+ * Without it a big field is one flat wash, and no amount of lighting fixes
+ * that: the band quantise works on the DIRECTIONAL term, and every fragment of
+ * a near-flat plane shares one normal, so the whole field lands in a single
+ * band. The variation has to be in the pigment, which is exactly what clay is
+ * (`06-ART-DIRECTION.md` §2). Baked into the colour attribute, so it is free.
+ */
+const PATCH_SHADE = 0.34;
+/** How much a light patch lifts, relative to how much a dark one sinks. */
+const PATCH_LIFT = 0.55;
+/** Metres per cycle of the two masks: broad damp/dry, and fine patchiness. */
+const MOISTURE_FREQ = 0.06;
+const PATCH_FREQ = 0.38;
 /** Slope above which ground reads as rock rather than cover. */
 const ROCK_SLOPE = 0.42;
 /** Ring offsets used by the AO probe, in metres. */
@@ -82,6 +97,8 @@ function groundColor(
   h: number,
   slope: number,
   moisture: number,
+  /** 0..1 fine break-up, so a field is painted rather than filled. */
+  patch: number,
   snowLine: number | null,
 ): void {
   const above = h - WATER_LEVEL;
@@ -104,7 +121,12 @@ function groundColor(
   // than one flat green (`06-ART-DIRECTION.md` §2 rule 3).
   const depth = Math.min(1, above / 3);
   scratchMix.copy(ramp.soilDeep).lerp(ramp.grassDeep, moisture);
-  target.lerp(scratchMix, depth * DEPTH_SHADE);
+  // The patch mask is **centred on zero**: half the ground lifts and half sinks.
+  // Applied one-directionally it was a second shade term on top of `depth`, and
+  // it simply dimmed the whole island by its own average.
+  const shade = depth * DEPTH_SHADE + (patch - 0.5) * PATCH_SHADE;
+  if (shade >= 0) target.lerp(scratchMix, Math.min(1, shade));
+  else target.multiplyScalar(1 - shade * PATCH_LIFT);
 }
 
 /**
@@ -137,10 +159,17 @@ export function buildGround(
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
     const slope = sampleSlope(hf, x, z);
-    // A low-frequency moisture mask, seeded per island: where it is damp, grass;
-    // where it is dry, bare earth. One noise call, not a texture.
-    const moisture = Math.min(1, Math.max(0, fbm(x * 0.06 + seed, z * 0.06 - seed, 2) * 1.7 - 0.25));
-    groundColor(scratch, x, z, h, slope, moisture, layout.snowLine);
+    // Two masks, seeded per island, and no texture between them.
+    //
+    // The broad one says damp or dry — grass or bare earth. Its curve used to be
+    // `* 1.7 - 0.25`, which clamped most of the island to fully damp and gave
+    // the flat green wash the whole field read as. Gentler now, so the mask
+    // actually spends its time in the middle where the mixing happens.
+    const moisture = Math.min(1, Math.max(0, fbm(x * MOISTURE_FREQ + seed, z * MOISTURE_FREQ - seed, 2) * 1.25 - 0.12));
+    // The fine one is the brush: metre-scale patchiness that keeps a big field
+    // from being one colour, at a frequency the player walks across.
+    const patch = Math.min(1, Math.max(0, fbm(x * PATCH_FREQ - seed, z * PATCH_FREQ + seed, 2)));
+    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine);
     const ao = bakedAO(hf, x, z, h);
     position[v * 3] = x;
     position[v * 3 + 1] = h;
@@ -285,7 +314,10 @@ export function buildIsletGround(
 
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
-    groundColor(scratch, x, z, h, sampleSlope(hf, x, z), 0.35, null);
+    // The islet takes the same fine break-up as the mainland, offset by its own
+    // position so the two never repeat the same patch.
+    const patch = Math.min(1, Math.max(0, fbm(x * PATCH_FREQ + islet.x, z * PATCH_FREQ + islet.z, 2)));
+    groundColor(scratch, x, z, h, sampleSlope(hf, x, z), 0.35, patch, null);
     position[v * 3] = x;
     position[v * 3 + 1] = h;
     position[v * 3 + 2] = z;

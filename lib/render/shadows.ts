@@ -23,7 +23,9 @@ const scratchScale = new THREE.Vector3();
 const FLAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
 const HIDDEN = new THREE.Vector3(0, 0, 0);
 /** Lift the decal off the ground so it does not z-fight with the terrain. */
-const LIFT = 0.012;
+// A small physical lift on top of the depth bias, so a shadow on a steep bank
+// still clears its own ground rather than relying on the offset alone.
+const LIFT = 0.03;
 
 export interface ShadowCaster {
   /** The object to follow. Read-only here — the rig owns its transform. */
@@ -52,27 +54,86 @@ export function buildBlobTexture(): THREE.Texture {
 export class BlobShadowPool {
   readonly mesh: THREE.InstancedMesh;
   private casters: (ShadowCaster | null)[] = [];
+  /**
+   * Slot 0 up to `movingMax` belongs to things that move; everything above it
+   * to things that do not.
+   *
+   * A tree's shadow never moves, and there are two hundred trees to one Pip.
+   * Static slots are written once at placement and skipped by `update` forever
+   * after, which is what makes grounding the whole island cost the same per
+   * frame as grounding Pip alone. The ranges are **fixed at construction**
+   * rather than filled in arrival order, because React runs a child's effects
+   * before its parent's — the trees would otherwise claim their slots before
+   * Pip claimed his.
+   */
+  private readonly movingMax: number;
+  /** Highest static slot ever handed out, and the ones handed back since. */
+  private statics = 0;
+  private freeStatics: number[] = [];
 
-  constructor(material: THREE.Material, max: number) {
+  constructor(material: THREE.Material, movingMax: number, staticMax = 0) {
     const quad = new THREE.PlaneGeometry(1, 1);
-    this.mesh = new THREE.InstancedMesh(quad, material, Math.max(1, max));
+    this.movingMax = Math.max(1, movingMax);
+    this.mesh = new THREE.InstancedMesh(quad, material, this.movingMax + staticMax);
     this.mesh.name = 'blobShadows';
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.count = 0;
+    // Every mover slot exists from the start, hidden until something claims it.
+    this.casters = new Array(this.movingMax).fill(null);
+    this.mesh.count = this.movingMax;
     // Decals sit flush on the ground; writing depth would fight the terrain.
     this.mesh.renderOrder = 1;
   }
 
-  /** Register a caster. Returns its slot, or -1 when the pool is full. */
+  /** Register a moving caster. Returns its slot, or -1 when the pool is full. */
   attach(object: THREE.Object3D, footprint: number): number {
-    if (this.casters.length >= this.mesh.instanceMatrix.count) return -1;
-    this.casters.push({ object, footprint });
-    this.mesh.count = this.casters.length;
-    return this.casters.length - 1;
+    for (let i = 0; i < this.movingMax; i++) {
+      if (this.casters[i] === null) {
+        this.casters[i] = { object, footprint };
+        return i;
+      }
+    }
+    return -1;
   }
 
   detach(slot: number): void {
-    if (slot >= 0 && slot < this.casters.length) this.casters[slot] = null;
+    if (slot >= 0 && slot < this.movingMax) this.casters[slot] = null;
+  }
+
+  /**
+   * Ground something that will never move again: a tree, a rock, a bench.
+   * Writes its matrix once and takes no per-frame cost at all.
+   *
+   * Static casters must be added AFTER every moving one, because `update`
+   * stops at the first static slot.
+   */
+  addStatic(hf: Heightfield, x: number, z: number, footprint: number): number {
+    // A released slot is reused before the pool grows, so an effect that re-runs
+    // (a tier change, a new biome) replaces its shadows instead of stacking a
+    // second set on top of the first.
+    const reused = this.freeStatics.pop();
+    const i = reused ?? this.movingMax + this.statics;
+    if (i >= this.mesh.instanceMatrix.count) return -1;
+    if (reused === undefined) {
+      this.statics++;
+      this.mesh.count = i + 1;
+    }
+    scratchPos.set(x, sampleHeight(hf, x, z) + LIFT, z);
+    scratchScale.set(footprint * 2, footprint * 2, 1);
+    scratchMatrix.compose(scratchPos, FLAT, scratchScale);
+    this.mesh.setMatrixAt(i, scratchMatrix);
+    this.mesh.instanceMatrix.needsUpdate = true;
+    this.mesh.computeBoundingSphere();
+    return i;
+  }
+
+  /** Hand a static slot back. The caller releases what it placed. */
+  releaseStatic(slot: number): void {
+    if (slot < this.movingMax || slot >= this.movingMax + this.statics) return;
+    if (this.freeStatics.includes(slot)) return;
+    scratchMatrix.compose(scratchPos.set(0, 0, 0), FLAT, HIDDEN);
+    this.mesh.setMatrixAt(slot, scratchMatrix);
+    this.mesh.instanceMatrix.needsUpdate = true;
+    this.freeStatics.push(slot);
   }
 
   /**
@@ -81,7 +142,9 @@ export class BlobShadowPool {
    * shadow spreads and softens instead of following at full strength.
    */
   update(hf: Heightfield): void {
-    for (let i = 0; i < this.casters.length; i++) {
+    // Movers only. Everything above `movingMax` was placed once and is not
+    // going anywhere.
+    for (let i = 0; i < this.movingMax; i++) {
       const caster = this.casters[i];
       if (!caster) {
         scratchMatrix.compose(scratchPos.set(0, 0, 0), scratchQuat.identity(), HIDDEN);
@@ -101,11 +164,19 @@ export class BlobShadowPool {
       this.mesh.setMatrixAt(i, scratchMatrix);
     }
     this.mesh.instanceMatrix.needsUpdate = true;
+    // **Recompute the bounds every frame.** An `InstancedMesh` keeps the base
+    // geometry's bounding sphere until told otherwise — here, a 1x1 quad at the
+    // origin. Every shadow on the island would vanish the moment the camera
+    // stopped looking at the middle of it. This is O(count) over a few hundred
+    // matrices and allocates nothing (three reuses module scratch for it).
+    this.mesh.computeBoundingSphere();
   }
 
   dispose(): void {
     this.mesh.geometry.dispose();
     this.mesh.dispose();
     this.casters = [];
+    this.statics = 0;
+    this.freeStatics = [];
   }
 }

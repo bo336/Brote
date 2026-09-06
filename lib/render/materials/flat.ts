@@ -20,6 +20,18 @@ export interface FlatOptions {
   opacity?: number;
   depthWrite?: boolean;
   side?: THREE.Side;
+  /**
+   * Pull the surface toward the camera in depth, without moving it in space.
+   *
+   * A blob shadow is a decal: it sits on ground whose rendered triangles are up
+   * to a metre across, while its own height comes from a bilinear sample of the
+   * heightfield. On any slope the flat triangle rises above that sample and
+   * eats the decal — which is why every shadow on the island was invisible on
+   * anything but dead-level ground. Lifting it far enough to clear the worst
+   * triangle would make it visibly float; a depth bias costs nothing and is
+   * what the hardware provides for exactly this.
+   */
+  polygonOffset?: number;
 }
 
 export function createFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMaterial {
@@ -32,5 +44,8 @@ export function createFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMater
     depthWrite: opts.depthWrite ?? false,
     side: opts.side ?? THREE.DoubleSide,
     toneMapped: false,
+    polygonOffset: opts.polygonOffset !== undefined,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: opts.polygonOffset ?? 0,
   });
 }

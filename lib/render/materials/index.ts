@@ -68,6 +68,7 @@ export function getFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMaterial
   const key = [
     String(opts.color ?? ''), opts.map?.uuid ?? '', opts.opacity ?? 1,
     opts.side ?? '', opts.depthWrite ?? '', opts.vertexColors ? 'vc' : '-',
+    opts.polygonOffset ?? '',
   ].join(':');
   const hit = flatCache.get(key);
   if (hit) return hit;
