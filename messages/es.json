@@ -769,6 +769,31 @@
     },
     "accion": {
       "mojon": "Leer"
+    },
+    "props": {
+      "mundo_arco": "Arco de flores",
+      "mundo_banco": "Banco del mirador",
+      "mundo_carpa": "Carpa",
+      "mundo_colmena": "Colmena",
+      "mundo_comedero": "Comedero de pájaros",
+      "mundo_farolitos": "Farolitos",
+      "mundo_hamaca": "Hamaca paraguaya",
+      "mundo_huerta": "Huerta",
+      "mundo_molino": "Molino de viento",
+      "mundo_totem": "Tótem de piedra"
+    },
+    "placement": {
+      "remaining": "Te quedan {n}",
+      "saved": "Guardado",
+      "saving": "Guardando…",
+      "queued": "Se guarda sola",
+      "nada": "Todavía no tenés nada para poner",
+      "salir": "Salir",
+      "deshacer": "Deshacer",
+      "girar": "Girar",
+      "cancelar": "Cancelar",
+      "confirmar": "Poner",
+      "modo": "Acomodar"
     }
   }
 }

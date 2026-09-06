@@ -14,9 +14,12 @@ import { getFlatMaterial, getTexture } from '@/lib/render/materials';
 import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
-import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
+import type { Placement, PropId, QualityTier, TimeOfDay } from '@/lib/world/types';
 import { BLOB_SHADOW, INTERACT, SEMILLAS } from '@/lib/world/config';
 import { registerInteractable } from '../interaction/InteractableRegistry';
+import { PlacementMode, makeGroundTest } from '../placement/PlacementMode';
+import { usePlacementEditor } from '../placement/usePlacementEditor';
+import { placeableProps } from '@/lib/world/placement';
 import { CharacterController, type PropCollider } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
@@ -49,6 +52,7 @@ import { Water } from './Water';
  * it *is* — otherwise a promotion would move the floor under Pip mid-step.
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
+const EMPTY_OWNED: readonly string[] = [];
 /**
  * Static shadow slots: the T3 tree and rock budgets, plus the structures and
  * placed props. Sized once at the ceiling, like every other pool, so changing
@@ -72,6 +76,8 @@ export function World({
   demoProps = false,
   onAdvanceTime,
   onOpenMojon,
+  ownedCosmetics = EMPTY_OWNED,
+  onPlacementsChanged,
 }: {
   tier: QualityTier;
   timeOfDay: TimeOfDay;
@@ -84,6 +90,10 @@ export function World({
   onAdvanceTime?: () => void;
   /** Opens El Mojón. The world knows where the stone is; the HUD owns the sheet. */
   onOpenMojon?: () => void;
+  /** What the player owns, for the placement tray. */
+  ownedCosmetics?: readonly string[];
+  /** The arrangement changed and wants saving. Debounced by the caller. */
+  onPlacementsChanged?: (placements: Placement[]) => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const scene = useThree((s) => s.scene);
@@ -345,6 +355,62 @@ export function World({
     if (promoted !== null) onTierChange(promoted);
   });
 
+  // ── Placement mode.
+  //
+  // The editor lives here because this is where the layout, the heightfield and
+  // the camera are. The controls live in the HUD, outside the canvas, and the
+  // two halves meet through a summary in the session store — see there for why
+  // the ghost itself does not make the trip.
+  const editor = usePlacementEditor({
+    layout,
+    tier: config.tier,
+    owned: ownedCosmetics,
+    initial: placements,
+    isGround: useMemo(() => (layout ? makeGroundTest(layout) : undefined), [layout]),
+  });
+  const placeInFront = useRef<((slug: PropId) => { x: number; z: number }) | null>(null);
+  const setPlacement = useSessionStore((s) => s.setPlacement);
+  const setPlacementActions = useSessionStore((s) => s.setPlacementActions);
+  const editing = useSessionStore((s) => s.hud) === 'placement';
+
+  const tray = useMemo(
+    () => placeableProps(ownedCosmetics, config.props),
+    [ownedCosmetics, config.props],
+  );
+
+  useEffect(() => {
+    setPlacement({
+      hasGhost: editor.ghost !== null,
+      rejected: editor.ghost?.rejection != null,
+      remaining: editor.remaining,
+      canUndo: editor.canUndo,
+      props: tray,
+    });
+  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray]);
+
+  useEffect(() => {
+    setPlacementActions({
+      pick: (slug) => {
+        const at = placeInFront.current?.(slug) ?? { x: 0, z: 0 };
+        editor.begin(slug, at.x, at.z);
+        editor.moveGhost(at.x, at.z);
+      },
+      rotate: () => editor.rotate(1),
+      commit: () => editor.commit(),
+      cancel: () => editor.cancel(),
+      undo: () => editor.undo(),
+    });
+    return () => setPlacementActions(null);
+  }, [setPlacementActions, editor]);
+
+  // The arrangement is reported up whenever it settles, never mid-drag: the
+  // ghost is not part of it until it is put down.
+  const committed = editor.placements;
+  useEffect(() => {
+    if (!editing) return;
+    onPlacementsChanged?.(committed);
+  }, [committed, editing, onPlacementsChanged]);
+
   if (!layout || !heightfield) return null;
   return (
     <>
@@ -361,12 +427,23 @@ export function World({
         shadows={shadows}
         onColliders={onTreeColliders}
       />
+      {editing && (
+        <PlacementMode
+          layout={layout}
+          heightfield={heightfield}
+          ghost={editor.ghost}
+          onMove={editor.moveGhost}
+          onReady={(fn) => {
+            placeInFront.current = fn;
+          }}
+        />
+      )}
       <Props
         heightfield={heightfield}
         layout={layout}
         mirror={mirror}
         timeOfDay={timeOfDay}
-        placements={placements}
+        placements={editing ? editor.placements : placements}
         demo={demoProps}
         onColliders={onColliders}
         shadows={shadows}

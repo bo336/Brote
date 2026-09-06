@@ -8,6 +8,7 @@ import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
 import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
+import { PROP_IDS } from '@/lib/world/progression';
 import { parseWorldPayload } from '@/lib/world/payload';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
@@ -87,6 +88,9 @@ function Preview() {
         impact: fixture,
         collectiveWaterL: fixture.water_l * 1000,
         semillas: 120,
+        // Everything the tier has unlocked, so placement mode has a tray. On a
+        // real island this is `user_cosmetics` — what somebody actually bought.
+        ownedCosmetics: PROP_IDS,
         placements: [],
         journal: [],
       },

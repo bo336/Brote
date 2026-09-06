@@ -21,6 +21,8 @@ import { useCameraDrag } from './control/useCameraDrag';
 import { HUD } from './hud/HUD';
 import { SettingsSheet } from './hud/SettingsSheet';
 import { MojonSheet } from './hud/MojonSheet';
+import { PlacementBar } from './hud/PlacementBar';
+import { usePlacementSave } from './placement/usePlacementSave';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useWorldStore } from './state/useWorldStore';
@@ -136,6 +138,8 @@ export default function MundoGame({
   const hydrate = useWorldStore((s) => s.hydrate);
   const setAppearance = usePlayerStore((s) => s.setAppearance);
   const setSemillas = usePlayerStore((s) => s.setSemillas);
+  const placement = useSessionStore((s) => s.placement);
+  const placementActions = useSessionStore((s) => s.placementActions);
   const setCosmetics = usePlayerStore((s) => s.setCosmetics);
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
@@ -157,6 +161,16 @@ export default function MundoGame({
       return TIME_ORDER[(i + 1) % TIME_ORDER.length]!;
     });
   }, []);
+  /**
+   * The autosave. Optimistic, debounced, and it keeps a failed write to retry —
+   * `readOnly` is what stops it running at all when the bootstrap failed and
+   * the arrangement on screen is a default rather than theirs.
+   */
+  const { save, state: saveState } = usePlacementSave({
+    userId: payload?.userId ?? userId,
+    readOnly: readOnly || !payload,
+  });
+
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -327,11 +341,29 @@ export default function MundoGame({
           placements={payload?.placements}
           onAdvanceTime={advanceTime}
           onOpenMojon={() => setHud('mojon')}
+          ownedCosmetics={payload?.ownedCosmetics}
+          onPlacementsChanged={save}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 
-      <HUD onOpenSettings={() => setHud('settings')} />
+      <HUD onOpenSettings={() => setHud('settings')} onArrange={() => setHud('placement')} />
+      {hud === 'placement' && placementActions && (
+        <PlacementBar
+          props={placement.props}
+          hasGhost={placement.hasGhost}
+          rejected={placement.rejected}
+          remaining={placement.remaining}
+          canUndo={placement.canUndo}
+          saveState={saveState}
+          onPick={placementActions.pick}
+          onRotate={placementActions.rotate}
+          onCommit={placementActions.commit}
+          onCancel={placementActions.cancel}
+          onUndo={placementActions.undo}
+          onExit={() => setHud('play')}
+        />
+      )}
       <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
       <MojonSheet
         open={hud === 'mojon'}

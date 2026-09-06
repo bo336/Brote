@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Settings2, Sprout } from 'lucide-react';
+import { ArrowLeft, LayoutGrid, Settings2, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
@@ -27,13 +27,21 @@ import { useSessionStore } from '../state/useSessionStore';
 /** How long a locked-verb hint stays on screen. */
 const HINT_MS = 2600;
 
-export function HUD({ onOpenSettings }: { onOpenSettings: () => void }) {
+export function HUD({
+  onOpenSettings,
+  onArrange,
+}: {
+  onOpenSettings: () => void;
+  /** Enter placement mode. Absent before tier 2, when there is nothing to place. */
+  onArrange?: () => void;
+}) {
   const t = useTranslations('mundo');
   const router = useRouter();
   const semillas = usePlayerStore((s) => s.semillas);
   const hud = useSessionStore((s) => s.hud);
   const lockedHint = useSessionStore((s) => s.lockedHint);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
+  const placementProps = useSessionStore((s) => s.placement.props.length);
   const playing = hud === 'play';
 
   /**
@@ -75,6 +83,19 @@ export function HUD({ onOpenSettings }: { onOpenSettings: () => void }) {
           <Sprout className="h-3.5 w-3.5" aria-hidden />
           {semillas}
         </span>
+        {/* Placement mode. Present only when there is something to arrange —
+            a button that opens an empty tray is a promise the game breaks. */}
+        {onArrange && placementProps > 0 && (
+          <button
+            type="button"
+            onClick={onArrange}
+            aria-label={t('placement.modo')}
+            className="pointer-events-auto flex items-center justify-center rounded-full bg-brote-ink/50 text-white backdrop-blur-sm transition-transform active:scale-95"
+            style={{ width: INTERACT.buttonMinPx, height: INTERACT.buttonMinPx }}
+          >
+            <LayoutGrid className="h-5 w-5" aria-hidden />
+          </button>
+        )}
         <button
           type="button"
           onClick={onOpenSettings}
