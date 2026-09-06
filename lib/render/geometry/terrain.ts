@@ -14,7 +14,8 @@
 import * as THREE from 'three';
 
 import { CLAY as CLAY_CFG, WATER_LEVEL } from '@/lib/world/config';
-import { coastRadiusAt, type IslandLayout } from '@/lib/world/layout';
+import { coastRadiusAt, regionAt, type IslandLayout } from '@/lib/world/layout';
+import { REGION_CHARACTER } from '@/lib/world/regions';
 import { fbm, sampleHeight, sampleSlope, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 import type { WorldPalette } from '../palette';
 import { CLAY } from '../palette';
@@ -57,6 +58,17 @@ const PATCH_LIFT = 0.55;
 /** Metres per cycle of the two masks: broad damp/dry, and fine patchiness. */
 const MOISTURE_FREQ = 0.06;
 const PATCH_FREQ = 0.38;
+/**
+ * How far a region's own character pulls the ground toward bare earth.
+ *
+ * Without this the nine regions shared one ground palette and the island read
+ * as a single field with different props scattered on it — which is exactly
+ * what `20-ACCEPTANCE.md` 3A asks it not to be. El Claro is *bare warm earth*;
+ * La Cumbre is above the tree line; El Jardín is lush. That is a statement
+ * about the ground itself, not only about what grows on it, and `bareness` is
+ * already the number that says so.
+ */
+const REGION_DRYNESS = 0.55;
 /** Slope above which ground reads as rock rather than cover. */
 const ROCK_SLOPE = 0.42;
 /** Ring offsets used by the AO probe, in metres. */
@@ -165,7 +177,9 @@ export function buildGround(
     // `* 1.7 - 0.25`, which clamped most of the island to fully damp and gave
     // the flat green wash the whole field read as. Gentler now, so the mask
     // actually spends its time in the middle where the mixing happens.
-    const moisture = Math.min(1, Math.max(0, fbm(x * MOISTURE_FREQ + seed, z * MOISTURE_FREQ - seed, 2) * 1.25 - 0.12));
+    let moisture = Math.min(1, Math.max(0, fbm(x * MOISTURE_FREQ + seed, z * MOISTURE_FREQ - seed, 2) * 1.25 - 0.12));
+    // The region it stands in dries it out, or does not.
+    moisture *= 1 - REGION_CHARACTER[regionAt(x, z, layout.regions)].bareness * REGION_DRYNESS;
     // The fine one is the brush: metre-scale patchiness that keeps a big field
     // from being one colour, at a frequency the player walks across.
     const patch = Math.min(1, Math.max(0, fbm(x * PATCH_FREQ - seed, z * PATCH_FREQ + seed, 2)));
