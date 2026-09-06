@@ -39,7 +39,9 @@ export function Island({
   // is already baked per vertex) and the Fresnel rim (on a floor, a rim term is
   // a wash, not an edge).
   const material = useMemo(
-    () => getClayMaterial({ vertexColors: true, ao: false, rim: false, wobble: true }),
+    // `ground: true` is what lets the tier-up uplift deform this and carry
+    // everything standing on it instead (`lib/render/reveal.ts`).
+    () => getClayMaterial({ vertexColors: true, ao: false, rim: false, wobble: true, ground: true }),
     [],
   );
   const grid = TIERS[tier].terrainGrid;

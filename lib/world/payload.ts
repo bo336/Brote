@@ -17,6 +17,8 @@
 // Relative, not `@/lib/mundo`: the test build compiles to plain CommonJS and
 // nothing resolves the path alias at runtime.
 import { parseMundoState } from '../mundo';
+// One implementation of the queue, shared with the ceremony that drains it.
+import { pendingCeremonies as pendingFrom } from './ceremony';
 import { MAX_TIER, MIN_TIER, PROP_IDS } from './progression';
 import { REGION_IDS, TIME_OF_DAY_IDS } from './types';
 import type {
@@ -163,6 +165,8 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     seed,
     tier,
     worldIndex: Math.max(1, int(mundo.worldIndex, 1)),
+    worldGrowth: Math.max(0, int(mundo.worldGrowth, 0)),
+    worldGoal: Math.max(1, int(mundo.worldGoal, 1)),
     liveliness: clamp(num(mundo.liveliness, 0.5), 0, 1),
     palette: str(mundo.palette, 'default'),
     dominantDomain: typeof mundo.dominantDomain === 'string' ? mundo.dominantDomain : null,
@@ -189,9 +193,4 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
   };
 }
 
-/** Every tier reached above the last celebrated one, ascending. */
-function pendingFrom(celebrated: number, tier: number): number[] {
-  const out: number[] = [];
-  for (let t = celebrated + 1; t <= tier; t++) out.push(t);
-  return out;
-}
+

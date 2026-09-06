@@ -10,6 +10,7 @@ import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { PROP_IDS } from '@/lib/world/progression';
 import { parseWorldPayload } from '@/lib/world/payload';
+import { updateReveal } from '@/lib/render/materials';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
 /**
@@ -40,6 +41,8 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?at=          a region id — drops Pip at its centre once the world is up
  *   ?props=1      lay one of each placeable prop out around the spawn
  *   ?impact=N     fixture impact totals, to drive the mirror and El Mojón
+ *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
+ *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
  * `?impact=` is how the four mirror channels get demonstrated without waiting
  * for somebody to log a year of real actions: 0 is a brand-new island, 1 is a
@@ -54,17 +57,31 @@ const MundoGame = dynamic(() => import('@/components/mundo3d/MundoGame'), {
 });
 
 /** Fixture totals, in the units `brote_user_impact` returns. */
-const ZERO = { water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0 };
+const ZERO = { water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0, actions: 0 };
 const IMPACT_FIXTURES = [
   ZERO,
-  { water_l: 1240, co2_kg: 2.4, waste_kg: 3.1, energy_kwh: 12 },
-  { water_l: 96000, co2_kg: 420, waste_kg: 310, energy_kwh: 2600 },
+  // `actions` is what tier 8's ceremony line counts, so a fixture without it
+  // reviews as "El monte se levantó con 0 acciones tuyas" — which is a sentence
+  // the product should never be able to say.
+  { water_l: 1240, co2_kg: 2.4, waste_kg: 3.1, energy_kwh: 12, actions: 86 },
+  { water_l: 96000, co2_kg: 420, waste_kg: 310, energy_kwh: 2600, actions: 4120 },
 ];
 
 function Preview() {
   const params = useSearchParams();
   const at = params.get('at') as RegionId | null;
-  const tier = Number(params.get('tier') ?? '2');
+  const tierUpParam = params.get('tierup');
+  const tierUp = tierUpParam === null ? null : Number(tierUpParam);
+  // A ceremony is for the tier being reached, so asking for one sets the world
+  // to it — a tier-8 ceremony on a tier-2 island would frame a mountain that
+  // does not exist yet.
+  const tier = tierUp ?? Number(params.get('tier') ?? '2');
+  const setReducedMotion = useSessionStore((state) => state.setReducedMotion);
+  const forceReducedMotion = params.get('rm') === '1';
+
+  useEffect(() => {
+    if (forceReducedMotion) setReducedMotion(true);
+  }, [forceReducedMotion, setReducedMotion]);
 
   /**
    * A payload built here rather than fetched, so the route needs no session.
@@ -77,7 +94,14 @@ function Preview() {
       {
         userId: DEMO_USER,
         seed: 12345,
-        world: { seed: 12345, celebrated_tier: tier, layouts: [] },
+        // `celebrated_tier` is what decides whether a ceremony is owed. One
+        // below the current tier queues exactly one, which is what `?tierup=`
+        // asks for; equal to it queues none, which is the ordinary case.
+        world: {
+          seed: 12345,
+          celebrated_tier: tierUp !== null ? tierUp - 1 : tier,
+          layouts: [],
+        },
         mundo: {
           rankTier: tier,
           structuralElements: ['soil'],
@@ -96,7 +120,7 @@ function Preview() {
       },
       DEMO_USER,
     );
-  }, [params, tier]);
+  }, [params, tier, tierUp]);
 
   /**
    * `?at=` and a `window.__pipTo(region)` hook, for touring the island without
@@ -114,6 +138,10 @@ function Preview() {
       __pipTo?: (id: RegionId) => [number, number];
       __pipAt?: (x: number, z: number) => void;
       __hud?: (mode: string) => void;
+      __tierup?: (tier: number) => void;
+      __ceremony?: () => unknown;
+      __beat?: (beat: string) => void;
+      __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number) => void;
     };
     w.__pipTo = (id: RegionId) => {
       const [x, z] = regionCentre(id);
@@ -129,6 +157,32 @@ function Preview() {
     };
     // And open a sheet without walking to it, for reviewing the panel itself.
     w.__hud = (mode: string) => useSessionStore.getState().setHud(mode as 'play');
+    // Hold beat 3 at a fixed point, so an arrival can be looked at rather than
+    // watched. `updateReveal` is the same call the runner makes every frame.
+    w.__reveal = (mode: string, amount: number, cx: number, cy: number, cz: number, radius: number) =>
+      updateReveal({
+        mode: mode as 'uplift',
+        centre: [cx, cy, cz],
+        radius,
+        amount,
+        bare: [0.66, 0.64, 0.59],
+      });
+    // What the ceremony thinks it is doing, for reviewing a beat rather than
+    // guessing at one from a screenshot.
+    w.__ceremony = () => {
+      const st = useSessionStore.getState();
+      return { ...st.ceremony, before: st.ceremony.before ? 'captured' : null, queue: st.ceremonyQueue, hud: st.hud };
+    };
+    // Park the HUD on one beat, so a card can be reviewed rather than caught.
+    // The runner only writes the beat when ITS beat changes, so a value set
+    // here survives until the clock crosses a boundary of its own.
+    w.__beat = (b: string) => useSessionStore.getState().setCeremonyBeat(b as 'title');
+    // Replay a ceremony without reloading, for stepping through the beats.
+    w.__tierup = (t: number) => {
+      const store = useSessionStore.getState();
+      store.queueCeremonies([t]);
+      store.nextCeremony();
+    };
     if (!at) return;
     // Re-applied on a timer: the world takes a moment to build and
     // `resetPlayerTransform` runs after it, so a single jump lands nowhere.
@@ -139,6 +193,12 @@ function Preview() {
   return (
     <MundoGame
       perf
+      // **Nothing here may write.** The route has no session, and a payload is
+      // normally exactly the signal that says one exists — so without this the
+      // autosave and `world_mark_celebrated` both fire against Supabase as an
+      // anonymous caller, and the app bounces the reviewer to the login screen
+      // in the middle of the thing they came to look at.
+      readOnly
       forcedTier={Number(params.get('q') ?? '1')}
       payload={payload}
       timeOfDay={(params.get('tod') as TimeOfDay | null) ?? 'dia'}

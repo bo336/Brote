@@ -14,9 +14,13 @@
 import * as THREE from 'three';
 
 import type { QualityTier } from '@/lib/world/types';
-import { applyMood, createClayMaterial, type ClayMaterial, type ClayOptions, type WorldMood } from './clay';
+import {
+  applyMood, applyReveal, createClayMaterial,
+  type ClayMaterial, type ClayOptions, type WorldMood,
+} from './clay';
 import { createFlatMaterial, type FlatOptions } from './flat';
-import { createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
+import { applyWaterReveal, createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
+import { REVEAL_OFF, type RevealState } from '../reveal';
 
 const clayCache = new Map<string, ClayMaterial>();
 const waterCache = new Map<string, WaterMaterial>();
@@ -24,6 +28,12 @@ const flatCache = new Map<string, THREE.MeshBasicMaterial>();
 const textureCache = new Map<string, THREE.Texture>();
 
 let lastMood: WorldMood | null = null;
+/**
+ * The arrival in force. Held here for the same reason the mood is: a material
+ * built mid-session — a prop placed during a ceremony, say — has to arrive
+ * matching the ones around it rather than at its finished state.
+ */
+let lastReveal: RevealState = REVEAL_OFF;
 
 function clayKey(o: ClayOptions): string {
   return [
@@ -33,6 +43,7 @@ function clayKey(o: ClayOptions): string {
     o.ao === false ? '-' : 'a',
     o.rim === false ? '-' : 'r',
     o.vertexColors === false ? '-' : 'c',
+    o.ground ? 'g' : '-',
     o.transparent ? 't' : '-',
     o.side ?? THREE.FrontSide,
     o.wobbleScale ?? 1,
@@ -51,6 +62,7 @@ export function getClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (hit) return hit;
   const mat = createClayMaterial(opts);
   if (lastMood) applyMood(mat, lastMood);
+  applyReveal(mat, lastReveal);
   clayCache.set(key, mat);
   return mat;
 }
@@ -60,6 +72,7 @@ export function getWaterMaterial(opts: WaterOptions): WaterMaterial {
   const hit = waterCache.get(key);
   if (hit) return hit;
   const mat = createWaterMaterial(opts);
+  applyWaterReveal(mat, lastReveal);
   waterCache.set(key, mat);
   return mat;
 }
@@ -111,6 +124,19 @@ export function updateMood(mood: WorldMood): void {
   for (const mat of clayCache.values()) applyMood(mat, mood);
 }
 
+/**
+ * The tier-up ceremony's beat 3, pushed to every live material at once.
+ *
+ * Called every frame for the ~8-15 seconds an arrival runs and once on either
+ * side of it. Six numbers per material, no allocation, no recompile — see
+ * `lib/render/reveal.ts` for why it can afford to be in every shader.
+ */
+export function updateReveal(reveal: RevealState): void {
+  lastReveal = reveal;
+  for (const mat of clayCache.values()) applyReveal(mat, reveal);
+  for (const mat of waterCache.values()) applyWaterReveal(mat, reveal);
+}
+
 /** How many materials are live — the perf overlay watches this against the 8. */
 export function liveMaterialCount(): number {
   return clayCache.size + waterCache.size + flatCache.size;
@@ -138,6 +164,7 @@ export function disposeAll(): void {
   flatCache.clear();
   textureCache.clear();
   lastMood = null;
+  lastReveal = REVEAL_OFF;
 }
 
 export type { ClayMaterial, ClayOptions, WaterMaterial, WaterOptions, WorldMood, QualityTier };

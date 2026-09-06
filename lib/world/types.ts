@@ -279,6 +279,9 @@ export interface WorldPayload {
   journal: JournalEntry[];
   dailyState: WorldDailyState;
   layouts: WorldLayout[];
+  /** Where this world sits against its goal, for the share card. */
+  worldGrowth: number;
+  worldGoal: number;
   /** Tiers reached but not yet celebrated, ascending. */
   pendingCeremonies: number[];
   celebratedWorld: number;

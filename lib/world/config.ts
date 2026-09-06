@@ -136,6 +136,18 @@ export const CAMERA = {
   aspectDistanceMax: 1.6, // distance multiplier clamp, high end
   portraitLookLiftM: 0.35, // raise the look-at in portrait so the joystick misses Pip
   recentreDelayS: 2.5, // auto-recentre behind Pip after this much idle camera input
+  /**
+   * How much slower the ceremony's camera moves than the follow rig.
+   * OURS: the spec gives 2 s for the lift, not a damping rate. A shot
+   * that settles as fast as a follow camera reads as a snap, not a lift.
+   */
+  ceremonyLambdaScale: 0.45,
+  /**
+   * The ceremony's pitch. Higher than the follow camera's -28 degrees:
+   * a shot looking DOWN at a mountain does not read as a mountain.
+   * OURS.
+   */
+  ceremonyPitchDeg: 14,
   recentreLambdaScale: 0.35, // …and eases round at a fraction of the follow rate
   lookAheadM: 0.4, // the look-at sits this far ahead of Pip, along their facing
   lookHeightFrac: 0.6, // …and this far up Pip's own height
@@ -298,6 +310,21 @@ export const CEREMONY = {
   newVerbS: 4, // beat 5 — the new verb, taught in one sentence, in-world
   shareCardS: 2, // beat 6 — no upsell, no interstitial
   worldCompleteS: 8, // the biome cross-fade when `worldIndex` increments
+} as const;
+
+/**
+ * Beat 3, per arrival, inside the 8-15 s window above. OURS: the spec gives the
+ * window, not the split. Longer for the events that travel across the island
+ * (the river cutting it, the mountain rising), shorter for the ones that happen
+ * in one place you are already standing in.
+ */
+export const CEREMONY_ARRIVAL_S = {
+  flores: 9,
+  arbol: 11,
+  rio: 14,
+  monte: 13,
+  nieve: 10,
+  islote: 12,
 } as const;
 
 // ── Time of day, seasons, liveliness ────────────────────────────────────────

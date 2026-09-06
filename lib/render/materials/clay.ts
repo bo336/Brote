@@ -21,8 +21,10 @@ import * as THREE from 'three';
 import { CLAY, FOG, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
 import {
-  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, HEIGHT_FOG_FRAG, WIND_VERT, WOBBLE_VERT,
+  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, HEIGHT_FOG_FRAG, REVEAL_FRAG, REVEAL_VERT,
+  WIND_VERT, WOBBLE_VERT,
 } from './chunks';
+import { REVEAL_OFF, revealModeIndex, type RevealState } from '../reveal';
 
 export interface WorldMood {
   rimColor: THREE.ColorRepresentation;
@@ -65,6 +67,16 @@ export interface ClayOptions {
    */
   rim?: boolean;
   vertexColors?: boolean;
+  /**
+   * This mesh **is** the ground.
+   *
+   * The tier-up uplift deforms the ground and rigidly carries everything
+   * standing on it (`../reveal.ts`), and this is the only way a shader can tell
+   * the two apart. Exactly one material passes it — `scene/Island.tsx` — and
+   * because that material's option set is already unique to the island, saying
+   * so costs nothing against the budget of eight.
+   */
+  ground?: boolean;
   transparent?: boolean;
   side?: THREE.Side;
   color?: THREE.ColorRepresentation;
@@ -112,6 +124,13 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     // the world solid white is not a default, it is a trap: `near 0, far 1`
     // fogs every fragment at full strength the moment it is drawn.
     uFogDensity: { value: 0 },
+    // The arrival, idle. `uRevealMode 0` is the branch every draw takes for all
+    // but ~40 seconds in the life of an island (see `../reveal.ts`).
+    uRevealCentre: { value: new THREE.Vector3() },
+    uRevealBare: { value: new THREE.Color(0.45, 0.42, 0.4) },
+    uRevealRadius: { value: 1 },
+    uRevealAmount: { value: 1 },
+    uRevealMode: { value: 0 },
   };
 }
 
@@ -157,6 +176,7 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (opts.heightFog ?? true) defines.push('#define BH_HEIGHT_FOG');
   if (opts.ao ?? true) defines.push('#define BH_AO');
   if (opts.rim ?? true) defines.push('#define BH_RIM');
+  if (opts.ground) defines.push('#define BH_REVEAL_GROUND');
   const defineBlock = defines.join('\n');
 
   mat.onBeforeCompile = (shader) => {
@@ -170,11 +190,13 @@ ${CLAY_VERT_HEAD}`),
         '#include <begin_vertex>',
         /* glsl */ `
         #include <begin_vertex>
+        // Reassigned below: the uplift moves the vertex and rewrites this.
         vec3 bhWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
         vClayWorld = bhWorld;
         // The AO base is the object's own origin in world space, so a tall tree
         // and a low rock both darken over the same 0.6 m above the ground.
         vAOBase = modelMatrix[3].y;
+        ${REVEAL_VERT}
         ${WOBBLE_VERT}
         ${WIND_VERT}
         ${FADE_VERT}
@@ -198,6 +220,8 @@ ${CLAY_FRAG_HEAD}`),
         '#include <lights_fragment_end>',
         /* glsl */ `
         #include <lights_fragment_end>
+        // (the snow line is applied further up, at color_fragment, so the
+        // bands and the AO below light the colour the ground actually has)
         // 1. Quantise the diffuse light into bands — this IS the clay read.
         float bhLum = dot(reflectedLight.directDiffuse, vec3(0.2126, 0.7152, 0.0722));
         float bhBanded = bh_bands(clamp(bhLum, 0.0, 1.0));
@@ -227,6 +251,15 @@ ${CLAY_FRAG_HEAD}`),
     // three puts its fog, so the two agree about what a colour is.
     shader.fragmentShader = inject(
       shader.fragmentShader,
+      '#include <color_fragment>',
+      /* glsl */ `
+        #include <color_fragment>
+        ${REVEAL_FRAG}
+      `,
+    );
+
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
       '#include <dithering_fragment>',
       /* glsl */ `
         ${HEIGHT_FOG_FRAG}
@@ -248,6 +281,22 @@ varying float vAOBase;`,
 
   return mat;
 }
+
+/**
+ * Push the arrival state in. Four numbers and two colours, zero recompiles —
+ * and outside a ceremony this is called once, with `mode: 'none'`.
+ */
+export function applyReveal(mat: ClayMaterial, reveal: RevealState): void {
+  const u = mat.clayUniforms;
+  (u.uRevealCentre!.value as THREE.Vector3).set(...reveal.centre);
+  (u.uRevealBare!.value as THREE.Color).setRGB(...reveal.bare);
+  u.uRevealRadius!.value = reveal.radius;
+  u.uRevealAmount!.value = reveal.amount;
+  u.uRevealMode!.value = revealModeIndex(reveal.mode);
+}
+
+/** The idle state, so a material built mid-session is not stuck mid-arrival. */
+export const CLAY_REVEAL_OFF = REVEAL_OFF;
 
 /** Push one mood into a material's uniforms. Eleven numbers, zero recompiles. */
 export function applyMood(mat: ClayMaterial, mood: WorldMood): void {

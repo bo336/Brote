@@ -20,6 +20,8 @@
  */
 import * as THREE from 'three';
 
+import { revealModeIndex, type RevealState } from '../reveal';
+
 import type { QualityTier } from '@/lib/world/types';
 import { CLAY } from '../palette';
 
@@ -62,6 +64,10 @@ const fragmentShader = /* glsl */ `
   uniform float uFoamWidth;
   uniform float uSpecular;
   uniform float uCaustics;
+  uniform vec3 uRevealCentre;
+  uniform float uRevealRadius;
+  uniform float uRevealAmount;
+  uniform float uRevealMode;
   varying float vDepth;
   varying vec2 vWorld;
   varying vec3 vNormalW;
@@ -73,6 +79,20 @@ const fragmentShader = /* glsl */ `
   }
 
   void main(){
+    // The río arriving (08-WORLD-AND-PROGRESSION.md §5 beat 3): water breaks
+    // through at the head and cuts down the channel. The front is a distance
+    // from the head, so the water travels — it does not fade up in place.
+    //
+    // A discard rather than an alpha ramp, because water at 0.2 alpha is a
+    // stain on the rock and not an empty channel. The leading edge keeps a
+    // couple of metres of foam-width jitter so it reads as a wavefront.
+    if (uRevealMode > 3.5) {
+      float bhD = length(vWorld - uRevealCentre.xz);
+      float bhFront = uRevealAmount * uRevealRadius;
+      float bhJitter = noise(vWorld * 3.0 + vec2(uTime * 0.9, 0.0)) * 0.9;
+      if (bhD > bhFront + bhJitter) discard;
+    }
+
     // Depth drives colour: you can read the shelving bed through the water.
     float d = clamp(vDepth / uDepthScale, 0.0, 1.0);
     vec3 col = mix(uShallow, uDeep, pow(d, 0.7));
@@ -143,6 +163,12 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
     uSun: { value: (opts.sunDirection ?? new THREE.Vector3(0.4, 0.8, 0.3)).clone().normalize() },
     uDepthScale: { value: opts.depthScale ?? 0.34 },
     uFoamWidth: { value: opts.foamWidth ?? 0.085 },
+    // The arrival, idle. See `../reveal.ts`; `uRevealMode 0` is the branch this
+    // takes for all but ~14 seconds in the life of an island.
+    uRevealCentre: { value: new THREE.Vector3() },
+    uRevealRadius: { value: 1 },
+    uRevealAmount: { value: 1 },
+    uRevealMode: { value: 0 },
   };
 
   const mat = new THREE.ShaderMaterial({
@@ -161,6 +187,15 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
 export function tickWater(mat: WaterMaterial, timeS: number, flow?: number): void {
   mat.waterUniforms.uTime!.value = timeS;
   if (flow !== undefined) mat.waterUniforms.uFlow!.value = flow;
+}
+
+/** Push the arrival state in. Only `channel` touches the water. */
+export function applyWaterReveal(mat: WaterMaterial, reveal: RevealState): void {
+  const u = mat.waterUniforms;
+  (u.uRevealCentre!.value as THREE.Vector3).set(...reveal.centre);
+  u.uRevealRadius!.value = reveal.radius;
+  u.uRevealAmount!.value = reveal.amount;
+  u.uRevealMode!.value = revealModeIndex(reveal.mode);
 }
 
 /** Retune for a new quality tier. Three floats; no recompile, no dropped frame. */

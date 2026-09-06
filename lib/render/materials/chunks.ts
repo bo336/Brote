@@ -121,6 +121,104 @@ export const FADE_FRAG = /* glsl */ `
   #endif
 `;
 
+/**
+ * The arrival (`08-WORLD-AND-PROGRESSION.md` §5 beat 3, and `lib/render/reveal.ts`).
+ *
+ * Two of the four modes are geometry and live here. `uplift` scales the ground
+ * back toward a flat plate and lets it push out again, so the mountain *rises*
+ * instead of appearing; `grow` scales each instance about its own base as a
+ * front passes it, so a wave of blooming races outward.
+ *
+ * The split on `USE_INSTANCING` is what keeps them apart: the ground is a plain
+ * mesh and every scatter is instanced, so neither mode can reach the other's
+ * geometry and no mesh needs to be told which it is. Both branches are on a
+ * uniform, so a draw either takes them all or takes none — the coherent case a
+ * GPU is fastest at, and the reason this compiles into every clay material
+ * rather than into a ninth one bought out of a budget of eight.
+ */
+export const REVEAL_VERT = /* glsl */ `
+  if (uRevealMode > 0.5) {
+    // Where this vertex belongs, as far as the arrival is concerned. Three
+    // cases, and the difference between them is the whole design:
+    //
+    //  - the GROUND deforms, so every vertex answers for itself;
+    //  - an INSTANCE (a tree, a rock, a tuft) answers for the copy it is part
+    //    of, so the copy moves as one solid thing;
+    //  - anything else answers for its object origin, for the same reason.
+    //
+    // Getting this wrong is not subtle: sampling per-vertex on a mesh whose
+    // origin is not the world origin stretches it toward the event instead of
+    // moving it, which turns Pip into a smear the moment a mountain rises
+    // anywhere near him.
+    #ifdef USE_INSTANCING
+      vec3 bhBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+      float bhLocalScale = length(modelMatrix[1].xyz) * length(instanceMatrix[1].xyz);
+    #else
+      #ifdef BH_REVEAL_GROUND
+        vec3 bhBase = bhWorld;
+        float bhLocalScale = 1.0;
+      #else
+        vec3 bhBase = modelMatrix[3].xyz;
+        float bhLocalScale = length(modelMatrix[1].xyz);
+      #endif
+    #endif
+
+    // ── uplift: the ground buckles and the mountain pushes up out of itself.
+    if (uRevealMode < 1.5) {
+      float bhNorm = length(bhBase.xz - uRevealCentre.xz) / max(0.001, uRevealRadius);
+      // Outside the event nothing moves, so the rest of the island — and
+      // whoever is standing on it — is not dragged along with the part rising.
+      float bhInside = 1.0 - smoothstep(0.75, 1.0, bhNorm);
+      // The middle leads and the skirt follows: a bulge pushing up, rather
+      // than a plate being raised.
+      float bhLead = clamp(uRevealAmount * 1.45 - bhNorm * 0.45, 0.0, 1.0);
+      float bhK = mix(1.0, mix(0.04, 1.0, bhLead * bhLead * (3.0 - 2.0 * bhLead)), bhInside);
+      float bhDelta = (uRevealCentre.y - bhBase.y) * (1.0 - bhK);
+      transformed.y += bhDelta / max(0.0001, bhLocalScale);
+      #ifdef BH_REVEAL_GROUND
+        // The world position every later chunk reads has to be the one the
+        // vertex actually ends up at, or the fog and the snow line would both
+        // be measuring the mountain that used to be there.
+        bhWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+        vClayWorld = bhWorld;
+      #endif
+    }
+
+    // ── grow: a front races outward and everything it passes stands up.
+    #ifdef USE_INSTANCING
+      if (uRevealMode > 2.5 && uRevealMode < 3.5) {
+        float bhD = length(bhBase.xz - uRevealCentre.xz);
+        float bhFront = uRevealAmount * uRevealRadius;
+        // A band, not a step: the wave has a width, so a whole ring is
+        // mid-bloom at once instead of the island switching on row by row.
+        float bhG = clamp((bhFront - bhD) / max(0.001, uRevealRadius * 0.22), 0.0, 1.0);
+        // Overshoot and settle. A bloom springs; it does not inflate.
+        transformed *= bhG * (1.0 + 0.30 * sin(bhG * 3.14159));
+      }
+    #endif
+  }
+`;
+
+
+/**
+ * `snowline` — the one arrival that is paint rather than geometry.
+ *
+ * The baked ground already carries its snow, because tomorrow's island is the
+ * one that was generated. So the animation runs the other way: bare rock is
+ * painted back over everything below a line, and the line falls. It reaches the
+ * baked colour exactly, which is the point — a ceremony that leaves the world a
+ * shade off from where it will be tomorrow is a ceremony that lied.
+ */
+export const REVEAL_FRAG = /* glsl */ `
+  if (uRevealMode > 1.5 && uRevealMode < 2.5) {
+    float bhLine = uRevealCentre.y + uRevealRadius * (1.0 - uRevealAmount);
+    // Softened by a few centimetres so the line reads as settling snow rather
+    // than as a clipping plane.
+    float bhSnow = smoothstep(bhLine - 0.12, bhLine + 0.12, vClayWorld.y);
+    diffuseColor.rgb = mix(uRevealBare, diffuseColor.rgb, bhSnow);
+  }
+`;
+
 /** Declarations every clay vertex shader needs, injected once at the top. */
 export const CLAY_VERT_HEAD = /* glsl */ `
   uniform float uTime;
@@ -131,6 +229,10 @@ export const CLAY_VERT_HEAD = /* glsl */ `
   uniform float uWindHz;
   uniform float uWindGustHz;
   uniform float uWindHeightBias;
+  uniform vec3 uRevealCentre;
+  uniform float uRevealRadius;
+  uniform float uRevealAmount;
+  uniform float uRevealMode;
   varying vec3 vClayWorld;
   varying float vFogDepth;
   varying float vFade;
@@ -153,6 +255,11 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
   uniform float uFogNear;
   uniform float uFogFar;
   uniform float uFogDensity;
+  uniform vec3 uRevealCentre;
+  uniform vec3 uRevealBare;
+  uniform float uRevealRadius;
+  uniform float uRevealAmount;
+  uniform float uRevealMode;
   varying vec3 vClayWorld;
   varying float vFogDepth;
   varying float vFade;

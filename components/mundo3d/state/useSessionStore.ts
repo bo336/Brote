@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 
+import type { BeatId } from '@/lib/world/ceremony';
 import type { Interactable, PropId, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
@@ -42,6 +43,27 @@ export interface PlacementActions {
   undo: () => void;
 }
 
+/**
+ * The tier-up ceremony, as the HUD sees it.
+ *
+ * Same seam as placement, for the same reason: the beat clock ticks inside
+ * `<Canvas>` at frame rate and the cards live outside it. What crosses is the
+ * **beat**, which changes six times in forty seconds — not the elapsed time,
+ * which changes sixty times a second and would re-render a title card that
+ * says the same thing.
+ */
+export interface CeremonyStatus {
+  /** The tier being celebrated, or null when nothing is playing. */
+  tier: number | null;
+  beat: BeatId;
+  /** The before-shot, as a data URL, once beat 2 has taken it. */
+  before: string | null;
+  /** Skipping is a HUD button and a runner behaviour; this is the wire. */
+  skipped: boolean;
+}
+
+const NO_CEREMONY: CeremonyStatus = { tier: null, beat: 'camera', before: null, skipped: false };
+
 const EMPTY_PLACEMENT: PlacementSummary = {
   hasGhost: false,
   rejected: false,
@@ -66,6 +88,18 @@ interface SessionStoreState {
   lockedHint: VerbId | null;
   placement: PlacementSummary;
   placementActions: PlacementActions | null;
+  /**
+   * The queue of tiers reached but not yet celebrated, oldest first
+   * (`08-WORLD-AND-PROGRESSION.md` §5: "ceremonies queue and play in order").
+   */
+  ceremonyQueue: number[];
+  ceremony: CeremonyStatus;
+  queueCeremonies: (tiers: readonly number[]) => void;
+  /** Start the next queued one, or clear when the queue is empty. */
+  nextCeremony: () => void;
+  setCeremonyBeat: (beat: BeatId) => void;
+  setCeremonyBefore: (before: string | null) => void;
+  skipCeremony: () => void;
   setPlacement: (summary: PlacementSummary) => void;
   setPlacementActions: (actions: PlacementActions | null) => void;
   setReady: (ready: boolean) => void;
@@ -87,6 +121,30 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   lockedHint: null,
   placement: EMPTY_PLACEMENT,
   placementActions: null,
+  ceremonyQueue: [],
+  ceremony: NO_CEREMONY,
+  queueCeremonies: (tiers) =>
+    set((s) => (s.ceremonyQueue.length > 0 || tiers.length === 0 ? s : { ceremonyQueue: [...tiers] })),
+  nextCeremony: () =>
+    set((s) => {
+      const [next, ...rest] = s.ceremonyQueue;
+      if (next === undefined) return { ceremony: NO_CEREMONY, ceremonyQueue: [], hud: 'play' as const };
+      // The before-shot belongs to the ceremony that took it, so it is dropped
+      // here rather than carried into the next one's card.
+      return {
+        ceremonyQueue: rest,
+        ceremony: { tier: next, beat: 'camera' as const, before: null, skipped: false },
+        hud: 'cutscene' as const,
+      };
+    }),
+  setCeremonyBeat: (beat) =>
+    set((s) => (s.ceremony.beat === beat ? s : { ceremony: { ...s.ceremony, beat } })),
+  setCeremonyBefore: (before) => set((s) => ({ ceremony: { ...s.ceremony, before } })),
+  // Never force it twice (§5): skipping is remembered for this ceremony only,
+  // and the card is still made — the runner reads this and jumps, it does not
+  // tear the sequence down.
+  skipCeremony: () =>
+    set((s) => (s.ceremony.skipped ? s : { ceremony: { ...s.ceremony, skipped: true } })),
   // Compared field by field: the editor recomputes this on every change, and
   // most changes do not alter anything the buttons render.
   setPlacement: (placement) =>

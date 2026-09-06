@@ -130,6 +130,12 @@ export const BLOB_SHADOW = {
 // ── Share card and poster (`07-RENDER-ARCHITECTURE.md` §1) ──────────────────
 
 export const SHARE_CARD = {
+  /**
+   * JPEG quality for the ceremony's before-shot. It is held in memory as a
+   * data URL for under a minute and then drawn at a fraction of the card's
+   * height, so PNG would be several megabytes of string for nothing. OURS.
+   */
+  captureQuality: 0.82,
   width: 1080, // the 9:16-ish portrait card…
   height: 1350,
   squareSize: 1080, // …and the 1:1 variant of the same composition

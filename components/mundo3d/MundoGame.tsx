@@ -9,6 +9,7 @@ import { CAMERA, JOYSTICK, RENDER_LOOP } from '@/lib/world/config';
 import { isNight } from '@/lib/utils/dates';
 import { pipStageForTier } from '@/lib/mundo';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
+import { biomeConfig } from '@/lib/world/biome';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
 import { disposeAll as disposeMaterials } from '@/lib/render/materials';
@@ -18,11 +19,9 @@ import { ZERO_IMPACT } from '@/lib/world/impact';
 import type { FollowCamera } from './control/FollowCamera';
 import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
-import { HUD } from './hud/HUD';
-import { SettingsSheet } from './hud/SettingsSheet';
-import { MojonSheet } from './hud/MojonSheet';
-import { PlacementBar } from './hud/PlacementBar';
+import { HudLayer } from './hud/HudLayer';
 import { usePlacementSave } from './placement/usePlacementSave';
+import { useCelebrate } from './ceremony/useCelebrate';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useWorldStore } from './state/useWorldStore';
@@ -52,7 +51,6 @@ const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
  * downloads a byte of it.
  */
 const PerfProbe = dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfProbe), { ssr: false });
-const PerfOverlay = dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfOverlay), { ssr: false });
 
 /**
  * Tone mapping is off on purpose: the palette is authored, and ACES only
@@ -138,13 +136,14 @@ export default function MundoGame({
   const hydrate = useWorldStore((s) => s.hydrate);
   const setAppearance = usePlayerStore((s) => s.setAppearance);
   const setSemillas = usePlayerStore((s) => s.setSemillas);
-  const placement = useSessionStore((s) => s.placement);
-  const placementActions = useSessionStore((s) => s.placementActions);
   const setCosmetics = usePlayerStore((s) => s.setCosmetics);
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
   const setHud = useSessionStore((s) => s.setHud);
+  const queueCeremonies = useSessionStore((s) => s.queueCeremonies);
+  const nextCeremony = useSessionStore((s) => s.nextCeremony);
+  const ceremonyTier = useSessionStore((s) => s.ceremony.tier);
 
   const [tier, setTier] = useState<QualityTier>(1);
   const [frameloop, setFrameloop] = useState<'always' | 'demand'>('always');
@@ -171,11 +170,29 @@ export default function MundoGame({
     readOnly: readOnly || !payload,
   });
 
+  /**
+   * A tier reached but not yet celebrated plays **the next time the player
+   * enters `/mundo`** (`08-WORLD-AND-PROGRESSION.md` §5), which is here. The
+   * queue is drained one at a time, oldest first, and `world_mark_celebrated`
+   * is what stops it playing twice.
+   */
+  const celebrate = useCelebrate({ readOnly: readOnly || !payload, worldIndex: payload?.worldIndex ?? worldIndex });
+  useEffect(() => {
+    const pending = payload?.pendingCeremonies;
+    if (!pending || pending.length === 0) return;
+    queueCeremonies(pending);
+    nextCeremony();
+  }, [payload?.pendingCeremonies, queueCeremonies, nextCeremony]);
+
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
+  /** The live canvas, for the share card. See `share/ShareCard.ts`. */
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reducedMotion = prefersReducedMotion(reduceMotionSetting);
+  /** The biome's own name, for the share card. Never derived from a string. */
+  const biome = useMemo(() => biomeConfig(payload?.worldIndex ?? worldIndex), [payload?.worldIndex, worldIndex]);
   const palette = useMemo(() => paletteForWorld(worldIndex, timeOfDay), [worldIndex, timeOfDay]);
 
   // ── The world, derived once from server state. It cannot change during play:
@@ -308,7 +325,7 @@ export default function MundoGame({
           the probe rejects them, and a harness that samples nothing measures
           nothing (`07-RENDER-ARCHITECTURE.md` §6). */}
       <Canvas
-        frameloop={hud !== 'play' ? 'demand' : perf ? 'always' : frameloop}
+        frameloop={ceremonyTier !== null || perf ? 'always' : hud !== 'play' ? 'demand' : frameloop}
         dpr={params.dprCap}
         camera={{
           fov: CAMERA.fov,
@@ -328,6 +345,7 @@ export default function MundoGame({
         <Renderer
           onReady={(gl) => {
             rendererRef.current = gl;
+            canvasRef.current = gl.domElement;
           }}
         />
         <color attach="background" args={[palette.skyHorizon]} />
@@ -343,36 +361,23 @@ export default function MundoGame({
           onOpenMojon={() => setHud('mojon')}
           ownedCosmetics={payload?.ownedCosmetics}
           onPlacementsChanged={save}
+          onCelebrated={celebrate}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 
-      <HUD onOpenSettings={() => setHud('settings')} onArrange={() => setHud('placement')} />
-      {hud === 'placement' && placementActions && (
-        <PlacementBar
-          props={placement.props}
-          hasGhost={placement.hasGhost}
-          rejected={placement.rejected}
-          remaining={placement.remaining}
-          canUndo={placement.canUndo}
-          saveState={saveState}
-          onPick={placementActions.pick}
-          onRotate={placementActions.rotate}
-          onCommit={placementActions.commit}
-          onCancel={placementActions.cancel}
-          onUndo={placementActions.undo}
-          onExit={() => setHud('play')}
-        />
-      )}
-      <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
-      <MojonSheet
-        open={hud === 'mojon'}
-        onClose={() => setHud('play')}
-        totals={world.impact}
+      <HudLayer
+        canvasRef={canvasRef}
+        impact={world.impact}
         tier={world.tier}
+        worldIndex={world.worldIndex}
+        biomeName={biome.name}
+        worldGrowth={payload?.worldGrowth ?? 0}
+        worldGoal={payload?.worldGoal ?? 0}
         collectiveWaterL={payload?.collectiveWaterL ?? 0}
+        saveState={saveState}
+        perf={perf}
       />
-      {perf && PerfOverlay && <PerfOverlay />}
     </div>
   );
 }

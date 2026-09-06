@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import { CAMERA, PIP_HEIGHT_M, REDUCED_MOTION_DAMPING_SCALE } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
+import type { CameraShot } from '@/lib/render/reveal';
 import type { PropCollider } from './CharacterController';
 import { playerTransform } from '../state/usePlayerStore';
 
@@ -38,6 +39,10 @@ export interface CameraOptions {
 const scratchTarget = new THREE.Vector3();
 const scratchDesired = new THREE.Vector3();
 
+// The shot type itself lives a layer down, in `lib/render/reveal.ts`, so the
+// arrival planner can compose one without importing a component.
+export type { CameraShot };
+
 export class FollowCamera {
   private camera: THREE.PerspectiveCamera;
   private lookAt = new THREE.Vector3();
@@ -54,6 +59,17 @@ export class FollowCamera {
   private occluders: readonly PropCollider[] = [];
   /** How much of the boom currently clears the ground, 0..1. */
   private clearance = 1;
+  /**
+   * The ceremony's shot, or null when the camera is following Pip.
+   *
+   * While it is set, `update` composes from the shot instead: no auto-recentre
+   * (there is nothing to recentre on), no occlusion pull-in (the shot is
+   * authored, and a boom that shortens itself mid-ceremony is the pull-in
+   * fighting the director), and a slow orbit the shot itself asks for.
+   */
+  private shot: CameraShot | null = null;
+  /** The orbit's accumulated angle, so releasing and retaking does not jump. */
+  private shotYaw = 0;
 
   constructor(opts: CameraOptions) {
     this.camera = opts.camera;
@@ -153,6 +169,57 @@ export class FollowCamera {
     return 1;
   }
 
+  /**
+   * Hand the camera to the ceremony.
+   *
+   * `instant` is the reduced-motion path: `16-UI-AUDIO-A11Y.md` and §5 both ask
+   * for **cuts instead of camera moves**, which is a jump to the composed shot
+   * rather than a shorter sweep to it. The same beats, the same length, none of
+   * the travel.
+   */
+  takeOver(shot: CameraShot, instant = false): void {
+    this.shot = shot;
+    this.shotYaw = shot.yaw;
+    if (instant) this.snapToShot();
+  }
+
+  /** Give it back. The rig damps home from wherever the shot left it. */
+  release(): void {
+    this.shot = null;
+  }
+
+  get inShot(): boolean {
+    return this.shot !== null;
+  }
+
+  /** Where the lens sits for the current shot. Writes into `scratchDesired`. */
+  private composeShot(shot: CameraShot): void {
+    const pitch = (shot.pitchDeg * Math.PI) / 180;
+    const d = shot.distance * this.aspectCompensation();
+    scratchTarget.set(shot.x, shot.y, shot.z);
+    scratchDesired.set(
+      shot.x - Math.sin(this.shotYaw) * d * Math.cos(pitch),
+      shot.y + Math.sin(pitch) * d,
+      shot.z - Math.cos(this.shotYaw) * d * Math.cos(pitch),
+    );
+    // The one concession the shot makes to the world: never below the ground.
+    // A composed orbit around a mountain will otherwise clip through the ridge
+    // it is orbiting, and that is one frame of the inside of the island.
+    if (this.heightfield) {
+      const floor = sampleHeight(this.heightfield, scratchDesired.x, scratchDesired.z)
+        + CAMERA.occlusionClearanceM;
+      if (scratchDesired.y < floor) scratchDesired.y = floor;
+    }
+  }
+
+  private snapToShot(): void {
+    if (!this.shot) return;
+    this.composeShot(this.shot);
+    this.camera.position.copy(scratchDesired);
+    this.lookAt.copy(scratchTarget);
+    this.camera.lookAt(this.lookAt);
+  }
+
   /** The camera's yaw, which the controller uses to rotate the input vector. */
   getYaw(): number {
     return this.yaw;
@@ -220,6 +287,18 @@ export class FollowCamera {
   update(dt: number): void {
     const p = playerTransform;
     this.sinceManualS += dt;
+
+    // The ceremony has the camera. Compose, drift, damp — and nothing else:
+    // the follow behaviour below would be arguing with the director.
+    if (this.shot) {
+      this.shotYaw += this.shot.orbit * dt;
+      this.composeShot(this.shot);
+      const kShot = 1 - Math.exp(-CAMERA.posLambda * CAMERA.ceremonyLambdaScale * dt);
+      this.camera.position.lerp(scratchDesired, kShot);
+      this.lookAt.lerp(scratchTarget, kShot);
+      this.camera.lookAt(this.lookAt);
+      return;
+    }
 
     // Auto-recentre behind Pip while moving, after the manual-camera timeout.
     if (this.autoRecentre && !this.reducedMotion && p.speed > 0.2 && this.sinceManualS > CAMERA.recentreDelayS) {

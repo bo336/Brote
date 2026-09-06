@@ -4,22 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { PIP_HEIGHT_M, TERRAIN, VERB_TIMING, WIND, WOBBLE } from '@/lib/world/config';
+import { TERRAIN, WIND, WOBBLE } from '@/lib/world/config';
 import { seasonFor } from '@/lib/world/season';
-import { haptic } from '@/lib/utils/haptics';
 import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
-import { getFlatMaterial, getTexture } from '@/lib/render/materials';
-import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
-import type { Placement, PropId, QualityTier, TimeOfDay } from '@/lib/world/types';
-import { BLOB_SHADOW, INTERACT, SEMILLAS } from '@/lib/world/config';
-import { registerInteractable } from '../interaction/InteractableRegistry';
-import { PlacementMode, makeGroundTest } from '../placement/PlacementMode';
-import { usePlacementEditor } from '../placement/usePlacementEditor';
-import { placeableProps } from '@/lib/world/placement';
+import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
+import { CeremonyStage } from '../ceremony/CeremonyStage';
+import { PlacementMode } from '../placement/PlacementMode';
+import { usePlacementBridge } from '../placement/usePlacementBridge';
 import { CharacterController, type PropCollider } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
@@ -28,8 +23,8 @@ import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
-import { VerbRuntime, type VerbResult } from '../verbs/runtime';
-import { useVerbSpots, type VerbSpot } from '../verbs/register';
+import { useWorldVerbs } from '../verbs/useWorldVerbs';
+import { useBlobShadows } from './useBlobShadows';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { Island } from './Island';
@@ -53,18 +48,6 @@ import { Water } from './Water';
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
 const EMPTY_OWNED: readonly string[] = [];
-/**
- * Static shadow slots: the T3 tree and rock budgets, plus the structures and
- * placed props. Sized once at the ceiling, like every other pool, so changing
- * tier never allocates.
- */
-const STATIC_SHADOWS = TIERS[3].trees + TIERS[3].rocks + 64;
-/**
- * Moving shadow slots: Pip, plus the two ground-walking fauna kinds at their T3
- * cap. Fliers and fish get none — a bird at 2.4 m is most of the way through
- * the height fade already and the fish are under the water.
- */
-const MOVING_SHADOWS = TIERS[3].fauna * 2 + 4;
 
 export function World({
   tier,
@@ -75,6 +58,7 @@ export function World({
   placements = EMPTY_PLACEMENTS,
   demoProps = false,
   onAdvanceTime,
+  onCelebrated,
   onOpenMojon,
   ownedCosmetics = EMPTY_OWNED,
   onPlacementsChanged,
@@ -94,9 +78,10 @@ export function World({
   ownedCosmetics?: readonly string[];
   /** The arrangement changed and wants saving. Debounced by the caller. */
   onPlacementsChanged?: (placements: Placement[]) => void;
+  /** A tier-up ceremony finished playing. The route persists it. */
+  onCelebrated?: (tier: number) => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const scene = useThree((s) => s.scene);
   const invalidate = useThree((s) => s.invalidate);
 
   const config = useWorldStore((s) => s.config);
@@ -121,8 +106,6 @@ export function World({
   const groundTier = useRef(tier).current;
   const lastStateRef = useRef(usePlayerStore.getState().state);
   const season = useMemo(() => seasonFor(new Date()), []);
-  const addSemillas = usePlayerStore((s) => s.addSemillas);
-  const setVerb = usePlayerStore((s) => s.setVerb);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
 
   // ── The heightfield, baked once, behind the loading state.
@@ -193,35 +176,10 @@ export function World({
     cameraRef.current?.setReducedMotion(reducedMotion);
   }, [reducedMotion, cameraRef]);
 
-  // ── Blob shadows: one instanced mesh, one draw call, every shadow in the game.
-  const shadowMaterial = useMemo(() => {
-    const map = getTexture('blob-shadow', buildBlobTexture);
-    return getFlatMaterial({
-      map, transparent: true, opacity: BLOB_SHADOW.maxOpacity, depthWrite: false, polygonOffset: -4,
-    });
-  }, []);
-  // Movers: Pip and the walking animals — two kinds of them at the T3 cap, plus
-  // slack. Statics: every tree, rock, structure and placed prop on the island,
-  // which are what made the world look like it was floating over its own ground.
-  const shadows = useMemo(
-    () => new BlobShadowPool(shadowMaterial, MOVING_SHADOWS, STATIC_SHADOWS),
-    [shadowMaterial],
-  );
-  useEffect(() => {
-    scene.add(shadows.mesh);
-    return () => {
-      scene.remove(shadows.mesh);
-      shadows.dispose();
-    };
-  }, [scene, shadows]);
-  useEffect(() => {
-    const root = pipRef.current.root;
-    if (!root) return;
-    // A touch wider than Pip is, so the shadow reads past his own silhouette —
-    // from behind at -28 degrees his body covers most of what sits under him.
-    const slot = shadows.attach(root, PIP_HEIGHT_M * 0.5);
-    return () => shadows.detach(slot);
-  }, [shadows]);
+  // Movers: Pip and the walking animals. Statics: every tree, rock, structure
+  // and placed prop on the island — what made the world look like it was
+  // floating over its own ground before they existed.
+  const shadows = useBlobShadows(pipRef);
 
   // ── The mood: one object, ~11 uniforms, every clay material in the scene.
   useEffect(() => {
@@ -255,77 +213,10 @@ export function World({
     invalidate();
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
 
-  /**
-   * The verb runtime. Completing a verb pays semillas and **never XP** — the
-   * one-way valve is the product's premise, and `no-xp.test.ts` greps this whole
-   * tree to keep it that way (`11-GAME-LOOP.md` §1).
-   */
-  const onVerbFinish = useCallback(
-    (result: VerbResult) => {
-      setVerb(null);
-      controller?.setLocked(false);
-      if (!result.success) return;
-      // Sound, motion and haptic together: one alone reads as a bug (`10` §6).
-      haptic(result.verb === 'fish' ? 'success' : 'medium');
-      if (result.verb === 'forage') addSemillas(SEMILLAS.forageMin);
-      if (result.verb === 'log') addSemillas(SEMILLAS.censusFirst);
-    },
-    [controller, setVerb, addSemillas],
-  );
-
-  const runtime = useMemo(() => new VerbRuntime(onVerbFinish), [onVerbFinish]);
-
-  /**
-   * Using a verb. `sail` and `rest` change how movement works rather than
-   * pausing it, so they go to the controller; everything else is a timed action.
-   */
-  const onUseVerb = useCallback(
-    (spot: VerbSpot) => {
-      if (!controller) return;
-      setVerb(spot.verb);
-      if (spot.verb === 'sail') {
-        controller.boardBoat();
-        return;
-      }
-      if (spot.verb === 'rest') {
-        // Resting advances the time of day one preset — the only control over
-        // time the player has (`10-CONTROLS-AND-CAMERA.md` §3).
-        controller.setLocked(true);
-        window.setTimeout(() => {
-          controller.setLocked(false);
-          setVerb(null);
-          onAdvanceTime?.();
-        }, VERB_TIMING.restAdvanceS * 1000);
-        return;
-      }
-      controller.setLocked(true);
-      runtime.begin(spot.verb, spot.id);
-    },
-    [controller, runtime, setVerb, onAdvanceTime],
-  );
-
-  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb);
-
-  /**
-   * El Mojón, the one place a number lives.
-   *
-   * It is not a verb — it is a stone you read — so it registers itself rather
-   * than going through `buildVerbSpots`, and it carries no verb at all, which
-   * is what makes it available from tier 1 with nothing to unlock.
-   */
-  useEffect(() => {
-    if (!layout || !heightfield || !onOpenMojon) return;
-    const anchor = layout.anchors.find((a) => a.feature === 'mojon');
-    if (!anchor) return;
-    return registerInteractable({
-      id: 'mojon',
-      position: [anchor.x, sampleHeight(heightfield, anchor.x, anchor.z), anchor.z],
-      radius: INTERACT.defaultRadiusM,
-      labelKey: 'accion.mojon',
-      enabled: true,
-      onInteract: onOpenMojon,
-    });
-  }, [layout, heightfield, onOpenMojon]);
+  // The verbs, the semillas they pay, and El Mojón, which is not a verb.
+  const runtime = useWorldVerbs({
+    controller, layout, heightfield, config, timeOfDay, season, onAdvanceTime, onOpenMojon,
+  });
 
   useFrame((state, delta) => {
     // Clamp: a tab that was backgrounded must not teleport Pip across the island.
@@ -355,61 +246,11 @@ export function World({
     if (promoted !== null) onTierChange(promoted);
   });
 
-  // ── Placement mode.
-  //
-  // The editor lives here because this is where the layout, the heightfield and
-  // the camera are. The controls live in the HUD, outside the canvas, and the
-  // two halves meet through a summary in the session store — see there for why
-  // the ghost itself does not make the trip.
-  const editor = usePlacementEditor({
-    layout,
-    tier: config.tier,
-    owned: ownedCosmetics,
-    initial: placements,
-    isGround: useMemo(() => (layout ? makeGroundTest(layout) : undefined), [layout]),
+  // ── Placement mode. The editor lives here because this is where the layout,
+  //    the heightfield and the camera are; the controls live in the HUD.
+  const arrange = usePlacementBridge({
+    layout, config, ownedCosmetics, placements, onPlacementsChanged,
   });
-  const placeInFront = useRef<((slug: PropId) => { x: number; z: number }) | null>(null);
-  const setPlacement = useSessionStore((s) => s.setPlacement);
-  const setPlacementActions = useSessionStore((s) => s.setPlacementActions);
-  const editing = useSessionStore((s) => s.hud) === 'placement';
-
-  const tray = useMemo(
-    () => placeableProps(ownedCosmetics, config.props),
-    [ownedCosmetics, config.props],
-  );
-
-  useEffect(() => {
-    setPlacement({
-      hasGhost: editor.ghost !== null,
-      rejected: editor.ghost?.rejection != null,
-      remaining: editor.remaining,
-      canUndo: editor.canUndo,
-      props: tray,
-    });
-  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray]);
-
-  useEffect(() => {
-    setPlacementActions({
-      pick: (slug) => {
-        const at = placeInFront.current?.(slug) ?? { x: 0, z: 0 };
-        editor.begin(slug, at.x, at.z);
-        editor.moveGhost(at.x, at.z);
-      },
-      rotate: () => editor.rotate(1),
-      commit: () => editor.commit(),
-      cancel: () => editor.cancel(),
-      undo: () => editor.undo(),
-    });
-    return () => setPlacementActions(null);
-  }, [setPlacementActions, editor]);
-
-  // The arrangement is reported up whenever it settles, never mid-drag: the
-  // ghost is not part of it until it is put down.
-  const committed = editor.placements;
-  useEffect(() => {
-    if (!editing) return;
-    onPlacementsChanged?.(committed);
-  }, [committed, editing, onPlacementsChanged]);
 
   if (!layout || !heightfield) return null;
   return (
@@ -427,15 +268,13 @@ export function World({
         shadows={shadows}
         onColliders={onTreeColliders}
       />
-      {editing && (
+      {arrange.editing && (
         <PlacementMode
           layout={layout}
           heightfield={heightfield}
-          ghost={editor.ghost}
-          onMove={editor.moveGhost}
-          onReady={(fn) => {
-            placeInFront.current = fn;
-          }}
+          ghost={arrange.ghost}
+          onMove={arrange.moveGhost}
+          onReady={arrange.setPlaceInFront}
         />
       )}
       <Props
@@ -443,7 +282,7 @@ export function World({
         layout={layout}
         mirror={mirror}
         timeOfDay={timeOfDay}
-        placements={editing ? editor.placements : placements}
+        placements={arrange.editing ? arrange.placements : placements}
         demo={demoProps}
         onColliders={onColliders}
         shadows={shadows}
@@ -462,6 +301,17 @@ export function World({
         tier={tier}
         liveliness={liveliness}
         shadows={shadows}
+      />
+      {/* The tier-up ceremony's beat clock and the marker it leaves behind.
+          Inside the canvas because both are made of time and geometry; the
+          cards it shows are in the HUD. */}
+      <CeremonyStage
+        layout={layout}
+        heightfield={heightfield}
+        cameraRef={cameraRef}
+        controller={controller}
+        reducedMotion={reducedMotion}
+        onCelebrated={onCelebrated}
       />
       <MistWall layout={layout} config={config} palette={palette} />
       <Pip handle={pipRef} />
