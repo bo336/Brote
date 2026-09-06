@@ -20,6 +20,7 @@ import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
 import { HUD } from './hud/HUD';
 import { SettingsSheet } from './hud/SettingsSheet';
+import { MojonSheet } from './hud/MojonSheet';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useWorldStore } from './state/useWorldStore';
@@ -325,12 +326,20 @@ export default function MundoGame({
           demoProps={demoProps}
           placements={payload?.placements}
           onAdvanceTime={advanceTime}
+          onOpenMojon={() => setHud('mojon')}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 
       <HUD onOpenSettings={() => setHud('settings')} />
       <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
+      <MojonSheet
+        open={hud === 'mojon'}
+        onClose={() => setHud('play')}
+        totals={world.impact}
+        tier={world.tier}
+        collectiveWaterL={payload?.collectiveWaterL ?? 0}
+      />
       {perf && PerfOverlay && <PerfOverlay />}
     </div>
   );

@@ -715,7 +715,8 @@
       "deesto": "De esto nació: {lista}",
       "juntos": "Entre todos: {total}",
       "como": "¿Cómo lo calculamos?",
-      "metodo": "Contamos solo acciones registradas. Los estimados usan promedios y los mostramos con rango. Versión {v}."
+      "metodo": "Contamos solo acciones registradas. Los estimados usan promedios y los mostramos con rango. Versión {v}.",
+      "vacio": "Nothing logged yet. What you do in the app shows up here."
     },
     "locked": {
       "hint": "Algo está creciendo del otro lado de la niebla.",
@@ -765,6 +766,9 @@
       "residuos": "Residuos en la playa",
       "sequia": "La sequía",
       "visitante": "La visitante"
+    },
+    "accion": {
+      "mojon": "Read"
     }
   }
 }

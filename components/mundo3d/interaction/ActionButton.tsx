@@ -29,7 +29,10 @@ export function ActionButton() {
   const t = useTranslations('mundo');
   if (!active) return null;
 
-  const Icon = ICONS[active.verb] ?? Sprout;
+  // A verb-less interactable labels itself. El Mojón is not "plantar"; it is
+  // "leer", and the registry is what knows which.
+  const Icon = (active.verb ? ICONS[active.verb] : undefined) ?? Sprout;
+  const label = active.verb ? t(`verb.${active.verb}`) : t(active.labelKey);
   return (
     <button
       type="button"
@@ -38,7 +41,7 @@ export function ActionButton() {
         haptic('medium');
         getInteractable(active.id)?.onInteract();
       }}
-      aria-label={t(`verb.${active.verb}`)}
+      aria-label={label}
       className="absolute right-5 flex flex-col items-center gap-1 rounded-pill bg-brote-cream/95 px-5 py-3 text-brote-ink shadow-soft-lg transition-transform active:scale-95"
       style={{
         bottom: `max(env(safe-area-inset-bottom), ${JOYSTICK.safeAreaMinPx}px)`,
@@ -47,7 +50,7 @@ export function ActionButton() {
       }}
     >
       <Icon className="h-5 w-5" aria-hidden />
-      <span className="text-caption font-bold capitalize">{t(`verb.${active.verb}`)}</span>
+      <span className="text-caption font-bold capitalize">{label}</span>
     </button>
   );
 }

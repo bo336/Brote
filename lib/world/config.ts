@@ -294,6 +294,47 @@ export const MIRROR_RANGE = {
   windmillRPM: [2, 14], // `mundo_molino` promises it turns faster when it blows
 } as const;
 
+/**
+ * El Mojón — the one place a number appears in the world (`13` §3).
+ */
+export const MOJON = {
+  /**
+   * How wide an `estimado` band is, either side of the figure.
+   *
+   * An estimate that shows a decimal is claiming a precision it does not have.
+   * A quarter either way is honest about a modelled proxy and still narrow
+   * enough to mean something.
+   */
+  estimateSpread: 0.25,
+  /**
+   * The coefficient set these figures were computed with.
+   *
+   * Argentine grid factors change, and a number computed with last year's
+   * factor is not wrong — it is from last year. The panel says which one it
+   * used so that "¿Cómo lo calculamos?" has something to answer with.
+   */
+  coefficientVersion: '2026.1',
+} as const;
+
+/**
+ * Where each impact channel's number comes from (`13` §3).
+ *
+ * All four are `medido` today: `brote_user_impact` sums per-activity
+ * coefficients, and there is no modelled proxy in the schema to label
+ * otherwise. This is a table rather than a constant so that adding one later is
+ * a data change; what it must never become is a decorative `estimado` on a
+ * figure that was actually measured.
+ */
+export const IMPACT_PROVENANCE: Record<
+  'water' | 'co2' | 'waste' | 'energy',
+  'medido' | 'estimado'
+> = {
+  water: 'medido',
+  co2: 'medido',
+  waste: 'medido',
+  energy: 'medido',
+};
+
 // ── Events (`14-CONTENT.md` §5) ─────────────────────────────────────────────
 
 /** At most one per two days, never two in a row (`11-GAME-LOOP.md` §3.7). */

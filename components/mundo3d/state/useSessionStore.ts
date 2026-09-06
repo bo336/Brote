@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import type { Interactable, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
-export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene';
+export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon';
 
 /**
  * Session ephemera: the things that change during play and that React genuinely

@@ -49,7 +49,8 @@ export function findActive(x: number, z: number, yaw: number, verbs: readonly Ve
 
   for (const item of registry.values()) {
     if (!item.enabled) continue;
-    if (!verbs.includes(item.verb)) continue;
+    // No verb means no unlock gates it — see `Interactable.verb`.
+    if (item.verb && !verbs.includes(item.verb)) continue;
     const dx = item.position[0] - x;
     const dz = item.position[2] - z;
     const distance = Math.hypot(dx, dz);

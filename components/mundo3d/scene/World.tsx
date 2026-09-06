@@ -15,7 +15,8 @@ import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
 import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
-import { BLOB_SHADOW, SEMILLAS } from '@/lib/world/config';
+import { BLOB_SHADOW, INTERACT, SEMILLAS } from '@/lib/world/config';
+import { registerInteractable } from '../interaction/InteractableRegistry';
 import { CharacterController, type PropCollider } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
@@ -26,6 +27,7 @@ import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
 import { VerbRuntime, type VerbResult } from '../verbs/runtime';
 import { useVerbSpots, type VerbSpot } from '../verbs/register';
+import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { Island } from './Island';
 import { Lights } from './Lights';
@@ -69,6 +71,7 @@ export function World({
   placements = EMPTY_PLACEMENTS,
   demoProps = false,
   onAdvanceTime,
+  onOpenMojon,
 }: {
   tier: QualityTier;
   timeOfDay: TimeOfDay;
@@ -79,6 +82,8 @@ export function World({
   demoProps?: boolean;
   /** `descansar` hands time forward; the route owns which preset comes next. */
   onAdvanceTime?: () => void;
+  /** Opens El Mojón. The world knows where the stone is; the HUD owns the sheet. */
+  onOpenMojon?: () => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const scene = useThree((s) => s.scene);
@@ -291,6 +296,27 @@ export function World({
 
   useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb);
 
+  /**
+   * El Mojón, the one place a number lives.
+   *
+   * It is not a verb — it is a stone you read — so it registers itself rather
+   * than going through `buildVerbSpots`, and it carries no verb at all, which
+   * is what makes it available from tier 1 with nothing to unlock.
+   */
+  useEffect(() => {
+    if (!layout || !heightfield || !onOpenMojon) return;
+    const anchor = layout.anchors.find((a) => a.feature === 'mojon');
+    if (!anchor) return;
+    return registerInteractable({
+      id: 'mojon',
+      position: [anchor.x, sampleHeight(heightfield, anchor.x, anchor.z), anchor.z],
+      radius: INTERACT.defaultRadiusM,
+      labelKey: 'accion.mojon',
+      enabled: true,
+      onInteract: onOpenMojon,
+    });
+  }, [layout, heightfield, onOpenMojon]);
+
   useFrame((state, delta) => {
     // Clamp: a tab that was backgrounded must not teleport Pip across the island.
     const dt = Math.min(delta, TERRAIN.frameClampS);
@@ -343,6 +369,13 @@ export function World({
         placements={placements}
         demo={demoProps}
         onColliders={onColliders}
+        shadows={shadows}
+      />
+      {/* La Costa: the waste channel, and the only system that starts worse. */}
+      <Debris
+        heightfield={heightfield}
+        layout={layout}
+        debrisCount={mirror.debrisCount}
         shadows={shadows}
       />
       <Fauna

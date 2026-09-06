@@ -224,7 +224,14 @@ export interface Interactable {
   radius: number;
   /** i18n key, never a literal string. */
   labelKey: string;
-  verb: VerbId;
+  /**
+   * The verb this needs, when it needs one.
+   *
+   * **Optional, because not everything you can walk up to is one of the
+   * sixteen.** El Mojón is a stone you read; it is there from tier 1 and no
+   * unlock gates it. An interactable with no verb is always available.
+   */
+  verb?: VerbId;
   enabled: boolean;
 }
 
