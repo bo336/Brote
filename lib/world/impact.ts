@@ -72,10 +72,13 @@ export function mirrorFrom(totals: ImpactTotals): MirrorParams {
   };
 }
 
-/** The mirror at zero impact — the honest starting state of a brand-new island. */
-export const ZERO_MIRROR: MirrorParams = mirrorFrom({
+/** No impact yet. A real total of zero, not a missing one. */
+export const ZERO_IMPACT: ImpactTotals = {
   water_l: 0,
   co2_kg: 0,
   waste_kg: 0,
   energy_kwh: 0,
-});
+};
+
+/** The mirror at zero impact — the honest starting state of a brand-new island. */
+export const ZERO_MIRROR: MirrorParams = mirrorFrom(ZERO_IMPACT);

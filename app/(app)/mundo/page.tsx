@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-import { parseMundoState } from '@/lib/mundo';
+import { parseWorldPayload } from '@/lib/world/payload';
 import { MundoClient } from './MundoClient';
 
 /**
@@ -48,24 +48,26 @@ export default async function MundoPage({ searchParams }: PageProps) {
 
   if (!(await mundoEnabled(supabase))) redirect('/perfil');
 
-  // One read, on the server. `mundo_state` is computed by Postgres and the world
-  // only ever reads it (`15-DATA-MODEL.md` §1). Phase 4 replaces this with the
-  // single `world_bootstrap()` round trip.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('mundo_state')
-    .eq('id', user.id)
-    .maybeSingle();
-  const mundo = parseMundoState(profile?.mundo_state);
+  // **One round trip.** `world_bootstrap()` creates the row on a first visit and
+  // returns the ladder, the island, the placements, the bitácora, the balance
+  // and today's counters together (`15-DATA-MODEL.md` §2). During play there are
+  // no further Supabase calls except the debounced autosave and the interaction
+  // RPCs — a WebGL frame budget has no room for a waterfall of queries.
+  const { data, error } = await supabase.rpc('world_bootstrap');
+
+  // A failed bootstrap is not a broken page. The parser fills every field, so
+  // the player still gets their tier-1 island and can walk around it; what they
+  // lose is their placements, which the autosave must therefore never treat an
+  // empty list as authoritative for. `MundoClient` is told, so the HUD can say
+  // so rather than silently pretending the island is new.
+  const payload = parseWorldPayload(data, user.id);
 
   return (
     <MundoClient
       perf={searchParams.perf === '1'}
       forcedTier={parseTier(searchParams.mundoTier)}
-      userId={user.id}
-      tier={mundo.rankTier}
-      worldIndex={mundo.worldIndex}
-      liveliness={mundo.liveliness}
+      payload={payload}
+      degraded={!!error}
     />
   );
 }

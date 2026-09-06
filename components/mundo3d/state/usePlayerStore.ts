@@ -62,6 +62,8 @@ interface PlayerStoreState {
   setCosmetics: (cosmetics: PipCosmetics) => void;
   setAppearance: (a: { stage: PipStage; golden: boolean; aura: boolean }) => void;
   addSemillas: (n: number) => void;
+  /** The authoritative balance from the server. Replaces, never adds. */
+  setSemillas: (n: number) => void;
 }
 
 export const usePlayerStore = create<PlayerStoreState>((set) => ({
@@ -77,4 +79,5 @@ export const usePlayerStore = create<PlayerStoreState>((set) => ({
   setCosmetics: (cosmetics) => set({ cosmetics }),
   setAppearance: ({ stage, golden, aura }) => set({ stage, golden, aura }),
   addSemillas: (n) => set((s) => ({ semillas: Math.max(0, s.semillas + n) })),
+  setSemillas: (n) => set({ semillas: Math.max(0, Math.trunc(n)) }),
 }));

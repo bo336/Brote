@@ -13,7 +13,8 @@ import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
 import { disposeAll as disposeMaterials } from '@/lib/render/materials';
 import { disposeAll as disposeGeometry } from '@/lib/render/geometry';
-import type { QualityTier, TimeOfDay } from '@/lib/world/types';
+import type { QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
+import { ZERO_IMPACT } from '@/lib/world/impact';
 import type { FollowCamera } from './control/FollowCamera';
 import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
@@ -81,6 +82,25 @@ export interface MundoGameProps {
   timeOfDay?: TimeOfDay;
   /** Lay one of each placeable prop out around the spawn, for review. */
   demoProps?: boolean;
+  /**
+   * Everything the server sent, in one `world_bootstrap()` trip.
+   *
+   * Optional because the preview route drives the world from URL parameters
+   * instead. When it is here it wins: the tier, the seed, the impact and the
+   * placements are the player's real ones, and the loose props above are only
+   * the fallback for a world nobody owns.
+   */
+  payload?: WorldPayload;
+  /**
+   * The bootstrap failed and `payload` is a filled-in default rather than this
+   * player's island.
+   *
+   * It gates every write. An empty `placements` list from a failed read looks
+   * exactly like an island somebody cleared on purpose, and autosaving it would
+   * delete the real one. When this is true the world is a picture: walkable,
+   * and unable to overwrite anything.
+   */
+  readOnly?: boolean;
 }
 
 /**
@@ -104,6 +124,8 @@ export default function MundoGame({
   liveliness = 0.5,
   timeOfDay: timeOfDayOverride,
   demoProps = false,
+  payload,
+  readOnly = false,
 }: MundoGameProps) {
   const detailMode = useSettings((s) => s.detailMode);
   const reduceMotionSetting = useSettings((s) => s.reduceMotion);
@@ -112,6 +134,8 @@ export default function MundoGame({
 
   const hydrate = useWorldStore((s) => s.hydrate);
   const setAppearance = usePlayerStore((s) => s.setAppearance);
+  const setSemillas = usePlayerStore((s) => s.setSemillas);
+  const setCosmetics = usePlayerStore((s) => s.setCosmetics);
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
@@ -141,16 +165,29 @@ export default function MundoGame({
 
   // ── The world, derived once from server state. It cannot change during play:
   //    a real action completes in the app, never in here.
+  //    The payload is the truth when there is one; the loose props are the
+  //    preview route's way of asking for a world nobody owns.
+  const world = useMemo(
+    () => ({
+      userId: payload?.userId ?? userId,
+      tier: payload?.tier ?? worldTier,
+      worldIndex: payload?.worldIndex ?? worldIndex,
+      liveliness: payload?.liveliness ?? liveliness,
+      impact: payload?.impact ?? ZERO_IMPACT,
+    }),
+    [payload, userId, worldTier, worldIndex, liveliness],
+  );
+
   useEffect(() => {
-    hydrate({
-      userId,
-      tier: worldTier,
-      worldIndex,
-      liveliness,
-      // Phase 4 hands the real totals down from `brote_user_impact`.
-      impact: { water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0 },
-    });
-  }, [hydrate, userId, worldTier, worldIndex, liveliness]);
+    hydrate(world);
+  }, [hydrate, world]);
+
+  /** The balance and the look Pip already has, straight from the server. */
+  useEffect(() => {
+    if (!payload) return;
+    setSemillas(payload.semillas);
+    setCosmetics(payload.pip);
+  }, [payload, setSemillas, setCosmetics]);
 
   /**
    * **Pip's stage.** The store defaults to `seed`, `applyStage` hides the leaves
@@ -161,11 +198,11 @@ export default function MundoGame({
    */
   useEffect(() => {
     setAppearance({
-      stage: pipStageForTier(worldTier),
-      golden: worldTier >= GOLDEN_TIER,
-      aura: worldTier >= AURA_TIER,
+      stage: pipStageForTier(world.tier),
+      golden: world.tier >= GOLDEN_TIER,
+      aura: world.tier >= AURA_TIER,
     });
-  }, [setAppearance, worldTier]);
+  }, [setAppearance, world.tier]);
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).
@@ -286,6 +323,7 @@ export default function MundoGame({
           onTierChange={onTierChange}
           cameraRef={cameraRef}
           demoProps={demoProps}
+          placements={payload?.placements}
           onAdvanceTime={advanceTime}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}

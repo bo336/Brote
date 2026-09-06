@@ -78,6 +78,21 @@ export type EventId = 'incendio' | 'creciente' | 'nido' | 'residuos' | 'sequia' 
 
 export type TimeOfDay = 'amanecer' | 'dia' | 'atardecer' | 'noche';
 export type SeasonId = 'verano' | 'otono' | 'invierno' | 'primavera';
+
+/**
+ * The same ids at runtime, for validating data that crosses a boundary.
+ *
+ * A union type is gone by the time a row arrives from Postgres, so anything
+ * parsing a payload needs the list itself. `satisfies` keeps the two in step:
+ * add a region to the union without adding it here and this stops compiling.
+ */
+export const REGION_IDS = [
+  'claro', 'pradera', 'jardin', 'arboleda', 'rio', 'monte', 'cumbre', 'islote', 'monumento',
+] as const satisfies readonly RegionId[];
+
+export const TIME_OF_DAY_IDS = [
+  'amanecer', 'dia', 'atardecer', 'noche',
+] as const satisfies readonly TimeOfDay[];
 export type QualityTier = 0 | 1 | 2 | 3;
 export type BiomeKind = 'pradera' | 'bosque' | 'costa' | 'desierto' | 'selva' | 'tundra';
 
@@ -222,10 +237,32 @@ export interface ProjectMarker {
   z: number;
 }
 
+/** Today's counters, from `world_daily`. Caps live on the server. */
+export interface WorldDailyState {
+  chores_done: number;
+  forage_done: number;
+  event_done: boolean;
+  event_slug: string | null;
+  semillas_awarded: number;
+}
+
+/** A saved arrangement, from `user_world.layouts`. */
+export interface WorldLayout {
+  name: string;
+  placements: Placement[];
+  saved_at?: string;
+}
+
 /** Everything `/mundo` needs, fetched in one RPC round trip. */
 export interface WorldPayload {
   userId: string;
   seed: number;
+  /** The ladder itself, from `profiles.mundo_state`. Read, never written. */
+  tier: number;
+  worldIndex: number;
+  liveliness: number;
+  palette: string;
+  dominantDomain: string | null;
   pip: PipCosmetics;
   ownedCosmetics: string[];
   semillas: number;
@@ -233,7 +270,12 @@ export interface WorldPayload {
   collectiveWaterL: number;
   placements: Placement[];
   journal: JournalEntry[];
+  dailyState: WorldDailyState;
+  layouts: WorldLayout[];
+  /** Tiers reached but not yet celebrated, ascending. */
   pendingCeremonies: number[];
+  celebratedWorld: number;
+  snapshotUrl: string | null;
   projectMarkers: ProjectMarker[];
   dueReviews: number;
 }

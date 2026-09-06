@@ -8,10 +8,19 @@
     "moduleResolution": "node",
     "rootDir": ".",
     "outDir": ".test-out",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "jsx": "react-jsx",
     "plugins": []
   },
-  "include": ["lib/world/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "lib/world/**/*.ts",
+    "lib/mundo.ts",
+    "lib/ranks.ts",
+    "lib/domains.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
