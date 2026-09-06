@@ -32,12 +32,15 @@ interface PlacementBarProps {
   rejected: boolean;
   remaining: number;
   canUndo: boolean;
+  /** Saved-arrangement slots: filled ones load, empty ones save. */
+  slots: boolean[];
   saveState: SaveState;
   onPick: (slug: PropId) => void;
   onRotate: () => void;
   onCommit: () => void;
   onCancel: () => void;
   onUndo: () => void;
+  onUseSlot: (index: number) => void;
   onExit: () => void;
 }
 
@@ -71,8 +74,8 @@ function Round({
 }
 
 export function PlacementBar({
-  props, hasGhost, rejected, remaining, canUndo, saveState,
-  onPick, onRotate, onCommit, onCancel, onUndo, onExit,
+  props, hasGhost, rejected, remaining, canUndo, slots, saveState,
+  onPick, onRotate, onCommit, onCancel, onUndo, onUseSlot, onExit,
 }: PlacementBarProps) {
   const t = useTranslations('mundo');
 
@@ -96,6 +99,31 @@ export function PlacementBar({
               : t('placement.saved')}
         </span>
       </div>
+
+      {/* Saved arrangements. **Numbered, never named** — a text input in a 3D
+          HUD is a keyboard over the world to solve a problem nobody has. A
+          full row is also the whole explanation of the cap. */}
+      {!hasGhost && slots.length > 0 && (
+        <div className="flex gap-2">
+          {slots.map((full, i) => (
+            <button
+              key={i}
+              type="button"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                onUseSlot(i);
+              }}
+              aria-label={full ? t('placement.cargar', { n: i + 1 }) : t('placement.guardar', { n: i + 1 })}
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-pill text-caption font-semibold',
+                full ? 'bg-brote-green text-white' : 'bg-brote-ink/60 text-brote-cream/70',
+              )}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* The tray of things they own. Empty is not an error state: at tier 1
           nobody has bought anything yet. */}

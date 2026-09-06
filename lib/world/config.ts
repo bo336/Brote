@@ -222,7 +222,26 @@ export const VERB_TIMING = {
 
 // ── Placement and arrangement (`08-WORLD-AND-PROGRESSION.md` §8) ────────────
 
+/**
+ * Saved arrangements (`08-WORLD-AND-PROGRESSION.md` §8). The real cap is the
+ * plan's, enforced by `world_save_layout`; these are what the bar draws.
+ */
+export const LAYOUTS = {
+  /** Slots a free account gets, and therefore what everyone sees. */
+  freeSlots: 3,
+  /** The ceiling `world_save_layout` allows a paid plan. */
+  maxSlots: 10,
+  /** Stored names are `slot-1`… so saving over a slot overwrites it. */
+  slotPrefix: 'slot-',
+} as const;
+
 export const PLACEMENT = {
+  /**
+   * How much wider than its footprint a placed prop is to tap.
+   * OURS: a fingertip is about 9 mm across and a comedero's footprint is
+   * 0.35 m, so an exact test makes picking one back up a game of skill.
+   */
+  pickUpReachScale: 1.6,
   capBase: 4, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
   capPerTier: 3,
   rotationStepDeg: 15, // free rotation, snapped

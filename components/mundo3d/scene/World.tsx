@@ -11,8 +11,9 @@ import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
-import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
+import type { Placement, QualityTier, TimeOfDay, WorldLayout } from '@/lib/world/types';
 import { CeremonyStage } from '../ceremony/CeremonyStage';
+
 import { PlacementMode } from '../placement/PlacementMode';
 import { usePlacementBridge } from '../placement/usePlacementBridge';
 import { CharacterController, type PropCollider } from '../control/CharacterController';
@@ -30,6 +31,7 @@ import { Fauna } from './Fauna';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
+import { PosterShot } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
 import { Vegetation } from './Vegetation';
@@ -59,8 +61,11 @@ export function World({
   demoProps = false,
   onAdvanceTime,
   onCelebrated,
+  onPoster,
   onOpenMojon,
   ownedCosmetics = EMPTY_OWNED,
+  savedLayouts,
+  readOnly = false,
   onPlacementsChanged,
 }: {
   tier: QualityTier;
@@ -76,10 +81,16 @@ export function World({
   onOpenMojon?: () => void;
   /** What the player owns, for the placement tray. */
   ownedCosmetics?: readonly string[];
+  /** Saved arrangements from `world_bootstrap`. */
+  savedLayouts?: readonly WorldLayout[];
+  /** The bootstrap failed and this island is a default. Nothing may write. */
+  readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
   onPlacementsChanged?: (placements: Placement[]) => void;
   /** A tier-up ceremony finished playing. The route persists it. */
   onCelebrated?: (tier: number) => void;
+  /** Take the poster. Handed a canvas holding a frame that was just drawn. */
+  onPoster?: (canvas: HTMLCanvasElement) => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const invalidate = useThree((s) => s.invalidate);
@@ -249,7 +260,7 @@ export function World({
   // ── Placement mode. The editor lives here because this is where the layout,
   //    the heightfield and the camera are; the controls live in the HUD.
   const arrange = usePlacementBridge({
-    layout, config, ownedCosmetics, placements, onPlacementsChanged,
+    layout, config, ownedCosmetics, placements, savedLayouts, readOnly, onPlacementsChanged,
   });
 
   if (!layout || !heightfield) return null;
@@ -273,7 +284,9 @@ export function World({
           layout={layout}
           heightfield={heightfield}
           ghost={arrange.ghost}
+          placements={arrange.placements}
           onMove={arrange.moveGhost}
+          onPickUp={arrange.pickUp}
           onReady={arrange.setPlaceInFront}
         />
       )}
@@ -313,6 +326,7 @@ export function World({
         reducedMotion={reducedMotion}
         onCelebrated={onCelebrated}
       />
+      {onPoster && <PosterShot onShoot={onPoster} />}
       <MistWall layout={layout} config={config} palette={palette} />
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />

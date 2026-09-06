@@ -797,7 +797,9 @@
       "girar": "Rotate",
       "cancelar": "Cancel",
       "confirmar": "Place",
-      "modo": "Arrange"
+      "modo": "Arrange",
+      "cargar": "Load saved {n}",
+      "guardar": "Save to slot {n}"
     }
   }
 }

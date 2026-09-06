@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 
-import { checkBatch, checkPlacement, nudgeClear, remainingSlots, snapRotation } from '../placement';
+import { checkBatch, checkPlacement, nudgeClear, propAt, remainingSlots, snapRotation } from '../placement';
 import { placementCap } from '../config';
 import type { Placement } from '../types';
 
@@ -103,4 +103,26 @@ test('one bad item rejects the whole batch', () => {
     checkBatch([p(), p({ region: 'cumbre' })], { tier: 3, owned: OWNED }),
     'region_locked',
   );
+});
+
+test('a tap lifts the prop under it, and nothing when there is none', () => {
+  const list = [
+    p({ prop_slug: 'mundo_banco', x: 0, z: 0 }),
+    p({ prop_slug: 'mundo_hamaca', x: 4, z: 0 }),
+  ];
+  const footprint = () => 0.5;
+  assert.equal(propAt(0.1, 0.1, list, footprint), 0);
+  assert.equal(propAt(4, 0.2, list, footprint), 1);
+  // Between them is empty ground, and a tap there must start a drag rather
+  // than silently lift whichever bench happens to be nearer.
+  assert.equal(propAt(2, 0, list, footprint), -1);
+  assert.equal(propAt(0, 0, [], footprint), -1);
+});
+
+test('overlapping footprints still resolve to exactly one prop', () => {
+  // The nudge can leave two things closer than the sum of their radii; the
+  // tap has to pick the one whose centre is nearer, not both and not neither.
+  const list = [p({ x: 0, z: 0 }), p({ x: 0.3, z: 0 })];
+  assert.equal(propAt(0.05, 0, list, () => 0.5), 0);
+  assert.equal(propAt(0.28, 0, list, () => 0.5), 1);
 });

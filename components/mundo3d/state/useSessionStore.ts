@@ -33,6 +33,8 @@ export interface PlacementSummary {
   remaining: number;
   canUndo: boolean;
   props: PropId[];
+  /** Which saved-layout slots hold something. Length is how many are drawn. */
+  slots: boolean[];
 }
 
 export interface PlacementActions {
@@ -41,6 +43,8 @@ export interface PlacementActions {
   commit: () => void;
   cancel: () => void;
   undo: () => void;
+  /** Save into an empty slot, or load a full one. */
+  useSlot: (index: number) => void;
 }
 
 /**
@@ -70,6 +74,7 @@ const EMPTY_PLACEMENT: PlacementSummary = {
   remaining: 0,
   canUndo: false,
   props: [],
+  slots: [],
 };
 
 interface SessionStoreState {
@@ -153,7 +158,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
       s.placement.rejected === placement.rejected &&
       s.placement.remaining === placement.remaining &&
       s.placement.canUndo === placement.canUndo &&
-      s.placement.props.length === placement.props.length
+      s.placement.props.length === placement.props.length &&
+      s.placement.slots.length === placement.slots.length &&
+      s.placement.slots.every((v, i) => v === placement.slots[i])
         ? s
         : { placement },
     ),

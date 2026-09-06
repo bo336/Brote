@@ -140,6 +140,21 @@ export function usePlacementEditor({
     return true;
   }, []);
 
+  /**
+   * Swap the whole arrangement, for loading a saved layout.
+   *
+   * One history entry, not one per prop: undo after loading a layout has to
+   * put back the island you had, not peel the new one off a bench at a time.
+   */
+  const replaceAll = useCallback(
+    (next: readonly Placement[]) => {
+      history.current.push(placements);
+      setPlacements([...next]);
+      setGhost(null);
+    },
+    [placements],
+  );
+
   /** Lift one that is already down, so moving a bench is not delete-and-place. */
   const pickUp = useCallback(
     (index: number) => {
@@ -164,5 +179,6 @@ export function usePlacementEditor({
     cancel,
     undo,
     pickUp,
+    replaceAll,
   };
 }

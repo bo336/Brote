@@ -155,3 +155,24 @@ export const PERF_CEILINGS = [
 
 /** Light presets cross-fade over this; it is not a continuous sun sim (`06` §6). */
 export const LIGHT_PRESET_CROSSFADE_S = 2;
+
+/**
+ * El póster — the still image every other screen in the app shows instead of a
+ * second WebGL context (`07-RENDER-ARCHITECTURE.md` §1).
+ */
+export const SNAPSHOT = {
+  bucket: 'world-snapshots',
+  /**
+   * JPEG rather than PNG: the card is at most 320 px tall and this is uploaded
+   * from a phone, often on mobile data. OURS.
+   */
+  quality: 0.78,
+  /**
+   * Seconds after arriving before the shot is taken. Long enough for the
+   * camera to damp in behind Pip and the world to finish building; short
+   * enough that a player who bounces straight back out still gets one. OURS.
+   */
+  settleS: 4,
+  /** The most posters one visit may upload. A souvenir, not a stream. */
+  maxPerVisit: 2,
+} as const;

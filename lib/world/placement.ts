@@ -145,6 +145,33 @@ export function checkBatch(
 }
 
 /** Which region a point falls in, for the region a placement records. */
+/**
+ * Which placed prop is under this point, or -1.
+ *
+ * Nearest centre wins, so two things whose footprints overlap after a nudge
+ * still resolve to exactly one — and the test is against a slightly generous
+ * radius, because a finger on a phone is wider than a bench.
+ */
+export function propAt(
+  x: number,
+  z: number,
+  placements: readonly Placement[],
+  footprintOf: (slug: PropId) => number,
+): number {
+  let best = -1;
+  let bestD = Infinity;
+  for (let i = 0; i < placements.length; i++) {
+    const p = placements[i]!;
+    const reach = footprintOf(p.prop_slug) * PLACEMENT.pickUpReachScale;
+    const d = (x - p.x) * (x - p.x) + (z - p.z) * (z - p.z);
+    if (d < reach * reach && d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
 export function regionOf(
   x: number,
   z: number,

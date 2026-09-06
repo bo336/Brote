@@ -72,12 +72,14 @@ export function HudLayer({
           rejected={placement.rejected}
           remaining={placement.remaining}
           canUndo={placement.canUndo}
+          slots={placement.slots}
           saveState={saveState}
           onPick={placementActions.pick}
           onRotate={placementActions.rotate}
           onCommit={placementActions.commit}
           onCancel={placementActions.cancel}
           onUndo={placementActions.undo}
+          onUseSlot={placementActions.useSlot}
           onExit={() => setHud('play')}
         />
       )}

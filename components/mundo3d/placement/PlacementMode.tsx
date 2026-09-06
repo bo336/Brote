@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
 
+import { propFootprint } from '@/lib/render/geometry';
+import { propAt } from '@/lib/world/placement';
 import { isPlantable } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Heightfield } from '@/lib/world/terrain';
@@ -23,13 +25,19 @@ export function PlacementMode({
   layout,
   heightfield,
   ghost,
+  placements,
   onMove,
+  onPickUp,
   onReady,
 }: {
   layout: IslandLayout;
   heightfield: Heightfield;
   ghost: Ghost | null;
+  /** What is already down, so a tap on one can lift it. */
+  placements: readonly Placement[];
   onMove: (x: number, z: number) => void;
+  /** A tap landed on the prop at this index. */
+  onPickUp: (index: number) => void;
   /**
    * Handed up so the HUD can put a newly picked prop somewhere sensible: in
    * front of Pip, which is where somebody looking at their island expects the
@@ -60,16 +68,27 @@ export function PlacementMode({
    * mode suspends both, and taking the pointer here keeps that unambiguous.
    */
   useEffect(() => {
-    if (!ghost) return;
     const canvas = gl.domElement;
 
     const move = (e: PointerEvent) => {
-      if (!dragging.current) return;
+      if (!dragging.current || !ghost) return;
       const rect = canvas.getBoundingClientRect();
       const hit = toGround(e.clientX, e.clientY, rect, playerTransform.y);
       if (hit) onMove(hit[0], hit[1]);
     };
     const down = (e: PointerEvent) => {
+      // Empty-handed, a tap on something already down **picks it up**
+      // (`08-WORLD-AND-PROGRESSION.md` §8: a real editing UX). Without this,
+      // moving a bench two metres means deleting it and placing it again, and
+      // the cap makes that feel like a punishment for changing your mind.
+      if (!ghost) {
+        const rect = canvas.getBoundingClientRect();
+        const hit = toGround(e.clientX, e.clientY, rect, playerTransform.y);
+        if (!hit) return;
+        const index = propAt(hit[0], hit[1], placements, propFootprint);
+        if (index >= 0) onPickUp(index);
+        return;
+      }
       dragging.current = true;
       move(e);
     };
@@ -88,7 +107,7 @@ export function PlacementMode({
       window.removeEventListener('pointercancel', up);
       dragging.current = false;
     };
-  }, [ghost, gl, toGround, onMove]);
+  }, [ghost, gl, toGround, onMove, onPickUp, placements]);
 
   return <PlacementGhost ghost={ghost} heightfield={heightfield} />;
 }

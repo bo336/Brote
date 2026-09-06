@@ -22,6 +22,7 @@ import { useCameraDrag } from './control/useCameraDrag';
 import { HudLayer } from './hud/HudLayer';
 import { usePlacementSave } from './placement/usePlacementSave';
 import { useCelebrate } from './ceremony/useCelebrate';
+import { useSnapshot } from './poster/useSnapshot';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useWorldStore } from './state/useWorldStore';
@@ -177,6 +178,15 @@ export default function MundoGame({
    * is what stops it playing twice.
    */
   const celebrate = useCelebrate({ readOnly: readOnly || !payload, worldIndex: payload?.worldIndex ?? worldIndex });
+  /**
+   * El póster. Until this existed, every card in the app showed a generated
+   * SVG of an island nobody owns; now the feed, both profiles and onboarding
+   * show the world this player actually last stood in.
+   */
+  const poster = useSnapshot({
+    userId: payload?.userId ?? userId,
+    readOnly: readOnly || !payload,
+  });
   useEffect(() => {
     const pending = payload?.pendingCeremonies;
     if (!pending || pending.length === 0) return;
@@ -360,8 +370,11 @@ export default function MundoGame({
           onAdvanceTime={advanceTime}
           onOpenMojon={() => setHud('mojon')}
           ownedCosmetics={payload?.ownedCosmetics}
+          savedLayouts={payload?.layouts}
+          readOnly={readOnly || !payload}
           onPlacementsChanged={save}
           onCelebrated={celebrate}
+          onPoster={poster}
         />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>

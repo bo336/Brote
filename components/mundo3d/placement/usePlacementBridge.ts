@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 
 import { placeableProps } from '@/lib/world/placement';
+import { regionAt } from '@/lib/world/layout';
 import type { IslandLayout } from '@/lib/world/layout';
-import type { Placement, PropId, WorldConfig } from '@/lib/world/types';
+import type { Placement, PropId, WorldConfig, WorldLayout } from '@/lib/world/types';
 import { makeGroundTest } from './PlacementMode';
+import { useLayouts } from './useLayouts';
 import { usePlacementEditor, type Ghost } from './usePlacementEditor';
 import { useSessionStore } from '../state/useSessionStore';
 
@@ -24,23 +26,34 @@ export interface PlacementBridge {
   placements: Placement[];
   editing: boolean;
   moveGhost: (x: number, z: number) => void;
+  /** Lift one that is already down. Moving a bench is not delete-and-place. */
+  pickUp: (index: number) => void;
   /** Handed to `PlacementMode`, which knows where "in front of Pip" is. */
   setPlaceInFront: (fn: (slug: PropId) => { x: number; z: number }) => void;
 }
+
+const NO_LAYOUTS: readonly WorldLayout[] = [];
 
 export function usePlacementBridge({
   layout,
   config,
   ownedCosmetics,
   placements,
+  savedLayouts = NO_LAYOUTS,
+  readOnly = false,
   onPlacementsChanged,
 }: {
   layout: IslandLayout | null;
   config: WorldConfig;
   ownedCosmetics: readonly string[];
   placements: readonly Placement[];
+  /** The saved arrangements from `world_bootstrap`. */
+  savedLayouts?: readonly WorldLayout[];
+  /** The bootstrap failed; the island on screen is a default. Never write. */
+  readOnly?: boolean;
   onPlacementsChanged?: (placements: Placement[]) => void;
 }): PlacementBridge {
+  const layouts = useLayouts({ initial: savedLayouts, readOnly });
   const isGround = useMemo(() => (layout ? makeGroundTest(layout) : undefined), [layout]);
   const editor = usePlacementEditor({
     layout,
@@ -60,6 +73,9 @@ export function usePlacementBridge({
     [ownedCosmetics, config.props],
   );
 
+  /** Which slots hold something. The bar needs no more than that. */
+  const filled = useMemo(() => layouts.row.map((l) => l !== null), [layouts.row]);
+
   useEffect(() => {
     setPlacement({
       hasGhost: editor.ghost !== null,
@@ -67,8 +83,9 @@ export function usePlacementBridge({
       remaining: editor.remaining,
       canUndo: editor.canUndo,
       props: tray,
+      slots: filled,
     });
-  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray]);
+  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray, filled]);
 
   useEffect(() => {
     setPlacementActions({
@@ -81,9 +98,25 @@ export function usePlacementBridge({
       commit: () => editor.commit(),
       cancel: () => editor.cancel(),
       undo: () => editor.undo(),
+      // An empty slot saves what is on the island; a full one loads it back.
+      // One tap either way, and no keyboard anywhere near the world.
+      useSlot: (index) => {
+        if (!layout) return;
+        if (filled[index]) {
+          const next = layouts.load(index, {
+            tier: config.tier,
+            owned: ownedCosmetics,
+            regionAt: (x, z) => regionAt(x, z, layout.regions),
+            isGround,
+          });
+          if (next) editor.replaceAll(next);
+          return;
+        }
+        void layouts.save(editor.placements, index);
+      },
     });
     return () => setPlacementActions(null);
-  }, [setPlacementActions, editor]);
+  }, [setPlacementActions, editor, layouts, filled, layout, config.tier, ownedCosmetics, isGround]);
 
   // The arrangement is reported up whenever it settles, never mid-drag: the
   // ghost is not part of it until it is put down.
@@ -98,6 +131,7 @@ export function usePlacementBridge({
     placements: committed,
     editing,
     moveGhost: editor.moveGhost,
+    pickUp: editor.pickUp,
     setPlaceInFront: (fn) => {
       placeInFront.current = fn;
     },
