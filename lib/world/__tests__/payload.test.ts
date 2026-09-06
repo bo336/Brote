@@ -29,6 +29,7 @@ function mundo(over: Record<string, unknown> = {}): Record<string, unknown> {
 function bootstrap(over: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     userId: UID,
+    seed: 12345,
     world: { seed: 12345, celebrated_tier: 2, celebrated_world: 0, layouts: [] },
     mundo: mundo(),
     pip: { body: 'verde' },
@@ -53,6 +54,17 @@ test('a well-formed payload survives the round trip', () => {
   assert.equal(p.semillas, 40);
   assert.equal(p.impact.water_l, 120);
   assert.equal(p.dailyState.forage_done, 2);
+});
+
+test('the pre-reduced seed wins over the raw 60-bit one', () => {
+  // The raw value is past 2^53, so JavaScript has already rounded it by the
+  // time it gets here; its low bits are gone. The top-level one was reduced in
+  // Postgres, where they still existed.
+  const p = parseWorldPayload(
+    bootstrap({ seed: 996554753, world: { seed: 1121143978883168197 } }),
+    UID,
+  );
+  assert.equal(p.seed, 996554753);
 });
 
 test('nothing at all still produces a buildable world', () => {

@@ -145,9 +145,15 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
   const mundo = parseMundoState(o.mundo);
   const world = isObject(o.world) ? o.world : {};
 
-  // The seed is a `bigint` in Postgres and arrives as a number or a string.
-  // Either way it only ever feeds `mulberry32`, which wants a 32-bit integer.
-  const seed = int(world.seed, 0) >>> 0;
+  // **The seed comes pre-reduced, and that matters.**
+  //
+  // `user_world.seed` is 60 bits. A JavaScript number holds 53, so reading the
+  // raw value and taking its low 32 bits keeps exactly the seven that rounding
+  // destroyed — every island would have had 25 useful bits of seed and no way
+  // to notice. `world_bootstrap` now sends a top-level `seed` already reduced
+  // in Postgres, where the precision still exists. The raw one is still inside
+  // `world` for anything that wants it in its original form.
+  const seed = (int(o.seed, int(world.seed, 0)) >>> 0);
 
   const tier = clamp(int(mundo.rankTier, MIN_TIER), MIN_TIER, MAX_TIER);
   const celebratedTier = clamp(int(world.celebrated_tier, 0), 0, MAX_TIER);
