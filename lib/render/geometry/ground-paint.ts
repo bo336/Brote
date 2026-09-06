@@ -1,0 +1,181 @@
+/**
+ * What colour the ground is at a point.
+ *
+ * Split from `terrain.ts` for the 400-line rule (`01-RULES.md` §3.2), on a seam
+ * that was already there: this file answers "what colour is the ground here",
+ * and `terrain.ts` answers "what shape is it". Everything here is colour maths
+ * over the heightfield — no geometry is built, and nothing runs per frame.
+ *
+ * The ramps are module-level and mutated by `primeRamp` before a bake, which is
+ * why the palette is passed once rather than threaded through every vertex.
+ */
+import * as THREE from 'three';
+
+import { WATER_LEVEL } from '@/lib/world/config';
+import { regionAt, type IslandLayout } from '@/lib/world/layout';
+import { REGION_CHARACTER } from '@/lib/world/regions';
+import { fbm, sampleHeight, type Heightfield } from '@/lib/world/terrain';
+import type { WorldPalette } from '../palette';
+import { CLAY } from '../palette';
+
+const scratch = new THREE.Color();
+/**
+ * A SECOND scratch colour, and the reason is worth writing down: `groundColor`
+ * is called with `scratch` as its output, so using `scratch` again inside it as
+ * a temporary silently overwrote the result. Every ground vertex came out as
+ * the shadow tone — a green pradera rendered as flat mud, with nothing in the
+ * shader to blame.
+ */
+const scratchMix = new THREE.Color();
+const ramp = {
+  sand: new THREE.Color(),
+  soil: new THREE.Color(),
+  soilDeep: new THREE.Color(),
+  grass: new THREE.Color(),
+  grassDeep: new THREE.Color(),
+  stone: new THREE.Color(),
+  snow: new THREE.Color(),
+};
+
+/** How high above water the beach gives way to grass, in metres. */
+const SAND_TO_GRASS = 0.09;
+/** How far the deep tones fold in with height, for value structure. */
+const DEPTH_SHADE = 0.45;
+/**
+ * How strongly the fine patch mask breaks the ground up.
+ *
+ * Without it a big field is one flat wash, and no amount of lighting fixes
+ * that: the band quantise works on the DIRECTIONAL term, and every fragment of
+ * a near-flat plane shares one normal, so the whole field lands in a single
+ * band. The variation has to be in the pigment, which is exactly what clay is
+ * (`06-ART-DIRECTION.md` §2). Baked into the colour attribute, so it is free.
+ */
+const PATCH_SHADE = 0.34;
+/** How much a light patch lifts, relative to how much a dark one sinks. */
+const PATCH_LIFT = 0.55;
+/** Metres per cycle of the two masks: broad damp/dry, and fine patchiness. */
+const MOISTURE_FREQ = 0.06;
+const PATCH_FREQ = 0.38;
+/**
+ * How far a region's own character pulls the ground toward bare earth.
+ *
+ * Without this the nine regions shared one ground palette and the island read
+ * as a single field with different props scattered on it — which is exactly
+ * what `20-ACCEPTANCE.md` 3A asks it not to be. El Claro is *bare warm earth*;
+ * La Cumbre is above the tree line; El Jardín is lush. That is a statement
+ * about the ground itself, not only about what grows on it, and `bareness` is
+ * already the number that says so.
+ */
+const REGION_DRYNESS = 0.55;
+/** Slope above which ground reads as rock rather than cover. */
+const ROCK_SLOPE = 0.42;
+/** Ring offsets used by the AO probe, in metres. */
+const AO_RADII = [0.6, 1.6, 3.2];
+/**
+ * How strongly a higher neighbour darkens a vertex, and how dark it may get.
+ *
+ * The first pass used a gain of 1.6 with no floor, which on rolling terrain
+ * pushed the average vertex to about half brightness and turned a green pradera
+ * into flat brown. AO is a *contact* cue — it belongs in the hollows and at the
+ * foot of the cliff, not across the whole field.
+ */
+const AO_GAIN = 0.85;
+const AO_FLOOR = 0.62;
+
+/**
+ * Approximate AO from the heightfield itself: a vertex surrounded by ground
+ * higher than it sits in a hollow and is darker. Eight directions at three
+ * radii is enough to read valleys, cliff bases and the inside of a bowl.
+ */
+function bakedAO(hf: Heightfield, x: number, z: number, h: number): number {
+  let occlusion = 0;
+  for (const r of AO_RADII) {
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      const dh = sampleHeight(hf, x + Math.cos(a) * r, z + Math.sin(a) * r) - h;
+      if (dh > 0) occlusion += Math.min(1, dh / r);
+    }
+  }
+  return Math.max(AO_FLOOR, 1 - (occlusion / (AO_RADII.length * 8)) * AO_GAIN);
+}
+
+/** The colour of the ground at a point, before AO. */
+function groundColor(
+  target: THREE.Color,
+  x: number,
+  z: number,
+  h: number,
+  slope: number,
+  moisture: number,
+  /** 0..1 fine break-up, so a field is painted rather than filled. */
+  patch: number,
+  snowLine: number | null,
+): void {
+  const above = h - WATER_LEVEL;
+  if (snowLine !== null && h > snowLine) {
+    target.copy(ramp.snow);
+    return;
+  }
+  if (slope > ROCK_SLOPE) {
+    target.copy(ramp.stone);
+    return;
+  }
+  if (above < SAND_TO_GRASS) {
+    // The shoreline: sand fading into whatever the bank is made of.
+    target.copy(ramp.sand).lerp(ramp.grass, Math.max(0, above / SAND_TO_GRASS) * moisture);
+    return;
+  }
+  // Dry ground reads as soil, damp ground as grass; the mask does the mixing.
+  target.copy(ramp.soil).lerp(ramp.grass, moisture);
+  // Fold in the deep tones with height so the land has value structure rather
+  // than one flat green (`06-ART-DIRECTION.md` §2 rule 3).
+  const depth = Math.min(1, above / 3);
+  scratchMix.copy(ramp.soilDeep).lerp(ramp.grassDeep, moisture);
+  // The patch mask is **centred on zero**: half the ground lifts and half sinks.
+  // Applied one-directionally it was a second shade term on top of `depth`, and
+  // it simply dimmed the whole island by its own average.
+  const shade = depth * DEPTH_SHADE + (patch - 0.5) * PATCH_SHADE;
+  if (shade >= 0) target.lerp(scratchMix, Math.min(1, shade));
+  else target.multiplyScalar(1 - shade * PATCH_LIFT);
+}
+/** Load the ramps for one bake. Called before any `groundColor` call. */
+export function primeRamp(palette: WorldPalette): void {
+  ramp.sand.set(CLAY.sand);
+  ramp.soil.set(palette.ground);
+  ramp.soilDeep.set(CLAY.soilDeep);
+  ramp.grass.set(palette.grass);
+  ramp.grassDeep.set(CLAY.grassDeep);
+  ramp.stone.set(CLAY.stone);
+  ramp.snow.set(CLAY.snow);
+}
+
+/** The moisture mask at a point, already dried by the region it stands in. */
+export function moistureAt(x: number, z: number, seed: number, layout: IslandLayout): number {
+  const base = Math.min(
+    1,
+    Math.max(0, fbm(x * MOISTURE_FREQ + seed, z * MOISTURE_FREQ - seed, 2) * 1.25 - 0.12),
+  );
+  return base * (1 - REGION_CHARACTER[regionAt(x, z, layout.regions)].bareness * REGION_DRYNESS);
+}
+
+/** The fine break-up mask at a point. */
+export function patchAt(x: number, z: number, seed: number): number {
+  return Math.min(1, Math.max(0, fbm(x * PATCH_FREQ - seed, z * PATCH_FREQ + seed, 2)));
+}
+
+/**
+ * The cliff under the island, from rock at the waterline to dark soil in the
+ * undercut. `t` runs 0 at the rim to 1 at the tip. It has to read as a
+ * different value group from the ground on top of it.
+ */
+export function cliffColor(target: THREE.Color, t: number): void {
+  target.copy(ramp.stone).lerp(ramp.soilDeep, t);
+}
+
+/** The island body is rock and soil only, so it primes just those two. */
+export function primeCliffRamp(): void {
+  ramp.stone.set(CLAY.stone);
+  ramp.soilDeep.set(CLAY.soilDeep);
+}
+
+export { groundColor, bakedAO, scratch };
