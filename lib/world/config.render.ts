@@ -42,6 +42,10 @@ export const PIP = {
   cheekSpread: 0.145,
   mouthWidth: 0.05,
   auraRadius: 0.42, // the guardian sphere, from tier 8
+  // …and it is a halo, so you can still see Pip inside it. Low: at 0.22 over a
+  // character 80 px tall, his own colours diffused through it and the whole thing
+  // read as a soap bubble rather than a glow.
+  auraOpacity: 0.2,
   blinkMs: 90, // one blink, squashing the eyes on the Y axis
   blinkMinS: 2.4, // …at a random interval between these
   blinkMaxS: 6.5,

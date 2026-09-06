@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import { applyCosmetics, applyStage, buildPatternAtlas, buildPip, disposePip } from '@/lib/render/geometry/pip';
-import { getClayMaterial, getTexture } from '@/lib/render/materials';
+import { getClayMaterial, getOverlayMaterial, getTexture } from '@/lib/render/materials';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { PipRig } from './PipRig';
 
@@ -69,6 +69,12 @@ export function Pip({ handle, lod = 0 }: PipProps) {
     });
   }, [hasPattern]);
 
+  // The halo rides the one shared overlay material — the same one the sky, the
+  // mist wall and the interaction cue use. It is a transparent surface whose
+  // colour and opacity live in `attributes.color`, which is exactly what that
+  // material is for, so a guardian aura costs no material at all.
+  const overlay = useMemo(() => getOverlayMaterial(), []);
+
   const root = useMemo(() => buildPip(lod), [lod]);
 
   useEffect(() => {
@@ -85,9 +91,9 @@ export function Pip({ handle, lod = 0 }: PipProps) {
   // Equipping is a repaint and a `visible` toggle — never a load, never a
   // network round trip, never a material.
   useEffect(() => {
-    applyCosmetics(root, cosmetics, { golden, aura, solid, patternMaterial });
+    applyCosmetics(root, cosmetics, { golden, aura, solid, patternMaterial, overlay });
     applyStage(root, stage);
-  }, [root, cosmetics, golden, aura, stage, solid, patternMaterial]);
+  }, [root, cosmetics, golden, aura, stage, solid, patternMaterial, overlay]);
 
   useEffect(() => {
     rigRef.current?.setState(state);
