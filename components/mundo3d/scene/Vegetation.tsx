@@ -5,6 +5,7 @@ import * as THREE from 'three';
 
 import { InstancePool } from '@/lib/render/instancing';
 import type { BlobShadowPool } from '@/lib/render/shadows';
+import type { PropCollider } from '../control/CharacterController';
 import { flower, grassTuft, rock, sprout } from '@/lib/render/geometry/scatter';
 import { getTree, type TreeSpecies } from '@/lib/render/geometry';
 import { getClayMaterial } from '@/lib/render/materials';
@@ -44,6 +45,18 @@ const VARIANTS = 3;
  */
 const TREE_SHADOW = 0.42;
 const ROCK_SHADOW = 0.3;
+/**
+ * Trunk radius, as a fraction of the tree's instance scale. Generous on
+ * purpose: it is what stops Pip walking through a trunk and what keeps the
+ * camera from ending up inside one, and neither wants to be pixel-accurate.
+ */
+const TRUNK_RADIUS = 0.22;
+/**
+ * …and how wide the whole tree is to the camera. The lower branches reach far
+ * past the stem, so a boom that only dodges trunks still ends up inside the
+ * tree. This keeps the lens out of the canopy altogether.
+ */
+const CROWN_RADIUS = 0.85;
 /**
  * Grass instances per scatter point, and how far they spread around it.
  *
@@ -103,6 +116,7 @@ export function Vegetation({
   tier,
   biome,
   shadows,
+  onColliders,
 }: {
   heightfield: Heightfield;
   layout: IslandLayout;
@@ -111,6 +125,8 @@ export function Vegetation({
   biome: BiomeConfig;
   /** Trees and rocks take a static blob so they sit on the ground, not over it. */
   shadows?: BlobShadowPool;
+  /** Trunks, for walking around and for keeping the camera out of the wood. */
+  onColliders?: (colliders: PropCollider[]) => void;
 }) {
   // Foliage sways; rock and wood do not. Two materials, both shared, both cached.
   const foliage = useMemo(() => getClayMaterial({ vertexColors: true, wind: true, wobble: true }), []);
@@ -181,6 +197,8 @@ export function Vegetation({
     const mix = biome.mix;
     /** Every blob this pass places, so a re-run replaces them rather than doubling. */
     const placedShadows: number[] = [];
+    /** Trunk footprints, collected as the trees go down. */
+    const trunks: PropCollider[] = [];
 
     /** Keep a point with probability `density`, deterministically per point. */
     const thin = (list: ScatterPoint[], density: number) =>
@@ -310,16 +328,22 @@ export function Vegetation({
             const slot = shadows.addStatic(heightfield, p.x, p.z, TREE_SHADOW * s);
             if (slot >= 0) placedShadows.push(slot);
           }
+          trunks.push({
+            x: p.x, z: p.z,
+            radius: TRUNK_RADIUS * s,
+            cameraRadius: CROWN_RADIUS * s,
+          });
         }
         wood.commit();
         leaves.commit();
       });
     }
 
+    onColliders?.(trunks);
     return () => {
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
-  }, [pools, layout, heightfield, config, biome, shadows]);
+  }, [pools, layout, heightfield, config, biome, shadows, onColliders]);
 
   /** A tier change is one integer per pool. It allocates nothing and frees nothing. */
   useEffect(() => {

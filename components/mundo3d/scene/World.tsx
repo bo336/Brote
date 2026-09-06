@@ -117,10 +117,34 @@ export function World({
     [heightfield, layout, config],
   );
 
-  /** Props become things you walk around, not things you walk through. */
+  /**
+   * Props and trees become things you walk around, not through — and things the
+   * camera refuses to sit inside.
+   *
+   * Two sources, one list, because they answer the same two questions. Trees
+   * were in neither: you walked through the trunks, and standing in La Arboleda
+   * put the lens inside one, filling the frame with bark.
+   */
+  const propColliders = useRef<PropCollider[]>([]);
+  const treeColliders = useRef<PropCollider[]>([]);
+  const pushColliders = useCallback(() => {
+    const all = [...propColliders.current, ...treeColliders.current];
+    controller?.setColliders(all);
+    cameraRef.current?.setOccluders(all);
+  }, [controller, cameraRef]);
   const onColliders = useCallback(
-    (colliders: PropCollider[]) => controller?.setColliders(colliders),
-    [controller],
+    (colliders: PropCollider[]) => {
+      propColliders.current = colliders;
+      pushColliders();
+    },
+    [pushColliders],
+  );
+  const onTreeColliders = useCallback(
+    (colliders: PropCollider[]) => {
+      treeColliders.current = colliders;
+      pushColliders();
+    },
+    [pushColliders],
   );
 
   useEffect(() => {
@@ -128,8 +152,13 @@ export function World({
     const [sx, sz] = layout.spawn;
     resetPlayerTransform(sx, sampleHeight(heightfield, sx, sz), sz);
     const follow = new FollowCamera({ camera, reducedMotion });
-    // The boom needs the ground so it can duck under the hillside.
+    // The boom needs the ground so it can duck under the hillside…
     follow.setTerrain(heightfield);
+    // …and whatever is standing on it. Handed over here as well as in
+    // `pushColliders`, because React runs a child's effects before its parent's:
+    // Vegetation and Props have already reported by the time this camera
+    // exists, and their calls found `cameraRef.current` still null.
+    follow.setOccluders([...propColliders.current, ...treeColliders.current]);
     follow.snap();
     cameraRef.current = follow;
     setReady(true);
@@ -298,6 +327,7 @@ export function World({
         tier={tier}
         biome={biome}
         shadows={shadows}
+        onColliders={onTreeColliders}
       />
       <Props
         heightfield={heightfield}

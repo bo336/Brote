@@ -69,6 +69,7 @@ function readHeapMB(): number | null {
 export function PerfProbe({ tier }: { tier: QualityTier }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
   const lastHeapAtRef = useRef(0);
   const lastSceneAtRef = useRef(0);
 
@@ -77,11 +78,11 @@ export function PerfProbe({ tier }: { tier: QualityTier }) {
   // something is wrong, the next question is always "wrong how", and that needs
   // the graph itself. Dev-only, like the rest of this file.
   useEffect(() => {
-    (window as unknown as { __brote?: unknown }).__brote = { scene, gl };
+    (window as unknown as { __brote?: unknown }).__brote = { scene, gl, camera };
     return () => {
       delete (window as unknown as { __brote?: unknown }).__brote;
     };
-  }, [scene, gl]);
+  }, [scene, gl, camera]);
 
   useFrame((_, delta) => {
     const ms = delta * 1000;

@@ -144,7 +144,10 @@ export const CAMERA = {
   occlusionOutLambda: 3, // …slow out
   occlusionSamples: 6, // height probes along the boom; 6 is enough for a hillside
   occlusionClearanceM: 0.5, // keep the boom this far above the ground it passes over
-  occlusionMinM: 2.2, // never pull closer than this, however steep the slope
+  // Never pull closer than this, however steep the slope or dense the wood. Low:
+  // 2.2 m was longer than the gap beside Pip in La Arboleda, so the boom stayed
+  // outside a trunk that was already between the lens and him.
+  occlusionMinM: 1.3,
   pinchMinM: 4, // pinch distance clamp, near
   pinchMaxM: 11, // pinch distance clamp, far
 } as const;

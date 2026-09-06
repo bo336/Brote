@@ -33,6 +33,13 @@ export interface PropCollider {
   x: number;
   z: number;
   radius: number;
+  /**
+   * How wide this thing is *to the camera*, when that differs from how wide it
+   * is to Pip. A tree is a slim trunk to walk around and a three-metre crown to
+   * look through: avoiding only the stem left the lens sitting inside the lower
+   * branches, which is what filled the frame with bark in La Arboleda.
+   */
+  cameraRadius?: number;
 }
 
 export interface ControllerOptions {
