@@ -25,8 +25,6 @@ import { useWorldStore } from './state/useWorldStore';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
 
-const DEV = process.env.NODE_ENV !== 'production';
-
 /** The tiers that light Pip up, from `08-WORLD-AND-PROGRESSION.md` §5.1. */
 const AURA_TIER = 8;
 const GOLDEN_TIER = 11;
@@ -35,16 +33,22 @@ const GOLDEN_TIER = 11;
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
 
 /**
- * The perf harness is reached only from a branch the bundler folds away in
- * production — `DEV` is a literal `false` there, so these `import()` calls are
- * removed outright and shipped users never download the overlay.
+ * The perf harness, in its own chunk.
+ *
+ * This used to hang off a `process.env.NODE_ENV` branch so the bundler folded
+ * it away entirely. That was the wrong lever: it meant the overlay did not
+ * exist in a production build, which is the only build worth measuring and the
+ * only one the preview route is reviewed in — every measurement run needed the
+ * flag temporarily flipped and the build redone, and the numbers came from a
+ * binary nobody would ship.
+ *
+ * `dynamic()` already gives what the branch was for: the chunk is a separate
+ * file and is fetched only when something renders it. Nothing renders it unless
+ * `perf` is on, and `perf` comes from a URL parameter, so a player never
+ * downloads a byte of it.
  */
-const PerfProbe = DEV
-  ? dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfProbe), { ssr: false })
-  : null;
-const PerfOverlay = DEV
-  ? dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfOverlay), { ssr: false })
-  : null;
+const PerfProbe = dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfProbe), { ssr: false });
+const PerfOverlay = dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfOverlay), { ssr: false });
 
 /**
  * Tone mapping is off on purpose: the palette is authored, and ACES only
@@ -220,7 +224,9 @@ export default function MundoGame({
       disposeMaterials();
       disposeGeometry();
       const gl = rendererRef.current;
-      if (DEV && gl) {
+      // Development only: the assertion is a warning to whoever is working on
+      // the scene, not something to run in a player's console.
+      if (gl && process.env.NODE_ENV !== 'production') {
         const { geometries, textures } = gl.info.memory;
         if (geometries !== 0 || textures !== 0) {
           console.warn(`[mundo] leak on unmount: ${geometries} geometries, ${textures} textures`);

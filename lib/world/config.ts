@@ -148,6 +148,20 @@ export const CAMERA = {
   // 2.2 m was longer than the gap beside Pip in La Arboleda, so the boom stayed
   // outside a trunk that was already between the lens and him.
   occlusionMinM: 1.3,
+  /**
+   * How solid a tree stays when it is standing between the lens and Pip, and
+   * how fast it gets there. `10-CONTROLS-AND-CAMERA.md` §4 asks for a dithered
+   * fade *first* and the distance pull-in only for the hard cases; this is the
+   * fade. It never reaches zero — a tree you cannot see at all is a tree you
+   * walk into.
+   */
+  // Not lower: an ordered dither at 0.28 discards seven fragments in ten and a
+  // trunk stops reading as see-through and starts reading as broken geometry.
+  fadeMin: 0.45,
+  fadeInLambda: 12, // fast to fade…
+  fadeOutLambda: 4, // …slow to come back, like the pull-in
+  /** Widen the tested corridor a little, so a trunk fades before it clips. */
+  fadeMarginM: 0.25,
   pinchMinM: 4, // pinch distance clamp, near
   pinchMaxM: 11, // pinch distance clamp, far
 } as const;

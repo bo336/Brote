@@ -20,7 +20,9 @@ import * as THREE from 'three';
 
 import { CLAY, FOG, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
-import { CLAY_FRAG_HEAD, CLAY_VERT_HEAD, HEIGHT_FOG_FRAG, WIND_VERT, WOBBLE_VERT } from './chunks';
+import {
+  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, HEIGHT_FOG_FRAG, WIND_VERT, WOBBLE_VERT,
+} from './chunks';
 
 export interface WorldMood {
   rimColor: THREE.ColorRepresentation;
@@ -175,6 +177,7 @@ ${CLAY_VERT_HEAD}`),
         vAOBase = modelMatrix[3].y;
         ${WOBBLE_VERT}
         ${WIND_VERT}
+        ${FADE_VERT}
         `,
       ),
       '#include <fog_vertex>',
@@ -210,6 +213,7 @@ ${CLAY_FRAG_HEAD}`),
       // the bands. Added, never multiplied.
       '#include <opaque_fragment>',
       /* glsl */ `
+        ${FADE_FRAG}
         #ifdef BH_RIM
           vec3 bhViewDir = normalize(vViewPosition);
           float bhRim = pow(1.0 - clamp(dot(normalize(vNormal), bhViewDir), 0.0, 1.0), uRimPower);

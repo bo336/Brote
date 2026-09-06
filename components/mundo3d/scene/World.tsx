@@ -53,6 +53,12 @@ const EMPTY_PLACEMENTS: readonly Placement[] = [];
  * tier never allocates.
  */
 const STATIC_SHADOWS = TIERS[3].trees + TIERS[3].rocks + 64;
+/**
+ * Moving shadow slots: Pip, plus the two ground-walking fauna kinds at their T3
+ * cap. Fliers and fish get none — a bird at 2.4 m is most of the way through
+ * the height fade already and the fish are under the water.
+ */
+const MOVING_SHADOWS = TIERS[3].fauna * 2 + 4;
 
 export function World({
   tier,
@@ -179,11 +185,11 @@ export function World({
       map, transparent: true, opacity: BLOB_SHADOW.maxOpacity, depthWrite: false, polygonOffset: -4,
     });
   }, []);
-  // Movers: Pip, plus room for the fauna when they get shadows. Statics: every
-  // tree, rock, structure and placed prop on the island — they are what made
-  // the world look like it was floating over its own ground.
+  // Movers: Pip and the walking animals — two kinds of them at the T3 cap, plus
+  // slack. Statics: every tree, rock, structure and placed prop on the island,
+  // which are what made the world look like it was floating over its own ground.
   const shadows = useMemo(
-    () => new BlobShadowPool(shadowMaterial, TIERS[3].fauna + 4, STATIC_SHADOWS),
+    () => new BlobShadowPool(shadowMaterial, MOVING_SHADOWS, STATIC_SHADOWS),
     [shadowMaterial],
   );
   useEffect(() => {
@@ -339,7 +345,14 @@ export function World({
         onColliders={onColliders}
         shadows={shadows}
       />
-      <Fauna heightfield={heightfield} layout={layout} config={config} tier={tier} liveliness={liveliness} />
+      <Fauna
+        heightfield={heightfield}
+        layout={layout}
+        config={config}
+        tier={tier}
+        liveliness={liveliness}
+        shadows={shadows}
+      />
       <MistWall layout={layout} config={config} palette={palette} />
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />

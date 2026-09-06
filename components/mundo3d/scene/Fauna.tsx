@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 import { buildFauna, type FaunaKind } from '@/lib/render/geometry';
 import { InstancePool } from '@/lib/render/instancing';
+import type { BlobShadowPool } from '@/lib/render/shadows';
 import { getClayMaterial } from '@/lib/render/materials';
 import { TIERS } from '@/lib/render/quality';
 import { LIVELINESS } from '@/lib/world/config';
@@ -46,6 +47,12 @@ interface Agent {
   phase: number;
   speed: number;
   scale: number;
+  /**
+   * Blob-shadow slot, or -1. Only the walkers get one: a bird at 2.4 m is most
+   * of the way through the height fade already, a condor at 9 m is past it, and
+   * the fish are under the water. Grounding is for things standing on ground.
+   */
+  shadow: number;
 }
 
 /** Which regions each kind lives in, and how high above the ground it sits. */
@@ -59,6 +66,8 @@ const HABITAT: Record<FaunaKind, { regions: string[]; height: number; scale: num
 };
 
 const KINDS = Object.keys(HABITAT) as FaunaKind[];
+/** Blob radius for a walking animal, in metres. */
+const FAUNA_SHADOW = 0.26;
 /** Scratch: nothing in the per-frame loop may allocate. */
 const scratchMatrix = new THREE.Matrix4();
 const scratchPos = new THREE.Vector3();
@@ -72,12 +81,15 @@ export function Fauna({
   config,
   tier,
   liveliness,
+  shadows,
 }: {
   heightfield: Heightfield;
   layout: IslandLayout;
   config: WorldConfig;
   tier: QualityTier;
   liveliness: number;
+  /** The walkers take a moving blob, so a deer stands on the hill. */
+  shadows?: BlobShadowPool;
 }) {
   // Fauna does not sway with the wind, does not take the handmade wobble and
   // does not take the vertical AO — all three are for things that stand still.
@@ -111,8 +123,10 @@ export function Fauna({
         const d = home.radius * (0.2 + rng() * 0.7);
         const slot = pool.alloc();
         if (slot < 0) break;
+        const walks = habitat.height === 0;
         out.push({
           kind, pool, slot,
+          shadow: walks && shadows ? shadows.attachPoint(FAUNA_SHADOW * habitat.scale) : -1,
           hx: home.x + Math.cos(a) * d,
           hz: home.z + Math.sin(a) * d,
           range: 1.5 + rng() * 3.5,
@@ -124,7 +138,7 @@ export function Fauna({
       }
     }
     return out;
-  }, [pools, layout, config.tier]);
+  }, [pools, layout, config.tier, shadows]);
 
   /**
    * Count. `liveliness` rides between a floor and the tier's cap, so a quiet
@@ -138,6 +152,14 @@ export function Fauna({
   }, [pools, tier, liveliness]);
 
   useEffect(() => () => pools.forEach(({ pool }) => pool.dispose()), [pools]);
+
+  /** Hand the slots back, so a remount does not exhaust the moving range. */
+  useEffect(
+    () => () => {
+      for (const agent of agents) if (agent.shadow >= 0) shadows?.detach(agent.shadow);
+    },
+    [agents, shadows],
+  );
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
@@ -153,6 +175,8 @@ export function Fauna({
       const dz = agent.hz - p.z;
       if (dx * dx + dz * dz > cutoffSq) {
         agent.pool.hide(agent.slot);
+        // A hidden animal's shadow goes with it, far below the world.
+        if (agent.shadow >= 0) shadows?.movePoint(agent.shadow, 0, -1000, 0);
         continue;
       }
       const a = agent.phase + t * agent.speed;
@@ -167,6 +191,7 @@ export function Fauna({
       scratchScale.setScalar(agent.scale);
       scratchMatrix.compose(scratchPos, scratchQuat, scratchScale);
       agent.pool.setMatrix(agent.slot, scratchMatrix);
+      if (agent.shadow >= 0) shadows?.movePoint(agent.shadow, x, ground, z);
     }
     for (const { pool } of pools) pool.mesh.instanceMatrix.needsUpdate = true;
   });

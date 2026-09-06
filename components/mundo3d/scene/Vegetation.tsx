@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import { InstancePool } from '@/lib/render/instancing';
@@ -10,7 +11,7 @@ import { flower, grassTuft, rock, sprout } from '@/lib/render/geometry/scatter';
 import { getTree, type TreeSpecies } from '@/lib/render/geometry';
 import { getClayMaterial } from '@/lib/render/materials';
 import { TIERS } from '@/lib/render/quality';
-import { LAYOUT } from '@/lib/world/config';
+import { CAMERA, LAYOUT } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import { DOMAIN_COLORS } from '@/lib/render/palette';
 import type { IslandLayout, ScatterPoint } from '@/lib/world/layout';
@@ -18,6 +19,7 @@ import { REGION_CHARACTER } from '@/lib/world/regions';
 import type { BiomeConfig } from '@/lib/world/biome';
 import { sampleHeight, sampleSlope, type Heightfield } from '@/lib/world/terrain';
 import type { QualityTier, WorldConfig } from '@/lib/world/types';
+import { playerTransform } from '../state/usePlayerStore';
 
 /**
  * Everything that grows, through `InstancePool` and nothing else.
@@ -69,6 +71,18 @@ const CROWN_RADIUS = 0.85;
  */
 const GRASS_PER_POINT = 3;
 const GRASS_CLUMP_M = 0.34;
+
+/** One tree, and the two pool slots it occupies. */
+interface Canopy {
+  x: number;
+  z: number;
+  radius: number;
+  wood: InstancePool;
+  leaves: InstancePool;
+  wi: number;
+  li: number;
+  fade: number;
+}
 
 interface PoolSet {
   grass: InstancePool[];
@@ -133,6 +147,11 @@ export function Vegetation({
   const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
 
   const mix = biome.mix;
+  /**
+   * Every tree, and how solid it currently is. Written once when the trees are
+   * placed and read every frame by the fade below — never rebuilt per frame.
+   */
+  const canopyRef = useRef<Canopy[]>([]);
   // LOD level from the tier's tree-LOD budget: 3 levels means full detail.
   const treeLods = (TIERS[tier].treeLods >= 3 ? 0 : TIERS[tier].treeLods >= 2 ? 1 : 2) as 0 | 1 | 2;
 
@@ -199,6 +218,8 @@ export function Vegetation({
     const placedShadows: number[] = [];
     /** Trunk footprints, collected as the trees go down. */
     const trunks: PropCollider[] = [];
+    /** …and where each one sits in its pool, so the fade can find it again. */
+    const canopies: Canopy[] = [];
 
     /** Keep a point with probability `density`, deterministically per point. */
     const thin = (list: ScatterPoint[], density: number) =>
@@ -333,6 +354,7 @@ export function Vegetation({
             radius: TRUNK_RADIUS * s,
             cameraRadius: CROWN_RADIUS * s,
           });
+          canopies.push({ x: p.x, z: p.z, radius: CROWN_RADIUS * s, wood, leaves, wi, li, fade: 1 });
         }
         wood.commit();
         leaves.commit();
@@ -340,7 +362,9 @@ export function Vegetation({
     }
 
     onColliders?.(trunks);
+    canopyRef.current = canopies;
     return () => {
+      canopyRef.current = [];
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
   }, [pools, layout, heightfield, config, biome, shadows, onColliders]);
@@ -358,6 +382,52 @@ export function Vegetation({
       leaves.resize(n);
     });
   }, [pools, tier]);
+
+  /**
+   * **The dithered occluder fade** (`10-CONTROLS-AND-CAMERA.md` §4).
+   *
+   * A tree standing between the lens and Pip loses its alpha instead of shoving
+   * the camera around. The spec asks for this *first* and for the distance
+   * pull-in only as a fallback for the hard cases, because a fade is calmer than
+   * a camera that lurches whenever you walk past a trunk.
+   *
+   * The test is the same closest-approach solve the camera uses, run on the
+   * ground plane, and it allocates nothing.
+   */
+  useFrame(({ camera }, delta) => {
+    const canopies = canopyRef.current;
+    if (canopies.length === 0) return;
+    const p = playerTransform;
+    // The corridor from Pip to the lens, on the ground.
+    let ax = camera.position.x - p.x;
+    let az = camera.position.z - p.z;
+    const len = Math.hypot(ax, az);
+    if (len < 0.001) return;
+    ax /= len;
+    az /= len;
+    const kIn = 1 - Math.exp(-CAMERA.fadeInLambda * delta);
+    const kOut = 1 - Math.exp(-CAMERA.fadeOutLambda * delta);
+
+    for (const c of canopies) {
+      const ox = c.x - p.x;
+      const oz = c.z - p.z;
+      const t = ox * ax + oz * az;
+      let blocking = false;
+      if (t > 0 && t < len) {
+        const perpX = ox - ax * t;
+        const perpZ = oz - az * t;
+        const r = c.radius + CAMERA.fadeMarginM;
+        blocking = perpX * perpX + perpZ * perpZ < r * r;
+      }
+      const target = blocking ? CAMERA.fadeMin : 1;
+      const k = target < c.fade ? kIn : kOut;
+      const next = c.fade + (target - c.fade) * k;
+      if (Math.abs(next - c.fade) < 0.001) continue;
+      c.fade = next;
+      c.wood.setFade(c.wi, next);
+      c.leaves.setFade(c.li, next);
+    }
+  });
 
   useEffect(() => () => pools.all.forEach((pool) => pool.dispose()), [pools]);
 

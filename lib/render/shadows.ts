@@ -27,11 +27,24 @@ const HIDDEN = new THREE.Vector3(0, 0, 0);
 // still clears its own ground rather than relying on the offset alone.
 const LIFT = 0.03;
 
+/**
+ * A caster that has no `Object3D` to follow — an instanced animal, which exists
+ * only as a matrix in a pool. Its owner writes the position each frame.
+ */
+export interface PointCaster {
+  x: number;
+  y: number;
+  z: number;
+  footprint: number;
+}
+
 export interface ShadowCaster {
-  /** The object to follow. Read-only here — the rig owns its transform. */
-  object: THREE.Object3D;
+  /** The object to follow, or null for a caster the owner positions itself. */
+  object: THREE.Object3D | null;
   /** Radius of the shadow on the ground, in metres. */
   footprint: number;
+  /** Where a null-object caster currently is. Ignored otherwise. */
+  point: PointCaster | null;
 }
 
 /** The one radial-gradient texture. Generated, cached, disposed with the pool. */
@@ -88,7 +101,7 @@ export class BlobShadowPool {
   attach(object: THREE.Object3D, footprint: number): number {
     for (let i = 0; i < this.movingMax; i++) {
       if (this.casters[i] === null) {
-        this.casters[i] = { object, footprint };
+        this.casters[i] = { object, footprint, point: null };
         return i;
       }
     }
@@ -126,6 +139,31 @@ export class BlobShadowPool {
     return i;
   }
 
+  /**
+   * Register a mover with no `Object3D` — an instanced animal, which exists only
+   * as a matrix inside a pool and has nothing for `getWorldPosition` to read.
+   * The owner calls `movePoint` each frame.
+   */
+  attachPoint(footprint: number): number {
+    for (let i = 0; i < this.movingMax; i++) {
+      if (this.casters[i] === null) {
+        this.casters[i] = { object: null, footprint, point: { x: 0, y: 0, z: 0, footprint } };
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /** Where a point caster is this frame. */
+  movePoint(slot: number, x: number, y: number, z: number): void {
+    const caster = slot >= 0 && slot < this.movingMax ? this.casters[slot] : null;
+    if (caster?.point) {
+      caster.point.x = x;
+      caster.point.y = y;
+      caster.point.z = z;
+    }
+  }
+
   /** Hand a static slot back. The caller releases what it placed. */
   releaseStatic(slot: number): void {
     if (slot < this.movingMax || slot >= this.movingMax + this.statics) return;
@@ -151,7 +189,8 @@ export class BlobShadowPool {
         this.mesh.setMatrixAt(i, scratchMatrix);
         continue;
       }
-      caster.object.getWorldPosition(scratchPos);
+      if (caster.object) caster.object.getWorldPosition(scratchPos);
+      else scratchPos.set(caster.point!.x, caster.point!.y, caster.point!.z);
       const ground = sampleHeight(hf, scratchPos.x, scratchPos.z);
       const height = Math.max(0, scratchPos.y - ground);
       const fade = Math.max(0, 1 - height / BLOB_SHADOW.fadeHeightM);

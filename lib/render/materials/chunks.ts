@@ -77,6 +77,50 @@ export const HEIGHT_FOG_FRAG = /* glsl */ `
   #endif
 `;
 
+/**
+ * The occluder fade (`10-CONTROLS-AND-CAMERA.md` §4).
+ *
+ * A tree between the lens and Pip loses its alpha rather than shoving the
+ * camera around — "cheaper, calmer, and it looks deliberate in a stylized
+ * style". Because the clay material is opaque, the fade is a **dither cutout**
+ * (which the same line explicitly allows): an ordered 4x4 Bayer threshold on
+ * screen position, discarding fragments below it. No blending, no sorting, no
+ * second render pass, and it reads as a stipple rather than a ghost.
+ *
+ * Guarded by `USE_INSTANCING` because that is what makes it free: three keys
+ * its program cache on that define, so an instanced clay mesh already compiles
+ * a different program from a plain one. The attribute lives only in the
+ * instanced program; the plain one never sees it, and no material is spent.
+ */
+export const FADE_VERT = /* glsl */ `
+  vFade = 1.0;
+  #ifdef USE_INSTANCING
+    vFade = aFade;
+  #endif
+`;
+
+export const FADE_FRAG = /* glsl */ `
+  #ifdef USE_INSTANCING
+    if (vFade < 0.999) {
+      // Ordered 4x4 Bayer matrix, indexed by pixel. Cheaper than a hash and it
+      // does not crawl when the camera moves.
+      int bx = int(mod(gl_FragCoord.x, 4.0));
+      int by = int(mod(gl_FragCoord.y, 4.0));
+      int bi = bx + by * 4;
+      float bayer = 0.0;
+      if (bi == 0) bayer = 0.0;      else if (bi == 1) bayer = 8.0;
+      else if (bi == 2) bayer = 2.0;  else if (bi == 3) bayer = 10.0;
+      else if (bi == 4) bayer = 12.0; else if (bi == 5) bayer = 4.0;
+      else if (bi == 6) bayer = 14.0; else if (bi == 7) bayer = 6.0;
+      else if (bi == 8) bayer = 3.0;  else if (bi == 9) bayer = 11.0;
+      else if (bi == 10) bayer = 1.0; else if (bi == 11) bayer = 9.0;
+      else if (bi == 12) bayer = 15.0;else if (bi == 13) bayer = 7.0;
+      else if (bi == 14) bayer = 13.0;else bayer = 5.0;
+      if (vFade < (bayer + 0.5) / 16.0) discard;
+    }
+  #endif
+`;
+
 /** Declarations every clay vertex shader needs, injected once at the top. */
 export const CLAY_VERT_HEAD = /* glsl */ `
   uniform float uTime;
@@ -89,6 +133,10 @@ export const CLAY_VERT_HEAD = /* glsl */ `
   uniform float uWindHeightBias;
   varying vec3 vClayWorld;
   varying float vFogDepth;
+  varying float vFade;
+  #ifdef USE_INSTANCING
+    attribute float aFade;
+  #endif
   ${NOISE3}
 `;
 
@@ -107,5 +155,6 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
   uniform float uFogDensity;
   varying vec3 vClayWorld;
   varying float vFogDepth;
+  varying float vFade;
   ${CLAY_FRAG}
 `;
