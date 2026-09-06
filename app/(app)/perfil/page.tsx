@@ -131,7 +131,12 @@ export default function PerfilPage() {
 
       <section>
         <SectionHeader eyebrow="Tu progreso" title="Tu mundo" />
-        <MundoPoster mundo={profile?.mundoState} height={320} className="shadow-soft-lg" />
+        <MundoPoster
+          mundo={profile?.mundoState}
+          snapshotUrl={profile?.worldSnapshotUrl}
+          height={320}
+          className="shadow-soft-lg"
+        />
       </section>
 
       {/* Impacto / handprint */}

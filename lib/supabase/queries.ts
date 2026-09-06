@@ -48,7 +48,7 @@ export async function getSessionData(): Promise<SessionData> {
   const user = session?.user;
   if (!user) return { profile: null, unread: 0 };
 
-  const [profRes, notifRes] = await Promise.all([
+  const [profRes, notifRes, worldRes] = await Promise.all([
     supabase
       .from('profiles')
       .select(
@@ -61,6 +61,15 @@ export async function getSessionData(): Promise<SessionData> {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('read', false),
+    // El póster: a real picture of this player's island, taken on their last
+    // visit to `/mundo`. Its own query rather than a join, so a missing row —
+    // anyone who has never opened the world — is simply null, and a Storage
+    // outage cannot take the home feed with it.
+    supabase
+      .from('user_world')
+      .select('last_snapshot_url')
+      .eq('user_id', user.id)
+      .maybeSingle(),
   ]);
 
   // A failed query (timeout, connection-pool limit, transient network blip)
@@ -93,6 +102,10 @@ export async function getSessionData(): Promise<SessionData> {
     streakFreezes: row.streak_freezes ?? 0,
     equippedTitle: (row.equipped_title as { name_es: string } | null)?.name_es ?? null,
     mundoState: parseMundoState(row.mundo_state),
+    // Deliberately not checked for errors: the card falls back to its SVG and
+    // nobody is worse off. A poster is never a reason to fail a page load.
+    worldSnapshotUrl:
+      typeof worldRes.data?.last_snapshot_url === 'string' ? worldRes.data.last_snapshot_url : null,
     context: row.context ?? null,
     pipStyle: row.pip_style ?? null,
     accountType: row.account_type ?? 'adult',
