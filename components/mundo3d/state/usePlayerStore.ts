@@ -61,8 +61,18 @@ interface PlayerStoreState {
   /** Optimistic: mutate locally, fire the write, roll back on failure. */
   setCosmetics: (cosmetics: PipCosmetics) => void;
   setAppearance: (a: { stage: PipStage; golden: boolean; aura: boolean }) => void;
-  addSemillas: (n: number) => void;
-  /** The authoritative balance from the server. Replaces, never adds. */
+  /**
+   * The authoritative balance from the server. **Replaces, never adds.**
+   *
+   * **There is deliberately no way to increment.** Every award writes a
+   * `semilla_ledger` row through `brote_grant_semillas` (`15-DATA-MODEL.md`
+   * §4), and the balance on screen is whatever that call returned. A local
+   * increment looks identical and is a second currency path: the number goes
+   * up, no row is written, and it is gone on the next load. With no adder on
+   * the store, no client code can invent one by accident — and `no-xp.test.ts`
+   * greps this tree to keep it that way, which is why the name it bans does
+   * not appear here.
+   */
   setSemillas: (n: number) => void;
 }
 
@@ -78,6 +88,5 @@ export const usePlayerStore = create<PlayerStoreState>((set) => ({
   setVerb: (verb) => set({ verb }),
   setCosmetics: (cosmetics) => set({ cosmetics }),
   setAppearance: ({ stage, golden, aura }) => set({ stage, golden, aura }),
-  addSemillas: (n) => set((s) => ({ semillas: Math.max(0, s.semillas + n) })),
   setSemillas: (n) => set({ semillas: Math.max(0, Math.trunc(n)) }),
 }));

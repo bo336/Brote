@@ -230,7 +230,8 @@ export function World({
 
   // The verbs, the semillas they pay, and El Mojón, which is not a verb.
   const runtime = useWorldVerbs({
-    controller, layout, heightfield, config, timeOfDay, season, onAdvanceTime, onOpenMojon,
+    controller, layout, heightfield, config, timeOfDay, season, readOnly,
+    onAdvanceTime, onOpenMojon,
   });
 
   useFrame((state, delta) => {
