@@ -802,6 +802,35 @@
       "modo": "Acomodar",
       "cargar": "Cargar el guardado {n}",
       "guardar": "Guardar en el {n}"
+    },
+    "region": {
+      "claro": "El Claro",
+      "pradera": "La Pradera",
+      "jardin": "El Jardín",
+      "arboleda": "La Arboleda",
+      "rio": "El Río",
+      "monte": "El Monte",
+      "cumbre": "La Cumbre",
+      "islote": "El Islote",
+      "monumento": "El Monumento"
+    },
+    "bitacora": {
+      "title": "Bitácora",
+      "progress": "{seen} de {total} especies",
+      "complete": "Región completa",
+      "unseen": "Todavía no la viste",
+      "firstSeen": "La viste por primera vez en {region}, {tod}.",
+      "empty": "Todavía no registraste nada. Acercate a algo y registralo.",
+      "close": "Cerrar",
+      "suggestion": "Completaste {dominio}. Hay una acción real que va con eso.",
+      "suggestionGo": "Ver",
+      "suggestionNo": "Ahora no"
+    },
+    "tod": {
+      "amanecer": "al amanecer",
+      "dia": "de día",
+      "atardecer": "al atardecer",
+      "noche": "de noche"
     }
   }
 }

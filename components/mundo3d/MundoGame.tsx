@@ -13,7 +13,7 @@ import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
 import { disposeAll as disposeMaterials } from '@/lib/render/materials';
 import { disposeAll as disposeGeometry } from '@/lib/render/geometry';
-import type { QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
+import type { JournalEntry, QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
 import type { FollowCamera } from './control/FollowCamera';
 import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
@@ -26,6 +26,9 @@ import { useSessionStore } from './state/useSessionStore';
 import { useHydrateWorld } from './state/useHydrateWorld';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
+
+/** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
+const EMPTY_JOURNAL: JournalEntry[] = [];
 
 /** The four presets, in the order resting walks through them. */
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -343,6 +346,8 @@ export default function MundoGame({
         worldGoal={payload?.worldGoal ?? 0}
         collectiveWaterL={payload?.collectiveWaterL ?? 0}
         saveState={saveState}
+        userId={world.userId}
+        journal={payload?.journal ?? EMPTY_JOURNAL}
         perf={perf}
       />
     </div>

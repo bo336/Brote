@@ -30,12 +30,16 @@ const HINT_MS = 2600;
 export function HUD({
   onOpenSettings,
   onArrange,
+  onOpenBitacora,
 }: {
   onOpenSettings: () => void;
   /** Enter placement mode. Absent before tier 2, when there is nothing to place. */
   onArrange?: () => void;
+  /** Open the census. The semillas counter is the door; `Tab` is the other. */
+  onOpenBitacora: () => void;
 }) {
   const t = useTranslations('mundo');
+  const tBitacora = useTranslations('mundo.bitacora');
   const router = useRouter();
   const semillas = usePlayerStore((s) => s.semillas);
   const hud = useSessionStore((s) => s.hud);
@@ -54,6 +58,22 @@ export function HUD({
     const id = setTimeout(() => setLockedHint(null), HINT_MS);
     return () => clearTimeout(id);
   }, [lockedHint, setLockedHint]);
+
+  /**
+   * `Tab` opens the Bitácora on desktop (`16-UI-AUDIO-A11Y.md` §3). Bound only
+   * while playing, so it cannot fight a sheet's own focus traversal — which is
+   * the other thing `Tab` has to keep doing.
+   */
+  useEffect(() => {
+    if (!playing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
+      e.preventDefault();
+      onOpenBitacora();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [playing, onOpenBitacora]);
 
   const safeTop = { top: `max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px)` };
 
@@ -78,11 +98,23 @@ export function HUD({
         className="absolute right-4 flex items-center gap-3"
         style={safeTop}
       >
-        {/* Semillas: small, and it fades back after a gain. */}
-        <span className="tnum flex items-center gap-1.5 rounded-pill bg-brote-ink/40 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm">
+{/* Semillas: small, and it fades back after a gain.
+
+            **It is also how the Bitácora opens.** `16-UI-AUDIO-A11Y.md` §1
+            allows four elements on screen during play and a Bitácora button is
+            not one of them — but the counter already is, and tapping the thing
+            that counts what you have collected to see what you have collected
+            costs no fifth element and needs no explaining. `Tab` does the same
+            on desktop (§3). */}
+        <button
+          type="button"
+          onClick={onOpenBitacora}
+          aria-label={tBitacora('title')}
+          className="tnum pointer-events-auto flex items-center gap-1.5 rounded-pill bg-brote-ink/40 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
+        >
           <Sprout className="h-3.5 w-3.5" aria-hidden />
           {semillas}
-        </span>
+        </button>
         {/* Placement mode. Present only when there is something to arrange —
             a button that opens an empty tray is a promise the game breaks. */}
         {onArrange && placementProps > 0 && (

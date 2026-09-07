@@ -9,6 +9,7 @@ import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { PROP_IDS } from '@/lib/world/progression';
+import { SPECIES } from '@/lib/world/species';
 import { parseWorldPayload } from '@/lib/world/payload';
 import * as THREE from 'three';
 
@@ -44,6 +45,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?at=          a region id — drops Pip at its centre once the world is up
  *   ?props=1      lay one of each placeable prop out around the spawn
  *   ?impact=N     fixture impact totals, to drive the mirror and El Mojón
+ *   ?seen=N       log the first N species of the tier, to review the Bitácora
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
@@ -119,7 +121,17 @@ function Preview() {
         // real island this is `user_cosmetics` — what somebody actually bought.
         ownedCosmetics: PROP_IDS,
         placements: [],
-        journal: [],
+        // A census with something in it. The Bitácora's whole shape — a
+        // silhouette next to a logged sighting — is invisible on an empty one.
+        journal: SPECIES.filter((sp) => sp.min_tier <= tier)
+          .slice(0, Number(params.get('seen') ?? '0'))
+          .map((sp) => ({
+            species_slug: sp.slug,
+            first_seen_at: '2026-09-01T12:00:00Z',
+            region: sp.region,
+            time_of_day: sp.time_of_day[0] ?? 'dia',
+            count: 1,
+          })),
       },
       DEMO_USER,
     );

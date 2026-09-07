@@ -802,6 +802,35 @@
       "modo": "Arrange",
       "cargar": "Load saved {n}",
       "guardar": "Save to slot {n}"
+    },
+    "region": {
+      "claro": "The Clearing",
+      "pradera": "The Meadow",
+      "jardin": "The Garden",
+      "arboleda": "The Grove",
+      "rio": "The River",
+      "monte": "The Mountain",
+      "cumbre": "The Summit",
+      "islote": "The Islet",
+      "monumento": "The Monument"
+    },
+    "bitacora": {
+      "title": "Field journal",
+      "progress": "{seen} of {total} species",
+      "complete": "Region complete",
+      "unseen": "You haven't seen it yet",
+      "firstSeen": "First seen in {region}, {tod}.",
+      "empty": "You haven't logged anything yet. Walk up to something and log it.",
+      "close": "Close",
+      "suggestion": "You completed {dominio}. There is a real action that goes with it.",
+      "suggestionGo": "See it",
+      "suggestionNo": "Not now"
+    },
+    "tod": {
+      "amanecer": "at dawn",
+      "dia": "by day",
+      "atardecer": "at dusk",
+      "noche": "at night"
     }
   }
 }

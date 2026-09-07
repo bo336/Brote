@@ -2,9 +2,10 @@
 
 import dynamic from 'next/dynamic';
 
-import type { ImpactTotals } from '@/lib/world/types';
+import type { ImpactTotals, JournalEntry } from '@/lib/world/types';
 import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
+import { BitacoraSheet } from './BitacoraSheet';
 import { HUD } from './HUD';
 import { MojonSheet } from './MojonSheet';
 import { PlacementBar } from './PlacementBar';
@@ -34,6 +35,10 @@ export interface HudLayerProps {
   worldGoal: number;
   collectiveWaterL: number;
   saveState: SaveState;
+  /** Whose census it is — a dismissed suggestion is remembered per player. */
+  userId: string;
+  /** The census, straight from `world_bootstrap`. */
+  journal: readonly JournalEntry[];
   perf: boolean;
 }
 
@@ -47,6 +52,8 @@ export function HudLayer({
   worldGoal,
   collectiveWaterL,
   saveState,
+  userId,
+  journal,
   perf,
 }: HudLayerProps) {
   const hud = useSessionStore((s) => s.hud);
@@ -64,7 +71,18 @@ export function HudLayer({
         growth={worldGrowth}
         goal={worldGoal}
       />
-      <HUD onOpenSettings={() => setHud('settings')} onArrange={() => setHud('placement')} />
+      <HUD
+        onOpenSettings={() => setHud('settings')}
+        onArrange={() => setHud('placement')}
+        onOpenBitacora={() => setHud('bitacora')}
+      />
+      <BitacoraSheet
+        open={hud === 'bitacora'}
+        onClose={() => setHud('play')}
+        userId={userId}
+        tier={tier}
+        journal={journal}
+      />
       {hud === 'placement' && placementActions && (
         <PlacementBar
           props={placement.props}
