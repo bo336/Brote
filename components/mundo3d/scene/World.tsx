@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { TERRAIN, WIND, WOBBLE } from '@/lib/world/config';
 import { seasonFor } from '@/lib/world/season';
 import { localDate } from '@/lib/utils/dates';
-import { bakeHeightfield, bakeResolutionFor, isPlantable, sampleHeight } from '@/lib/world/terrain';
+import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
 import { fogRange } from '@/lib/render/materials/clay';
@@ -27,18 +27,16 @@ import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
-import { useThingNotes } from '../interaction/useThingNotes';
-import { forageRipe, maturation } from '@/lib/world/growth';
-import { returnLine, returnLineKey } from '@/lib/world/returns';
-import { FORAGE_NODES } from '../verbs/register';
-import { useChores } from '../verbs/useChores';
+import type { RawMarker } from '@/lib/world/markers';
 import { useWorldVerbs } from '../verbs/useWorldVerbs';
+import { useIslandLife } from './useIslandLife';
 import { useBlobShadows } from './useBlobShadows';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
+import { ProjectMarkers } from './ProjectMarkers';
 import { PosterShot } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
@@ -58,6 +56,7 @@ import { Water } from './Water';
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
 const EMPTY_OWNED: readonly string[] = [];
+const EMPTY_MARKERS: readonly RawMarker[] = [];
 /** A world nobody owns has done nothing today. Stable, so nothing rebuilds. */
 const EMPTY_DAILY: WorldDailyState = {
   chores_done: 0, forage_done: 0, event_done: false, event_slug: null, semillas_awarded: 0,
@@ -81,6 +80,7 @@ export function World({
   userId = 'demo',
   daily = EMPTY_DAILY,
   createdAt = 0,
+  projectMarkers = EMPTY_MARKERS,
   readOnly = false,
   onPlacementsChanged,
 }: {
@@ -105,6 +105,8 @@ export function World({
   daily?: WorldDailyState;
   /** When the island was made, for idle maturation. */
   createdAt?: number;
+  /** The real projects they went to, for the commemorative stones. */
+  projectMarkers?: readonly RawMarker[];
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
@@ -143,13 +145,7 @@ export function World({
   const season = useMemo(() => seasonFor(new Date()), []);
   /** Stable for the session: a chore must not move when the clock ticks over. */
   const today = useMemo(() => localDate(), []);
-  /** The same test the scatter plants with, so a chore lands where grass does. */
-  const choreGround = useMemo(
-    () => (layout ? (x: number, z: number) => isPlantable(x, z, layout.terrain) : undefined),
-    [layout],
-  );
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
-  const setNote = useSessionStore((s) => s.setNote);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -257,62 +253,14 @@ export function World({
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
 
   /**
-   * The day's three chores, as places you walk past (`11-GAME-LOOP.md` §3.4).
-   * The date comes from the same timezone helper every other daily surface in
-   * the app uses, so the client and `world_daily_chore` agree on what "today"
-   * is without a second definition.
+   * Everything you can walk up to, and the line the island greets you with:
+   * the day's chores, the description on every prop and structure, the stone
+   * for every real project.
    */
-  useChores({
-    layout,
-    heightfield,
-    userId,
-    localDate: today,
-    unlockedRegions: config.regions,
-    // The server-known arrangement, not the editor's live one: a chore sits
-    // at a prop that is actually down, never at one mid-drag.
-    placements,
-    daily,
-    readOnly,
-    isGround: choreGround,
+  const placedMarkers = useIslandLife({
+    layout, heightfield, config, userId, localDate: today,
+    placements, daily, readOnly, createdAt, liveliness, projectMarkers,
   });
-
-  /**
-   * The line the island greets you with (`14-CONTENT.md` §Return).
-   *
-   * Shown once, on arrival, in the same self-clearing slot everything else
-   * uses. It doubles as the answer to the 90-second session test — "something
-   * new is visible within 5 seconds of entering" — and it is only ever a thing
-   * that is actually true, because a game whose premise is that the world
-   * reflects something real cannot afford small lies about the world.
-   */
-  /**
-   * Is anything out there to pick right now? Asked of the same clock the nodes
-   * themselves answer to, rather than of the hook that owns them — the greeting
-   * needs the fact, not the state.
-   */
-  const forageRipeNow = useMemo(() => {
-    if (!layout || !config.verbs.includes('forage')) return false;
-    const now = Date.now();
-    for (let i = 0; i < FORAGE_NODES; i++) {
-      if (forageRipe(`forage-${i}`, layout.seed, now)) return true;
-    }
-    return false;
-  }, [layout, config.verbs]);
-
-  const greeted = useRef(false);
-  useEffect(() => {
-    if (greeted.current || !layout || !heightfield) return;
-    greeted.current = true;
-    setNote(returnLineKey(returnLine({
-      ripeForage: forageRipeNow,
-      matured: maturation(createdAt, Date.now()),
-      liveliness,
-      hasRiver: config.features.includes('river'),
-    })));
-  }, [layout, heightfield, forageRipeNow, createdAt, liveliness, config.features, setNote]);
-
-  // Every prop and every structure, readable. The density rule.
-  useThingNotes({ layout, heightfield, placements });
 
   // The verbs, the semillas they pay, and El Mojón, which is not a verb.
   const runtime = useWorldVerbs({
@@ -421,6 +369,10 @@ export function World({
         onCelebrated={onCelebrated}
       />
       {onPoster && <PosterShot onShoot={onPoster} />}
+      {/* A small cairn for every real project. Standing where you walk past. */}
+      {placedMarkers.length > 0 && (
+        <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />
+      )}
       <MistWall layout={layout} config={config} palette={palette} />
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />

@@ -949,6 +949,11 @@
         "name": "El islote",
         "desc": "Otra orilla, cruzando el agua. Se ve desde acá y se llega remando."
       }
+    },
+    "marker": {
+      "name": "Mojón de proyecto",
+      "line": "{title}, el {date}.",
+      "linePlace": "{title}, en {place}, el {date}."
     }
   }
 }

@@ -48,6 +48,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?impact=N     fixture impact totals, to drive the mirror and El Mojón
  *   ?seen=N       log the first N species of the tier, to review the Bitácora
  *   ?aged=N       pretend the island is N days old, for idle maturation
+ *   ?proyectos=N  N commemorative project markers, to review the path of stones
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
@@ -130,6 +131,17 @@ function Preview() {
         placements: [],
         // A census with something in it. The Bitácora's whole shape — a
         // silhouette next to a logged sighting — is invisible on an empty one.
+        // Fixture memories. Real ones come from `world_project_markers`, which
+        // only counts sessions somebody actually attended.
+        projectMarkers: Array.from(
+          { length: Number(params.get('proyectos') ?? '0') },
+          (_, i) => ({
+            id: `demo-${i}`,
+            title: `Plantada en la plaza ${i + 1}`,
+            place: i % 3 === 0 ? null : 'Chacarita',
+            date: new Date(Date.now() - (i + 1) * 12 * 86400000).toISOString().slice(0, 10),
+          }),
+        ),
         journal: SPECIES.filter((sp) => sp.min_tier <= tier)
           .slice(0, Number(params.get('seen') ?? '0'))
           .map((sp) => ({

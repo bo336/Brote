@@ -235,6 +235,7 @@ export interface Interactable {
   enabled: boolean;
 }
 
+/** A placed marker: what the server said, plus where the island put it. */
 export interface ProjectMarker {
   id: string;
   title: string;
@@ -294,6 +295,7 @@ export interface WorldPayload {
   celebratedTier: number;
   celebratedWorld: number;
   snapshotUrl: string | null;
-  projectMarkers: ProjectMarker[];
+  /** Straight from the server, before the island decides where each one goes. */
+  projectMarkers: { id: string; title: string; place: string | null; date: string }[];
   dueReviews: number;
 }

@@ -99,6 +99,11 @@ interface SessionStoreState {
    * barrier, same self-clearing behaviour — a line, and then the world again.
    */
   note: string | null;
+  /**
+   * Values a note's copy interpolates — a project marker's title, place and
+   * date. Empty for the lines that take none, which is most of them.
+   */
+  noteValues: Record<string, string>;
   placement: PlacementSummary;
   placementActions: PlacementActions | null;
   /**
@@ -123,6 +128,7 @@ interface SessionStoreState {
   setReducedMotion: (reducedMotion: boolean) => void;
   setLockedHint: (verb: VerbId | null) => void;
   setNote: (key: string | null) => void;
+  setNoteValues: (values: Record<string, string>) => void;
 }
 
 export const useSessionStore = create<SessionStoreState>((set) => ({
@@ -134,6 +140,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   reducedMotion: false,
   lockedHint: null,
   note: null,
+  noteValues: {},
   placement: EMPTY_PLACEMENT,
   placementActions: null,
   ceremonyQueue: [],
@@ -184,4 +191,5 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setLockedHint: (lockedHint) => set((s) => (s.lockedHint === lockedHint ? s : { lockedHint })),
   setNote: (note) => set((s) => (s.note === note ? s : { note })),
+  setNoteValues: (noteValues) => set({ noteValues }),
 }));

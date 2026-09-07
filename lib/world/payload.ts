@@ -19,6 +19,7 @@
 import { parseMundoState } from '../mundo';
 // One implementation of the queue, shared with the ceremony that drains it.
 import { pendingCeremonies as pendingFrom } from './ceremony';
+import type { RawMarker } from './markers';
 import { MAX_TIER, MIN_TIER, PROP_IDS } from './progression';
 import { REGION_IDS, TIME_OF_DAY_IDS } from './types';
 import type {
@@ -35,6 +36,26 @@ type Json = Record<string, unknown>;
  * "nothing has happened yet" rather than as 1970 — which would make a
  * brand-new island look fifty years matured.
  */
+/**
+ * One project marker from `world_project_markers`.
+ *
+ * A marker with no title is not a memory, so it is dropped rather than shown
+ * as a blank stone. The place is genuinely optional — a project can have no
+ * neighbourhood and no city — and the copy has a variant for that.
+ */
+function rawMarker(v: unknown): RawMarker | null {
+  if (!isObject(v)) return null;
+  const title = str(v.title, '');
+  const id = str(v.id, '');
+  if (!title || !id) return null;
+  return {
+    id,
+    title,
+    place: typeof v.place === 'string' && v.place.trim() !== '' ? v.place : null,
+    date: str(v.date, ''),
+  };
+}
+
 function epochMs(v: unknown): number {
   if (typeof v !== 'string') return 0;
   const t = Date.parse(v);
@@ -203,7 +224,7 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     celebratedWorld: Math.max(0, int(world.celebrated_world, 0)),
     snapshotUrl: typeof world.last_snapshot_url === 'string' ? world.last_snapshot_url : null,
     // Phase 5 fills these; the shape exists now so nothing has to change later.
-    projectMarkers: [],
+    projectMarkers: asArray(o.projectMarkers).map(rawMarker).filter((m): m is RawMarker => m !== null),
     dueReviews: 0,
   };
 }

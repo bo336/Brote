@@ -48,6 +48,7 @@ export function HUD({
   const lockedHint = useSessionStore((s) => s.lockedHint);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
   const note = useSessionStore((s) => s.note);
+  const noteValues = useSessionStore((s) => s.noteValues);
   const setNote = useSessionStore((s) => s.setNote);
   const placementProps = useSessionStore((s) => s.placement.props.length);
   const playing = hud === 'play';
@@ -158,7 +159,7 @@ export function HUD({
           className="absolute inset-x-0 bottom-32 mx-auto w-fit max-w-[80%] rounded-pill bg-brote-ink/70 px-4 py-2 text-center text-small text-white backdrop-blur-sm"
           role="status"
         >
-          {lockedHint ? t(`locked.${lockedHint === 'swim' ? 'swim' : 'climb'}`) : t(note!)}
+          {lockedHint ? t(`locked.${lockedHint === 'swim' ? 'swim' : 'climb'}`) : t(note!, noteValues)}
         </p>
       )}
 

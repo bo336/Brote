@@ -949,6 +949,11 @@
         "name": "The islet",
         "desc": "Another shore, across the water. You can see it from here and row to it."
       }
+    },
+    "marker": {
+      "name": "Project marker",
+      "line": "{title}, on {date}.",
+      "linePlace": "{title}, in {place}, on {date}."
     }
   }
 }
