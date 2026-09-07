@@ -831,6 +831,124 @@
       "dia": "de día",
       "atardecer": "al atardecer",
       "noche": "de noche"
+    },
+    "thing": {
+      "mundo_arco": {
+        "name": "Arco de flores",
+        "desc": "Lo cruzás y algo cambia de lado. No hace nada, y por eso está bueno."
+      },
+      "mundo_banco": {
+        "name": "Banco del mirador",
+        "desc": "Mira al agua. Sentarse un rato también es cuidar la isla, aunque no lo parezca."
+      },
+      "mundo_carpa": {
+        "name": "Carpa",
+        "desc": "Tela, dos palos y una noche afuera. Adentro se escucha todo el doble."
+      },
+      "mundo_colmena": {
+        "name": "Colmena",
+        "desc": "Salen a trabajar al amanecer y vuelven cargadas. Nadie las manda."
+      },
+      "mundo_comedero": {
+        "name": "Comedero de pájaros",
+        "desc": "Ponés semillas y en dos días tenés clientes fijos. Se corre la voz."
+      },
+      "mundo_farolitos": {
+        "name": "Farolitos",
+        "desc": "De día no son nada. De noche hacen que el sendero exista."
+      },
+      "mundo_hamaca": {
+        "name": "Hamaca paraguaya",
+        "desc": "Colgada entre dos troncos, donde da el sol de la tarde. Nadie la usa apurado."
+      },
+      "mundo_huerta": {
+        "name": "Huerta",
+        "desc": "Cuatro canteros y paciencia. Lo que sale de acá tiene otro gusto, en serio."
+      },
+      "mundo_molino": {
+        "name": "Molino de viento",
+        "desc": "Gira cuando sopla y se queda quieto cuando no. Sabe de clima más que vos."
+      },
+      "mundo_totem": {
+        "name": "Tótem de piedra",
+        "desc": "Alguien apiló estas piedras antes que vos. No dice nada y se entiende igual."
+      },
+      "river": {
+        "name": "El río",
+        "desc": "Nace arriba y no pregunta por dónde. Se hace lugar solo, todos los días."
+      },
+      "pond": {
+        "name": "La laguna",
+        "desc": "Quieta arriba, ocupada abajo. Si te quedás callado, empieza a moverse."
+      },
+      "puddle": {
+        "name": "El charco",
+        "desc": "Dura lo que dura. Mientras está, es agua, y con eso alcanza."
+      },
+      "bridge": {
+        "name": "El puente",
+        "desc": "Dos tablones y una soga. Cruza lo que antes te obligaba a dar la vuelta."
+      },
+      "waterfall": {
+        "name": "La cascada",
+        "desc": "Cae siempre igual y nunca dos veces igual. Se escucha desde lejos."
+      },
+      "mountain": {
+        "name": "El monte",
+        "desc": "Se levantó despacio y ahora corta el viento del norte. Del otro lado hay sombra."
+      },
+      "cave": {
+        "name": "La cueva",
+        "desc": "Adentro está fresco y hay silencio. Se trajo el eco de arriba, sin permiso."
+      },
+      "snow": {
+        "name": "La nieve",
+        "desc": "Se junta en la cumbre y baja de a poco. En primavera es el agua del río."
+      },
+      "treehouse": {
+        "name": "La casa del árbol",
+        "desc": "Tablones subidos a pulmón. Desde acá la isla entra entera en la vista."
+      },
+      "hammock": {
+        "name": "La hamaca",
+        "desc": "Entre dos ramas gruesas. La siesta acá no se discute, se cumple."
+      },
+      "boat": {
+        "name": "El bote",
+        "desc": "Amarrado en la orilla. Aguanta el peso de uno y la idea de cruzar."
+      },
+      "telescope": {
+        "name": "El telescopio",
+        "desc": "Apunta a lo que no se ve a simple vista. Hay que darle tiempo a los ojos."
+      },
+      "monument": {
+        "name": "El monumento",
+        "desc": "Piedra parada donde antes había tierra pelada. Es la isla contándose a sí misma."
+      },
+      "aurora": {
+        "name": "La aurora",
+        "desc": "Verde que se mueve sin viento. Aparece cuando el aire está bien limpio."
+      },
+      "nest": {
+        "name": "El nido",
+        "desc": "Ramitas, barro y un poco de suerte. Adentro hay más ruido que espacio."
+      },
+      "bench": {
+        "name": "El banco",
+        "desc": "Mira al agua. Alguien lo puso acá mirando justo para ese lado."
+      },
+      "mojon": {
+        "name": "El mojón",
+        "desc": "La piedra donde están los números. Es el único lugar de la isla que cuenta."
+      },
+      "compost": {
+        "name": "La compostera",
+        "desc": "Restos que se dan vuelta y vuelven hechos tierra. Tarda, pero nunca falla."
+      },
+      "islet": {
+        "name": "El islote",
+        "desc": "Otra orilla, cruzando el agua. Se ve desde acá y se llega remando."
+      }
     }
   }
 }

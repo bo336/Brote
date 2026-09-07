@@ -91,6 +91,14 @@ interface SessionStoreState {
    * hint at a soft barrier; cleared after a few seconds by the HUD.
    */
   lockedHint: VerbId | null;
+  /**
+   * A line about the thing the player just read, as an i18n key.
+   *
+   * The density rule's other half (`11-GAME-LOOP.md` §3.3): every object has a
+   * description, and this is where it goes. Same one-line slot as a soft
+   * barrier, same self-clearing behaviour — a line, and then the world again.
+   */
+  note: string | null;
   placement: PlacementSummary;
   placementActions: PlacementActions | null;
   /**
@@ -114,6 +122,7 @@ interface SessionStoreState {
   setTimeOfDay: (timeOfDay: TimeOfDay) => void;
   setReducedMotion: (reducedMotion: boolean) => void;
   setLockedHint: (verb: VerbId | null) => void;
+  setNote: (key: string | null) => void;
 }
 
 export const useSessionStore = create<SessionStoreState>((set) => ({
@@ -124,6 +133,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   timeOfDay: 'dia',
   reducedMotion: false,
   lockedHint: null,
+  note: null,
   placement: EMPTY_PLACEMENT,
   placementActions: null,
   ceremonyQueue: [],
@@ -173,4 +183,5 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setLockedHint: (lockedHint) => set((s) => (s.lockedHint === lockedHint ? s : { lockedHint })),
+  setNote: (note) => set((s) => (s.note === note ? s : { note })),
 }));

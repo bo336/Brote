@@ -26,6 +26,8 @@ import { useSessionStore } from '../state/useSessionStore';
  */
 /** How long a locked-verb hint stays on screen. */
 const HINT_MS = 2600;
+/** A description is longer than a barrier's sentence, so it stays longer. */
+const NOTE_MS = 4200;
 
 export function HUD({
   onOpenSettings,
@@ -45,6 +47,8 @@ export function HUD({
   const hud = useSessionStore((s) => s.hud);
   const lockedHint = useSessionStore((s) => s.lockedHint);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
+  const note = useSessionStore((s) => s.note);
+  const setNote = useSessionStore((s) => s.setNote);
   const placementProps = useSessionStore((s) => s.placement.props.length);
   const playing = hud === 'play';
 
@@ -58,6 +62,13 @@ export function HUD({
     const id = setTimeout(() => setLockedHint(null), HINT_MS);
     return () => clearTimeout(id);
   }, [lockedHint, setLockedHint]);
+
+  /** A description clears itself too, and gets longer to read than a barrier. */
+  useEffect(() => {
+    if (!note) return;
+    const id = setTimeout(() => setNote(null), NOTE_MS);
+    return () => clearTimeout(id);
+  }, [note, setNote]);
 
   /**
    * `Tab` opens the Bitácora on desktop (`16-UI-AUDIO-A11Y.md` §3). Bound only
@@ -139,12 +150,15 @@ export function HUD({
         </button>
       </div>
 
-      {lockedHint && (
+      {/* One line at a time. A soft barrier and a thing you just read share
+          the slot, and the barrier wins — it is answering something you tried
+          to do, which is more urgent than something you chose to read. */}
+      {(lockedHint || note) && (
         <p
-          className="absolute inset-x-0 bottom-32 mx-auto w-fit rounded-pill bg-brote-ink/70 px-4 py-2 text-center text-small text-white backdrop-blur-sm"
+          className="absolute inset-x-0 bottom-32 mx-auto w-fit max-w-[80%] rounded-pill bg-brote-ink/70 px-4 py-2 text-center text-small text-white backdrop-blur-sm"
           role="status"
         >
-          {t(`locked.${lockedHint === 'swim' ? 'swim' : 'climb'}`)}
+          {lockedHint ? t(`locked.${lockedHint === 'swim' ? 'swim' : 'climb'}`) : t(note!)}
         </p>
       )}
 

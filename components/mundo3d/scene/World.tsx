@@ -27,6 +27,7 @@ import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
+import { useThingNotes } from '../interaction/useThingNotes';
 import { useChores } from '../verbs/useChores';
 import { useWorldVerbs } from '../verbs/useWorldVerbs';
 import { useBlobShadows } from './useBlobShadows';
@@ -270,6 +271,9 @@ export function World({
     readOnly,
     isGround: choreGround,
   });
+
+  // Every prop and every structure, readable. The density rule.
+  useThingNotes({ layout, heightfield, placements });
 
   // The verbs, the semillas they pay, and El Mojón, which is not a verb.
   const runtime = useWorldVerbs({

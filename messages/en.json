@@ -831,6 +831,124 @@
       "dia": "by day",
       "atardecer": "at dusk",
       "noche": "at night"
+    },
+    "thing": {
+      "mundo_arco": {
+        "name": "Flower arch",
+        "desc": "You walk through and something changes sides. It does nothing, which is the point."
+      },
+      "mundo_banco": {
+        "name": "Lookout bench",
+        "desc": "It faces the water. Sitting for a while is caring for the island too."
+      },
+      "mundo_carpa": {
+        "name": "Tent",
+        "desc": "Canvas, two poles and a night outside. Everything sounds twice as loud inside."
+      },
+      "mundo_colmena": {
+        "name": "Beehive",
+        "desc": "They leave at dawn and come back loaded. Nobody tells them to."
+      },
+      "mundo_comedero": {
+        "name": "Bird feeder",
+        "desc": "Put seeds out and in two days you have regulars. Word gets around."
+      },
+      "mundo_farolitos": {
+        "name": "Lanterns",
+        "desc": "By day they are nothing. At night they make the path exist."
+      },
+      "mundo_hamaca": {
+        "name": "Hammock",
+        "desc": "Slung between two trunks where the afternoon sun lands. Nobody uses it in a hurry."
+      },
+      "mundo_huerta": {
+        "name": "Vegetable patch",
+        "desc": "Four beds and patience. What comes out of here really does taste different."
+      },
+      "mundo_molino": {
+        "name": "Windmill",
+        "desc": "It turns when it blows and stops when it does not. It knows the weather better than you."
+      },
+      "mundo_totem": {
+        "name": "Stone cairn",
+        "desc": "Someone stacked these before you did. It says nothing and is understood anyway."
+      },
+      "river": {
+        "name": "The river",
+        "desc": "It starts up high and asks nobody for directions. It makes its own room, daily."
+      },
+      "pond": {
+        "name": "The lagoon",
+        "desc": "Still on top, busy underneath. Stay quiet and it starts moving."
+      },
+      "puddle": {
+        "name": "The puddle",
+        "desc": "It lasts as long as it lasts. While it is here it is water, and that is enough."
+      },
+      "bridge": {
+        "name": "The bridge",
+        "desc": "Two planks and a rope. It crosses what used to mean walking all the way around."
+      },
+      "waterfall": {
+        "name": "The waterfall",
+        "desc": "Always the same and never twice the same. You hear it from far off."
+      },
+      "mountain": {
+        "name": "The mountain",
+        "desc": "It rose slowly and now it breaks the north wind. There is shade on the other side."
+      },
+      "cave": {
+        "name": "The cave",
+        "desc": "Cool inside, and quiet. It brought the echo down from up there, uninvited."
+      },
+      "snow": {
+        "name": "The snow",
+        "desc": "It gathers at the summit and comes down slowly. In spring it is the river."
+      },
+      "treehouse": {
+        "name": "The treehouse",
+        "desc": "Planks hauled up by hand. From here the whole island fits in one look."
+      },
+      "hammock": {
+        "name": "The hammock",
+        "desc": "Between two thick branches. A nap here is not debated, it is observed."
+      },
+      "boat": {
+        "name": "The boat",
+        "desc": "Tied at the shore. It holds one person and the idea of crossing."
+      },
+      "telescope": {
+        "name": "The telescope",
+        "desc": "It points at what you cannot see plainly. Give your eyes a minute."
+      },
+      "monument": {
+        "name": "The monument",
+        "desc": "Stone standing where there was bare earth. The island telling its own story."
+      },
+      "aurora": {
+        "name": "The aurora",
+        "desc": "Green that moves without wind. It shows up when the air is properly clean."
+      },
+      "nest": {
+        "name": "The nest",
+        "desc": "Twigs, mud and some luck. There is more noise in there than room."
+      },
+      "bench": {
+        "name": "The bench",
+        "desc": "It faces the water. Someone put it here pointing exactly that way."
+      },
+      "mojon": {
+        "name": "The marker stone",
+        "desc": "The stone where the numbers live. The only place on the island that counts."
+      },
+      "compost": {
+        "name": "The compost heap",
+        "desc": "Scraps turned over that come back as soil. Slow, and it never fails."
+      },
+      "islet": {
+        "name": "The islet",
+        "desc": "Another shore, across the water. You can see it from here and row to it."
+      }
     }
   }
 }
