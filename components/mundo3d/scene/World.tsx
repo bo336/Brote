@@ -6,12 +6,14 @@ import * as THREE from 'three';
 
 import { TERRAIN, WIND, WOBBLE } from '@/lib/world/config';
 import { seasonFor } from '@/lib/world/season';
-import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
+import { localDate } from '@/lib/utils/dates';
+import { bakeHeightfield, bakeResolutionFor, isPlantable, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
 import type { CeremonyScript } from '@/lib/world/ceremony';
+import type { WorldDailyState } from '@/lib/world/types';
 import type { Placement, QualityTier, TimeOfDay, WorldLayout } from '@/lib/world/types';
 import { CeremonyStage } from '../ceremony/CeremonyStage';
 
@@ -25,6 +27,7 @@ import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
+import { useChores } from '../verbs/useChores';
 import { useWorldVerbs } from '../verbs/useWorldVerbs';
 import { useBlobShadows } from './useBlobShadows';
 import { Debris } from './Debris';
@@ -51,6 +54,10 @@ import { Water } from './Water';
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
 const EMPTY_OWNED: readonly string[] = [];
+/** A world nobody owns has done nothing today. Stable, so nothing rebuilds. */
+const EMPTY_DAILY: WorldDailyState = {
+  chores_done: 0, forage_done: 0, event_done: false, event_slug: null, semillas_awarded: 0,
+};
 
 export function World({
   tier,
@@ -67,6 +74,8 @@ export function World({
   onOpenMojon,
   ownedCosmetics = EMPTY_OWNED,
   savedLayouts,
+  userId = 'demo',
+  daily = EMPTY_DAILY,
   readOnly = false,
   onPlacementsChanged,
 }: {
@@ -85,6 +94,10 @@ export function World({
   ownedCosmetics?: readonly string[];
   /** Saved arrangements from `world_bootstrap`. */
   savedLayouts?: readonly WorldLayout[];
+  /** Whose island it is, for the deterministic chore draw. */
+  userId?: string;
+  /** Today's counters from `world_daily`, so a done chore stays done. */
+  daily?: WorldDailyState;
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
@@ -121,6 +134,13 @@ export function World({
   const groundTier = useRef(tier).current;
   const lastStateRef = useRef(usePlayerStore.getState().state);
   const season = useMemo(() => seasonFor(new Date()), []);
+  /** Stable for the session: a chore must not move when the clock ticks over. */
+  const today = useMemo(() => localDate(), []);
+  /** The same test the scatter plants with, so a chore lands where grass does. */
+  const choreGround = useMemo(
+    () => (layout ? (x: number, z: number) => isPlantable(x, z, layout.terrain) : undefined),
+    [layout],
+  );
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
 
   // ── The heightfield, baked once, behind the loading state.
@@ -227,6 +247,26 @@ export function World({
   useEffect(() => {
     invalidate();
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
+
+  /**
+   * The day's three chores, as places you walk past (`11-GAME-LOOP.md` §3.4).
+   * The date comes from the same timezone helper every other daily surface in
+   * the app uses, so the client and `world_daily_chore` agree on what "today"
+   * is without a second definition.
+   */
+  useChores({
+    layout,
+    heightfield,
+    userId,
+    localDate: today,
+    unlockedRegions: config.regions,
+    // The server-known arrangement, not the editor's live one: a chore sits
+    // at a prop that is actually down, never at one mid-drag.
+    placements,
+    daily,
+    readOnly,
+    isGround: choreGround,
+  });
 
   // The verbs, the semillas they pay, and El Mojón, which is not a verb.
   const runtime = useWorldVerbs({

@@ -32,6 +32,17 @@ export function clearInteractables(): void {
   registry.clear();
 }
 
+/**
+ * Everything currently registered, for the perf and review protocols.
+ *
+ * A count says the world built; the ids and positions say *what* it built and
+ * where to walk to reach it — which is the difference between "chores exist"
+ * and "chores exist somewhere I could not find".
+ */
+export function listInteractables(): { id: string; position: [number, number, number]; enabled: boolean }[] {
+  return [...registry.values()].map((i) => ({ id: i.id, position: i.position, enabled: i.enabled }));
+}
+
 export function getInteractable(id: string): RegisteredInteractable | undefined {
   return registry.get(id);
 }

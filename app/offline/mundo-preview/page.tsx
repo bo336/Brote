@@ -15,6 +15,7 @@ import * as THREE from 'three';
 
 import { updateReveal } from '@/lib/render/materials';
 import { liveGeometryKeys } from '@/lib/render/geometry';
+import { listInteractables } from '@/components/mundo3d/interaction/InteractableRegistry';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
 /**
@@ -157,6 +158,7 @@ function Preview() {
       __ceremony?: () => unknown;
       __beat?: (beat: string) => void;
       __geometries?: () => string[];
+      __interactables?: () => unknown[];
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
     w.__pipTo = (id: RegionId) => {
@@ -201,6 +203,9 @@ function Preview() {
       const st = useSessionStore.getState();
       return { ...st.ceremony, before: st.ceremony.before ? 'captured' : null, queue: st.ceremonyQueue, hud: st.hud };
     };
+    // Everything you could walk up to, and where. The answer to "are the
+    // chores in the world?" without walking the whole island to find out.
+    w.__interactables = () => listInteractables();
     // What shapes are actually live, for the perf protocol: a count says a
     // ceiling broke, the keys say which shape broke it.
     w.__geometries = () => liveGeometryKeys();

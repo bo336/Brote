@@ -327,6 +327,8 @@ export default function MundoGame({
           onOpenMojon={() => setHud('mojon')}
           ownedCosmetics={payload?.ownedCosmetics}
           savedLayouts={payload?.layouts}
+          userId={world.userId}
+          daily={payload?.dailyState}
           previousBiome={world.previousBiome}
           readOnly={readOnly || !payload}
           onPlacementsChanged={save}
