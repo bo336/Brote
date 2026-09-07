@@ -28,6 +28,9 @@ import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
 import { useThingNotes } from '../interaction/useThingNotes';
+import { forageRipe, maturation } from '@/lib/world/growth';
+import { returnLine, returnLineKey } from '@/lib/world/returns';
+import { FORAGE_NODES } from '../verbs/register';
 import { useChores } from '../verbs/useChores';
 import { useWorldVerbs } from '../verbs/useWorldVerbs';
 import { useBlobShadows } from './useBlobShadows';
@@ -146,6 +149,7 @@ export function World({
     [layout],
   );
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
+  const setNote = useSessionStore((s) => s.setNote);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -271,6 +275,41 @@ export function World({
     readOnly,
     isGround: choreGround,
   });
+
+  /**
+   * The line the island greets you with (`14-CONTENT.md` §Return).
+   *
+   * Shown once, on arrival, in the same self-clearing slot everything else
+   * uses. It doubles as the answer to the 90-second session test — "something
+   * new is visible within 5 seconds of entering" — and it is only ever a thing
+   * that is actually true, because a game whose premise is that the world
+   * reflects something real cannot afford small lies about the world.
+   */
+  /**
+   * Is anything out there to pick right now? Asked of the same clock the nodes
+   * themselves answer to, rather than of the hook that owns them — the greeting
+   * needs the fact, not the state.
+   */
+  const forageRipeNow = useMemo(() => {
+    if (!layout || !config.verbs.includes('forage')) return false;
+    const now = Date.now();
+    for (let i = 0; i < FORAGE_NODES; i++) {
+      if (forageRipe(`forage-${i}`, layout.seed, now)) return true;
+    }
+    return false;
+  }, [layout, config.verbs]);
+
+  const greeted = useRef(false);
+  useEffect(() => {
+    if (greeted.current || !layout || !heightfield) return;
+    greeted.current = true;
+    setNote(returnLineKey(returnLine({
+      ripeForage: forageRipeNow,
+      matured: maturation(createdAt, Date.now()),
+      liveliness,
+      hasRiver: config.features.includes('river'),
+    })));
+  }, [layout, heightfield, forageRipeNow, createdAt, liveliness, config.features, setNote]);
 
   // Every prop and every structure, readable. The density rule.
   useThingNotes({ layout, heightfield, placements });
