@@ -329,6 +329,7 @@ export default function MundoGame({
           savedLayouts={payload?.layouts}
           userId={world.userId}
           daily={payload?.dailyState}
+          createdAt={payload?.createdAt}
           previousBiome={world.previousBiome}
           readOnly={readOnly || !payload}
           onPlacementsChanged={save}

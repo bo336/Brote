@@ -284,6 +284,12 @@ export interface WorldPayload {
   worldGoal: number;
   /** Tiers reached but not yet celebrated, ascending. */
   pendingCeremonies: number[];
+  /**
+   * When this island was made, epoch ms, for idle maturation
+   * (`11-GAME-LOOP.md` §3.6). Zero when the server did not say, which reads as
+   * "nothing has grown on its own" — the safe answer, not a guessed one.
+   */
+  createdAt: number;
   /** The highest tier already shown, so the queue can be rebuilt from source. */
   celebratedTier: number;
   celebratedWorld: number;

@@ -13,6 +13,7 @@ import { getClayMaterial } from '@/lib/render/materials';
 import { TIERS } from '@/lib/render/quality';
 import { CAMERA, LAYOUT } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
+import { maturation, maturedScale } from '@/lib/world/growth';
 import { DOMAIN_COLORS } from '@/lib/render/palette';
 import type { IslandLayout, ScatterPoint } from '@/lib/world/layout';
 import { BANDS, forRegion, interleaveSteep, pick, thin } from '@/lib/world/bands';
@@ -101,6 +102,7 @@ export function Vegetation({
   tier,
   biome,
   shadows,
+  createdAt = 0,
   onColliders,
 }: {
   heightfield: Heightfield;
@@ -110,6 +112,12 @@ export function Vegetation({
   biome: BiomeConfig;
   /** Trees and rocks take a static blob so they sit on the ground, not over it. */
   shadows?: BlobShadowPool;
+  /**
+   * When the island was made, epoch ms, for idle maturation. Zero means it has
+   * grown nothing on its own — which is what a world nobody owns should look
+   * like, and what a missing timestamp should never be guessed past.
+   */
+  createdAt?: number;
   /** Trunks, for walking around and for keeping the camera out of the wood. */
   onColliders?: (colliders: PropCollider[]) => void;
 }) {
@@ -187,6 +195,13 @@ export function Vegetation({
     const mix = biome.mix;
     /** Every blob this pass places, so a re-run replaces them rather than doubling. */
     const placedShadows: number[] = [];
+    /**
+     * How much the island has grown on its own since it was made
+     * (`11-GAME-LOOP.md` §3.6). A tenth over a week: enough to notice on
+     * return, never enough to move a collider or become a reason to log in.
+     */
+    const grown = maturation(createdAt, Date.now());
+
     /** Trunk footprints, collected as the trees go down. */
     const trunks: PropCollider[] = [];
     /** …and where each one sits in its pool, so the fade can find it again. */
@@ -207,7 +222,7 @@ export function Vegetation({
         const i = pool.alloc();
         if (i < 0) break;
         const y = sampleHeight(heightfield, p.x, p.z) + lift;
-        const s = scale[0] + (scale[1] - scale[0]) * p.roll;
+        const s = maturedScale(scale[0] + (scale[1] - scale[0]) * p.roll, grown);
         const slope = sampleSlope(heightfield, p.x, p.z);
         pool.place(i, p.x, y, p.z, rng() * Math.PI * 2, s, slope * 0.4, 0);
         if (shadow > 0 && shadows) {
@@ -237,7 +252,7 @@ export function Vegetation({
           const r = k === 0 ? 0 : GRASS_CLUMP_M * (0.45 + ((p.roll * 149 * (k + 1)) % 1) * 0.55);
           const x = p.x + Math.cos(a) * r;
           const z = p.z + Math.sin(a) * r;
-          const s = scale[0] + (scale[1] - scale[0]) * ((p.roll * 71 * (k + 1)) % 1);
+          const s = maturedScale(scale[0] + (scale[1] - scale[0]) * ((p.roll * 71 * (k + 1)) % 1), grown);
           pool.place(i, x, k === 0 ? y0 : sampleHeight(heightfield, x, z), z, rng() * Math.PI * 2, s, slope * 0.4, 0);
         }
       }
@@ -306,7 +321,7 @@ export function Vegetation({
       canopyRef.current = [];
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
-  }, [pools, layout, heightfield, config, biome, shadows, onColliders]);
+  }, [pools, layout, heightfield, config, biome, shadows, createdAt, onColliders]);
 
   /** A tier change is one integer per pool. It allocates nothing and frees nothing. */
   useEffect(() => {

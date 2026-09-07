@@ -28,6 +28,19 @@ import type {
 
 type Json = Record<string, unknown>;
 
+/**
+ * A timestamp as epoch ms, or 0.
+ *
+ * Zero means "the server did not say", and every consumer reads that as
+ * "nothing has happened yet" rather than as 1970 — which would make a
+ * brand-new island look fifty years matured.
+ */
+function epochMs(v: unknown): number {
+  if (typeof v !== 'string') return 0;
+  const t = Date.parse(v);
+  return Number.isFinite(t) ? t : 0;
+}
+
 const isObject = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v);
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
@@ -185,6 +198,7 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     pendingCeremonies: asArray(o.pendingCeremonies).length > 0
       ? asArray(o.pendingCeremonies).map((t) => int(t, 0)).filter((t) => t > 0)
       : pendingFrom(celebratedTier, tier),
+    createdAt: epochMs(world.created_at),
     celebratedTier,
     celebratedWorld: Math.max(0, int(world.celebrated_world, 0)),
     snapshotUrl: typeof world.last_snapshot_url === 'string' ? world.last_snapshot_url : null,

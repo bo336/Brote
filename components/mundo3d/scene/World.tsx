@@ -76,6 +76,7 @@ export function World({
   savedLayouts,
   userId = 'demo',
   daily = EMPTY_DAILY,
+  createdAt = 0,
   readOnly = false,
   onPlacementsChanged,
 }: {
@@ -98,6 +99,8 @@ export function World({
   userId?: string;
   /** Today's counters from `world_daily`, so a done chore stays done. */
   daily?: WorldDailyState;
+  /** When the island was made, for idle maturation. */
+  createdAt?: number;
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
@@ -271,6 +274,7 @@ export function World({
   // The verbs, the semillas they pay, and El Mojón, which is not a verb.
   const runtime = useWorldVerbs({
     controller, layout, heightfield, config, timeOfDay, season, readOnly,
+    userId, seed: layout?.seed ?? 0,
     onAdvanceTime, onOpenMojon,
   });
 
@@ -322,6 +326,7 @@ export function World({
         tier={tier}
         biome={biome}
         shadows={shadows}
+        createdAt={createdAt}
         onColliders={onTreeColliders}
       />
       {arrange.editing && (

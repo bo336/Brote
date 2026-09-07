@@ -47,6 +47,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?props=1      lay one of each placeable prop out around the spawn
  *   ?impact=N     fixture impact totals, to drive the mirror and El Mojón
  *   ?seen=N       log the first N species of the tier, to review the Bitácora
+ *   ?aged=N       pretend the island is N days old, for idle maturation
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
@@ -105,6 +106,11 @@ function Preview() {
         // asks for; equal to it queues none, which is the ordinary case.
         world: {
           seed: 12345,
+          // Idle maturation reads the island's age off this. `?aged=` is how a
+          // week of growth gets reviewed without waiting a week.
+          created_at: new Date(
+            Date.now() - Number(params.get('aged') ?? '0') * 24 * 3600 * 1000,
+          ).toISOString(),
           celebrated_tier: tierUp !== null ? tierUp - 1 : tier,
           layouts: [],
         },

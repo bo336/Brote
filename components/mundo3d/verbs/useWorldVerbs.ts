@@ -13,6 +13,7 @@ import type { CharacterController } from '../control/CharacterController';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { VerbRuntime, type VerbResult } from './runtime';
 import { useVerbSpots, type VerbSpot } from './register';
+import { useForage } from './useForage';
 
 /**
  * The verbs, and the one stone that is not a verb.
@@ -29,6 +30,8 @@ export function useWorldVerbs({
   timeOfDay,
   season,
   readOnly = false,
+  userId,
+  seed,
   onAdvanceTime,
   onOpenMojon,
 }: {
@@ -40,6 +43,9 @@ export function useWorldVerbs({
   season: SeasonId;
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
+  /** Whose island, and which one — foraging timers are per island. */
+  userId: string;
+  seed: number;
   onAdvanceTime?: () => void;
   onOpenMojon?: () => void;
 }): VerbRuntime {
@@ -109,6 +115,12 @@ export function useWorldVerbs({
    * Using a verb. `sail` and `rest` change how movement works rather than
    * pausing it, so they go to the controller; everything else is a timed action.
    */
+  /**
+   * Foraging nodes empty when picked and come back on their own timers. An
+   * empty one stays in the world and stops offering itself.
+   */
+  const forage = useForage({ userId, seed, readOnly });
+
   const onUseVerb = useCallback(
     (spot: VerbSpot) => {
       if (!controller) return;
@@ -117,6 +129,10 @@ export function useWorldVerbs({
       if (spot.verb === 'sail') {
         controller.boardBoat();
         return;
+      }
+      if (spot.verb === 'forage') {
+        // Picked here and paid for by the server, which owns the daily cap.
+        forage.pick(spot.id);
       }
       if (spot.verb === 'rest') {
         // Resting advances the time of day one preset — the only control over
@@ -132,10 +148,10 @@ export function useWorldVerbs({
       controller.setLocked(true);
       runtime.begin(spot.verb, spot.id);
     },
-    [controller, runtime, setVerb, onAdvanceTime],
+    [controller, runtime, setVerb, onAdvanceTime, forage],
   );
 
-  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb);
+  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb, forage.empty);
 
   /**
    * El Mojón, the one place a number lives.

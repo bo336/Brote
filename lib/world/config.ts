@@ -281,6 +281,21 @@ export const DAILY_CAPS = {
 /** Foraging is the appointment loop: one real action, two app opens (`11` §3.5). */
 export const FORAGE_RESPAWN = { minHours: 4, maxHours: 8 } as const;
 
+/**
+ * Idle maturation (`11-GAME-LOOP.md` §3.6). Trees, ponds and flowers grow on
+ * wall-clock time, independent of play, visible on return.
+ *
+ * **Supplementary, never the session.** These numbers are deliberately small:
+ * enough that a week away is visible, never enough to be a reason to open the
+ * app. "Log in, collect, log out" is a dead game.
+ */
+export const MATURATION = {
+  /** Days to full growth. OURS: a week reads as "it kept going without me". */
+  daysToFull: 7,
+  /** How much bigger a fully matured thing is drawn. A tenth. OURS. */
+  scaleGain: 0.1,
+} as const;
+
 /** Hidden traversal caches per region (`11-GAME-LOOP.md` §3.2). */
 export const TRAVERSAL_CACHES_PER_REGION = { min: 6, max: 10 } as const;
 

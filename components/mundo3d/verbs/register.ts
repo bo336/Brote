@@ -37,8 +37,10 @@ export interface VerbSpot {
   trackIndex?: number;
 }
 
+const EMPTY_SET: ReadonlySet<string> = new Set();
+
 /** How many foraging nodes a region carries at once (`11-GAME-LOOP.md` §3.5). */
-const FORAGE_NODES = 6;
+export const FORAGE_NODES = 6;
 /** Prints in a tracking chain. The last one is where the animal is.  */
 const TRACK_CHAIN = 5;
 const TRACK_STRIDE_M = 3.2;
@@ -196,6 +198,15 @@ export function useVerbSpots(
   timeOfDay: TimeOfDay,
   season: SeasonId,
   onUse: (spot: VerbSpot) => void,
+  /**
+   * Which spots are carrying nothing right now.
+   *
+   * Foraging nodes empty and come back on staggered 4-8 hour timers
+   * (`lib/world/growth.ts`). An empty node stays **in the world** and stops
+   * offering itself — a bush that vanishes is a bug, a bush with nothing on it
+   * is a reason to come back.
+   */
+  empty: ReadonlySet<string> = EMPTY_SET,
 ): VerbSpot[] {
   const spots = useMemo(
     () => (layout && heightfield ? buildVerbSpots(layout, heightfield, config, timeOfDay, season) : []),
@@ -210,13 +221,13 @@ export function useVerbSpots(
         radius: spot.radius,
         labelKey: VERB_TABLE[spot.verb].labelKey,
         verb: spot.verb,
-        enabled: true,
+        enabled: !empty.has(spot.id),
         onInteract: () => onUse(spot),
       };
       return registerInteractable(item);
     });
     return () => dispose.forEach((fn) => fn());
-  }, [spots, onUse]);
+  }, [spots, onUse, empty]);
 
   return spots;
 }
