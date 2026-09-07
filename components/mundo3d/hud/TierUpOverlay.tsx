@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { RANK_BY_TIER } from '@/lib/ranks';
-import { formatWater } from '@/lib/impact';
+import { formatWhole } from '@/lib/impact';
 import { scriptFor } from '@/lib/world/ceremony';
 import { IMPACT_PROVENANCE } from '@/lib/world/config';
 import type { ImpactTotals } from '@/lib/world/types';
@@ -79,8 +79,13 @@ export function TierUpOverlay({
     // decorative number `13-IMPACT-MIRROR.md` forbids.
     if (script.kind === 'world') return t('worldline', { n: script.tier });
     const key = script.lineKey as 't1';
-    if (script.tier === 7) return t(key, { litros: formatWater(totals.water_l) });
-    if (script.tier === 8) return t(key, { acciones: Math.max(0, Math.round(totals.actions ?? 0)) });
+    // **Plain counts, not formatted quantities.** The Spanish already carries
+    // the unit — "de {litros} litros que no gastaste" — so `formatWater`, which
+    // switches to m³ above a thousand, printed "96 m³ litros". El Mojón wants
+    // the unit-switching formatter; a sentence with the word already in it
+    // wants the number and nothing else.
+    if (script.tier === 7) return t(key, { litros: formatWhole(totals.water_l) });
+    if (script.tier === 8) return t(key, { acciones: formatWhole(totals.actions ?? 0) });
     return t(key);
   }, [script, t, totals]);
 

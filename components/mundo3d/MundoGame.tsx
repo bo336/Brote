@@ -7,16 +7,13 @@ import * as THREE from 'three';
 
 import { CAMERA, JOYSTICK, RENDER_LOOP } from '@/lib/world/config';
 import { isNight } from '@/lib/utils/dates';
-import { pipStageForTier } from '@/lib/mundo';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
-import { biomeConfig } from '@/lib/world/biome';
-import { queueFor, type CeremonyScript } from '@/lib/world/ceremony';
+import type { CeremonyScript } from '@/lib/world/ceremony';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
 import { disposeAll as disposeMaterials } from '@/lib/render/materials';
 import { disposeAll as disposeGeometry } from '@/lib/render/geometry';
 import type { QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
-import { ZERO_IMPACT } from '@/lib/world/impact';
 import type { FollowCamera } from './control/FollowCamera';
 import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
@@ -26,13 +23,9 @@ import { useCelebrate } from './ceremony/useCelebrate';
 import { useSnapshot } from './poster/useSnapshot';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
-import { useWorldStore } from './state/useWorldStore';
+import { useHydrateWorld } from './state/useHydrateWorld';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
-
-/** The tiers that light Pip up, from `08-WORLD-AND-PROGRESSION.md` §5.1. */
-const AURA_TIER = 8;
-const GOLDEN_TIER = 11;
 
 /** The four presets, in the order resting walks through them. */
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -135,16 +128,10 @@ export default function MundoGame({
   const autoCamera = useSettings((s) => s.autoCamera);
   const sensitivity = useSettings((s) => s.cameraSensitivityX);
 
-  const hydrate = useWorldStore((s) => s.hydrate);
-  const setAppearance = usePlayerStore((s) => s.setAppearance);
-  const setSemillas = usePlayerStore((s) => s.setSemillas);
-  const setCosmetics = usePlayerStore((s) => s.setCosmetics);
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
   const setHud = useSessionStore((s) => s.setHud);
-  const queueCeremonies = useSessionStore((s) => s.queueCeremonies);
-  const nextCeremony = useSessionStore((s) => s.nextCeremony);
   const ceremonyRequest = useSessionStore((s) => s.ceremony.request);
 
   const [tier, setTier] = useState<QualityTier>(1);
@@ -188,21 +175,6 @@ export default function MundoGame({
     userId: payload?.userId ?? userId,
     readOnly: readOnly || !payload,
   });
-  useEffect(() => {
-    if (!payload) return;
-    // `pendingCeremonies` already holds the rank tiers; the world completion is
-    // decided here because it needs `celebratedWorld` alongside it.
-    const queue = queueFor(
-      payload.celebratedTier,
-      payload.tier,
-      payload.celebratedWorld,
-      payload.worldIndex,
-    );
-    if (queue.length === 0) return;
-    queueCeremonies(queue);
-    nextCeremony();
-  }, [payload, queueCeremonies, nextCeremony]);
-
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
   /** The live canvas, for the share card. See `share/ShareCard.ts`. */
@@ -210,59 +182,13 @@ export default function MundoGame({
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reducedMotion = prefersReducedMotion(reduceMotionSetting);
-  /** The biome's own name, for the share card. Never derived from a string. */
-  const biome = useMemo(() => biomeConfig(payload?.worldIndex ?? worldIndex), [payload?.worldIndex, worldIndex]);
-  /**
-   * The world they are leaving, for the palette wash. Only meaningful when a
-   * world completion is owed — `biomeConfig(n - 1)` is the biome the island
-   * wore last visit, and the wash runs from it to the one it wears now.
-   */
-  const previousBiome = useMemo(
-    () => biomeConfig(Math.max(1, (payload?.worldIndex ?? worldIndex) - 1)).chalked.grass,
-    [payload?.worldIndex, worldIndex],
-  );
   const palette = useMemo(() => paletteForWorld(worldIndex, timeOfDay), [worldIndex, timeOfDay]);
 
-  // ── The world, derived once from server state. It cannot change during play:
-  //    a real action completes in the app, never in here.
-  //    The payload is the truth when there is one; the loose props are the
-  //    preview route's way of asking for a world nobody owns.
-  const world = useMemo(
-    () => ({
-      userId: payload?.userId ?? userId,
-      tier: payload?.tier ?? worldTier,
-      worldIndex: payload?.worldIndex ?? worldIndex,
-      liveliness: payload?.liveliness ?? liveliness,
-      impact: payload?.impact ?? ZERO_IMPACT,
-    }),
-    [payload, userId, worldTier, worldIndex, liveliness],
-  );
-
-  useEffect(() => {
-    hydrate(world);
-  }, [hydrate, world]);
-
-  /** The balance and the look Pip already has, straight from the server. */
-  useEffect(() => {
-    if (!payload) return;
-    setSemillas(payload.semillas);
-    setCosmetics(payload.pip);
-  }, [payload, setSemillas, setCosmetics]);
-
-  /**
-   * **Pip's stage.** The store defaults to `seed`, `applyStage` hides the leaves
-   * at seed, and nothing ever called this — so Pip was a bare ball at tier 11
-   * with the sprout that gives the game its name missing entirely. The stage
-   * comes from `lib/mundo.ts`, the same function the profile uses, so the Pip in
-   * the world and the Pip on the profile can never disagree.
-   */
-  useEffect(() => {
-    setAppearance({
-      stage: pipStageForTier(world.tier),
-      golden: world.tier >= GOLDEN_TIER,
-      aura: world.tier >= AURA_TIER,
-    });
-  }, [setAppearance, world.tier]);
+  // Everything the payload does to the stores: the world, Pip's look, the
+  // balance, and the queue of ceremonies owed.
+  const world = useHydrateWorld({
+    payload, userId, tier: worldTier, worldIndex, liveliness,
+  });
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).
@@ -398,7 +324,7 @@ export default function MundoGame({
           onOpenMojon={() => setHud('mojon')}
           ownedCosmetics={payload?.ownedCosmetics}
           savedLayouts={payload?.layouts}
-          previousBiome={previousBiome}
+          previousBiome={world.previousBiome}
           readOnly={readOnly || !payload}
           onPlacementsChanged={save}
           onCelebrated={celebrate}
@@ -412,7 +338,7 @@ export default function MundoGame({
         impact={world.impact}
         tier={world.tier}
         worldIndex={world.worldIndex}
-        biomeName={biome.name}
+        biomeName={world.biomeName}
         worldGrowth={payload?.worldGrowth ?? 0}
         worldGoal={payload?.worldGoal ?? 0}
         collectiveWaterL={payload?.collectiveWaterL ?? 0}
