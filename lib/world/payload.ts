@@ -185,6 +185,7 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     pendingCeremonies: asArray(o.pendingCeremonies).length > 0
       ? asArray(o.pendingCeremonies).map((t) => int(t, 0)).filter((t) => t > 0)
       : pendingFrom(celebratedTier, tier),
+    celebratedTier,
     celebratedWorld: Math.max(0, int(world.celebrated_world, 0)),
     snapshotUrl: typeof world.last_snapshot_url === 'string' ? world.last_snapshot_url : null,
     // Phase 5 fills these; the shape exists now so nothing has to change later.

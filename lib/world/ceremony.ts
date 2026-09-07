@@ -17,6 +17,21 @@ import { unlocksFor } from './progression';
 import type { RegionId, VerbId } from './types';
 
 /**
+ * The two things worth stopping the world for.
+ *
+ * A rank-up is the headline; a world completion happens every 40–360 actions
+ * and "carries the pacing between rank tiers" (§7), so it gets a much smaller
+ * moment — the same beats, a fifth of the length, and no verb to teach.
+ */
+export type CeremonyKind = 'tier' | 'world';
+
+/** One queued celebration: a rank tier, or a world index that has completed. */
+export interface CeremonyRequest {
+  kind: CeremonyKind;
+  n: number;
+}
+
+/**
  * The six physical arrivals. Each is an animation over geometry that exists.
  *
  * Keyed off the durations rather than declared twice: an arrival with no beat
@@ -66,6 +81,8 @@ const ARRIVAL_REGION: Record<ArrivalId, RegionId> = {
 };
 
 export interface CeremonyScript {
+  kind: CeremonyKind;
+  /** The rank tier, or — for a world completion — the world index. */
   tier: number;
   arrival: ArrivalId | null;
   /** Where to frame. Falls back to the region the tier unlocks, or the spawn. */
@@ -114,6 +131,7 @@ export function ceremonyFor(tier: number, opts: { reducedMotion?: boolean } = {}
   beats.push({ id: 'return', seconds: 0 });
 
   return {
+    kind: 'tier',
     tier: unlock.tier,
     arrival,
     region,
@@ -122,6 +140,57 @@ export function ceremonyFor(tier: number, opts: { reducedMotion?: boolean } = {}
     lineKey: `t${unlock.tier}`,
     totalSeconds: beats.reduce((sum, b) => sum + b.seconds, 0),
   };
+}
+
+/**
+ * The world-completion ceremony (§7): "the palette cross-fades, the sky shifts,
+ * one new species appears, a card is filed in the Bitácora".
+ *
+ * Eight seconds, and deliberately not a small tier-up. It shares the beat
+ * machinery so there is one clock, one skip and one card path in the codebase,
+ * but it teaches nothing and grants no verb — a world completing is a change of
+ * light, not a change of what you can do.
+ */
+export function worldCeremonyFor(
+  worldIndex: number,
+  opts: { reducedMotion?: boolean } = {},
+): CeremonyScript {
+  const camera = opts.reducedMotion ? 0.3 : CEREMONY.worldCameraS;
+  const beats: Beat[] = [
+    { id: 'camera', seconds: camera },
+    { id: 'before', seconds: 0 },
+    // The eight seconds §7 budgets cover the sequence — the lift, the wash and
+    // the card that names the world. What follows is the same offer the tier-up
+    // makes, and it waits the same way.
+    { id: 'arrival', seconds: Math.max(0, CEREMONY.worldCompleteS - camera - CEREMONY.worldTitleS) },
+    { id: 'title', seconds: CEREMONY.worldTitleS },
+    // **Never zero.** `beatAt` can only return a zero-length beat at t = 0, so a
+    // share beat with no duration is a share beat the clock walks straight
+    // past — the ceremony would hold on the title card and the card the whole
+    // thing exists to produce would never appear.
+    { id: 'share', seconds: CEREMONY.shareCardS },
+    { id: 'return', seconds: 0 },
+  ];
+  return {
+    kind: 'world',
+    tier: worldIndex,
+    arrival: null,
+    region: 'claro',
+    verbs: [],
+    beats,
+    lineKey: 'world',
+    totalSeconds: beats.reduce((sum, b) => sum + b.seconds, 0),
+  };
+}
+
+/** Build whichever script a queued request asks for. */
+export function scriptFor(
+  request: CeremonyRequest,
+  opts: { reducedMotion?: boolean } = {},
+): CeremonyScript {
+  return request.kind === 'world'
+    ? worldCeremonyFor(request.n, opts)
+    : ceremonyFor(request.n, opts);
 }
 
 /** Which beat a script is in at `elapsed` seconds, and how far through it. */
@@ -142,12 +211,49 @@ export function beatAt(script: CeremonyScript, elapsed: number): { beat: Beat; p
 }
 
 /**
- * Skipping jumps to the end — **but the card is still made** (§5). Losing the
- * before-and-after because somebody was in a hurry is losing the one artefact
- * the ceremony produces.
+ * Where the clock parks: inside the share beat, the last one with a duration.
+ *
+ * Small enough to be inside that beat, large enough that no accumulation of
+ * float error can push it past. One definition, used by the runner every frame
+ * and by `skipTo` — two would drift, and the failure mode is the ceremony
+ * holding on the wrong card forever.
+ */
+export const HOLD_EPSILON = 0.001;
+
+/** Where the clock stops. See `HOLD_EPSILON`. */
+export function holdPoint(script: CeremonyScript): number {
+  return script.totalSeconds - HOLD_EPSILON;
+}
+
+/**
+ * Skipping jumps straight to the card — **which is still made** (§5). Losing
+ * the before-and-after because somebody was in a hurry is losing the one
+ * artefact the ceremony produces, so the skip lands ON it rather than past it.
  */
 export function skipTo(script: CeremonyScript): number {
-  return script.totalSeconds;
+  return holdPoint(script);
+}
+
+/**
+ * Everything owed, in the order it should play.
+ *
+ * Rank tiers first, oldest first, then the world completion. A world completes
+ * far more often than a rank changes, so when both are owed the rank is the one
+ * somebody came back for — and an eight-second coda after it lands better than
+ * an eight-second delay before it.
+ */
+export function queueFor(
+  celebratedTier: number,
+  tier: number,
+  celebratedWorld: number,
+  worldIndex: number,
+): CeremonyRequest[] {
+  const out: CeremonyRequest[] = pendingCeremonies(celebratedTier, tier)
+    .map((n) => ({ kind: 'tier' as const, n }));
+  // Only the world they are in now. Somebody who completed four worlds while
+  // away gets one ceremony, not four — the island only looks like the last one.
+  if (worldIndex > celebratedWorld && worldIndex > 1) out.push({ kind: 'world', n: worldIndex });
+  return out;
 }
 
 /** Every tier reached but not yet celebrated, oldest first. */

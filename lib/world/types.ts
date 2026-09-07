@@ -284,6 +284,8 @@ export interface WorldPayload {
   worldGoal: number;
   /** Tiers reached but not yet celebrated, ascending. */
   pendingCeremonies: number[];
+  /** The highest tier already shown, so the queue can be rebuilt from source. */
+  celebratedTier: number;
   celebratedWorld: number;
   snapshotUrl: string | null;
   projectMarkers: ProjectMarker[];

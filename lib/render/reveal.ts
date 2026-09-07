@@ -23,6 +23,8 @@
  *   base (flores, árbol; the difference between them is the easing, which the
  *   ceremony owns, not the shader).
  * - `channel` — water breaks through at a head and cuts downhill (río).
+ * - `repaint` — the new world's palette washes outward over the old one, for
+ *   the world-completion ceremony (`08` §7, "the palette cross-fades").
  */
 /**
  * A framed shot, for the tier-up ceremony.
@@ -49,10 +51,10 @@ export interface CameraShot {
   orbit: number;
 }
 
-export type RevealMode = 'none' | 'uplift' | 'snowline' | 'grow' | 'channel';
+export type RevealMode = 'none' | 'uplift' | 'snowline' | 'grow' | 'channel' | 'repaint';
 
 const MODE_INDEX: Record<RevealMode, number> = {
-  none: 0, uplift: 1, snowline: 2, grow: 3, channel: 4,
+  none: 0, uplift: 1, snowline: 2, grow: 3, channel: 4, repaint: 5,
 };
 
 export interface RevealState {
@@ -74,6 +76,14 @@ export interface RevealState {
    */
   bare: [number, number, number];
 }
+
+/**
+ * The whole island, for the events that are not local to one region.
+ *
+ * `repaint` sweeps from wherever the player is standing to the far shore, so
+ * its radius is the island rather than a feature.
+ */
+export const ISLAND_WIDE = 1.15;
 
 export const REVEAL_OFF: RevealState = {
   mode: 'none',

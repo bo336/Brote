@@ -689,6 +689,8 @@
     },
     "tierup": {
       "title": "{rank}",
+      "worldtitle": "World {n}",
+      "worldline": "Your island changed its air. Welcome to world {n}.",
       "newverb": "Ahora podés {verbo}.",
       "share": "Guardar el antes y después",
       "square": "Save square",

@@ -329,6 +329,10 @@ export const CEREMONY = {
   newVerbS: 4, // beat 5 — the new verb, taught in one sentence, in-world
   shareCardS: 2, // beat 6 — no upsell, no interstitial
   worldCompleteS: 8, // the biome cross-fade when `worldIndex` increments
+  /** Beat 1 of the world completion. OURS: a smaller moment, a shorter lift. */
+  worldCameraS: 0.8,
+  /** Its title card, inside the 8 s. OURS. */
+  worldTitleS: 2.4,
 } as const;
 
 /**

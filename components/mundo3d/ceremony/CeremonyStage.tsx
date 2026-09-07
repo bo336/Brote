@@ -9,6 +9,7 @@ import { BRAND } from '@/lib/render/palette';
 import { CEREMONY } from '@/lib/world/config';
 import type { Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
+import type { CeremonyScript } from '@/lib/world/ceremony';
 import type { VerbId } from '@/lib/world/types';
 import type { FollowCamera } from '../control/FollowCamera';
 import type { CharacterController } from '../control/CharacterController';
@@ -103,6 +104,7 @@ export function CeremonyStage({
   cameraRef,
   controller,
   reducedMotion,
+  previousBiome,
   onCelebrated,
 }: {
   layout: IslandLayout | null;
@@ -110,7 +112,9 @@ export function CeremonyStage({
   cameraRef: React.MutableRefObject<FollowCamera | null>;
   controller: CharacterController | null;
   reducedMotion: boolean;
-  onCelebrated?: (tier: number) => void;
+  /** The ground colour of the world being left, for the palette wash. */
+  previousBiome?: string;
+  onCelebrated?: (script: CeremonyScript) => void;
 }) {
   const [taught, setTaught] = useState<Taught | null>(null);
   const verbInUse = usePlayerStore((s) => s.verb);
@@ -121,6 +125,7 @@ export function CeremonyStage({
     cameraRef,
     controller,
     reducedMotion,
+    previousBiome,
     onCelebrated,
   });
 

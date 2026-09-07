@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { beatAt, ceremonyFor, type BeatId, type CeremonyScript } from '@/lib/world/ceremony';
+import { beatAt, holdPoint, scriptFor, type BeatId, type CeremonyScript } from '@/lib/world/ceremony';
 import { arrivalPlan, type ArrivalPlan } from '@/lib/render/arrivals';
-import { REVEAL_OFF } from '@/lib/render/reveal';
+import { ISLAND_WIDE, REVEAL_OFF, smoothEase, type RevealState } from '@/lib/render/reveal';
 import { updateReveal } from '@/lib/render/materials';
 import { CLAY } from '@/lib/render/palette';
 import { SHARE_CARD, TERRAIN } from '@/lib/world/config';
@@ -37,14 +37,10 @@ export interface CeremonyRunner {
   verbSpot: [number, number, number] | null;
 }
 
-/**
- * How far short of the end the clock parks. Small enough to be inside the last
- * beat, large enough that no float rounding can push it past.
- */
-const HOLD_EPSILON = 0.001;
-
 /** The un-snowed rock, for the snow line to retreat across. */
 const BARE = new THREE.Color(CLAY.stone);
+/** Scratch for the world the player is leaving. Never allocated per frame. */
+const WAS = new THREE.Color();
 
 /** Where beat 5 pushes to, once the verb has a place (§5 beat 5). */
 function verbShot(x: number, y: number, z: number, orbit: number): CameraShot {
@@ -57,6 +53,7 @@ export function useCeremonyRunner({
   cameraRef,
   controller,
   reducedMotion,
+  previousBiome,
   onCelebrated,
 }: {
   layout: IslandLayout | null;
@@ -64,27 +61,65 @@ export function useCeremonyRunner({
   cameraRef: React.MutableRefObject<FollowCamera | null>;
   controller: CharacterController | null;
   reducedMotion: boolean;
-  /** The tier finished playing. Persisting that is the caller's business. */
-  onCelebrated?: (tier: number) => void;
+  /** The ground colour of the world being left, for the palette wash. */
+  previousBiome?: string;
+  /** One finished playing. Persisting that is the caller's business. */
+  onCelebrated?: (script: CeremonyScript) => void;
 }): CeremonyRunner {
   const gl = useThree((s) => s.gl);
-  const tier = useSessionStore((s) => s.ceremony.tier);
+  const request = useSessionStore((s) => s.ceremony.request);
   const skipped = useSessionStore((s) => s.ceremony.skipped);
   const setCeremonyBeat = useSessionStore((s) => s.setCeremonyBeat);
   const setCeremonyBefore = useSessionStore((s) => s.setCeremonyBefore);
 
   const script = useMemo(
-    () => (tier === null ? null : ceremonyFor(tier, { reducedMotion })),
-    [tier, reducedMotion],
+    () => (request === null ? null : scriptFor(request, { reducedMotion })),
+    [request, reducedMotion],
   );
 
   const plan = useMemo<ArrivalPlan | null>(() => {
-    if (!script?.arrival || !layout || !heightfield) return null;
+    if (!layout || !heightfield || !script) return null;
+
+    /**
+     * A world completing is not a feature arriving in one place — it is the
+     * light over the whole island changing (`08` §7). So it gets its own plan:
+     * the wash starts where the player is standing and runs to the far shore,
+     * and the camera stays where it is rather than flying somewhere to watch.
+     */
+    if (script.kind === 'world') {
+      WAS.set(previousBiome ?? CLAY.grass);
+      const [sx, sz] = layout.spawn;
+      const sy = sampleHeight(heightfield, sx, sz);
+      const wash: RevealState = {
+        mode: 'repaint',
+        centre: [playerTransform.x, playerTransform.y, playerTransform.z],
+        radius: layout.radius * ISLAND_WIDE,
+        // Inverted: at 0 the front has not moved and the whole island still
+        // wears the world it is leaving.
+        amount: 0,
+        bare: [WAS.r, WAS.g, WAS.b],
+      };
+      return {
+        reveal: wash,
+        ease: smoothEase,
+        shot: {
+          x: sx,
+          y: sy + 2,
+          z: sz,
+          distance: layout.radius * 0.7,
+          yaw: Math.atan2(sx, sz),
+          pitchDeg: 22,
+          orbit: reducedMotion ? 0 : 0.03,
+        },
+      };
+    }
+
+    if (!script.arrival) return null;
     return arrivalPlan(script.arrival, layout, heightfield, {
       reducedMotion,
       bare: [BARE.r, BARE.g, BARE.b],
     });
-  }, [script, layout, heightfield, reducedMotion]);
+  }, [script, layout, heightfield, reducedMotion, previousBiome]);
 
   /**
    * Where the new verb is first usable. Beat 5 pushes the camera there and
@@ -167,7 +202,7 @@ export function useCeremonyRunner({
       * So the last beat holds until the player dismisses it, and **that** tap is
       * what returns control (beat 7).
       */
-    const hold = script.totalSeconds - HOLD_EPSILON;
+    const hold = holdPoint(script);
     // Skipping jumps straight to it. Nothing is lost: beat 2 already took the
     // before-shot and the overlay composes the after from the live canvas.
     if (skipped) elapsed.current = hold;
@@ -194,7 +229,7 @@ export function useCeremonyRunner({
         case 'share':
           // Shown is shown. Marking it here rather than on dismissal means a
           // player who closes the tab on the card still never sees it twice.
-          onCelebrated?.(script.tier);
+          onCelebrated?.(script);
           // Control comes back with the card, so the world behind it is alive
           // again while they decide whether to share.
           follow?.release();

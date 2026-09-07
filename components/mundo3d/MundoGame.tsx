@@ -10,6 +10,7 @@ import { isNight } from '@/lib/utils/dates';
 import { pipStageForTier } from '@/lib/mundo';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
 import { biomeConfig } from '@/lib/world/biome';
+import { queueFor, type CeremonyScript } from '@/lib/world/ceremony';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
 import { disposeAll as disposeMaterials } from '@/lib/render/materials';
@@ -144,7 +145,7 @@ export default function MundoGame({
   const setHud = useSessionStore((s) => s.setHud);
   const queueCeremonies = useSessionStore((s) => s.queueCeremonies);
   const nextCeremony = useSessionStore((s) => s.nextCeremony);
-  const ceremonyTier = useSessionStore((s) => s.ceremony.tier);
+  const ceremonyRequest = useSessionStore((s) => s.ceremony.request);
 
   const [tier, setTier] = useState<QualityTier>(1);
   const [frameloop, setFrameloop] = useState<'always' | 'demand'>('always');
@@ -177,7 +178,7 @@ export default function MundoGame({
    * queue is drained one at a time, oldest first, and `world_mark_celebrated`
    * is what stops it playing twice.
    */
-  const celebrate = useCelebrate({ readOnly: readOnly || !payload, worldIndex: payload?.worldIndex ?? worldIndex });
+  const celebrate = useCelebrate({ readOnly: readOnly || !payload });
   /**
    * El póster. Until this existed, every card in the app showed a generated
    * SVG of an island nobody owns; now the feed, both profiles and onboarding
@@ -188,11 +189,19 @@ export default function MundoGame({
     readOnly: readOnly || !payload,
   });
   useEffect(() => {
-    const pending = payload?.pendingCeremonies;
-    if (!pending || pending.length === 0) return;
-    queueCeremonies(pending);
+    if (!payload) return;
+    // `pendingCeremonies` already holds the rank tiers; the world completion is
+    // decided here because it needs `celebratedWorld` alongside it.
+    const queue = queueFor(
+      payload.celebratedTier,
+      payload.tier,
+      payload.celebratedWorld,
+      payload.worldIndex,
+    );
+    if (queue.length === 0) return;
+    queueCeremonies(queue);
     nextCeremony();
-  }, [payload?.pendingCeremonies, queueCeremonies, nextCeremony]);
+  }, [payload, queueCeremonies, nextCeremony]);
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
@@ -203,6 +212,15 @@ export default function MundoGame({
   const reducedMotion = prefersReducedMotion(reduceMotionSetting);
   /** The biome's own name, for the share card. Never derived from a string. */
   const biome = useMemo(() => biomeConfig(payload?.worldIndex ?? worldIndex), [payload?.worldIndex, worldIndex]);
+  /**
+   * The world they are leaving, for the palette wash. Only meaningful when a
+   * world completion is owed — `biomeConfig(n - 1)` is the biome the island
+   * wore last visit, and the wash runs from it to the one it wears now.
+   */
+  const previousBiome = useMemo(
+    () => biomeConfig(Math.max(1, (payload?.worldIndex ?? worldIndex) - 1)).chalked.grass,
+    [payload?.worldIndex, worldIndex],
+  );
   const palette = useMemo(() => paletteForWorld(worldIndex, timeOfDay), [worldIndex, timeOfDay]);
 
   // ── The world, derived once from server state. It cannot change during play:
@@ -335,7 +353,7 @@ export default function MundoGame({
           the probe rejects them, and a harness that samples nothing measures
           nothing (`07-RENDER-ARCHITECTURE.md` §6). */}
       <Canvas
-        frameloop={ceremonyTier !== null || perf ? 'always' : hud !== 'play' ? 'demand' : frameloop}
+        frameloop={ceremonyRequest !== null || perf ? 'always' : hud !== 'play' ? 'demand' : frameloop}
         dpr={params.dprCap}
         camera={{
           fov: CAMERA.fov,
@@ -371,6 +389,7 @@ export default function MundoGame({
           onOpenMojon={() => setHud('mojon')}
           ownedCosmetics={payload?.ownedCosmetics}
           savedLayouts={payload?.layouts}
+          previousBiome={previousBiome}
           readOnly={readOnly || !payload}
           onPlacementsChanged={save}
           onCelebrated={celebrate}

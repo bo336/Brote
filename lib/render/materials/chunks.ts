@@ -210,6 +210,18 @@ export const REVEAL_VERT = /* glsl */ `
  * shade off from where it will be tomorrow is a ceremony that lied.
  */
 export const REVEAL_FRAG = /* glsl */ `
+  // The world completing: the new palette washes outward and the old one is
+  // what is left ahead of the front. A hue shift that keeps the shading it
+  // found — tinting flat would turn a lit island into a sticker, and the whole
+  // clay read is in that shading.
+  if (uRevealMode > 4.5) {
+    float bhD = length(vClayWorld.xz - uRevealCentre.xz);
+    float bhFront = uRevealAmount * uRevealRadius;
+    float bhAhead = smoothstep(bhFront - uRevealRadius * 0.06, bhFront + uRevealRadius * 0.02, bhD);
+    float bhLum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 bhWas = uRevealBare * (0.35 + 1.1 * bhLum);
+    diffuseColor.rgb = mix(diffuseColor.rgb, bhWas, bhAhead * 0.85);
+  }
   if (uRevealMode > 1.5 && uRevealMode < 2.5) {
     float bhLine = uRevealCentre.y + uRevealRadius * (1.0 - uRevealAmount);
     // Softened by a few centimetres so the line reads as settling snow rather

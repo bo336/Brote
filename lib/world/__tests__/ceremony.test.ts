@@ -1,7 +1,10 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 
-import { ARRIVALS, beatAt, ceremonyFor, pendingCeremonies, skipTo } from '../ceremony';
+import {
+  ARRIVALS, beatAt, ceremonyFor, holdPoint, pendingCeremonies, queueFor, scriptFor, skipTo,
+  worldCeremonyFor,
+} from '../ceremony';
 import { MAX_TIER, MIN_TIER, unlocksFor } from '../progression';
 import { CEREMONY } from '../config';
 
@@ -107,10 +110,10 @@ test('beatAt walks the script and never falls off it', () => {
   }
 });
 
-test('skipping lands on the end, where the card is made', () => {
+test('skipping lands ON the card, not past it', () => {
   for (const tier of TIERS) {
     const s = ceremonyFor(tier);
-    assert.equal(beatAt(s, skipTo(s)).beat.id, 'return');
+    assert.equal(beatAt(s, skipTo(s)).beat.id, 'share', `t${tier}`);
   }
 });
 
@@ -120,4 +123,80 @@ test('missed tier-ups queue oldest first', () => {
   // The world never regresses, so a celebrated count ahead of the tier is a
   // stale read, not a reason to replay anything.
   assert.deepEqual(pendingCeremonies(9, 4), []);
+});
+
+test('a world completion is short, teaches nothing, and still makes a card', () => {
+  const s = worldCeremonyFor(4);
+  assert.equal(s.kind, 'world');
+  assert.equal(s.tier, 4);
+  assert.equal(s.arrival, null);
+  assert.deepEqual(s.verbs, []);
+  // Eight seconds for the sequence itself (§7, "a small ceremony (~8 s)").
+  // The share beat after it waits, exactly as the tier-up's does.
+  const sequence = s.beats
+    .filter((b) => b.id !== 'share' && b.id !== 'return')
+    .reduce((sum, b) => sum + b.seconds, 0);
+  assert.ok(Math.abs(sequence - CEREMONY.worldCompleteS) < 1e-9, `${sequence}s`);
+  const ids = s.beats.map((b) => b.id);
+  assert.ok(!ids.includes('verb'), 'a world completion grants no verb to teach');
+  assert.ok(ids.includes('before'));
+  assert.ok(ids.includes('share'));
+  assert.equal(beatAt(s, skipTo(s)).beat.id, 'share');
+});
+
+test('every beat of a world completion has a non-negative length', () => {
+  // The arrival beat is what is left after the camera and the title card, so a
+  // config change that made those two longer than the whole thing would give
+  // it a negative duration and `beatAt` would walk straight past it.
+  for (const rm of [false, true]) {
+    for (const b of worldCeremonyFor(2, { reducedMotion: rm }).beats) {
+      assert.ok(b.seconds >= 0, `${b.id} is ${b.seconds}s`);
+    }
+  }
+});
+
+test('scriptFor dispatches on the request kind', () => {
+  assert.equal(scriptFor({ kind: 'tier', n: 7 }).kind, 'tier');
+  assert.equal(scriptFor({ kind: 'tier', n: 7 }).arrival, 'rio');
+  assert.equal(scriptFor({ kind: 'world', n: 3 }).kind, 'world');
+});
+
+test('the queue is rank tiers oldest first, then the world', () => {
+  assert.deepEqual(queueFor(1, 3, 2, 2), [
+    { kind: 'tier', n: 2 },
+    { kind: 'tier', n: 3 },
+  ]);
+  assert.deepEqual(queueFor(3, 3, 1, 2), [{ kind: 'world', n: 2 }]);
+  assert.deepEqual(queueFor(1, 2, 1, 3), [
+    { kind: 'tier', n: 2 },
+    { kind: 'world', n: 3 },
+  ]);
+});
+
+test('four worlds completed while away is one ceremony, not four', () => {
+  // The island only ever looks like the world it is in now, so replaying the
+  // three it passed through would be three cross-fades to nothing.
+  const queue = queueFor(5, 5, 1, 5);
+  assert.deepEqual(queue, [{ kind: 'world', n: 5 }]);
+});
+
+test('nobody is celebrated for world 1, which is where everyone starts', () => {
+  assert.deepEqual(queueFor(1, 1, 0, 1), []);
+});
+
+test('every script parks on the share beat, never past it', () => {
+  // The runner holds at `totalSeconds - epsilon` and expects to find the share
+  // card there. That only works while the LAST beat with a real duration is
+  // `share` — a zero-length one is invisible to `beatAt` for any t above zero,
+  // and the card the whole ceremony exists to produce would never appear.
+  const scripts = [
+    ...TIERS.map((t) => ceremonyFor(t)),
+    ...TIERS.map((t) => ceremonyFor(t, { reducedMotion: true })),
+    worldCeremonyFor(3),
+    worldCeremonyFor(3, { reducedMotion: true }),
+  ];
+  for (const s of scripts) {
+    const at = beatAt(s, holdPoint(s));
+    assert.equal(at.beat.id, 'share', `t${s.tier} ${s.kind} parked on ${at.beat.id}`);
+  }
 });

@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-import type { BeatId } from '@/lib/world/ceremony';
+import type { BeatId, CeremonyRequest } from '@/lib/world/ceremony';
 import type { Interactable, PropId, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
@@ -57,8 +57,8 @@ export interface PlacementActions {
  * says the same thing.
  */
 export interface CeremonyStatus {
-  /** The tier being celebrated, or null when nothing is playing. */
-  tier: number | null;
+  /** What is being celebrated, or null when nothing is playing. */
+  request: CeremonyRequest | null;
   beat: BeatId;
   /** The before-shot, as a data URL, once beat 2 has taken it. */
   before: string | null;
@@ -66,7 +66,7 @@ export interface CeremonyStatus {
   skipped: boolean;
 }
 
-const NO_CEREMONY: CeremonyStatus = { tier: null, beat: 'camera', before: null, skipped: false };
+const NO_CEREMONY: CeremonyStatus = { request: null, beat: 'camera', before: null, skipped: false };
 
 const EMPTY_PLACEMENT: PlacementSummary = {
   hasGhost: false,
@@ -97,9 +97,9 @@ interface SessionStoreState {
    * The queue of tiers reached but not yet celebrated, oldest first
    * (`08-WORLD-AND-PROGRESSION.md` §5: "ceremonies queue and play in order").
    */
-  ceremonyQueue: number[];
+  ceremonyQueue: CeremonyRequest[];
   ceremony: CeremonyStatus;
-  queueCeremonies: (tiers: readonly number[]) => void;
+  queueCeremonies: (requests: readonly CeremonyRequest[]) => void;
   /** Start the next queued one, or clear when the queue is empty. */
   nextCeremony: () => void;
   setCeremonyBeat: (beat: BeatId) => void;
@@ -128,8 +128,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   placementActions: null,
   ceremonyQueue: [],
   ceremony: NO_CEREMONY,
-  queueCeremonies: (tiers) =>
-    set((s) => (s.ceremonyQueue.length > 0 || tiers.length === 0 ? s : { ceremonyQueue: [...tiers] })),
+  queueCeremonies: (requests) =>
+    set((s) => (s.ceremonyQueue.length > 0 || requests.length === 0 ? s : { ceremonyQueue: [...requests] })),
   nextCeremony: () =>
     set((s) => {
       const [next, ...rest] = s.ceremonyQueue;
@@ -138,7 +138,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
       // here rather than carried into the next one's card.
       return {
         ceremonyQueue: rest,
-        ceremony: { tier: next, beat: 'camera' as const, before: null, skipped: false },
+        ceremony: { request: next, beat: 'camera' as const, before: null, skipped: false },
         hud: 'cutscene' as const,
       };
     }),

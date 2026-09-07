@@ -11,6 +11,7 @@ import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
 import { fogRange } from '@/lib/render/materials/clay';
 import { updateMood } from '@/lib/render/materials';
+import type { CeremonyScript } from '@/lib/world/ceremony';
 import type { Placement, QualityTier, TimeOfDay, WorldLayout } from '@/lib/world/types';
 import { CeremonyStage } from '../ceremony/CeremonyStage';
 
@@ -61,6 +62,7 @@ export function World({
   demoProps = false,
   onAdvanceTime,
   onCelebrated,
+  previousBiome,
   onPoster,
   onOpenMojon,
   ownedCosmetics = EMPTY_OWNED,
@@ -87,8 +89,10 @@ export function World({
   readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
   onPlacementsChanged?: (placements: Placement[]) => void;
-  /** A tier-up ceremony finished playing. The route persists it. */
-  onCelebrated?: (tier: number) => void;
+  /** A ceremony finished playing. The route persists it. */
+  onCelebrated?: (script: CeremonyScript) => void;
+  /** The ground colour of the world being left, for the palette wash. */
+  previousBiome?: string;
   /** Take the poster. Handed a canvas holding a frame that was just drawn. */
   onPoster?: (canvas: HTMLCanvasElement) => void;
 }) {
@@ -324,6 +328,7 @@ export function World({
         cameraRef={cameraRef}
         controller={controller}
         reducedMotion={reducedMotion}
+        previousBiome={previousBiome}
         onCelebrated={onCelebrated}
       />
       {onPoster && <PosterShot onShoot={onPoster} />}

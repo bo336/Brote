@@ -3,6 +3,7 @@
 import { useCallback, useRef } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
+import type { CeremonyScript } from '@/lib/world/ceremony';
 
 /**
  * Marking a ceremony as shown.
@@ -20,24 +21,29 @@ import { createClient } from '@/lib/supabase/client';
  */
 export function useCelebrate({
   readOnly,
-  worldIndex,
 }: {
   /** The bootstrap failed and the world on screen is a default. Never write. */
   readOnly: boolean;
-  worldIndex: number;
-}): (tier: number) => void {
-  /** The highest tier already sent, so a re-render cannot resend it. */
-  const sent = useRef(0);
+}): (script: CeremonyScript) => void {
+  /** The highest of each already sent, so a re-render cannot resend it. */
+  const sent = useRef({ tier: 0, world: 0 });
 
   return useCallback(
-    (tier: number) => {
-      if (readOnly || tier <= sent.current) return;
-      sent.current = tier;
+    (script: CeremonyScript) => {
+      if (readOnly) return;
+      const key = script.kind === 'world' ? 'world' : 'tier';
+      if (script.tier <= sent.current[key]) return;
+      sent.current[key] = script.tier;
+
+      // **Only the one that played.** The RPC takes both and applies
+      // `greatest()` to each, so passing the current world index alongside a
+      // rank-up would silently mark a world completion as already celebrated
+      // and the player would never see it.
       const send = async (): Promise<boolean> => {
         const supabase = createClient();
         const { error } = await supabase.rpc('world_mark_celebrated', {
-          p_tier: tier,
-          p_world: worldIndex,
+          p_tier: script.kind === 'tier' ? script.tier : 0,
+          p_world: script.kind === 'world' ? script.tier : 0,
         });
         return !error;
       };
@@ -45,6 +51,6 @@ export function useCelebrate({
         if (!ok) void send();
       });
     },
-    [readOnly, worldIndex],
+    [readOnly],
   );
 }

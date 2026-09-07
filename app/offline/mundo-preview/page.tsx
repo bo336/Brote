@@ -10,6 +10,8 @@ import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { PROP_IDS } from '@/lib/world/progression';
 import { parseWorldPayload } from '@/lib/world/payload';
+import * as THREE from 'three';
+
 import { updateReveal } from '@/lib/render/materials';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
@@ -138,10 +140,10 @@ function Preview() {
       __pipTo?: (id: RegionId) => [number, number];
       __pipAt?: (x: number, z: number) => void;
       __hud?: (mode: string) => void;
-      __tierup?: (tier: number) => void;
+      __tierup?: (n: number, kind?: 'tier' | 'world') => void;
       __ceremony?: () => unknown;
       __beat?: (beat: string) => void;
-      __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number) => void;
+      __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
     w.__pipTo = (id: RegionId) => {
       const [x, z] = regionCentre(id);
@@ -159,14 +161,26 @@ function Preview() {
     w.__hud = (mode: string) => useSessionStore.getState().setHud(mode as 'play');
     // Hold beat 3 at a fixed point, so an arrival can be looked at rather than
     // watched. `updateReveal` is the same call the runner makes every frame.
-    w.__reveal = (mode: string, amount: number, cx: number, cy: number, cz: number, radius: number) =>
+    w.__reveal = (
+      mode: string,
+      amount: number,
+      cx: number,
+      cy: number,
+      cz: number,
+      radius: number,
+      // The colour the world is coming FROM: bare rock for a snow line, the
+      // previous biome's grass for a palette wash.
+      bare = '#A8A296',
+    ) => {
+      const c = new THREE.Color(bare);
       updateReveal({
         mode: mode as 'uplift',
         centre: [cx, cy, cz],
         radius,
         amount,
-        bare: [0.66, 0.64, 0.59],
+        bare: [c.r, c.g, c.b],
       });
+    };
     // What the ceremony thinks it is doing, for reviewing a beat rather than
     // guessing at one from a screenshot.
     w.__ceremony = () => {
@@ -178,9 +192,9 @@ function Preview() {
     // here survives until the clock crosses a boundary of its own.
     w.__beat = (b: string) => useSessionStore.getState().setCeremonyBeat(b as 'title');
     // Replay a ceremony without reloading, for stepping through the beats.
-    w.__tierup = (t: number) => {
+    w.__tierup = (t: number, kind: 'tier' | 'world' = 'tier') => {
       const store = useSessionStore.getState();
-      store.queueCeremonies([t]);
+      store.queueCeremonies([{ kind, n: t }]);
       store.nextCeremony();
     };
     if (!at) return;

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import { RANK_BY_TIER } from '@/lib/ranks';
 import { formatWater } from '@/lib/impact';
-import { ceremonyFor } from '@/lib/world/ceremony';
+import { scriptFor } from '@/lib/world/ceremony';
 import { IMPACT_PROVENANCE } from '@/lib/world/config';
 import type { ImpactTotals } from '@/lib/world/types';
 import { cn } from '@/lib/utils/cn';
@@ -58,10 +58,10 @@ export function TierUpOverlay({
   const beatRef = useRef(ceremony.beat);
   beatRef.current = ceremony.beat;
 
-  const tier = ceremony.tier;
+  const request = ceremony.request;
   const script = useMemo(
-    () => (tier === null ? null : ceremonyFor(tier, { reducedMotion })),
-    [tier, reducedMotion],
+    () => (request === null ? null : scriptFor(request, { reducedMotion })),
+    [request, reducedMotion],
   );
 
   /**
@@ -74,13 +74,17 @@ export function TierUpOverlay({
    */
   const line = useMemo(() => {
     if (!script) return '';
+    // A world completing has no impact figure to cite: it counts actions, not
+    // litres, and inventing one for symmetry would be exactly the kind of
+    // decorative number `13-IMPACT-MIRROR.md` forbids.
+    if (script.kind === 'world') return t('worldline', { n: script.tier });
     const key = script.lineKey as 't1';
     if (script.tier === 7) return t(key, { litros: formatWater(totals.water_l) });
     if (script.tier === 8) return t(key, { acciones: Math.max(0, Math.round(totals.actions ?? 0)) });
     return t(key);
   }, [script, t, totals]);
 
-  const measured = script?.tier === 7 || script?.tier === 8;
+  const measured = script?.kind === 'tier' && (script.tier === 7 || script.tier === 8);
 
   const meta = useMemo<ShareMeta>(
     () => ({
@@ -104,7 +108,7 @@ export function TierUpOverlay({
       setSharing(true);
       try {
         const blob = await composeTierUpCard(canvas, ceremony.before, meta, format);
-        if (blob) await shareCard(blob, `brote-${script?.tier ?? ''}.png`);
+        if (blob) await shareCard(blob, `brote-${script?.kind ?? ''}-${script?.tier ?? ''}.png`);
       } finally {
         setSharing(false);
       }
@@ -115,7 +119,7 @@ export function TierUpOverlay({
   // Escape skips, the same as the button. A ceremony that cannot be dismissed
   // from a keyboard is a ceremony that traps somebody.
   useEffect(() => {
-    if (tier === null) return;
+    if (request === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       if (beatRef.current === 'share' || beatRef.current === 'return') nextCeremony();
@@ -123,11 +127,12 @@ export function TierUpOverlay({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [tier, skipCeremony, nextCeremony]);
+  }, [request, skipCeremony, nextCeremony]);
 
-  if (!script || tier === null) return null;
-  const rank = RANK_BY_TIER[tier];
+  if (!script || request === null) return null;
+  const rank = RANK_BY_TIER[script.tier];
   const beat = ceremony.beat;
+  const heading = script.kind === 'world' ? t('worldtitle', { n: script.tier }) : t('title', { rank: rank?.name_es ?? '' });
 
   return (
     <div
@@ -151,7 +156,7 @@ export function TierUpOverlay({
         <Card>
           {/* The one allowed gradient in the game, on the one word it is for. */}
           <h2 className="bg-gradient-to-r from-brote-green to-brote-lime bg-clip-text text-display text-transparent">
-            {t('title', { rank: rank?.name_es ?? '' })}
+            {heading}
           </h2>
           <p className="mt-2 text-body text-brote-cream">{line}</p>
           {measured && (
