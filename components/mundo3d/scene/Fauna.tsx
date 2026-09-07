@@ -15,6 +15,7 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { QualityTier, WorldConfig } from '@/lib/world/types';
 import { playerTransform } from '../state/usePlayerStore';
+import { atLeast } from '@/lib/world/liveliness';
 
 /**
  * The ambient life: birds over the meadow, butterflies in the garden, fish in
@@ -145,8 +146,7 @@ export function Fauna({
    * island is quieter and never emptier.
    */
   useEffect(() => {
-    const warmth = Math.min(1, Math.max(0, (liveliness - LIVELINESS.min) / (LIVELINESS.max - LIVELINESS.min)));
-    const share = LIVELINESS.faunaFloor + (1 - LIVELINESS.faunaFloor) * warmth;
+    const share = atLeast(LIVELINESS.faunaFloor, liveliness);
     const perKind = Math.max(1, Math.round((TIERS[tier].fauna * share) / KINDS.length));
     for (const { pool } of pools) pool.resize(perKind);
   }, [pools, tier, liveliness]);

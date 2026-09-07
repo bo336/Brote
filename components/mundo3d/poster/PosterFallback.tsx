@@ -6,6 +6,7 @@ import { Pip, type PipMood } from '@/components/pip/Pip';
 import { isNight } from '@/lib/utils/dates';
 import { cn } from '@/lib/utils/cn';
 import type { MundoState } from '@/lib/mundo';
+import { livelinessWarmth } from '@/lib/world/liveliness';
 
 /**
  * The poster's no-snapshot fallback — the old `MundoHeroFallback`, moved and
@@ -45,10 +46,7 @@ interface PosterFallbackProps {
   height?: number;
 }
 
-/** Warmth only. `liveliness` never removes anything (`01-RULES.md` §4.2). */
-function warmth(liveliness: number): number {
-  return Math.max(0, Math.min(1, (liveliness - 0.35) / 0.65));
-}
+
 
 export function PosterFallback({ mundo, pipMood = 'happy', className, height = 240 }: PosterFallbackProps) {
   const [night, setNight] = useState(false);
@@ -59,7 +57,9 @@ export function PosterFallback({ mundo, pipMood = 'happy', className, height = 2
   }, []);
 
   const tier = mundo?.rankTier ?? 1;
-  const live = warmth(mundo?.liveliness ?? 0.5);
+  // Warmth only. `liveliness` never removes anything (`01-RULES.md` §4.2),
+  // and the clamp that guarantees it is tested in `lib/world/liveliness.ts`.
+  const live = livelinessWarmth(mundo?.liveliness ?? 0.5);
   const golden = mundo?.palette === 'golden';
 
   const sky = night

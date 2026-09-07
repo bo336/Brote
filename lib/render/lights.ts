@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { LIGHT_PRESET_CROSSFADE_S, LIVELINESS } from '@/lib/world/config';
 import type { TimeOfDay } from '@/lib/world/types';
 import { PRESETS, type LightPreset } from './palette';
+import { warmerBy } from '@/lib/world/liveliness';
 
 export interface LightRig {
   group: THREE.Group;
@@ -95,8 +96,7 @@ function colorOf(hex: string): THREE.Color {
  * quieter — never dimmer, never greyer, never smaller.
  */
 export function applyLiveliness(rig: LightRig, liveliness: number): void {
-  const warmth = Math.min(1, Math.max(0, (liveliness - LIVELINESS.min) / (LIVELINESS.max - LIVELINESS.min)));
-  rig.key.intensity *= 1 + LIVELINESS.keyWarmthGain * warmth;
+  rig.key.intensity *= warmerBy(LIVELINESS.keyWarmthGain, liveliness);
 }
 
 /** The cross-fade rate, as a lambda for the exponential damping form. */

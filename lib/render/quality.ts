@@ -53,13 +53,20 @@ export const TIERS: Record<QualityTier, TierParams> = {
     // T1 takes the far tree silhouette, not the mid one: it shared T2's LOD
     // until a tier-11 island put it 410 triangles over its own ceiling, and a
     // 30 fps phone is the last place to spend them on canopy interiors.
-    blobShadows: true, terrainGrid: 96, grassTufts: 250, flowers: 60, trees: 60, treeLods: 1,
+    // Grass came down from 250 when the protocol was finally run at **tier 11**
+    // rather than tier 8: the full island put T1 at 70,770 against its own
+    // 70,000 ceiling. Grass is the right thing to lose — it is the cheapest
+    // silhouette on the island and the last thing read on a 30 fps phone.
+    blobShadows: true, terrainGrid: 96, grassTufts: 170, flowers: 60, trees: 60, treeLods: 1,
     rocks: 30, groundDetail: 60, fauna: 4, particles: 80, water: 1, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 60, targetFps: 30,
   },
   2: {
     name: 'medio', dprCap: 1.25, antialias: true, postProcessing: false, realShadows: false,
-    blobShadows: true, terrainGrid: 128, grassTufts: 1100, flowers: 140, trees: 110, treeLods: 2,
+    // 1100 tufts put a tier-11 island at 191,910 against a 160,000 ceiling,
+    // with grass alone accounting for more than half of it. The open-ended
+    // blade took a quarter off every tuft; this takes the rest.
+    blobShadows: true, terrainGrid: 128, grassTufts: 800, flowers: 140, trees: 110, treeLods: 2,
     rocks: 60, groundDetail: 180, fauna: 8, particles: 200, water: 2, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 80, targetFps: 45,
   },

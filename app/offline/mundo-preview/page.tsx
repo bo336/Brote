@@ -13,6 +13,7 @@ import { parseWorldPayload } from '@/lib/world/payload';
 import * as THREE from 'three';
 
 import { updateReveal } from '@/lib/render/materials';
+import { liveGeometryKeys } from '@/lib/render/geometry';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
 /**
@@ -143,6 +144,7 @@ function Preview() {
       __tierup?: (n: number, kind?: 'tier' | 'world') => void;
       __ceremony?: () => unknown;
       __beat?: (beat: string) => void;
+      __geometries?: () => string[];
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
     w.__pipTo = (id: RegionId) => {
@@ -187,6 +189,9 @@ function Preview() {
       const st = useSessionStore.getState();
       return { ...st.ceremony, before: st.ceremony.before ? 'captured' : null, queue: st.ceremonyQueue, hud: st.hud };
     };
+    // What shapes are actually live, for the perf protocol: a count says a
+    // ceiling broke, the keys say which shape broke it.
+    w.__geometries = () => liveGeometryKeys();
     // Park the HUD on one beat, so a card can be reviewed rather than caught.
     // The runner only writes the beat when ITS beat changes, so a value set
     // here survives until the clock crosses a boundary of its own.

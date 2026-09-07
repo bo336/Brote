@@ -323,11 +323,20 @@ export default function MundoGame({
       const gl = rendererRef.current;
       // Development only: the assertion is a warning to whoever is working on
       // the scene, not something to run in a player's console.
+      //
+      // **Deferred by a task.** React tears an unmounting tree down parent
+      // first, so this cleanup runs BEFORE the scene components' own — and
+      // reading `gl.info.memory` here counted every geometry that was about to
+      // be disposed a moment later. It reported ten leaked geometries on every
+      // single unmount, which is worse than no assertion: an alarm that always
+      // fires is an alarm nobody reads.
       if (gl && process.env.NODE_ENV !== 'production') {
-        const { geometries, textures } = gl.info.memory;
-        if (geometries !== 0 || textures !== 0) {
-          console.warn(`[mundo] leak on unmount: ${geometries} geometries, ${textures} textures`);
-        }
+        setTimeout(() => {
+          const { geometries, textures } = gl.info.memory;
+          if (geometries !== 0 || textures !== 0) {
+            console.warn(`[mundo] leak on unmount: ${geometries} geometries, ${textures} textures`);
+          }
+        }, 0);
       }
     };
   }, []);

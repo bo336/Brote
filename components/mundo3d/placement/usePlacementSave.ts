@@ -4,7 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { PLACEMENT } from '@/lib/world/config';
+import {
+  decide, readOutbox, writeOutbox,
+  type Outbox, type OutboxStore, type SaveOutcome, type SaveState,
+} from '@/lib/world/outbox';
 import type { Placement } from '@/lib/world/types';
+
+export type { SaveState };
 
 /**
  * Saving an arrangement, without ever making somebody wait for the network.
@@ -24,36 +30,20 @@ import type { Placement } from '@/lib/world/types';
  * The alternative is losing it, and a queue that empties on the next successful
  * save is not a second source of truth.
  */
-const OUTBOX_PREFIX = 'brote.mundo.outbox.';
+/**
+ * The browser's own storage, or nothing.
+ *
+ * Server-rendered or not, `localStorage` may simply not be there. The outbox
+ * degrades to holding the batch in memory for this session, which is still
+ * better than dropping it the moment a save fails.
+ */
+const browserStore: OutboxStore | null =
+  typeof localStorage === 'undefined' ? null : localStorage;
 
-export type SaveState = 'idle' | 'saving' | 'queued' | 'error';
-
-interface Outbox {
-  placements: Placement[];
-  at: number;
-}
-
-function read(userId: string): Outbox | null {
-  try {
-    const raw = localStorage.getItem(OUTBOX_PREFIX + userId);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Outbox;
-    return Array.isArray(parsed.placements) ? parsed : null;
-  } catch {
-    // A private window, cleared site data, or storage the browser refuses to
-    // hand over. Losing the outbox is survivable; throwing here is not.
-    return null;
-  }
-}
-
-function write(userId: string, outbox: Outbox | null): void {
-  try {
-    if (outbox) localStorage.setItem(OUTBOX_PREFIX + userId, JSON.stringify(outbox));
-    else localStorage.removeItem(OUTBOX_PREFIX + userId);
-  } catch {
-    /* see `read` */
-  }
-}
+const read = (userId: string) => (browserStore ? readOutbox(browserStore, userId) : null);
+const write = (userId: string, outbox: Outbox | null) => {
+  if (browserStore) writeOutbox(browserStore, userId, outbox);
+};
 
 export function usePlacementSave({
   userId,
@@ -73,6 +63,22 @@ export function usePlacementSave({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<Placement[] | null>(null);
 
+  /**
+   * Apply what `lib/world/outbox.ts` decided. The rule that matters is that a
+   * batch the server *refused* is dropped while one that never *reached* it is
+   * kept — see there for why conflating the two turns a queue into a loop.
+   */
+  const settle = useCallback(
+    (outcome: SaveOutcome, batch: Placement[]) => {
+      const next = decide(outcome);
+      pending.current = next.keep ? batch : null;
+      write(userId, next.keep ? { placements: batch, at: Date.now() } : null);
+      setState(next.state);
+      if (next.reason) onRejected?.(next.reason);
+    },
+    [userId, onRejected],
+  );
+
   const flush = useCallback(async () => {
     const batch = pending.current;
     if (!batch || readOnly) return;
@@ -84,24 +90,17 @@ export function usePlacementSave({
       });
       if (error) throw error;
       const result = data as { ok?: boolean; reason?: string } | null;
-      if (result && result.ok === false) {
-        // The server refused on its own terms. Retrying will not help, so the
-        // outbox is cleared and the caller is told why.
-        pending.current = null;
-        write(userId, null);
-        setState('error');
-        onRejected?.(result.reason ?? 'rejected');
-        return;
-      }
-      pending.current = null;
-      write(userId, null);
-      setState('idle');
+      settle(
+        result && result.ok === false
+          ? { kind: 'rejected', reason: result.reason ?? 'rejected' }
+          : { kind: 'saved' },
+        batch,
+      );
     } catch {
-      // The network, not the rules. Keep it and try again later.
-      write(userId, { placements: batch, at: Date.now() });
-      setState('queued');
+      // The network, not the rules. `decide` is what keeps this one.
+      settle({ kind: 'offline' }, batch);
     }
-  }, [userId, readOnly, onRejected]);
+  }, [readOnly, settle]);
 
   /** Queue an arrangement. Cheap to call on every change. */
   const save = useCallback(

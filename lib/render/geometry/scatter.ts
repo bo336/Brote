@@ -19,9 +19,16 @@ import { mergePainted, paintFlat, paintVertical } from './build';
 /**
  * One blade: a tapered, slightly curved strip. Three segments is enough for the
  * curve to read and cheap enough to draw a thousand of them.
+ *
+ * **Open-ended.** The caps were a quarter of every blade in the game and not
+ * one of their triangles is ever seen: the bottom is buried in the ground and
+ * the top is a four-millimetre disc pointing at the sky. A tuft is four blades,
+ * a T2 island draws eleven hundred tufts, and that made the caps alone
+ * twenty-six thousand triangles — a sixth of the whole T2 budget, spent on
+ * geometry facing away from every camera the game has.
  */
 function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
-  const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, false);
+  const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, true);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
     const t = (pos.getY(i) + height / 2) / height;

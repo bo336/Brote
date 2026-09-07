@@ -37,6 +37,17 @@ export function getTree(species: TreeSpecies, variant: number, lod: TreeLod = 0)
 }
 
 /** How many geometries are live — the perf overlay watches this against the tier. */
+/**
+ * What is in the cache, for the perf protocol.
+ *
+ * A count tells you a ceiling was crossed; the keys tell you which shape did
+ * it, which is the difference between trimming a budget and finding a
+ * duplicate that should never have been built twice.
+ */
+export function liveGeometryKeys(): string[] {
+  return [...cache.keys(), ...[...treeCache.keys()].map((k) => `tree:${k}`)];
+}
+
 export function liveGeometryCount(): number {
   return cache.size + treeCache.size * 2;
 }
