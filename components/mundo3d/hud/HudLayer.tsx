@@ -80,11 +80,7 @@ export function HudLayer({
         growth={worldGrowth}
         goal={worldGoal}
       />
-      <HUD
-        onOpenSettings={() => setHud('settings')}
-        onArrange={() => setHud('placement')}
-        onOpenBitacora={() => setHud('bitacora')}
-      />
+      <HUD onOpenBitacora={() => setHud('bitacora')} />
       <BitacoraSheet
         open={hud === 'bitacora'}
         onClose={() => setHud('play')}
@@ -92,6 +88,9 @@ export function HudLayer({
         tier={tier}
         journal={journal}
         readOnly={readOnly}
+        canArrange={placement.props.length > 0}
+        onArrange={() => setHud('placement')}
+        onOpenSettings={() => setHud('settings')}
       />
       {hud === 'placement' && placementActions && (
         <PlacementBar

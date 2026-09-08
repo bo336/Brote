@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { X } from 'lucide-react';
+import { LayoutGrid, Settings2, X } from 'lucide-react';
 
 import { getDomainColor } from '@/lib/domains';
 import { pagesFor, progressFor } from '@/lib/world/journal';
@@ -30,10 +30,17 @@ interface BitacoraSheetProps {
   journal: readonly JournalEntry[];
   /** The bootstrap failed and this census is a default. Never claim anything. */
   readOnly: boolean;
+  /** There is something to arrange. A button opening an empty tray is a lie. */
+  canArrange: boolean;
+  onArrange: () => void;
+  onOpenSettings: () => void;
 }
 
-export function BitacoraSheet({ open, onClose, userId, tier, journal, readOnly }: BitacoraSheetProps) {
+export function BitacoraSheet({
+  open, onClose, userId, tier, journal, readOnly, canArrange, onArrange, onOpenSettings,
+}: BitacoraSheetProps) {
   const t = useTranslations('mundo.bitacora');
+  const tHud = useTranslations('mundo');
   const tRegion = useTranslations('mundo.region');
   const tTod = useTranslations('mundo.tod');
   const [openRegion, setOpenRegion] = useState<string | null>(null);
@@ -57,14 +64,36 @@ export function BitacoraSheet({ open, onClose, userId, tier, journal, readOnly }
             {t('progress', { seen: total.seen, total: total.total })}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('close')}
-          className="flex h-11 w-11 items-center justify-center rounded-pill bg-brote-cream/10 text-brote-cream"
-        >
-          <X className="h-5 w-5" aria-hidden />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* The two other sheets, reached through this one rather than from
+              the HUD — which §1 keeps at four elements during play. */}
+          {canArrange && (
+            <button
+              type="button"
+              onClick={onArrange}
+              aria-label={tHud('placement.modo')}
+              className="flex h-11 w-11 items-center justify-center rounded-pill bg-brote-cream/10 text-brote-cream"
+            >
+              <LayoutGrid className="h-5 w-5" aria-hidden />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            aria-label={tHud('set.quality.label')}
+            className="flex h-11 w-11 items-center justify-center rounded-pill bg-brote-cream/10 text-brote-cream"
+          >
+            <Settings2 className="h-5 w-5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('close')}
+            className="flex h-11 w-11 items-center justify-center rounded-pill bg-brote-cream/10 text-brote-cream"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">

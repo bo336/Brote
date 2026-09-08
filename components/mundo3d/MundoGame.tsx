@@ -18,6 +18,7 @@ import type { FollowCamera } from './control/FollowCamera';
 import { resetInput, useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
 import { HudLayer } from './hud/HudLayer';
+import { WorldStates, useWorldState } from './hud/WorldStates';
 import { usePlacementSave } from './placement/usePlacementSave';
 import { useCelebrate } from './ceremony/useCelebrate';
 import { useSnapshot } from './poster/useSnapshot';
@@ -30,6 +31,13 @@ import { World } from './scene/World';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
 const EMPTY_JOURNAL: JournalEntry[] = [];
+
+/**
+ * How much bigger "texto grande" is. OURS: 1.25 is the smallest step that is
+ * unmistakably different, and small enough that a caption still fits one line
+ * on a narrow phone.
+ */
+const LARGE_TEXT_SCALE = 1.25;
 
 /** The four presets, in the order resting walks through them. */
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -128,6 +136,7 @@ export default function MundoGame({
   readOnly = false,
 }: MundoGameProps) {
   const detailMode = useSettings((s) => s.detailMode);
+  const largeText = useSettings((s) => s.largeText);
   const reduceMotionSetting = useSettings((s) => s.reduceMotion);
   const autoCamera = useSettings((s) => s.autoCamera);
   const sensitivity = useSettings((s) => s.cameraSensitivityX);
@@ -222,6 +231,13 @@ export default function MundoGame({
    * silence on iOS for the rest of the session with nothing to point at.
    */
   useEffect(() => installAudioLifecycle(), []);
+
+  /**
+   * The connection and the drawing context. One restore attempt on a lost
+   * context before falling back — a context that dies twice is a device out of
+   * memory, and retrying forever is a battery drain with a black screen.
+   */
+  const worldState = useWorldState(canvasRef.current);
   useEffect(() => cameraRef.current?.setAutoRecentre(autoCamera), [autoCamera]);
 
   const onTierChange = useCallback(
@@ -289,7 +305,15 @@ export default function MundoGame({
     // and causes layout jumps (`16-UI-AUDIO-A11Y.md` §6).
     <div
       className="fixed inset-0 z-[70] touch-none select-none overscroll-none bg-brote-ink"
-      style={{ paddingBottom: `env(safe-area-inset-bottom, ${JOYSTICK.safeAreaMinPx}px)` }}
+      style={{
+        paddingBottom: `env(safe-area-inset-bottom, ${JOYSTICK.safeAreaMinPx}px)`,
+        /**
+         * The text-size setting (`16-UI-AUDIO-A11Y.md` §3), applied once at the
+         * root so every in-world caption and sheet scales together. A per-
+         * component override would be six places to forget.
+         */
+        fontSize: largeText ? `${LARGE_TEXT_SCALE * 100}%` : undefined,
+      }}
       onPointerDown={(e) => {
         wake();
         drag.onPointerDown(e);
@@ -352,6 +376,9 @@ export default function MundoGame({
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 
+      {/* Offline, a lost drawing context, or a browser that cannot draw at
+          all. None of the three is a dead end. */}
+      <WorldStates state={worldState} />
       <HudLayer
         canvasRef={canvasRef}
         impact={world.impact}

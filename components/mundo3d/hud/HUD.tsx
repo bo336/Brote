@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, LayoutGrid, Settings2, Sprout } from 'lucide-react';
+import { ArrowLeft, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
@@ -34,15 +34,17 @@ const CLEAR_SLOP_MS = 250;
 /** A visitor's line is the longest thing the world says, so it stays longest. */
 const CAST_MS = 9000;
 
-export function HUD({
-  onOpenSettings,
-  onArrange,
-  onOpenBitacora,
-}: {
-  onOpenSettings: () => void;
-  /** Enter placement mode. Absent before tier 2, when there is nothing to place. */
-  onArrange?: () => void;
-  /** Open the census. The semillas counter is the door; `Tab` is the other. */
+export function HUD({ onOpenBitacora }: {
+  /**
+   * Open the census. **The only thing this HUD opens.**
+   *
+   * `16-UI-AUDIO-A11Y.md` §1 permits four elements during play — joystick,
+   * action button, back, semillas counter — and a settings gear and a placement
+   * button used to sit here as a fifth and a sixth. Both are sheets, and §1
+   * lists sheets as things you reach *through* something rather than as HUD.
+   * They open from inside the Bitácora now, which the counter opens: everything
+   * is one tap further away, and the HUD is four.
+   */
   onOpenBitacora: () => void;
 }) {
   const t = useTranslations('mundo');
@@ -57,7 +59,6 @@ export function HUD({
   const castBeat = useSessionStore((s) => s.castBeat);
   const setCastBeat = useSessionStore((s) => s.setCastBeat);
   const setNote = useSessionStore((s) => s.setNote);
-  const placementProps = useSessionStore((s) => s.placement.props.length);
   const playing = hud === 'play';
 
   /**
@@ -156,28 +157,6 @@ export function HUD({
         >
           <Sprout className="h-3.5 w-3.5" aria-hidden />
           {semillas}
-        </button>
-        {/* Placement mode. Present only when there is something to arrange —
-            a button that opens an empty tray is a promise the game breaks. */}
-        {onArrange && placementProps > 0 && (
-          <button
-            type="button"
-            onClick={onArrange}
-            aria-label={t('placement.modo')}
-            className="pointer-events-auto flex items-center justify-center rounded-full bg-brote-ink/50 text-white backdrop-blur-sm transition-transform active:scale-95"
-            style={{ width: INTERACT.buttonMinPx, height: INTERACT.buttonMinPx }}
-          >
-            <LayoutGrid className="h-5 w-5" aria-hidden />
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-label={t('set.quality.label')}
-          className="pointer-events-auto flex items-center justify-center rounded-full bg-brote-ink/50 text-white backdrop-blur-sm transition-transform active:scale-95"
-          style={{ width: INTERACT.buttonMinPx, height: INTERACT.buttonMinPx }}
-        >
-          <Settings2 className="h-5 w-5" aria-hidden />
         </button>
       </div>
 
