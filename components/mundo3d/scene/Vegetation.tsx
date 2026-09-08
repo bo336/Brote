@@ -142,12 +142,21 @@ export function Vegetation({
     const grass = Array.from({ length: variants }, (_, v) =>
       track(new InstancePool(grassTuft(v + 1), foliage, Math.ceil(max.grassTufts / variants), { name: `grass${v}` })),
     );
-    const flowers = FLOWER_ACCENTS.map((accent, v) =>
+    /**
+     * **As many flower shapes as the tier can afford, not always three.**
+     *
+     * `FLOWER_ACCENTS.length` was a hard-coded instance count in a scene file,
+     * which is the one thing `07-RENDER-ARCHITECTURE.md` §4.3 says may not
+     * exist — and it cost what a hard-coded count always costs: three pools,
+     * three geometries and three draw calls at T0, where `variantsFor` had
+     * already decided the answer was one.
+     */
+    const flowers = FLOWER_ACCENTS.slice(0, variants).map((accent, v) =>
       track(
         new InstancePool(
           flower(v, accent),
           foliage,
-          Math.ceil(max.flowers / FLOWER_ACCENTS.length),
+          Math.ceil(max.flowers / variants),
           { name: `flower${v}` },
         ),
       ),
@@ -270,7 +279,7 @@ export function Vegetation({
       pools.flowers.forEach((pool, v) =>
         place(
           pool,
-          thin(forRegion(pick(points, BANDS.flowers, v, FLOWER_ACCENTS.length), 'flowers'), mix.flowerDensity),
+          thin(forRegion(pick(points, BANDS.flowers, v, pools.flowers.length), 'flowers'), mix.flowerDensity),
           [0.8, 1.4],
         ),
       );
@@ -324,7 +333,7 @@ export function Vegetation({
   useEffect(() => {
     const t = TIERS[tier];
     pools.grass.forEach((pool) => pool.resize(Math.ceil(t.grassTufts / variants)));
-    pools.flowers.forEach((pool) => pool.resize(Math.ceil(t.flowers / FLOWER_ACCENTS.length)));
+    pools.flowers.forEach((pool) => pool.resize(Math.ceil(t.flowers / pools.flowers.length)));
     pools.rocks.forEach((pool) => pool.resize(Math.ceil(t.rocks / variants)));
     pools.sprouts.resize(Math.ceil(t.flowers / 2));
     pools.trees.forEach(({ wood, leaves }) => {

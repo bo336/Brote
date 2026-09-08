@@ -147,8 +147,24 @@ export function Fauna({
    */
   useEffect(() => {
     const share = atLeast(LIVELINESS.faunaFloor, liveliness);
-    const perKind = Math.max(1, Math.round((TIERS[tier].fauna * share) / KINDS.length));
-    for (const { pool } of pools) pool.resize(perKind);
+    /**
+     * **The budget is spent, not multiplied.**
+     *
+     * This used to be `max(1, round(fauna * share / 6))` per kind — one animal
+     * minimum each, so that a species could never vanish. The effect was the
+     * opposite of a budget: at T0 the tier asks for two animals and six kinds
+     * each rounded up to one, so a cheap phone drew six creatures in six draw
+     * calls. That alone was a quarter of T0's whole draw-call ceiling, spent on
+     * four animals nobody asked for.
+     *
+     * Handing them out one at a time, in a fixed order, spends exactly what the
+     * tier allows: at T0 two kinds get one each and the other four resize to
+     * zero, which three skips entirely. At T3 everyone is well fed.
+     */
+    const budget = Math.max(1, Math.round(TIERS[tier].fauna * share));
+    const perKind = new Array(pools.length).fill(0);
+    for (let n = 0; n < budget; n++) perKind[n % pools.length]! += 1;
+    pools.forEach(({ pool }, i) => pool.resize(perKind[i]!));
   }, [pools, tier, liveliness]);
 
   useEffect(() => () => pools.forEach(({ pool }) => pool.dispose()), [pools]);
