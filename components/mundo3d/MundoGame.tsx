@@ -344,6 +344,7 @@ export default function MundoGame({
           userId={world.userId}
           daily={payload?.dailyState}
           createdAt={payload?.createdAt}
+          onboardedAt={payload?.onboardedAt}
           projectMarkers={payload?.projectMarkers}
           dueReviews={payload?.dueReviews}
           previousBiome={world.previousBiome}

@@ -7,6 +7,7 @@ import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
 import { EventCard } from './EventCard';
+import { FirstRunBar } from './FirstRunBar';
 import { HUD } from './HUD';
 import { useCollective } from './useCollective';
 import { useGiftInbox } from './useGiftInbox';
@@ -72,6 +73,7 @@ export function HudLayer({
   const placement = useSessionStore((s) => s.placement);
   const placementActions = useSessionStore((s) => s.placementActions);
   const eventRun = useSessionStore((s) => s.eventRun);
+  const firstRun = useSessionStore((s) => s.firstRun);
   // What everybody's real actions add up to. Not a leaderboard: no ranking, no
   // comparison, no name on any figure.
   const collective = useCollective(readOnly);
@@ -133,6 +135,10 @@ export function HudLayer({
         />
       )}
       {eventRun?.script && <EventCard run={eventRun} />}
+      {/* The first three minutes. Above the HUD in the tree and below it in
+          the frame: it never covers the joystick, because the beat that
+          matters most is the one where you walk. */}
+      {firstRun && hud === 'play' && <FirstRunBar run={firstRun} />}
       <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
       <MojonSheet
         open={hud === 'mojon'}

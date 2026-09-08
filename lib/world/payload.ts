@@ -220,6 +220,7 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
       ? asArray(o.pendingCeremonies).map((t) => int(t, 0)).filter((t) => t > 0)
       : pendingFrom(celebratedTier, tier),
     createdAt: epochMs(world.created_at),
+    onboardedAt: epochMs(world.onboarded_at),
     celebratedTier,
     celebratedWorld: Math.max(0, int(world.celebrated_world, 0)),
     snapshotUrl: typeof world.last_snapshot_url === 'string' ? world.last_snapshot_url : null,

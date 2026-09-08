@@ -196,6 +196,7 @@ export function payloadForVisit(v: VisitPayload, myPip: unknown = null): WorldPa
     layouts: [],
     pendingCeremonies: [],
     createdAt: 0,
+    onboardedAt: 1,
     celebratedTier: 0,
     celebratedWorld: 0,
     snapshotUrl: null,

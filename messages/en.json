@@ -1206,6 +1206,23 @@
     "gift": {
       "one": "{from} gave you {name}.",
       "many": "{count} gifts arrived while you were away."
+    },
+    "first": {
+      "move": "Touch and drag to walk.",
+      "plant": "There is a marked spot up ahead. Go on.",
+      "plantAction": "Plant",
+      "care": "What do you want to look after first?",
+      "chip": {
+        "agua": "Water",
+        "residuos": "Waste",
+        "transporte": "How I get around"
+      },
+      "promise": "This appears when you reach Brote.",
+      "act": "Your island grows with what you actually do. Start whenever you like.",
+      "continue": "Continue",
+      "log": "Log something",
+      "later": "Later",
+      "skip": "Skip"
     }
   }
 }

@@ -296,6 +296,11 @@ export interface WorldPayload {
    * "nothing has grown on its own" — the safe answer, not a guessed one.
    */
   createdAt: number;
+  /**
+   * When the first-session sequence was finished, epoch ms, or 0 for somebody
+   * who has never opened the world (`11-GAME-LOOP.md` §7).
+   */
+  onboardedAt: number;
   /** The highest tier already shown, so the queue can be rebuilt from source. */
   celebratedTier: number;
   celebratedWorld: number;

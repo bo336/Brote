@@ -1206,6 +1206,23 @@
     "gift": {
       "one": "{from} te regaló {name}.",
       "many": "Te dejaron {count} regalos mientras no estabas."
+    },
+    "first": {
+      "move": "Tocá y arrastrá para caminar.",
+      "plant": "Hay un lugar marcado ahí adelante. Andá.",
+      "plantAction": "Plantar",
+      "care": "¿Qué querés cuidar primero?",
+      "chip": {
+        "agua": "El agua",
+        "residuos": "Los residuos",
+        "transporte": "Cómo me muevo"
+      },
+      "promise": "Esto aparece cuando llegues a Brote.",
+      "act": "Tu isla crece con lo que hacés de verdad. Empezá cuando quieras.",
+      "continue": "Seguir",
+      "log": "Registrar algo",
+      "later": "Después",
+      "skip": "Saltar"
     }
   }
 }

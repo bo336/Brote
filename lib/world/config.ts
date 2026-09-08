@@ -360,6 +360,20 @@ export const LIVELINESS = {
  * the giver loses nothing, which is the only version of this that is a
  * kindness rather than a trade.
  */
+/**
+ * The first three minutes (`11-GAME-LOOP.md` §7).
+ *
+ * `maxTier` is a guard rather than a rule: somebody who reached rank 3 in the
+ * app before ever opening the world does not need to be told how to walk.
+ */
+export const FIRST_RUN = {
+  maxTier: 2,
+  moveDistanceM: 6, // enough to have actually gone somewhere
+  plantAheadM: 5.5, // the marked spot, in plain sight from the spawn
+  /** How long the ghosted promise stays up before it can be dismissed. */
+  promiseMinS: 2,
+} as const;
+
 export const GIFT = {
   perFriendPerDay: 1,
 } as const;

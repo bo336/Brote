@@ -5,6 +5,15 @@ import { create } from 'zustand';
 import type { BeatId, CeremonyRequest } from '@/lib/world/ceremony';
 import type { EventId } from '@/lib/world/types';
 import type { EventScript } from '@/lib/world/event-script';
+import type { BeatId as FirstRunBeat, CareChip } from '@/lib/world/onboarding';
+
+/** What the HUD needs to know about the first session. */
+export interface FirstRunSummary {
+  beat: FirstRunBeat;
+  choose: (chip: CareChip) => void;
+  advance: () => void;
+  skip: () => void;
+}
 
 /** What the HUD needs to know about the event in play. */
 export interface EventRunSummary {
@@ -163,6 +172,13 @@ interface SessionStoreState {
    */
   eventRun: EventRunSummary | null;
   setEventRun: (run: EventRunSummary | null) => void;
+  /**
+   * The first session (`11-GAME-LOOP.md` §7), on the same seam as the event
+   * runtime: the sequence runs where the world is, the three chips and the one
+   * button live in the HUD, and what crosses is a beat name.
+   */
+  firstRun: FirstRunSummary | null;
+  setFirstRun: (run: FirstRunSummary | null) => void;
   startEvent: (id: EventId) => void;
   endEvent: () => void;
   setCastBeat: (beat: { nameKey: string; key: string } | null) => void;
@@ -180,6 +196,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   lockedHint: null,
   eventId: null,
   eventRun: null,
+  firstRun: null,
   castBeat: null,
   note: null,
   noteValues: {},
@@ -232,6 +249,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setLockedHint: (lockedHint) => set((s) => (s.lockedHint === lockedHint ? s : { lockedHint })),
+  setFirstRun: (firstRun) =>
+    set((s) => (s.firstRun?.beat === firstRun?.beat ? s : { firstRun })),
   setEventRun: (eventRun) =>
     set((s) =>
       s.eventRun?.stage === eventRun?.stage &&

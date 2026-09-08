@@ -4,14 +4,12 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { TERRAIN, WIND, WOBBLE } from '@/lib/world/config';
+import { TERRAIN } from '@/lib/world/config';
 import { seasonFor } from '@/lib/world/season';
 import { localDate } from '@/lib/utils/dates';
 import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
-import { fogRange } from '@/lib/render/materials/clay';
-import { updateMood } from '@/lib/render/materials';
 import type { CeremonyScript } from '@/lib/world/ceremony';
 import type { WorldDailyState } from '@/lib/world/types';
 import type { Placement, QualityTier, TimeOfDay, WorldLayout } from '@/lib/world/types';
@@ -35,8 +33,11 @@ import { useIslandLife } from './useIslandLife';
 import { useEventRuntime } from '../events/useEventRuntime';
 import { useBlobShadows } from './useBlobShadows';
 import { useColliders } from './useColliders';
+import { useFirstRun } from './useFirstRun';
+import { useMood } from './useMood';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
+import { FirstRunMarks } from './FirstRunMarks';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
@@ -86,6 +87,7 @@ export function World({
   userId = 'demo',
   daily = EMPTY_DAILY,
   createdAt = 0,
+  onboardedAt = 0,
   projectMarkers = EMPTY_MARKERS,
   dueReviews = 0,
   readOnly = false,
@@ -113,6 +115,8 @@ export function World({
   daily?: WorldDailyState;
   /** When the island was made, for idle maturation. */
   createdAt?: number;
+  /** When the first session finished, or 0 for somebody who has never been here. */
+  onboardedAt?: number;
   /** The real projects they went to, for the commemorative stones. */
   projectMarkers?: readonly RawMarker[];
   /** Academia items overdue for review, from the bootstrap. */
@@ -165,6 +169,7 @@ export function World({
   const today = useMemo(() => localDate(), []);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
   const setEventRun = useSessionStore((s) => s.setEventRun);
+  const setFirstRun = useSessionStore((s) => s.setFirstRun);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -211,26 +216,7 @@ export function World({
   // floating over its own ground before they existed.
   const shadows = useBlobShadows(pipRef);
 
-  // ── The mood: one object, ~11 uniforms, every clay material in the scene.
-  useEffect(() => {
-    // `mirror.fogFar` is already in metres (45 at zero impact, 110 at full).
-    // Clamp it to what the tier is willing to draw, and let the near plane fall
-    // out of that — an earlier version divided by the T3 distance and fogged
-    // the whole island out at 24 m.
-    const { near, far } = fogRange(Math.min(TIERS[tier].renderDistanceM, mirror.fogFar));
-    updateMood({
-      rimColor: palette.light.rimColor,
-      fogColor: palette.fog,
-      fogNear: near,
-      fogFar: Math.max(near + 1, far),
-      fogDensity: mirror.fogDensity,
-      time: 0,
-      // T0 turns the handmade wobble and the wind off entirely, by amplitude
-      // rather than by rebuilding anything (`06-ART-DIRECTION.md` §5).
-      wobbleAmp: TIERS[tier].wobble ? WOBBLE.amp : 0,
-      windAmp: TIERS[tier].wind ? WIND.amp : 0,
-    });
-  }, [palette, tier, mirror]);
+  useMood(palette, tier, mirror);
 
   /**
    * **Explicit invalidation on any state change** (`07-RENDER-ARCHITECTURE.md`
@@ -254,6 +240,20 @@ export function World({
    */
   const eventRun = useEventRuntime({ layout, heightfield, readOnly });
   useEffect(() => setEventRun(eventRun), [eventRun, setEventRun]);
+
+  /**
+   * The first three minutes (`11-GAME-LOOP.md` §7). Runs once ever, and only
+   * for somebody whose island has never been opened.
+   */
+  const firstRun = useFirstRun({
+    layout, heightfield, onboardedAt, tier: config.tier, readOnly,
+    onPlace: (p) => onPlacementsChanged?.([...placements, p]),
+  });
+  useEffect(() => {
+    setFirstRun(firstRun.beat ? {
+      beat: firstRun.beat, choose: firstRun.choose, advance: firstRun.advance, skip: firstRun.skip,
+    } : null);
+  }, [firstRun, setFirstRun]);
 
   const placedMarkers = useIslandLife({
     layout, heightfield, config, userId, localDate: today,
@@ -375,6 +375,9 @@ export function World({
       {/* A small cairn for every real project. Standing where you walk past. */}
       {placedMarkers.length > 0 && (
         <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />
+      )}
+      {firstRun.beat && (
+        <FirstRunMarks beat={firstRun.beat} layout={layout} heightfield={heightfield} />
       )}
       <MistWall layout={layout} config={config} palette={palette} />
       {visit && (
