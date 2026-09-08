@@ -72,6 +72,17 @@ export function VisitHud({ visit }: { visit: VisitSession }) {
         {tv('title', { name: visit.displayName })}
       </p>
 
+      {/* "Los dos, hace 12 días." One line, between two people, worth nothing
+          and ranking nobody — and it forgives two days off by itself. */}
+      {visit.streak && (
+        <p
+          className="absolute inset-x-0 mx-auto mt-9 w-fit rounded-pill bg-brote-leaf/25 px-3 py-1 text-center text-caption font-semibold text-white backdrop-blur-sm"
+          style={safeTop}
+        >
+          {tv('streak', { days: visit.streak.days })}
+        </p>
+      )}
+
       {picking && (
         <div className="pointer-events-auto absolute inset-x-0 bottom-28 mx-auto w-fit max-w-[92%] rounded-3xl bg-brote-ink/70 p-3 backdrop-blur-sm">
           {visit.canGift && (

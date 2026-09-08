@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { maySendGift, parseGiftOptions, refusalOf, type Giftable, type GiftRefusal } from '@/lib/world/gift';
+import { parseFriendStreak, streakVisible, type FriendStreak } from '@/lib/world/streak';
 import { mayLeaveSticker, stickerSpot, type StickerId, type Sticker, type VisitPayload } from '@/lib/world/visit';
 import { regionAt } from '@/lib/world/layout';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -39,6 +40,14 @@ export interface VisitSession {
   canGift: boolean;
   giftRefusal: GiftRefusal | null;
   gift: (slug: string) => void;
+  /**
+   * The days you both showed up, or null when there is nothing to say yet.
+   *
+   * Not a ranking and not a reward: it names nobody else, it is worth nothing,
+   * and it survives two days off on its own (`04-RESEARCH-DESIGN.md` §9.7 bans
+   * streaks *without* free rest days, not streaks).
+   */
+  streak: FriendStreak | null;
 }
 
 /**
@@ -54,10 +63,15 @@ export function useVisit(
   initial: VisitPayload,
   layout: IslandLayout | null,
   gifts: unknown = null,
+  streak: unknown = null,
 ): VisitSession {
   const [stickers, setStickers] = useState<readonly Sticker[]>(initial.stickers);
   const [leftToday, setLeftToday] = useState(initial.leftToday);
   const options = useMemo(() => parseGiftOptions(gifts), [gifts]);
+  const shared = useMemo(() => {
+    const parsed = parseFriendStreak(streak);
+    return streakVisible(parsed.days) ? parsed : null;
+  }, [streak]);
   const [giftable, setGiftable] = useState<readonly Giftable[]>(options.slugs);
   const [sentToday, setSentToday] = useState(options.sentToday);
   const [giftRefusal, setGiftRefusal] = useState<GiftRefusal | null>(null);
@@ -122,5 +136,6 @@ export function useVisit(
     canGift: maySendGift(sentToday) && giftable.length > 0,
     giftRefusal,
     gift,
+    streak: shared,
   };
 }

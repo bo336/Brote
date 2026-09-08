@@ -1201,7 +1201,8 @@
         "sticker": "Sticker",
         "gift": "Gift"
       },
-      "notFriends": "You can gift to people who follow you back."
+      "notFriends": "You can gift to people who follow you back.",
+      "streak": "Both of you, {days} days running."
     },
     "gift": {
       "one": "{from} gave you {name}.",

@@ -43,3 +43,16 @@ export const FIRST_RUN = {
   /** How long the ghosted promise stays up before it can be dismissed. */
   promiseMinS: 2,
 } as const;
+
+/**
+ * The shared streak (`11-GAME-LOOP.md` §8).
+ *
+ * `restDays` is the whole of anti-pattern 7's requirement made concrete: that
+ * many flat days are forgiven, silently and without asking, before the count
+ * stops. The server holds the same number.
+ */
+export const FRIEND_STREAK = {
+  restDays: 2,
+  minVisibleDays: 3, // below this it is not a streak, it is two days
+  tiers: [7, 14, 30, 50] as const,
+} as const;

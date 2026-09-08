@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import { IMPACT_PROVENANCE } from '../config';
 import { LEARNING } from '../learning';
+import { FRIEND_STREAK } from '../streak';
 
 /**
  * **All 23 anti-patterns in `04-RESEARCH-DESIGN.md` §9, one by one, by number.**
@@ -140,10 +141,16 @@ test('6. no loss-framed copy anywhere in the world', () => {
   ), []);
 });
 
-test('7. streaks are not this world business at all', () => {
-  // Rest days and freezes are the app's problem. The world never mentions a
-  // streak, which is the strongest available form of "with free rest days".
-  assert.deepEqual(copyHits('racha', 'días seguidos de'), []);
+test('7. no streak here runs without free rest days', () => {
+  // The rule bans streaks *without* free rest days, not streaks. The world has
+  // exactly one — the shared count on a visit — and it forgives days off by
+  // itself, silently, without asking and without telling anybody it did.
+  assert.ok(FRIEND_STREAK.restDays > 0);
+  const sql = fs.readFileSync(
+    path.join(ROOT, 'supabase/migrations/0103_mundo_friend_streak.sql'), 'utf8');
+  assert.ok(/v_rest\s+int\s+:=\s+2/.test(sql), 'the server forgives a different number');
+  // …and it is never framed as something you are about to lose.
+  assert.deepEqual(copyHits('vas a perder', 'perdés tu racha', 'no rompas'), []);
 });
 
 test('8. no expiring content, rotating shop, FOMO countdown or limited stock', () => {

@@ -348,7 +348,7 @@ export const LIVELINESS = {
 
 // ── Learning (`12-LEARNING.md` §2) ──────────────────────────────────────────
 
-export { VISIT, GIFT, FIRST_RUN } from './config.social';
+export { VISIT, GIFT, FIRST_RUN, FRIEND_STREAK } from './config.social';
 
 export const LEARNING = {
   sessionShareMax: 0.1, // ≤10% of session time

@@ -1201,7 +1201,8 @@
         "sticker": "Calcomanía",
         "gift": "Regalo"
       },
-      "notFriends": "Podés regalarle a quien te sigue de vuelta."
+      "notFriends": "Podés regalarle a quien te sigue de vuelta.",
+      "streak": "Los dos, hace {days} días."
     },
     "gift": {
       "one": "{from} te regaló {name}.",

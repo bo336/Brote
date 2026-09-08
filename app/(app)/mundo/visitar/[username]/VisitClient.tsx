@@ -21,6 +21,7 @@ export function VisitClient({
   visit,
   myPip,
   gifts,
+  streak,
   perf,
 }: {
   visit: VisitPayload;
@@ -28,6 +29,8 @@ export function VisitClient({
   myPip: Record<string, unknown> | null;
   /** `world_gift_options`' blob: what you own that they do not, and today's count. */
   gifts: unknown;
+  /** `world_friend_streak`'s blob: the days the two of you both showed up. */
+  streak: unknown;
   perf: boolean;
 }) {
   // The host's island, in the shape the world already knows how to build.
@@ -36,7 +39,7 @@ export function VisitClient({
   // region it landed in. Null until the world has been hydrated — the picker
   // is disabled for exactly that long.
   const layout = useWorldStore((s) => s.layout);
-  const session = useVisit(visit, layout, gifts);
+  const session = useVisit(visit, layout, gifts, streak);
 
   return <MundoGame perf={perf} payload={payload} visit={session} />;
 }
