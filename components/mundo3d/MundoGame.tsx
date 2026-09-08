@@ -350,6 +350,7 @@ export default function MundoGame({
         worldGoal={payload?.worldGoal ?? 0}
         collectiveWaterL={payload?.collectiveWaterL ?? 0}
         saveState={saveState}
+        readOnly={readOnly || !payload}
         userId={world.userId}
         journal={payload?.journal ?? EMPTY_JOURNAL}
         perf={perf}

@@ -8,6 +8,7 @@ import { getDomainColor } from '@/lib/domains';
 import { pagesFor, progressFor } from '@/lib/world/journal';
 import { cn } from '@/lib/utils/cn';
 import { DomainSuggestion } from './DomainSuggestion';
+import { useRegionCensus } from './useRegionCensus';
 import type { JournalEntry } from '@/lib/world/types';
 
 /**
@@ -27,9 +28,11 @@ interface BitacoraSheetProps {
   userId: string;
   tier: number;
   journal: readonly JournalEntry[];
+  /** The bootstrap failed and this census is a default. Never claim anything. */
+  readOnly: boolean;
 }
 
-export function BitacoraSheet({ open, onClose, userId, tier, journal }: BitacoraSheetProps) {
+export function BitacoraSheet({ open, onClose, userId, tier, journal, readOnly }: BitacoraSheetProps) {
   const t = useTranslations('mundo.bitacora');
   const tRegion = useTranslations('mundo.region');
   const tTod = useTranslations('mundo.tod');
@@ -37,6 +40,10 @@ export function BitacoraSheet({ open, onClose, userId, tier, journal }: Bitacora
 
   const pages = useMemo(() => pagesFor(tier, journal), [tier, journal]);
   const total = useMemo(() => progressFor(tier, journal), [tier, journal]);
+
+  // A completed region pays a cosmetic. The server counts it again before it
+  // hands anything over; this only says which region to look at.
+  useRegionCensus({ pages, open, readOnly });
 
   if (!open) return null;
 

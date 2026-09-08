@@ -36,6 +36,8 @@ export interface HudLayerProps {
   worldGoal: number;
   collectiveWaterL: number;
   saveState: SaveState;
+  /** The bootstrap failed and this island is a default. Nothing may write. */
+  readOnly: boolean;
   /** Whose census it is — a dismissed suggestion is remembered per player. */
   userId: string;
   /** The census, straight from `world_bootstrap`. */
@@ -53,6 +55,7 @@ export function HudLayer({
   worldGoal,
   collectiveWaterL,
   saveState,
+  readOnly,
   userId,
   journal,
   perf,
@@ -84,6 +87,7 @@ export function HudLayer({
         userId={userId}
         tier={tier}
         journal={journal}
+        readOnly={readOnly}
       />
       {hud === 'placement' && placementActions && (
         <PlacementBar
