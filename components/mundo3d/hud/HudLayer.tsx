@@ -8,6 +8,7 @@ import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
 import { EventCard } from './EventCard';
 import { HUD } from './HUD';
+import { useCollective } from './useCollective';
 import { MojonSheet } from './MojonSheet';
 import { PlacementBar } from './PlacementBar';
 import { SettingsSheet } from './SettingsSheet';
@@ -65,6 +66,9 @@ export function HudLayer({
   const placement = useSessionStore((s) => s.placement);
   const placementActions = useSessionStore((s) => s.placementActions);
   const eventRun = useSessionStore((s) => s.eventRun);
+  // What everybody's real actions add up to. Not a leaderboard: no ranking, no
+  // comparison, no name on any figure.
+  const collective = useCollective(readOnly);
 
   return (
     <>
@@ -114,7 +118,7 @@ export function HudLayer({
         onClose={() => setHud('play')}
         totals={impact}
         tier={tier}
-        collectiveWaterL={collectiveWaterL}
+        collectiveWaterL={collective || collectiveWaterL}
       />
       {perf && PerfOverlay && <PerfOverlay />}
     </>

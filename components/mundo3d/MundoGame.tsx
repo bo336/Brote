@@ -21,6 +21,7 @@ import { HudLayer } from './hud/HudLayer';
 import { usePlacementSave } from './placement/usePlacementSave';
 import { useCelebrate } from './ceremony/useCelebrate';
 import { useSnapshot } from './poster/useSnapshot';
+import { installAudioLifecycle } from './audio/engine';
 import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useHydrateWorld } from './state/useHydrateWorld';
@@ -211,6 +212,16 @@ export default function MundoGame({
   }, [detailMode, forcedTier, reducedMotion, monitor, setTierInStore]);
 
   useEffect(() => setReducedMotion(reducedMotion), [reducedMotion, setReducedMotion]);
+
+  /**
+   * The audio lifecycle: one context, the iOS unlock, and `visibilitychange`.
+   *
+   * Installed even though no sound ships yet (`public/mundo/CREDITS.md`), because
+   * the parts that are hard to get right are these three and not the files —
+   * and a second `AudioContext` created later, once assets exist, would be
+   * silence on iOS for the rest of the session with nothing to point at.
+   */
+  useEffect(() => installAudioLifecycle(), []);
   useEffect(() => cameraRef.current?.setAutoRecentre(autoCamera), [autoCamera]);
 
   const onTierChange = useCallback(
