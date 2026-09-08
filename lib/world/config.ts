@@ -348,42 +348,7 @@ export const LIVELINESS = {
 
 // ── Learning (`12-LEARNING.md` §2) ──────────────────────────────────────────
 
-/**
- * Visiting somebody else's island (`11-GAME-LOOP.md` §8).
- *
- * One sticker per island per day is the whole rate limit. It is low on purpose:
- * a visit is meant to be a small kindness, and anything you can do fifty times
- * stops reading as one.
- */
-/**
- * Regalar (`11-GAME-LOOP.md` §8). One a day, per friend, and a gift is a copy:
- * the giver loses nothing, which is the only version of this that is a
- * kindness rather than a trade.
- */
-/**
- * The first three minutes (`11-GAME-LOOP.md` §7).
- *
- * `maxTier` is a guard rather than a rule: somebody who reached rank 3 in the
- * app before ever opening the world does not need to be told how to walk.
- */
-export const FIRST_RUN = {
-  maxTier: 2,
-  moveDistanceM: 6, // enough to have actually gone somewhere
-  plantAheadM: 5.5, // the marked spot, in plain sight from the spawn
-  /** How long the ghosted promise stays up before it can be dismissed. */
-  promiseMinS: 2,
-} as const;
-
-export const GIFT = {
-  perFriendPerDay: 1,
-} as const;
-
-export const VISIT = {
-  stickersPerDay: 1, // per host, per visitor, per day — the server agrees
-  stickerAheadM: 1.6, // dropped in front of the visitor, not under them
-  /** How long a sticker stays on the island before it fades away. */
-  lifetimeDays: 30,
-} as const;
+export { VISIT, GIFT, FIRST_RUN } from './config.social';
 
 export const LEARNING = {
   sessionShareMax: 0.1, // ≤10% of session time
