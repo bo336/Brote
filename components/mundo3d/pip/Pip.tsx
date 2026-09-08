@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 import { applyCosmetics, applyStage, buildPatternAtlas, buildPip, disposePip } from '@/lib/render/geometry/pip';
 import { getClayMaterial, getOverlayMaterial, getTexture } from '@/lib/render/materials';
+import { PIP } from '@/lib/world/config';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { PipRig } from './PipRig';
 
@@ -46,7 +47,7 @@ export function Pip({ handle, lod = 0 }: PipProps) {
 
   // The two materials Pip is drawn with, both from the shared cache.
   const solid = useMemo(
-    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false }),
+    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false, rimBoost: PIP.rimBoost }),
     [],
   );
   /**

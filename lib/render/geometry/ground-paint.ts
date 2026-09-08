@@ -50,12 +50,29 @@ const DEPTH_SHADE = 0.45;
  * band. The variation has to be in the pigment, which is exactly what clay is
  * (`06-ART-DIRECTION.md` §2). Baked into the colour attribute, so it is free.
  */
-const PATCH_SHADE = 0.34;
-/** How much a light patch lifts, relative to how much a dark one sinks. */
-const PATCH_LIFT = 0.55;
+/**
+ * **0.85, not 0.34.** The band quantise is what forces this number up: three
+ * bands on a nearly flat plane means the whole field lands inside one band and
+ * every bit of geometric shading is rounded away, so the only structure the
+ * ground can have is the pigment. At 0.34 the mask moved a vertex by about
+ * seven percent either side of its base colour, which is under the threshold
+ * where anything reads at eight metres — the island rendered as one flat green
+ * with the variation present in the buffer and invisible on screen.
+ */
+const PATCH_SHADE = 0.55;
 /** Metres per cycle of the two masks: broad damp/dry, and fine patchiness. */
 const MOISTURE_FREQ = 0.06;
-const PATCH_FREQ = 0.38;
+/**
+ * **0.13, not 0.38.** At 0.38 the mask's features were about two and a half
+ * metres across and the ground mesh samples it at roughly one and a third —
+ * two samples per feature, which is not a patch, it is aliasing. The whole
+ * island averaged out to one flat green, and the pigment variation the art
+ * direction asks for was in the buffer and invisible on screen. Seven-metre
+ * patches survive the sampling, and are what a diorama wants anyway: broad
+ * soft areas of lighter and darker grass rather than per-metre noise nobody
+ * can resolve from a camera eight metres up.
+ */
+const PATCH_FREQ = 0.13;
 /**
  * How far a region's own character pulls the ground toward bare earth.
  *
@@ -131,12 +148,21 @@ function groundColor(
   // than one flat green (`06-ART-DIRECTION.md` §2 rule 3).
   const depth = Math.min(1, above / 3);
   scratchMix.copy(ramp.soilDeep).lerp(ramp.grassDeep, moisture);
-  // The patch mask is **centred on zero**: half the ground lifts and half sinks.
-  // Applied one-directionally it was a second shade term on top of `depth`, and
-  // it simply dimmed the whole island by its own average.
-  const shade = depth * DEPTH_SHADE + (patch - 0.5) * PATCH_SHADE;
-  if (shade >= 0) target.lerp(scratchMix, Math.min(1, shade));
-  else target.multiplyScalar(1 - shade * PATCH_LIFT);
+  target.lerp(scratchMix, Math.min(1, depth * DEPTH_SHADE));
+  /**
+   * **The patch is a value change, not a hue change.**
+   *
+   * It used to be a second lerp toward the same deep tone, and that is why the
+   * island rendered as one flat green whatever the number was set to: on a
+   * damp region the deep tone *is* nearly the grass tone, so lerping between
+   * them moved nothing. Multiplying cannot fail that way — it is relative to
+   * whatever colour this biome's palette produced — and value structure is
+   * what the ground was missing (`06-ART-DIRECTION.md` §2 rule 3).
+   *
+   * Centred on zero, so half the ground lifts and half sinks and the island's
+   * average brightness is unchanged.
+   */
+  target.multiplyScalar(1 + (patch - 0.5) * PATCH_SHADE);
 }
 /** Load the ramps for one bake. Called before any `groundColor` call. */
 export function primeRamp(palette: WorldPalette): void {

@@ -41,6 +41,8 @@ export const PIP = {
   cheekRadius: 0.028,
   cheekSpread: 0.145,
   mouthWidth: 0.05,
+  /** How much harder Pip's silhouette catches the key light than anything else. */
+  rimBoost: 2.4,
   auraRadius: 0.42, // the guardian sphere, from tier 8
   // …and it is a halo, so you can still see Pip inside it. Low: at 0.22 over a
   // character 80 px tall, his own colours diffused through it and the whole thing
@@ -102,7 +104,19 @@ export const CHALK_TARGET = '#F7F5EF';
 export const CLAY = {
   bandCount: 3, // light quantised into shadow / mid / lit
   bandSoftness: 0.06, // transition width between bands
-  rimPower: 2.5, // pow(1 - dot(N, V), rimPower)
+  /**
+   * `pow(1 - dot(N, V), rimPower)`.
+   *
+   * **5, not 2.5.** A rim is a silhouette, and at 2.5 it was not one: the term
+   * only asks how far a surface faces away from the lens, and the two largest
+   * things in every frame — the ground under a 24-degree camera, and a grass
+   * blade seen edge-on — both face away almost completely. So both received
+   * nearly the full warm add. The ground washed out to a flat cream-green that
+   * swallowed its own vertex colours and its baked AO, and the grass rendered
+   * as pale straw over it. Narrowing the falloff leaves the true silhouettes
+   * lit and takes the wash off everything else.
+   */
+  rimPower: 5,
   rimStrength: 0.35, // added, never multiplied
   aoStrength: 0.45, // baked vertical AO — this replaces SSAO entirely
   aoHeightM: 0.6, // smoothstep distance up from an object's base

@@ -66,6 +66,21 @@ export interface ClayOptions {
    * a green pradera warm brown. Terrain opts out.
    */
   rim?: boolean;
+  /**
+   * Multiply the rim on this material only.
+   *
+   * **Pip is the one thing in the world that gets this.** He is a rounded blob
+   * standing on rounded ground, and on a grass biome his free palette is a
+   * yellow-green a few percent from the field he is walking across — so the
+   * protagonist, the one object the camera is actually about, was the hardest
+   * thing in the frame to find. A stronger rim traces his silhouette in the
+   * key light's warm and separates him from the ground without touching the
+   * palettes, which are pinned to the 2D Pip by `pip.test.ts`.
+   *
+   * It costs no material: `VisitorPip` asks for the same options, so the two
+   * share the one instance that already existed.
+   */
+  rimBoost?: number;
   vertexColors?: boolean;
   /**
    * This mesh **is** the ground.
@@ -165,6 +180,8 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   }) as ClayMaterial;
 
   const uniforms = defaultUniforms();
+  // Pip, and only Pip. See `rimBoost` on `ClayOptions`.
+  uniforms.uRimStrength!.value = CLAY.rimStrength * (opts.rimBoost ?? 1);
   uniforms.uWobbleScale!.value = opts.wobbleScale ?? 1;
   mat.clayUniforms = uniforms;
 

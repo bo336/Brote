@@ -41,6 +41,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *
  *   ?tier=1..11   the world tier (how much of the island exists)
  *   ?q=0..3       the quality tier, forced
+ *   ?perf=1       the measurement overlay; off by default, so the art pass sees the world
  *   ?tod=         amanecer | dia | atardecer | noche
  *   ?world=       the world index, which picks the biome
  *   ?at=          a region id — drops Pip at its centre once the world is up
@@ -52,6 +53,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?evento=id    play one of the six events on entry
  *   ?marchito=N   N overdue reviews, to review the wilting objects
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
+ *   ?first=1      run the first-session sequence, as somebody arriving for the first time
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
  * `?impact=` is how the four mirror channels get demonstrated without waiting
@@ -115,6 +117,11 @@ function Preview() {
             Date.now() - Number(params.get('aged') ?? '0') * 24 * 3600 * 1000,
           ).toISOString(),
           celebrated_tier: tierUp !== null ? tierUp - 1 : tier,
+          // The first session is opt-in here: `?first=1`. Without it the world
+          // reads as already known, which is what every other review of this
+          // route is about — an art pass spent looking at a tutorial ring is
+          // an art pass that saw the tutorial and not the art.
+          onboarded_at: params.get('first') === '1' ? null : '2020-01-01T00:00:00.000Z',
           layouts: [],
         },
         mundo: {
@@ -260,7 +267,10 @@ function Preview() {
 
   return (
     <MundoGame
-      perf
+      // Opt-in, because the art pass and the perf pass want different frames:
+      // an overlay in the corner of every screenshot is the one thing that
+      // stops a picture reading as a game.
+      perf={params.get('perf') === '1'}
       // **Nothing here may write.** The route has no session, and a payload is
       // normally exactly the signal that says one exists — so without this the
       // autosave and `world_mark_celebrated` both fire against Supabase as an

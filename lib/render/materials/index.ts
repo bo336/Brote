@@ -49,6 +49,7 @@ function clayKey(o: ClayOptions): string {
     o.wobbleScale ?? 1,
     String(o.color ?? ''),
     o.alphaMap?.uuid ?? '-',
+    o.rimBoost ?? 1,
   ].join(':');
 }
 

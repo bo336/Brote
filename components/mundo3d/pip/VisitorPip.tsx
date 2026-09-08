@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 
 import { applyCosmetics, applyStage, buildPip, disposePip } from '@/lib/render/geometry/pip';
 import { getClayMaterial, getOverlayMaterial } from '@/lib/render/materials';
+import { PIP } from '@/lib/world/config';
 import { pipStageForTier } from '@/lib/mundo';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -35,7 +36,7 @@ export function VisitorPip({
   tier: number;
 }) {
   const solid = useMemo(
-    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false }),
+    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false, rimBoost: PIP.rimBoost }),
     [],
   );
   const overlay = useMemo(() => getOverlayMaterial(), []);
