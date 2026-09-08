@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
 import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
-import { snapToLand, terrainHeight } from '@/lib/world/terrain';
+import { isWater, snapToLand, terrainHeight } from '@/lib/world/terrain';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
 import { mulberry32 } from '@/lib/world/rng';
 import { PROP_IDS } from '@/lib/world/progression';
@@ -201,7 +201,19 @@ function Preview() {
       // it is a bug in the tour, and it put a character standing on a river
       // into the middle of the art pass's own screenshots.
       const terrain = useWorldStore.getState().layout?.terrain;
-      const [x, z] = (terrain && snapToLand(cx, cz, terrain, mulberry32(7))) ?? [cx, cz];
+      /**
+       * **Snap only out of the water.**
+       *
+       * `snapToLand` looks for *plantable* ground — gentle slope, above water,
+       * inside the coast — and a mountain summit is none of those. Snapping
+       * unconditionally walked La Cumbre forty metres downhill to the nearest
+       * flat spot, which is how the tour ended up photographing the rim while
+       * claiming to be on the peak. El Río's centre is the lagoon and does need
+       * the snap; the steep regions need to be left exactly where they are.
+       */
+      const [x, z] = (terrain && isWater(cx, cz, terrain)
+        ? snapToLand(cx, cz, terrain, mulberry32(7))
+        : null) ?? [cx, cz];
       playerTransform.x = x;
       playerTransform.z = z;
       // **And the height.** Writing x and z alone left Pip at whatever altitude
