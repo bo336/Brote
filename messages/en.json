@@ -1196,7 +1196,16 @@
         "corazon": "Heart",
         "mate": "Mate"
       },
-      "enter": "Visit the island"
+      "enter": "Visit the island",
+      "tab": {
+        "sticker": "Sticker",
+        "gift": "Gift"
+      },
+      "notFriends": "You can gift to people who follow you back."
+    },
+    "gift": {
+      "one": "{from} gave you {name}.",
+      "many": "{count} gifts arrived while you were away."
     }
   }
 }

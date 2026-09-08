@@ -41,9 +41,12 @@ export default async function VisitPage({ params, searchParams }: PageProps) {
   const username = decodeURIComponent(params.username);
   // Their island, and the visitor's own Pip — a visit where you arrive as
   // somebody else's default blob is a visit you are not in.
-  const [{ data, error }, mine] = await Promise.all([
+  const [{ data, error }, mine, gifts] = await Promise.all([
     supabase.rpc('world_visit', { p_username: username }),
     supabase.from('profiles').select('pip_style').eq('id', user.id).maybeSingle(),
+    // What of yours they do not have yet. Worked out in Postgres so their
+    // inventory never leaves it (`11-GAME-LOOP.md` §8).
+    supabase.rpc('world_gift_options', { p_username: username }),
   ]);
   const visit = parseVisitPayload(error ? null : data, username);
   // `no_world` is somebody who has never opened `/mundo`. There is nothing to
@@ -55,6 +58,7 @@ export default async function VisitPage({ params, searchParams }: PageProps) {
     <VisitClient
       visit={visit}
       myPip={(mine.data?.pip_style as Record<string, unknown> | null) ?? null}
+      gifts={gifts.error ? null : gifts.data}
       perf={searchParams.perf === '1'}
     />
   );

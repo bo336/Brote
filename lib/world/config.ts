@@ -355,6 +355,15 @@ export const LIVELINESS = {
  * a visit is meant to be a small kindness, and anything you can do fifty times
  * stops reading as one.
  */
+/**
+ * Regalar (`11-GAME-LOOP.md` §8). One a day, per friend, and a gift is a copy:
+ * the giver loses nothing, which is the only version of this that is a
+ * kindness rather than a trade.
+ */
+export const GIFT = {
+  perFriendPerDay: 1,
+} as const;
+
 export const VISIT = {
   stickersPerDay: 1, // per host, per visitor, per day — the server agrees
   stickerAheadM: 1.6, // dropped in front of the visitor, not under them

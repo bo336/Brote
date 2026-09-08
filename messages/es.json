@@ -1196,7 +1196,16 @@
         "corazon": "Corazón",
         "mate": "Mate"
       },
-      "enter": "Visitar la isla"
+      "enter": "Visitar la isla",
+      "tab": {
+        "sticker": "Calcomanía",
+        "gift": "Regalo"
+      },
+      "notFriends": "Podés regalarle a quien te sigue de vuelta."
+    },
+    "gift": {
+      "one": "{from} te regaló {name}.",
+      "many": "Te dejaron {count} regalos mientras no estabas."
     }
   }
 }

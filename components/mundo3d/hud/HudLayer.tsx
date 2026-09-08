@@ -9,6 +9,7 @@ import { BitacoraSheet } from './BitacoraSheet';
 import { EventCard } from './EventCard';
 import { HUD } from './HUD';
 import { useCollective } from './useCollective';
+import { useGiftInbox } from './useGiftInbox';
 import { MojonSheet } from './MojonSheet';
 import { PlacementBar } from './PlacementBar';
 import { SettingsSheet } from './SettingsSheet';
@@ -74,6 +75,8 @@ export function HudLayer({
   // What everybody's real actions add up to. Not a leaderboard: no ranking, no
   // comparison, no name on any figure.
   const collective = useCollective(readOnly);
+  // Anything a friend left in your set while you were away. One line, once.
+  useGiftInbox(readOnly || visit !== undefined);
 
   /**
    * A visit is not this HUD with things switched off — it is a different
