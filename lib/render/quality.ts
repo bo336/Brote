@@ -78,6 +78,23 @@ export const TIERS: Record<QualityTier, TierParams> = {
   },
 };
 
+/**
+ * How many shape variants a scattered thing gets, by tier.
+ *
+ * Three grasses, three rocks and three trees is twelve instanced pools, and
+ * twelve pools is twelve draw calls. On a 30 fps phone drawing the far tree LOD
+ * at a 60 m render distance, the second and third variants are variety nobody
+ * can resolve — and they are what put a tier-11 island at 45 of 45 draw calls
+ * with nothing left for the wilting plants or a project marker.
+ *
+ * So the low tiers get one shape each and the high tiers get three. It is the
+ * same trade the tier table makes everywhere else: spend the budget where it
+ * can be seen.
+ */
+export function variantsFor(tier: QualityTier): number {
+  return tier >= 2 ? 3 : 1;
+}
+
 export const TIER_ORDER: QualityTier[] = [0, 1, 2, 3];
 
 export interface TierHints {

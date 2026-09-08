@@ -156,16 +156,17 @@ export const SHARE_CARD = {
  * those two move when content justifies it — with the measurement that
  * justified it written down.
  *
- * The geometry figures below were set against a tier-8 island. Measured at
- * **tier 11**, which is the real ceiling case, T1 holds 41 distinct shapes:
- * everything tier 8 had plus El Monumento, El Islote's ground, the boat and
- * the telescope. That is content, not duplication — the geometry cache itself
- * holds three keys — so T1 and T2 get the headroom tier 11 actually needs.
+ * These were raised to 48 and 78 mid-phase-4, on a tier-11 measurement of 41
+ * live geometries. **They are back where they started.** The open-ended grass
+ * blade and the tuft-count trim took the tier-11 figure down to 36 at T1 and 41
+ * at T2, both inside the original budget, so the headroom was never needed —
+ * and `20-ACCEPTANCE.md` 5E asks for ≤40 in as many words. A ceiling raised to
+ * fit a measurement that no longer holds is not a ceiling.
  */
 export const PERF_CEILINGS = [
   { drawCalls: 25, triangles: 35_000, geometries: 25, textures: 6, textureMB: 8, frameMs: 33 },
-  { drawCalls: 45, triangles: 70_000, geometries: 48, textures: 8, textureMB: 12, frameMs: 33 },
-  { drawCalls: 90, triangles: 160_000, geometries: 78, textures: 12, textureMB: 24, frameMs: 22 },
+  { drawCalls: 45, triangles: 70_000, geometries: 40, textures: 8, textureMB: 12, frameMs: 33 },
+  { drawCalls: 90, triangles: 160_000, geometries: 70, textures: 12, textureMB: 24, frameMs: 22 },
   { drawCalls: 160, triangles: 400_000, geometries: 120, textures: 20, textureMB: 48, frameMs: 16 },
 ] as const;
 

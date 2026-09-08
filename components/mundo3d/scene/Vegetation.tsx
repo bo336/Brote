@@ -10,7 +10,7 @@ import type { PropCollider } from '../control/CharacterController';
 import { flower, grassTuft, rock, sprout } from '@/lib/render/geometry/scatter';
 import { getTree, type TreeSpecies } from '@/lib/render/geometry';
 import { getClayMaterial } from '@/lib/render/materials';
-import { TIERS } from '@/lib/render/quality';
+import { TIERS, variantsFor } from '@/lib/render/quality';
 import { CAMERA, LAYOUT } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import { maturation, maturedScale } from '@/lib/world/growth';
@@ -39,8 +39,10 @@ import { playerTransform } from '../state/usePlayerStore';
 const MAX_TIER: QualityTier = 3;
 /** Accents for the flower mix — the one place a saturated hue belongs. */
 const FLOWER_ACCENTS = [DOMAIN_COLORS.animales, DOMAIN_COLORS.energia, DOMAIN_COLORS.consumo];
-/** Variants per species, so a field is not one shape repeated. */
-const VARIANTS = 3;
+/**
+ * Variants per species, so a field is not one shape repeated — at the tiers
+ * that can afford it. `variantsFor` explains why the low tiers get one.
+ */
 /**
  * Blob footprints, as a fraction of the instance's own scale. Only things tall
  * enough to look like they are hovering get one — grass and flowers sit flush
@@ -133,6 +135,15 @@ export function Vegetation({
   const canopyRef = useRef<Canopy[]>([]);
   // LOD level from the tier's tree-LOD budget: 3 levels means full detail.
   const treeLods = (TIERS[tier].treeLods >= 3 ? 0 : TIERS[tier].treeLods >= 2 ? 1 : 2) as 0 | 1 | 2;
+  /**
+   * One shape per kind at the low tiers, three at the high ones.
+   *
+   * Rebuilding the pools when this changes is the same thing `treeLods` already
+   * does a line above: a tier change may not move a plant that is already
+   * there, and taking a prefix of a differently-shaped pool is what keeps that
+   * true — the positions come from the same scatter either way.
+   */
+  const variants = variantsFor(tier);
 
   const pools = useMemo<PoolSet>(() => {
     const max = TIERS[MAX_TIER];
@@ -142,8 +153,8 @@ export function Vegetation({
       return pool;
     };
 
-    const grass = Array.from({ length: VARIANTS }, (_, v) =>
-      track(new InstancePool(grassTuft(v + 1), foliage, Math.ceil(max.grassTufts / VARIANTS), { name: `grass${v}` })),
+    const grass = Array.from({ length: variants }, (_, v) =>
+      track(new InstancePool(grassTuft(v + 1), foliage, Math.ceil(max.grassTufts / variants), { name: `grass${v}` })),
     );
     const flowers = FLOWER_ACCENTS.map((accent, v) =>
       track(
@@ -155,27 +166,27 @@ export function Vegetation({
         ),
       ),
     );
-    const rocks = Array.from({ length: VARIANTS }, (_, v) =>
-      track(new InstancePool(rock(v * 31 + 7), solid, Math.ceil(max.rocks / VARIANTS), { name: `rock${v}` })),
+    const rocks = Array.from({ length: variants }, (_, v) =>
+      track(new InstancePool(rock(v * 31 + 7), solid, Math.ceil(max.rocks / variants), { name: `rock${v}` })),
     );
     const sprouts = track(new InstancePool(sprout(3), foliage, Math.ceil(max.flowers / 2), { name: 'sprouts' }));
     // Which three shapes this biome grows, in weight order — from `kind`, never
     // from a display name (`02-AUDIT.md` §4).
     const species = (Object.entries(mix.trees) as [TreeSpecies, number][])
       .sort((a, b) => b[1] - a[1])
-      .slice(0, VARIANTS)
+      .slice(0, variants)
       .map(([name]) => name);
-    const trees = Array.from({ length: VARIANTS }, (_, v) => {
+    const trees = Array.from({ length: variants }, (_, v) => {
       const built = getTree(species[v] ?? 'oak', v + 1, treeLods);
       return {
-        wood: track(new InstancePool(built.wood, solid, Math.ceil(max.trees / VARIANTS), { name: `wood${v}` })),
+        wood: track(new InstancePool(built.wood, solid, Math.ceil(max.trees / variants), { name: `wood${v}` })),
         leaves: track(
-          new InstancePool(built.leaves, foliage, Math.ceil(max.trees / VARIANTS), { name: `canopy${v}` }),
+          new InstancePool(built.leaves, foliage, Math.ceil(max.trees / variants), { name: `canopy${v}` }),
         ),
       };
     });
     return { grass, flowers, rocks, sprouts, trees, all };
-  }, [foliage, solid, mix, treeLods]);
+  }, [foliage, solid, mix, treeLods, variants]);
 
   /**
    * Place everything once, from the layout's deterministic scatter pool.
@@ -263,7 +274,7 @@ export function Vegetation({
       pools.grass.forEach((pool, v) =>
         placeClumped(
           pool,
-          thin(forRegion(pick(points, BANDS.grass, v, VARIANTS), 'grass'), mix.grassDensity),
+          thin(forRegion(pick(points, BANDS.grass, v, variants), 'grass'), mix.grassDensity),
           [0.7, 1.4],
         ),
       );
@@ -281,7 +292,7 @@ export function Vegetation({
     pools.rocks.forEach((pool, v) =>
       place(
         pool,
-        interleaveSteep(thin(forRegion(pick(points, BANDS.rocks, v, VARIANTS), 'rocks'), mix.rockDensity)),
+        interleaveSteep(thin(forRegion(pick(points, BANDS.rocks, v, variants), 'rocks'), mix.rockDensity)),
         [0.6, 1.5],
         0,
         ROCK_SHADOW,
@@ -289,7 +300,7 @@ export function Vegetation({
     );
     if (config.tier >= 4) {
       pools.trees.forEach(({ wood, leaves }, v) => {
-        const list = forRegion(pick(points, BANDS.trees, v, VARIANTS), 'trees');
+        const list = forRegion(pick(points, BANDS.trees, v, variants), 'trees');
         for (const p of list) {
           const wi = wood.alloc();
           const li = leaves.alloc();
@@ -321,21 +332,21 @@ export function Vegetation({
       canopyRef.current = [];
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
-  }, [pools, layout, heightfield, config, biome, shadows, createdAt, onColliders]);
+  }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders]);
 
   /** A tier change is one integer per pool. It allocates nothing and frees nothing. */
   useEffect(() => {
     const t = TIERS[tier];
-    pools.grass.forEach((pool) => pool.resize(Math.ceil(t.grassTufts / VARIANTS)));
+    pools.grass.forEach((pool) => pool.resize(Math.ceil(t.grassTufts / variants)));
     pools.flowers.forEach((pool) => pool.resize(Math.ceil(t.flowers / FLOWER_ACCENTS.length)));
-    pools.rocks.forEach((pool) => pool.resize(Math.ceil(t.rocks / VARIANTS)));
+    pools.rocks.forEach((pool) => pool.resize(Math.ceil(t.rocks / variants)));
     pools.sprouts.resize(Math.ceil(t.flowers / 2));
     pools.trees.forEach(({ wood, leaves }) => {
-      const n = Math.ceil(t.trees / VARIANTS);
+      const n = Math.ceil(t.trees / variants);
       wood.resize(n);
       leaves.resize(n);
     });
-  }, [pools, tier]);
+  }, [pools, tier, variants]);
 
   /**
    * **The dithered occluder fade** (`10-CONTROLS-AND-CAMERA.md` §4).
