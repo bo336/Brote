@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
 import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
-import { snapToLand } from '@/lib/world/terrain';
+import { snapToLand, terrainHeight } from '@/lib/world/terrain';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
 import { mulberry32 } from '@/lib/world/rng';
 import { PROP_IDS } from '@/lib/world/progression';
@@ -204,6 +204,13 @@ function Preview() {
       const [x, z] = (terrain && snapToLand(cx, cz, terrain, mulberry32(7))) ?? [cx, cz];
       playerTransform.x = x;
       playerTransform.z = z;
+      // **And the height.** Writing x and z alone left Pip at whatever altitude
+      // he was already at, which is fine on the flat regions and wrong on every
+      // one that is not: on La Cumbre, El Monte and El Monumento he arrived
+      // twenty metres under the mountain or twenty metres over it, the camera
+      // followed him there, and the art pass's own screenshots of three of the
+      // nine regions were a rectangle of sky.
+      if (terrain) playerTransform.y = terrainHeight(x, z, terrain);
       return [x, z];
     };
     // Anywhere, not only a region centre — the Mojón sits on the path between
