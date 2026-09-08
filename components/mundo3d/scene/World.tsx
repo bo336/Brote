@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -19,9 +19,11 @@ import { CeremonyStage } from '../ceremony/CeremonyStage';
 
 import { PlacementMode } from '../placement/PlacementMode';
 import { usePlacementBridge } from '../placement/usePlacementBridge';
-import { CharacterController, type PropCollider } from '../control/CharacterController';
+import { CharacterController } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
+import { VisitorPip } from '../pip/VisitorPip';
+import type { VisitSession } from '../visit/useVisit';
 import { ProximityDetector } from '../interaction/ProximityDetector';
 import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
@@ -32,6 +34,7 @@ import { useWorldVerbs } from '../verbs/useWorldVerbs';
 import { useIslandLife } from './useIslandLife';
 import { useEventRuntime } from '../events/useEventRuntime';
 import { useBlobShadows } from './useBlobShadows';
+import { useColliders } from './useColliders';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { Island } from './Island';
@@ -42,6 +45,7 @@ import { Wilting } from './Wilting';
 import { PosterShot } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
+import { Stickers } from './Stickers';
 import { Vegetation } from './Vegetation';
 import { Water } from './Water';
 
@@ -85,6 +89,7 @@ export function World({
   projectMarkers = EMPTY_MARKERS,
   dueReviews = 0,
   readOnly = false,
+  visit,
   onPlacementsChanged,
 }: {
   tier: QualityTier;
@@ -114,6 +119,14 @@ export function World({
   dueReviews?: number;
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
+  /**
+   * This island belongs to somebody else and we are standing on it.
+   *
+   * It adds two things and takes nothing away: the host's Pip, idling, and
+   * every sticker anyone has left. Everything a visitor may not do is already
+   * gated by `readOnly`, which a visit always sets.
+   */
+  visit?: VisitSession;
   /** The arrangement changed and wants saving. Debounced by the caller. */
   onPlacementsChanged?: (placements: Placement[]) => void;
   /** A ceremony finished playing. The route persists it. */
@@ -166,35 +179,7 @@ export function World({
     [heightfield, layout, config],
   );
 
-  /**
-   * Props and trees become things you walk around, not through — and things the
-   * camera refuses to sit inside.
-   *
-   * Two sources, one list, because they answer the same two questions. Trees
-   * were in neither: you walked through the trunks, and standing in La Arboleda
-   * put the lens inside one, filling the frame with bark.
-   */
-  const propColliders = useRef<PropCollider[]>([]);
-  const treeColliders = useRef<PropCollider[]>([]);
-  const pushColliders = useCallback(() => {
-    const all = [...propColliders.current, ...treeColliders.current];
-    controller?.setColliders(all);
-    cameraRef.current?.setOccluders(all);
-  }, [controller, cameraRef]);
-  const onColliders = useCallback(
-    (colliders: PropCollider[]) => {
-      propColliders.current = colliders;
-      pushColliders();
-    },
-    [pushColliders],
-  );
-  const onTreeColliders = useCallback(
-    (colliders: PropCollider[]) => {
-      treeColliders.current = colliders;
-      pushColliders();
-    },
-    [pushColliders],
-  );
+  const colliders = useColliders(controller, cameraRef);
 
   useEffect(() => {
     if (!layout || !heightfield) return;
@@ -207,7 +192,7 @@ export function World({
     // `pushColliders`, because React runs a child's effects before its parent's:
     // Vegetation and Props have already reported by the time this camera
     // exists, and their calls found `cameraRef.current` still null.
-    follow.setOccluders([...propColliders.current, ...treeColliders.current]);
+    follow.setOccluders(colliders.all());
     follow.snap();
     cameraRef.current = follow;
     setReady(true);
@@ -215,7 +200,7 @@ export function World({
       cameraRef.current = null;
       setReady(false);
     };
-  }, [layout, heightfield, camera, reducedMotion, cameraRef, setReady]);
+  }, [layout, heightfield, camera, reducedMotion, cameraRef, setReady, colliders]);
 
   useEffect(() => {
     cameraRef.current?.setReducedMotion(reducedMotion);
@@ -331,7 +316,7 @@ export function World({
         biome={biome}
         shadows={shadows}
         createdAt={createdAt}
-        onColliders={onTreeColliders}
+        onColliders={colliders.onTrees}
       />
       {arrange.editing && (
         <PlacementMode
@@ -351,7 +336,7 @@ export function World({
         timeOfDay={timeOfDay}
         placements={arrange.editing ? arrange.placements : placements}
         demo={demoProps}
-        onColliders={onColliders}
+        onColliders={colliders.onProps}
         shadows={shadows}
       />
       {/* La Costa: the waste channel, and the only system that starts worse. */}
@@ -392,6 +377,17 @@ export function World({
         <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />
       )}
       <MistWall layout={layout} config={config} palette={palette} />
+      {visit && (
+        <>
+          <VisitorPip
+            layout={layout}
+            heightfield={heightfield}
+            cosmetics={visit.hostPip}
+            tier={visit.hostTier}
+          />
+          <Stickers stickers={visit.stickers} heightfield={heightfield} />
+        </>
+      )}
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />
       <WorldCue />

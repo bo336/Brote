@@ -100,12 +100,15 @@ export default function PublicProfilePage() {
           {profile.mundo_state ? (
             <section>
               <SectionHeader eyebrow={t('theReward')} title={t('theirWorld')} />
-              {/* interactive={false}: their island is shown, but it is not a
-                  door — only your own poster leads into /mundo. */}
+              {/* interactive={false}: their island is not a door into /mundo,
+                  which is yours. `visitUsername` makes it a door into theirs —
+                  read-only, and the only thing you can do there is leave one
+                  of eight stickers (18-DECISIONS D8). */}
               <MundoPoster
                 mundo={profile.mundo_state as MundoState}
                 height={280}
                 interactive={false}
+                visitUsername={profile.username}
                 className="shadow-soft-lg"
               />
             </section>

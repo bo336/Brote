@@ -33,7 +33,6 @@ export function parseImpact(raw: unknown): ImpactTotals {
 const nf = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
-/** Human-readable amount with unit, e.g. "1.240 L" / "3,4 kg". */
 /**
  * A plain count with es-AR thousands separators, and no unit.
  *
@@ -46,6 +45,7 @@ export function formatWhole(n: number): string {
   return nf.format(Math.max(0, Math.round(n)));
 }
 
+/** Human-readable amount with unit, e.g. "1.240 L" / "3,4 kg". */
 export function formatWater(l: number): string {
   if (l >= 1000) return `${nf1.format(l / 1000)} m³`;
   return `${nf.format(l)} L`;

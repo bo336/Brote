@@ -1181,6 +1181,22 @@
     "learning": {
       "water": "Water it",
       "opened": "Just one, whenever you like."
+    },
+    "visit": {
+      "title": "{name}'s island",
+      "leave": "Leave something",
+      "left": "You already left one today",
+      "sticker": {
+        "semilla": "Seed",
+        "sol": "Sun",
+        "agua": "Water",
+        "hoja": "Leaf",
+        "pajaro": "Bird",
+        "estrella": "Star",
+        "corazon": "Heart",
+        "mate": "Mate"
+      },
+      "enter": "Visit the island"
     }
   }
 }

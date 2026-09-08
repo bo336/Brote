@@ -348,6 +348,20 @@ export const LIVELINESS = {
 
 // ── Learning (`12-LEARNING.md` §2) ──────────────────────────────────────────
 
+/**
+ * Visiting somebody else's island (`11-GAME-LOOP.md` §8).
+ *
+ * One sticker per island per day is the whole rate limit. It is low on purpose:
+ * a visit is meant to be a small kindness, and anything you can do fifty times
+ * stops reading as one.
+ */
+export const VISIT = {
+  stickersPerDay: 1, // per host, per visitor, per day — the server agrees
+  stickerAheadM: 1.6, // dropped in front of the visitor, not under them
+  /** How long a sticker stays on the island before it fades away. */
+  lifetimeDays: 30,
+} as const;
+
 export const LEARNING = {
   sessionShareMax: 0.1, // ≤10% of session time
   reviewItemsPerDay: 5,

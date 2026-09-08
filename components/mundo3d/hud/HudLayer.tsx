@@ -13,6 +13,8 @@ import { MojonSheet } from './MojonSheet';
 import { PlacementBar } from './PlacementBar';
 import { SettingsSheet } from './SettingsSheet';
 import { TierUpOverlay } from './TierUpOverlay';
+import { VisitHud } from '../visit/VisitHud';
+import type { VisitSession } from '../visit/useVisit';
 
 /**
  * Everything drawn over the canvas.
@@ -44,6 +46,8 @@ export interface HudLayerProps {
   /** The census, straight from `world_bootstrap`. */
   journal: readonly JournalEntry[];
   perf: boolean;
+  /** Somebody else's island. Replaces this layer with the visitor's four controls. */
+  visit?: VisitSession;
 }
 
 export function HudLayer({
@@ -60,6 +64,7 @@ export function HudLayer({
   userId,
   journal,
   perf,
+  visit,
 }: HudLayerProps) {
   const hud = useSessionStore((s) => s.hud);
   const setHud = useSessionStore((s) => s.setHud);
@@ -69,6 +74,20 @@ export function HudLayer({
   // What everybody's real actions add up to. Not a leaderboard: no ranking, no
   // comparison, no name on any figure.
   const collective = useCollective(readOnly);
+
+  /**
+   * A visit is not this HUD with things switched off — it is a different
+   * screen, and returning early is what makes that true rather than promised.
+   * Nothing below this line can be reached from somebody else's island.
+   */
+  if (visit) {
+    return (
+      <>
+        <VisitHud visit={visit} />
+        {perf && <PerfOverlay />}
+      </>
+    );
+  }
 
   return (
     <>

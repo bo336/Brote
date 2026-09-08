@@ -92,6 +92,19 @@ export class InstancePool {
     return this.used++;
   }
 
+  /**
+   * Give every slot back and start the list again.
+   *
+   * Almost nothing in the world needs this: a tree is placed once and stays.
+   * The stickers a visitor leaves are the exception — the list grows while the
+   * page is open, and re-placing eight pools is cheaper and simpler than
+   * building a ninth mesh for each new token.
+   */
+  reset(): void {
+    this.used = 0;
+    this.mesh.count = 0;
+  }
+
   /** How many slots have been claimed. */
   get count(): number {
     return this.used;

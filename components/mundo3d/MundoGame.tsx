@@ -11,11 +11,9 @@ import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/se
 import type { CeremonyScript } from '@/lib/world/ceremony';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
-import { disposeAll as disposeMaterials } from '@/lib/render/materials';
-import { disposeAll as disposeGeometry } from '@/lib/render/geometry';
 import type { JournalEntry, QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
 import type { FollowCamera } from './control/FollowCamera';
-import { resetInput, useKeyboardInput } from './control/useInput';
+import { useKeyboardInput } from './control/useInput';
 import { useCameraDrag } from './control/useCameraDrag';
 import { HudLayer } from './hud/HudLayer';
 import { WorldStates, useWorldState } from './hud/WorldStates';
@@ -23,11 +21,12 @@ import { usePlacementSave } from './placement/usePlacementSave';
 import { useCelebrate } from './ceremony/useCelebrate';
 import { useSnapshot } from './poster/useSnapshot';
 import { installAudioLifecycle } from './audio/engine';
-import { clearInteractables } from './interaction/InteractableRegistry';
 import { useSessionStore } from './state/useSessionStore';
 import { useHydrateWorld } from './state/useHydrateWorld';
+import { useWorldTeardown } from './state/useWorldTeardown';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
+import type { VisitSession } from './visit/useVisit';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
 const EMPTY_JOURNAL: JournalEntry[] = [];
@@ -109,6 +108,14 @@ export interface MundoGameProps {
    * and unable to overwrite anything.
    */
   readOnly?: boolean;
+  /**
+   * The island belongs to somebody else (`18-DECISIONS.md` D8).
+   *
+   * It forces `readOnly` rather than trusting the caller to pass both: every
+   * write in the world hangs off that one flag, and a visit that forgot it
+   * would autosave a stranger's arrangement onto the visitor's own row.
+   */
+  visit?: VisitSession;
 }
 
 /**
@@ -134,7 +141,9 @@ export default function MundoGame({
   demoProps = false,
   payload,
   readOnly = false,
+  visit,
 }: MundoGameProps) {
+  const frozen = readOnly || visit !== undefined;
   const detailMode = useSettings((s) => s.detailMode);
   const largeText = useSettings((s) => s.largeText);
   const reduceMotionSetting = useSettings((s) => s.reduceMotion);
@@ -169,7 +178,7 @@ export default function MundoGame({
    */
   const { save, state: saveState } = usePlacementSave({
     userId: payload?.userId ?? userId,
-    readOnly: readOnly || !payload,
+    readOnly: frozen || !payload,
   });
 
   /**
@@ -178,7 +187,7 @@ export default function MundoGame({
    * queue is drained one at a time, oldest first, and `world_mark_celebrated`
    * is what stops it playing twice.
    */
-  const celebrate = useCelebrate({ readOnly: readOnly || !payload });
+  const celebrate = useCelebrate({ readOnly: frozen || !payload });
   /**
    * El póster. Until this existed, every card in the app showed a generated
    * SVG of an island nobody owns; now the feed, both profiles and onboarding
@@ -186,7 +195,7 @@ export default function MundoGame({
    */
   const poster = useSnapshot({
     userId: payload?.userId ?? userId,
-    readOnly: readOnly || !payload,
+    readOnly: frozen || !payload,
   });
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<FollowCamera | null>(null);
@@ -265,37 +274,7 @@ export default function MundoGame({
   useKeyboardInput({ onInteract: wake });
   const drag = useCameraDrag({ cameraRef, sensitivity, onInput: wake });
 
-  /**
-   * Everything is disposed. The old world leaked its module caches for the
-   * app's lifetime across route changes (`02-AUDIT.md` §7); this effect and the
-   * assertion under it are how that does not happen again.
-   */
-  useEffect(() => {
-    return () => {
-      clearInteractables();
-      resetInput();
-      disposeMaterials();
-      disposeGeometry();
-      const gl = rendererRef.current;
-      // Development only: the assertion is a warning to whoever is working on
-      // the scene, not something to run in a player's console.
-      //
-      // **Deferred by a task.** React tears an unmounting tree down parent
-      // first, so this cleanup runs BEFORE the scene components' own — and
-      // reading `gl.info.memory` here counted every geometry that was about to
-      // be disposed a moment later. It reported ten leaked geometries on every
-      // single unmount, which is worse than no assertion: an alarm that always
-      // fires is an alarm nobody reads.
-      if (gl && process.env.NODE_ENV !== 'production') {
-        setTimeout(() => {
-          const { geometries, textures } = gl.info.memory;
-          if (geometries !== 0 || textures !== 0) {
-            console.warn(`[mundo] leak on unmount: ${geometries} geometries, ${textures} textures`);
-          }
-        }, 0);
-      }
-    };
-  }, []);
+  useWorldTeardown(useCallback(() => rendererRef.current, []));
 
   const params = TIERS[tier];
   const pitch = (CAMERA.pitchDeg * Math.PI) / 180;
@@ -368,7 +347,8 @@ export default function MundoGame({
           projectMarkers={payload?.projectMarkers}
           dueReviews={payload?.dueReviews}
           previousBiome={world.previousBiome}
-          readOnly={readOnly || !payload}
+          readOnly={frozen || !payload}
+          visit={visit}
           onPlacementsChanged={save}
           onCelebrated={celebrate}
           onPoster={poster}
@@ -389,7 +369,8 @@ export default function MundoGame({
         worldGoal={payload?.worldGoal ?? 0}
         collectiveWaterL={payload?.collectiveWaterL ?? 0}
         saveState={saveState}
-        readOnly={readOnly || !payload}
+        readOnly={frozen || !payload}
+        visit={visit}
         userId={world.userId}
         journal={payload?.journal ?? EMPTY_JOURNAL}
         perf={perf}

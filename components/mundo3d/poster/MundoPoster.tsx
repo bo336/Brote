@@ -31,6 +31,16 @@ interface MundoPosterProps {
    * it is not a door. Only Hoy and Perfil lead into the game.
    */
   interactive?: boolean;
+  /**
+   * Somebody else's username: the card becomes a door into **their** island
+   * (`18-DECISIONS.md` D8), read-only and sticker-only.
+   *
+   * Separate from `interactive` on purpose. `interactive` has meant one thing
+   * since the rebuild — "this leads to `/mundo`, which is yours" — and a
+   * visit is a different destination with different rules. Overloading the
+   * flag is how somebody ends up editing a stranger's island.
+   */
+  visitUsername?: string | null;
   className?: string;
 }
 
@@ -39,6 +49,7 @@ export function MundoPoster({
   snapshotUrl,
   height = 320,
   interactive = true,
+  visitUsername = null,
   className,
 }: MundoPosterProps) {
   const t = useTranslations('mundo');
@@ -78,9 +89,9 @@ export function MundoPoster({
             <span className="tnum inline-flex items-center gap-1 font-semibold">
               <Sprout className="h-3 w-3" /> {t('poster.growth', { actual: growth, objetivo: goal })}
             </span>
-            {interactive && (
+            {(interactive || visitUsername) && (
               <span className="inline-flex items-center gap-0.5 font-semibold">
-                {t('poster.enter')}
+                {visitUsername ? t('visit.enter') : t('poster.enter')}
                 <ChevronRight className="h-3.5 w-3.5" />
               </span>
             )}
@@ -96,14 +107,14 @@ export function MundoPoster({
     </div>
   );
 
-  if (!interactive) {
+  if (!interactive && !visitUsername) {
     return <div className={cn('overflow-hidden rounded-card', className)}>{card}</div>;
   }
 
   return (
     <Link
-      href="/mundo"
-      aria-label={t('poster.enter')}
+      href={visitUsername ? `/mundo/visitar/${encodeURIComponent(visitUsername)}` : '/mundo'}
+      aria-label={visitUsername ? t('visit.enter') : t('poster.enter')}
       className={cn(
         'group block overflow-hidden rounded-card transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.005]',
         className,

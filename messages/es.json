@@ -1181,6 +1181,22 @@
     "learning": {
       "water": "Regar",
       "opened": "Una sola, cuando quieras."
+    },
+    "visit": {
+      "title": "La isla de {name}",
+      "leave": "Dejar algo",
+      "left": "Ya dejaste una hoy",
+      "sticker": {
+        "semilla": "Semilla",
+        "sol": "Sol",
+        "agua": "Agua",
+        "hoja": "Hoja",
+        "pajaro": "Pájaro",
+        "estrella": "Estrella",
+        "corazon": "Corazón",
+        "mate": "Mate"
+      },
+      "enter": "Visitar la isla"
     }
   }
 }
