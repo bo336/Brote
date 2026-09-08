@@ -71,7 +71,18 @@ export function buildSky(material: THREE.Material): THREE.Mesh {
   dome.name = 'sky';
   // Inside-out, and never culled or depth-tested against the world.
   dome.scale.set(-1, 1, 1);
-  dome.renderOrder = -1;
+  /**
+   * **-2, behind the stars.**
+   *
+   * The dome and the star field share one transparent material and one origin:
+   * both are centred on (0, 0, 0), so three's back-to-front sort measures the
+   * same distance for each and the tie broke however the render list happened
+   * to be built. With `depthWrite` off on that material, losing the tie means
+   * the dome paints over the field — and the night sky had no stars in it at
+   * all. Ordering them explicitly is the only version of this that cannot come
+   * back.
+   */
+  dome.renderOrder = -2;
   return dome;
 }
 

@@ -50,7 +50,11 @@ export function ActionButton() {
       }}
     >
       <Icon className="h-5 w-5" aria-hidden />
-      <span className="text-caption font-bold capitalize">{label}</span>
+      {/* No `capitalize`: it title-cases every word, and Spanish does not.
+          "Sembrar en otro mundo" was rendering as "Sembrar En Otro Mundo" on
+          the one button the player reads most. The copy already arrives in the
+          case it wants to be in. */}
+      <span className="text-caption font-bold first-letter:uppercase">{label}</span>
     </button>
   );
 }

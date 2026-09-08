@@ -8,6 +8,9 @@ import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
 import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
+import { snapToLand } from '@/lib/world/terrain';
+import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
+import { mulberry32 } from '@/lib/world/rng';
 import { PROP_IDS } from '@/lib/world/progression';
 import { SPECIES } from '@/lib/world/species';
 import { parseWorldPayload } from '@/lib/world/payload';
@@ -192,7 +195,13 @@ function Preview() {
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
     w.__pipTo = (id: RegionId) => {
-      const [x, z] = regionCentre(id);
+      const [cx, cz] = regionCentre(id);
+      // **Snapped to land.** El Río's centre is the lagoon, so `?at=rio` used
+      // to park Pip floating on the water — which is not a bug in the game,
+      // it is a bug in the tour, and it put a character standing on a river
+      // into the middle of the art pass's own screenshots.
+      const terrain = useWorldStore.getState().layout?.terrain;
+      const [x, z] = (terrain && snapToLand(cx, cz, terrain, mulberry32(7))) ?? [cx, cz];
       playerTransform.x = x;
       playerTransform.z = z;
       return [x, z];
