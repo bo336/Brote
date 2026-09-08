@@ -240,6 +240,77 @@ export interface WaterMesh {
  * the mesh is exactly the shape of the water and its edge is where the foam
  * line belongs.
  */
+/**
+ * **The open sea, out to the horizon.**
+ *
+ * The island had no ocean. `buildWaterMeshes` builds only what
+ * `terrain.lakes` declares — a puddle and the lagoon — and the ground mesh
+ * stops at the coastline, so past the rim there was *nothing*: no water, no
+ * ground, just the sky dome showing through. At eye level nobody notices,
+ * because the island's own rim sits at the horizon. From La Cumbre, El Monte
+ * and El Monumento you look **over** that rim, and three quarters of the frame
+ * was empty sky with a deer standing in it.
+ *
+ * Those are the three regions the ladder spends nine tiers earning, so this is
+ * not a background detail: it is the end of the game.
+ *
+ * An annulus rather than a disc — nothing is drawn under the island — with
+ * three rings:
+ *
+ *  - one tucked just inside the coastline, at depth zero, so the shader paints
+ *    its foam line where the sand actually meets the water;
+ *  - one a few metres out at full depth, which is where the foam ends;
+ *  - and one at `SEA_RADIUS`, just inside the sky dome, which is the horizon.
+ *
+ * Three hundred and eighty-four triangles and **no new material**: it is the
+ * same water the lagoon is made of, so one mood update still moves all of it.
+ */
+const SEA_RADIUS = 380;
+/** How far under the rim the inner edge tucks, so no seam shows at the beach. */
+const SEA_UNDERLAP = 1.2;
+/** How far out the shelf reaches full depth. The foam line lives inside this. */
+const SEA_SHELF_M = 4;
+
+export function buildOpenSea(layout: IslandLayout, deepAt: number): WaterMesh {
+  const segments = layout.coastline.length;
+  const positions: number[] = [];
+  const depths: number[] = [];
+  const indices: number[] = [];
+
+  for (let s = 0; s < segments; s++) {
+    const angle = (s / segments) * Math.PI * 2;
+    const coast = coastRadiusAt(layout.coastline, angle);
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (const [radius, depth] of [
+      [coast - SEA_UNDERLAP, 0],
+      [coast + SEA_SHELF_M, deepAt],
+      [SEA_RADIUS, deepAt],
+    ] as const) {
+      positions.push(cos * radius, WATER_LEVEL, sin * radius);
+      depths.push(depth);
+    }
+  }
+
+  for (let s = 0; s < segments; s++) {
+    const a = s * 3;
+    const b = ((s + 1) % segments) * 3;
+    for (let ring = 0; ring < 2; ring++) {
+      // Wound to face the sky, like the ground: the other order gives every
+      // triangle a downward normal and the key light misses the sea entirely.
+      indices.push(a + ring, b + ring, b + ring + 1);
+      indices.push(a + ring, b + ring + 1, a + ring + 1);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('aDepth', new THREE.Float32BufferAttribute(depths, 1));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return { geometry: geo, maxDepth: deepAt };
+}
+
 export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments = 40): WaterMesh[] {
   const out: WaterMesh[] = [];
   for (const lake of terrain.lakes) {

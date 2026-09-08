@@ -19,7 +19,7 @@ import {
   type ClayMaterial, type ClayOptions, type WorldMood,
 } from './clay';
 import { createFlatMaterial, type FlatOptions } from './flat';
-import { applyWaterReveal, createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
+import { applyWaterMood, applyWaterReveal, createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
 import { REVEAL_OFF, type RevealState } from '../reveal';
 
 const clayCache = new Map<string, ClayMaterial>();
@@ -73,6 +73,7 @@ export function getWaterMaterial(opts: WaterOptions): WaterMaterial {
   const hit = waterCache.get(key);
   if (hit) return hit;
   const mat = createWaterMaterial(opts);
+  if (lastMood) applyWaterMood(mat, lastMood);
   applyWaterReveal(mat, lastReveal);
   waterCache.set(key, mat);
   return mat;
@@ -123,6 +124,10 @@ export function getTexture(key: string, build: () => THREE.Texture): THREE.Textu
 export function updateMood(mood: WorldMood): void {
   lastMood = mood;
   for (const mat of clayCache.values()) applyMood(mat, mood);
+  // The sea takes the fog band too. It is the only surface that reaches the
+  // horizon, so it is the only one where leaving fog out is visible as a hard
+  // line between the water and the sky.
+  for (const mat of waterCache.values()) applyWaterMood(mat, mood);
 }
 
 /**

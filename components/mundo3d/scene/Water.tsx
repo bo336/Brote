@@ -3,21 +3,26 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 
-import { buildWaterMeshes } from '@/lib/render/geometry/terrain';
+import { buildOpenSea, buildWaterMeshes } from '@/lib/render/geometry/terrain';
 import { getWaterMaterial, tickWaterMaterials } from '@/lib/render/materials';
 import { setWaterTier } from '@/lib/render/materials/water';
 import type { WorldPalette } from '@/lib/render/palette';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Heightfield } from '@/lib/world/terrain';
+import { SEA_DEPTH_M } from '@/lib/world/config';
 import type { QualityTier } from '@/lib/world/types';
 
 /**
  * Water — the one reflective surface in the game, and therefore the thing the
  * eye goes to. That is deliberate (`06-ART-DIRECTION.md` §2 rule 6).
  *
- * In this phase there is one body: La Pradera's puddle. It is carved by the
- * same height function as everything else, so `isWater`, `isPlantable` and this
- * mesh all agree about where the water is without a line of special-casing.
+ * Two kinds. The **inland** bodies — the puddle, the lagoon — are carved by the
+ * same height function as everything else, so `isWater`, `isPlantable` and
+ * these meshes all agree about where the water is without a line of
+ * special-casing. And the **open sea**, which is not carved by anything,
+ * because the height function says the world outside the coastline is dry land
+ * that simply is not drawn. It is the horizon, and without it the island is a
+ * disc floating in the sky dome.
  *
  * `flow` comes from `MirrorParams.riverFlow` — real litres not spent, made
  * visible as the speed of the surface.
@@ -39,7 +44,23 @@ export function Water({
     () => buildWaterMeshes(layout.terrain, heightfield),
     [layout, heightfield],
   );
-  const depthScale = meshes.length > 0 ? meshes[0]!.maxDepth : 1;
+  /**
+   * **The deepest body, not the first one.**
+   *
+   * `meshes[0]` is whichever lake the layout happened to list first, and on
+   * every island that is La Pradera's puddle — a few centimetres deep. The
+   * lagoon was being normalised against a puddle, so it rendered as uniformly
+   * deep, and the open sea inherited a depth of about nine centimetres, which
+   * is inside the foam width: the whole ocean came out speckled with surf.
+   */
+  const depthScale = meshes.reduce((deepest, m) => Math.max(deepest, m.maxDepth), 1);
+  /**
+   * The sea is simply deep. The shader clamps `depth / depthScale` at one, so
+   * any value past the deepest lake reads as "as deep as water gets" — no
+   * bottom, and comfortably past the foam width, which is what keeps surf at
+   * the shore instead of scattered over the whole ocean.
+   */
+  const sea = useMemo(() => buildOpenSea(layout, SEA_DEPTH_M), [layout]);
   // Built once. A tier change retunes three uniforms rather than compiling a
   // second water shader (`07-RENDER-ARCHITECTURE.md` §4.3).
   const initialTier = useRef(tier).current;
@@ -50,11 +71,15 @@ export function Water({
   useEffect(() => setWaterTier(material, tier), [material, tier]);
 
   useEffect(() => () => meshes.forEach((m) => m.geometry.dispose()), [meshes]);
+  useEffect(() => () => sea.geometry.dispose(), [sea]);
 
   useFrame(({ clock }) => tickWaterMaterials(clock.elapsedTime, flow));
 
   return (
     <group name="water">
+      {/* The sea first, and behind everything: it is the furthest thing in the
+          world that is not the sky. */}
+      <mesh name="openSea" geometry={sea.geometry} material={material} renderOrder={1} />
       {meshes.map((m, i) => (
         <mesh key={i} geometry={m.geometry} material={material} renderOrder={2} />
       ))}

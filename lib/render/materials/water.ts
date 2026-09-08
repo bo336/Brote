@@ -33,6 +33,7 @@ const vertexShader = /* glsl */ `
   varying float vDepth;
   varying vec2 vWorld;
   varying vec3 vNormalW;
+  varying float vFogDepth;
   void main(){
     vDepth = aDepth;
     vWorld = vec2(position.x, position.z);
@@ -49,7 +50,12 @@ const vertexShader = /* glsl */ `
     float dx = cos(position.x * 3.1 + t * 1.05) * 3.1;
     float dz = -sin(position.z * 2.6 - t * 0.8) * 2.6;
     vNormalW = normalize(vec3(-dx * amp, 1.0, -dz * amp));
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+    // The same view depth the clay carries, so the sea and the land agree
+    // about where the horizon is. Without it the open sea met the sky at a
+    // hard line and read as a painted backdrop.
+    vFogDepth = -mvPosition.z;
+    gl_Position = projectionMatrix * mvPosition;
   }
 `;
 
@@ -62,6 +68,10 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uSun;
   uniform float uDepthScale;
   uniform float uFoamWidth;
+  uniform vec3  uFogColor;
+  uniform float uFogNear;
+  uniform float uFogFar;
+  uniform float uFogDensity;
   uniform float uSpecular;
   uniform float uCaustics;
   uniform vec3 uRevealCentre;
@@ -71,6 +81,7 @@ const fragmentShader = /* glsl */ `
   varying float vDepth;
   varying vec2 vWorld;
   varying vec3 vNormalW;
+  varying float vFogDepth;
 
   float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float noise(vec2 p){
@@ -118,6 +129,15 @@ const fragmentShader = /* glsl */ `
 
     float alpha = mix(0.62, 0.93, d);
     alpha = mix(alpha, 0.9, foam);
+
+    // Height fog, exactly as the clay applies it. This is what turns the open
+    // sea from a blue plate into distance.
+    float fogT = smoothstep(uFogNear, uFogFar, vFogDepth) * uFogDensity;
+    col = mix(col, uFogColor, fogT);
+    // …and it fades out as it fogs, so the last few metres before the horizon
+    // hand over to the sky instead of stopping against it.
+    alpha = mix(alpha, 1.0, fogT);
+
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -163,6 +183,12 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
     uSun: { value: (opts.sunDirection ?? new THREE.Vector3(0.4, 0.8, 0.3)).clone().normalize() },
     uDepthScale: { value: opts.depthScale ?? 0.34 },
     uFoamWidth: { value: opts.foamWidth ?? 0.085 },
+    // Zero until a mood says otherwise, for the same reason the clay defaults
+    // this way: a material whose default paints the world solid white is a trap.
+    uFogColor: { value: new THREE.Color('#F7F5EF') },
+    uFogNear: { value: 1 },
+    uFogFar: { value: 1000 },
+    uFogDensity: { value: 0 },
     // The arrival, idle. See `../reveal.ts`; `uRevealMode 0` is the branch this
     // takes for all but ~14 seconds in the life of an island.
     uRevealCentre: { value: new THREE.Vector3() },
@@ -199,6 +225,29 @@ export function applyWaterReveal(mat: WaterMaterial, reveal: RevealState): void 
 }
 
 /** Retune for a new quality tier. Three floats; no recompile, no dropped frame. */
+/**
+ * The fog half of the mood, on a water material.
+ *
+ * Water is not clay and does not take `applyMood`'s eleven uniforms — it has
+ * no rim, no bands and no wobble. It does need the fog band, because the open
+ * sea reaches the horizon and the horizon is made of fog.
+ */
+export function applyWaterMood(
+  mat: WaterMaterial,
+  mood: {
+    fogColor: THREE.ColorRepresentation;
+    fogNear: number;
+    fogFar: number;
+    fogDensity: number;
+  },
+): void {
+  const u = mat.waterUniforms;
+  (u.uFogColor!.value as THREE.Color).set(mood.fogColor);
+  u.uFogNear!.value = mood.fogNear;
+  u.uFogFar!.value = mood.fogFar;
+  u.uFogDensity!.value = mood.fogDensity;
+}
+
 export function setWaterTier(mat: WaterMaterial, tier: QualityTier): void {
   const t = waterTierUniforms(tier);
   mat.waterUniforms.uSwells!.value = t.swells;

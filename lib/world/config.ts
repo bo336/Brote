@@ -16,6 +16,15 @@
 /** Water plane height. Land is above it, lake beds below (ported verbatim). */
 export const WATER_LEVEL = 0;
 
+/**
+ * How deep the open sea is, in metres.
+ *
+ * Not a measurement of anything — the sea has no bottom in this game. It is
+ * "past every shelf and every foam line", so the shader's depth clamp lands on
+ * the deepest colour and the surf stays where the sand is.
+ */
+export const SEA_DEPTH_M = 8;
+
 /** Island radius per rank tier, in metres (`08-WORLD-AND-PROGRESSION.md` §3). */
 export const ISLAND_RADIUS_BY_TIER = [18, 24, 30, 34, 38, 42, 48, 54, 57, 60, 60] as const;
 

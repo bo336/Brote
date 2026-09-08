@@ -287,11 +287,23 @@ function Preview() {
     const evento = params.get('evento');
     if (evento) useSessionStore.getState().startEvent(evento as 'incendio');
     if (!at) return;
-    // Re-applied on a timer: the world takes a moment to build and
-    // `resetPlayerTransform` runs after it, so a single jump lands nowhere.
+    /**
+     * Re-applied on a timer, and **it has to keep going**: the world finishes
+     * building after the first jump and `World` calls `resetPlayerTransform`,
+     * which puts Pip back at the spawn. An earlier version stopped the interval
+     * once he had arrived, and every tour region quietly became a photograph of
+     * El Claro.
+     *
+     * **The dependency array is the real fix here.** This effect had none, so
+     * it re-ran on every render: each pass tore down the interval and started a
+     * fresh one, and while the world hydrates, the quality monitor settles and
+     * the camera invalidates, renders come faster than 1500 ms. The teleport
+     * was a coin flip — which is where the run of impossible screenshots came
+     * from, a summit in one shot and the spawn in the next, from one URL.
+     */
     const id = setInterval(() => w.__pipTo?.(at), 1500);
     return () => clearInterval(id);
-  });
+  }, [at, params]);
 
   return (
     <MundoGame

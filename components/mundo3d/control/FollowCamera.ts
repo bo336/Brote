@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 
-import { CAMERA, PIP_HEIGHT_M, REDUCED_MOTION_DAMPING_SCALE } from '@/lib/world/config';
+import { CAMERA, PIP_HEIGHT_M, REDUCED_MOTION_DAMPING_SCALE, WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { CameraShot } from '@/lib/render/reveal';
 import type { PropCollider } from './CharacterController';
@@ -269,6 +269,30 @@ export class FollowCamera {
       p.y - Math.sin(pitch) * distance,
       p.z - Math.cos(this.yaw) * distance * Math.cos(pitch),
     );
+
+    /**
+     * **The lens never goes under the world.**
+     *
+     * The occlusion probe above shortens the boom when the ground is in the
+     * way, which handles a hill between Pip and the camera. It does not handle
+     * standing on top of one: on a summit the boom swings out over a slope that
+     * falls away, the probe finds nothing to hit, and the camera settles inside
+     * the mountain. From there the ground is back-facing and invisible, so you
+     * see straight through the world to the sky — which is what made La Cumbre,
+     * El Monte and El Monumento render as empty for three phases.
+     *
+     * `composeShot` has had this clamp since the ceremonies were built, for the
+     * same reason and with the same constant. The ordinary follow needed it too.
+     */
+    if (this.heightfield) {
+      const floor = Math.max(
+        sampleHeight(this.heightfield, scratchDesired.x, scratchDesired.z),
+        // …and never under the sea either, which is the same failure with a
+        // different surface: from below, the water is a pale ceiling.
+        WATER_LEVEL,
+      ) + CAMERA.occlusionClearanceM;
+      if (scratchDesired.y < floor) scratchDesired.y = floor;
+    }
 
     // The look-at sits a little above Pip and a little ahead of them, and in
     // portrait it lifts further so the joystick thumb never covers the character.
