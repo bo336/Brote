@@ -50,6 +50,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?aged=N       pretend the island is N days old, for idle maturation
  *   ?proyectos=N  N commemorative project markers, to review the path of stones
  *   ?evento=id    play one of the six events on entry
+ *   ?marchito=N   N overdue reviews, to review the wilting objects
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
@@ -143,6 +144,7 @@ function Preview() {
             date: new Date(Date.now() - (i + 1) * 12 * 86400000).toISOString().slice(0, 10),
           }),
         ),
+        dueReviews: Number(params.get('marchito') ?? '0'),
         journal: SPECIES.filter((sp) => sp.min_tier <= tier)
           .slice(0, Number(params.get('seen') ?? '0'))
           .map((sp) => ({

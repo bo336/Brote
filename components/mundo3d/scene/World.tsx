@@ -38,6 +38,7 @@ import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
 import { ProjectMarkers } from './ProjectMarkers';
+import { Wilting } from './Wilting';
 import { PosterShot } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
@@ -82,6 +83,7 @@ export function World({
   daily = EMPTY_DAILY,
   createdAt = 0,
   projectMarkers = EMPTY_MARKERS,
+  dueReviews = 0,
   readOnly = false,
   onPlacementsChanged,
 }: {
@@ -108,6 +110,8 @@ export function World({
   createdAt?: number;
   /** The real projects they went to, for the commemorative stones. */
   projectMarkers?: readonly RawMarker[];
+  /** Academia items overdue for review, from the bootstrap. */
+  dueReviews?: number;
   /** The bootstrap failed and this island is a default. Nothing may write. */
   readOnly?: boolean;
   /** The arrangement changed and wants saving. Debounced by the caller. */
@@ -378,6 +382,11 @@ export function World({
         onCelebrated={onCelebrated}
       />
       {onPoster && <PosterShot onShoot={onPoster} />}
+      {/* Overdue reviews, as plants that want water. Never more than three,
+          never blocking, and they come back on their own in a week. */}
+      {dueReviews > 0 && (
+        <Wilting layout={layout} heightfield={heightfield} due={dueReviews} />
+      )}
       {/* A small cairn for every real project. Standing where you walk past. */}
       {placedMarkers.length > 0 && (
         <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />

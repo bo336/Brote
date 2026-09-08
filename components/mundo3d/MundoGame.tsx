@@ -331,6 +331,7 @@ export default function MundoGame({
           daily={payload?.dailyState}
           createdAt={payload?.createdAt}
           projectMarkers={payload?.projectMarkers}
+          dueReviews={payload?.dueReviews}
           previousBiome={world.previousBiome}
           readOnly={readOnly || !payload}
           onPlacementsChanged={save}

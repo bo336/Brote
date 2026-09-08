@@ -10,6 +10,7 @@ import { INTERACT, JOYSTICK } from '@/lib/world/config';
 import { ActionButton } from '../interaction/ActionButton';
 import { Joystick } from '../control/Joystick';
 import { usePlayerStore } from '../state/usePlayerStore';
+import { record } from '@/lib/world/telemetry';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -28,6 +29,8 @@ import { useSessionStore } from '../state/useSessionStore';
 const HINT_MS = 2600;
 /** A description is longer than a barrier's sentence, so it stays longer. */
 const NOTE_MS = 4200;
+/** Slack so a note cleared by its own timer never counts as a skip. */
+const CLEAR_SLOP_MS = 250;
 /** A visitor's line is the longest thing the world says, so it stays longest. */
 const CAST_MS = 9000;
 
@@ -75,11 +78,27 @@ export function HUD({
     return () => clearTimeout(id);
   }, [castBeat, setCastBeat]);
 
-  /** A description clears itself too, and gets longer to read than a barrier. */
+  /**
+   * A description clears itself too, and gets longer to read than a barrier.
+   *
+   * **A learning beat that leaves early is a skip.** `12-LEARNING.md` §2 asks
+   * for `learning_beat_shown` and `learning_beat_skipped`, and this is where
+   * the second one happens: the note was replaced or the player walked into
+   * something else before it had been on screen long enough to read. Above a
+   * 20% skip rate the instruction is to shorten the copy, not to conclude
+   * anything about whether people like learning.
+   */
   useEffect(() => {
     if (!note) return;
+    const isLearning = note.startsWith('fact.');
+    const shownAt = Date.now();
     const id = setTimeout(() => setNote(null), NOTE_MS);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      if (isLearning && Date.now() - shownAt < NOTE_MS - CLEAR_SLOP_MS) {
+        record('learning_beat_skipped');
+      }
+    };
   }, [note, setNote]);
 
   /**

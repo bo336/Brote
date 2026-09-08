@@ -9,6 +9,7 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { SeasonId, TimeOfDay, WorldConfig } from '@/lib/world/types';
 import { registerInteractable } from '../interaction/InteractableRegistry';
+import { useMicroFacts } from '../interaction/useMicroFacts';
 import type { CharacterController } from '../control/CharacterController';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { VerbRuntime, type VerbResult } from './runtime';
@@ -62,6 +63,9 @@ export function useWorldVerbs({
    */
   const inFlight = useRef<VerbSpot | null>(null);
 
+  /** One sentence, in world space, at most a tenth of the session. */
+  const facts = useMicroFacts();
+
   const onVerbFinish = useCallback(
     (result: VerbResult) => {
       const spot = inFlight.current;
@@ -83,6 +87,14 @@ export function useWorldVerbs({
        * was gone on the next load. An unauditable economy is worse than a
        * slower one.
        */
+      /**
+       * Filing a sighting is the moment `12-LEARNING.md` §3.1 calls a learning
+       * beat, so it is where a micro-fact is offered — through the budget,
+       * which refuses most of the time by design. A refusal shows nothing
+       * extra: the sighting landing in the Bitácora is its own feedback.
+       */
+      if (result.verb === 'log') facts.offer();
+
       if (result.verb === 'log' && spot?.speciesSlug && !readOnly) {
         void (async () => {
           try {
@@ -106,7 +118,7 @@ export function useWorldVerbs({
       // nothing awards it). Until it does, foraging pays **nothing** rather
       // than a number this file made up.
     },
-    [controller, setVerb, setSemillas, timeOfDay, readOnly],
+    [controller, setVerb, setSemillas, timeOfDay, readOnly, facts],
   );
 
   const runtime = useMemo(() => new VerbRuntime(onVerbFinish), [onVerbFinish]);

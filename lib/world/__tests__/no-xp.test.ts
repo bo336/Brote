@@ -16,6 +16,7 @@ import { test } from 'node:test';
  */
 const FORBIDDEN = [
   ['complete', '_activity'],
+  ['activity', '_completions'],
   ['brote_grant', '_xp'],
   ['total', '_xp'],
   ['brote_grant', '_points'],

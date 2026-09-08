@@ -1151,6 +1151,36 @@
         "22": "Cuando no sepas qué hacer, sentate a mirar el agua. Después vas a saber.",
         "23": "Ya casi no subo la escalera. Pero de acá abajo el faro se ve mejor."
       }
+    },
+    "fact": {
+      "0": "A thermos of mate is 22 litres of water. Every one you save goes back to the river.",
+      "1": "A ten-minute shower uses about 100 litres. A five-minute one, exactly half.",
+      "2": "The tap running while you brush is six litres. Closing it costs nothing and saves six.",
+      "3": "Washing up with the tap running uses three times what filling the sink once does.",
+      "4": "A single household battery can contaminate up to 3,000 litres of water if it is buried.",
+      "5": "Aluminium recycles endlessly and saves 95% of the energy of making it new.",
+      "6": "Glass takes around 4,000 years to break down, and recycles whole as often as you like.",
+      "7": "A plastic bag is used for twelve minutes on average and lasts centuries in the ground.",
+      "8": "Forty percent of household waste is organic: composted, it becomes soil again.",
+      "9": "A grown tree can drop the pavement temperature beside it by three degrees.",
+      "10": "A big tree's roots hold more soil in place than anything you can see from above.",
+      "11": "Switching off standby power can save up to 10% of a household electricity bill.",
+      "12": "An old fridge uses twice the energy of a new one doing exactly the same job.",
+      "13": "Hanging washing instead of tumble-drying saves a whole day of a fridge's energy.",
+      "14": "Growing and moving food weighs more on the climate than the packaging it arrives in.",
+      "15": "Eating what is in season shortens the journey to the plate and usually costs less.",
+      "16": "Throwing out food throws out the water that grew it: a kilo of bread is 1,600 litres.",
+      "17": "Bees pollinate a third of what we eat. They charge nothing and nobody hires them.",
+      "18": "A square metre of healthy soil holds more living organisms than the country has people.",
+      "19": "Wetlands soak up floods like a sponge, which is why building on them goes badly.",
+      "20": "Cycling five kilometres instead of driving avoids more than a kilo of CO₂.",
+      "21": "Air conditioning at 24 degrees instead of 21 uses about a third less energy.",
+      "22": "A tap dripping once a second loses around 30 litres a day.",
+      "23": "Lichen on a trunk only grows where the air is clean: a measuring device for free."
+    },
+    "learning": {
+      "water": "Water it",
+      "opened": "Just one, whenever you like."
     }
   }
 }

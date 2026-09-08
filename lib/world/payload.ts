@@ -225,7 +225,9 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     snapshotUrl: typeof world.last_snapshot_url === 'string' ? world.last_snapshot_url : null,
     // Phase 5 fills these; the shape exists now so nothing has to change later.
     projectMarkers: asArray(o.projectMarkers).map(rawMarker).filter((m): m is RawMarker => m !== null),
-    dueReviews: 0,
+    // Overdue Academia reviews, which manifest as wilting plants
+    // (`12-LEARNING.md` §3.3). Zero until the bootstrap supplies it.
+    dueReviews: Math.max(0, int(o.dueReviews, 0)),
   };
 }
 

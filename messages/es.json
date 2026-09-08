@@ -1151,6 +1151,36 @@
         "22": "Cuando no sepas qué hacer, sentate a mirar el agua. Después vas a saber.",
         "23": "Ya casi no subo la escalera. Pero de acá abajo el faro se ve mejor."
       }
+    },
+    "fact": {
+      "0": "Un termo de mate son 22 litros de agua. Cada uno que no desperdiciás vuelve al río.",
+      "1": "Una ducha de diez minutos gasta unos 100 litros. Una de cinco, la mitad exacta.",
+      "2": "La canilla abierta mientras te cepillás son seis litros. Cerrarla no cuesta nada y son seis.",
+      "3": "Lavar los platos con la canilla corriendo usa el triple que llenar la bacha una vez.",
+      "4": "Una pila común puede contaminar hasta 3.000 litros de agua si termina enterrada.",
+      "5": "El aluminio se recicla infinitas veces y ahorra el 95% de la energía de fabricarlo nuevo.",
+      "6": "El vidrio tarda unos 4.000 años en degradarse, y se recicla entero cuantas veces quieras.",
+      "7": "Una bolsa de plástico se usa doce minutos promedio y dura siglos en el suelo.",
+      "8": "El 40% de la basura de una casa es orgánica: en compost vuelve a ser tierra.",
+      "9": "Un árbol adulto puede bajar tres grados la temperatura de la vereda donde está.",
+      "10": "Las raíces de un árbol grande sostienen más suelo del que se ve desde arriba.",
+      "11": "Apagar el standby de la casa puede ahorrar hasta el 10% de la factura de luz.",
+      "12": "Una heladera vieja consume el doble que una nueva haciendo exactamente lo mismo.",
+      "13": "Colgar la ropa en vez de usar secarropas ahorra la energía de un día entero de heladera.",
+      "14": "El transporte y la producción de comida pesan más en el clima que su envase.",
+      "15": "Comer lo de estación acorta el viaje del plato y suele salir bastante más barato.",
+      "16": "Tirar comida tira también el agua que la regó: un kilo de pan son 1.600 litros.",
+      "17": "Las abejas polinizan un tercio de lo que comemos. No cobran y nadie las contrata.",
+      "18": "Un metro cuadrado de suelo sano tiene más organismos vivos que personas hay en el país.",
+      "19": "Los humedales absorben crecidas como una esponja: por eso conviene no construir encima.",
+      "20": "Andar en bici cinco kilómetros en vez de en auto evita más de un kilo de CO₂.",
+      "21": "El aire acondicionado a 24 grados en vez de 21 gasta un tercio menos de energía.",
+      "22": "Una canilla que gotea una vez por segundo pierde unos 30 litros por día.",
+      "23": "Los líquenes de un tronco sólo crecen donde el aire está limpio: son un medidor gratis."
+    },
+    "learning": {
+      "water": "Regar",
+      "opened": "Una sola, cuando quieras."
     }
   }
 }
