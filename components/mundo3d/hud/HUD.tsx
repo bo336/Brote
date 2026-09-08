@@ -28,6 +28,8 @@ import { useSessionStore } from '../state/useSessionStore';
 const HINT_MS = 2600;
 /** A description is longer than a barrier's sentence, so it stays longer. */
 const NOTE_MS = 4200;
+/** A visitor's line is the longest thing the world says, so it stays longest. */
+const CAST_MS = 9000;
 
 export function HUD({
   onOpenSettings,
@@ -49,6 +51,8 @@ export function HUD({
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
   const note = useSessionStore((s) => s.note);
   const noteValues = useSessionStore((s) => s.noteValues);
+  const castBeat = useSessionStore((s) => s.castBeat);
+  const setCastBeat = useSessionStore((s) => s.setCastBeat);
   const setNote = useSessionStore((s) => s.setNote);
   const placementProps = useSessionStore((s) => s.placement.props.length);
   const playing = hud === 'play';
@@ -63,6 +67,13 @@ export function HUD({
     const id = setTimeout(() => setLockedHint(null), HINT_MS);
     return () => clearTimeout(id);
   }, [lockedHint, setLockedHint]);
+
+  /** The day's beat clears itself too, after long enough to read it twice. */
+  useEffect(() => {
+    if (!castBeat) return;
+    const id = setTimeout(() => setCastBeat(null), CAST_MS);
+    return () => clearTimeout(id);
+  }, [castBeat, setCastBeat]);
 
   /** A description clears itself too, and gets longer to read than a barrier. */
   useEffect(() => {
@@ -150,6 +161,19 @@ export function HUD({
           <Settings2 className="h-5 w-5" aria-hidden />
         </button>
       </div>
+
+      {/* The day's visitor. Below the caption slot, never in it: it is the one
+          thing on screen nobody asked for, so it never displaces something
+          they did. */}
+      {castBeat && !lockedHint && !note && (
+        <p
+          className="absolute inset-x-0 bottom-44 mx-auto w-fit max-w-[80%] rounded-2xl bg-brote-ink/60 px-4 py-2 text-center text-small text-brote-cream backdrop-blur-sm"
+          role="status"
+        >
+          <span className="font-semibold">{t(castBeat.nameKey)}: </span>
+          {t(castBeat.key)}
+        </p>
+      )}
 
       {/* One line at a time. A soft barrier and a thing you just read share
           the slot, and the barrier wins — it is answering something you tried

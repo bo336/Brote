@@ -117,6 +117,14 @@ interface SessionStoreState {
    * unwind.
    */
   eventId: EventId | null;
+  /**
+   * The day's narrative beat — who is talking and what they say, as two keys.
+   *
+   * Two rather than a formatted string because `t()` lives in the HUD, and a
+   * world module resolving copy is how inline strings get in. Shown after the
+   * greeting has cleared, so the island never says two things at once.
+   */
+  castBeat: { nameKey: string; key: string } | null;
   note: string | null;
   /**
    * Values a note's copy interpolates — a project marker's title, place and
@@ -157,6 +165,7 @@ interface SessionStoreState {
   setEventRun: (run: EventRunSummary | null) => void;
   startEvent: (id: EventId) => void;
   endEvent: () => void;
+  setCastBeat: (beat: { nameKey: string; key: string } | null) => void;
   setNote: (key: string | null) => void;
   setNoteValues: (values: Record<string, string>) => void;
 }
@@ -171,6 +180,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   lockedHint: null,
   eventId: null,
   eventRun: null,
+  castBeat: null,
   note: null,
   noteValues: {},
   placement: EMPTY_PLACEMENT,
@@ -233,6 +243,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
     ),
   startEvent: (eventId) => set({ eventId }),
   endEvent: () => set({ eventId: null }),
+  setCastBeat: (castBeat) => set((s) => (s.castBeat?.key === castBeat?.key ? s : { castBeat })),
   setNote: (note) => set((s) => (s.note === note ? s : { note })),
   setNoteValues: (noteValues) => set({ noteValues }),
 }));
