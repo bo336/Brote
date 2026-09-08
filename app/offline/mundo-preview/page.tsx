@@ -49,6 +49,7 @@ import type { RegionId, TimeOfDay } from '@/lib/world/types';
  *   ?seen=N       log the first N species of the tier, to review the Bitácora
  *   ?aged=N       pretend the island is N days old, for idle maturation
  *   ?proyectos=N  N commemorative project markers, to review the path of stones
+ *   ?evento=id    play one of the six events on entry
  *   ?tierup=N     play tier N's ceremony on entry, as if it had just been reached
  *   ?rm=1         force reduced motion, for the cuts-instead-of-moves variant
  *
@@ -175,8 +176,10 @@ function Preview() {
       __tierup?: (n: number, kind?: 'tier' | 'world') => void;
       __ceremony?: () => unknown;
       __beat?: (beat: string) => void;
+      __evento?: (id: string) => void;
       __geometries?: () => string[];
       __interactables?: () => unknown[];
+      __pip?: () => unknown;
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
     w.__pipTo = (id: RegionId) => {
@@ -224,6 +227,11 @@ function Preview() {
     // Everything you could walk up to, and where. The answer to "are the
     // chores in the world?" without walking the whole island to find out.
     w.__interactables = () => listInteractables();
+    // Where Pip actually is, and what the button is currently offering.
+    w.__pip = () => ({
+      x: playerTransform.x, z: playerTransform.z,
+      active: useSessionStore.getState().active?.id ?? null,
+    });
     // What shapes are actually live, for the perf protocol: a count says a
     // ceiling broke, the keys say which shape broke it.
     w.__geometries = () => liveGeometryKeys();
@@ -231,12 +239,16 @@ function Preview() {
     // The runner only writes the beat when ITS beat changes, so a value set
     // here survives until the clock crosses a boundary of its own.
     w.__beat = (b: string) => useSessionStore.getState().setCeremonyBeat(b as 'title');
+    // Play an event without waiting for the server to pick one.
+    w.__evento = (id: string) => useSessionStore.getState().startEvent(id as 'incendio');
     // Replay a ceremony without reloading, for stepping through the beats.
     w.__tierup = (t: number, kind: 'tier' | 'world' = 'tier') => {
       const store = useSessionStore.getState();
       store.queueCeremonies([{ kind, n: t }]);
       store.nextCeremony();
     };
+    const evento = params.get('evento');
+    if (evento) useSessionStore.getState().startEvent(evento as 'incendio');
     if (!at) return;
     // Re-applied on a timer: the world takes a moment to build and
     // `resetPlayerTransform` runs after it, so a single jump lands nowhere.

@@ -7,7 +7,7 @@ import { thingDescKey, thingNameKey, type ThingId } from '@/lib/world/things';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Placement } from '@/lib/world/types';
-import { registerInteractable } from './InteractableRegistry';
+import { PRIORITY, registerInteractable } from './InteractableRegistry';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -40,6 +40,8 @@ export function useThingNotes({
         position: [x, sampleHeight(heightfield, x, z), z],
         radius: INTERACT.defaultRadiusM,
         labelKey: thingNameKey(id),
+        // "This is a bench" is never worth interrupting anything else.
+        priority: PRIORITY.flavour,
         // No verb: reading a thing is not one of the sixteen, which is also
         // what makes it available at every tier with nothing to unlock.
         enabled: true,

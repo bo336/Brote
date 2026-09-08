@@ -766,12 +766,99 @@
       "ajustar_puente": "Ajustar la soga del puente"
     },
     "event": {
-      "incendio": "El incendio",
-      "creciente": "La creciente",
-      "nido": "El nido caído",
-      "residuos": "Residuos en la playa",
-      "sequia": "La sequía",
-      "visitante": "La visitante"
+      "incendio": {
+        "title": "The fire",
+        "start": "There is smoke in the grove.",
+        "end": "It is out. The grove comes back tomorrow.",
+        "learn": "Fire runs with the wind and eats dry grass. Cutting ahead beats wetting behind.",
+        "q1": "The wind is pushing it that way. Where do you cut?",
+        "q2": "There is dry brush between the fire and that tree.",
+        "q3": "Two spot fires: one in dry grass, one in damp leaf litter.",
+        "w1": "Cut behind, the front walks past it. You cut ahead, on the wind side.",
+        "w2": "Wet or not, the dry branch still burns. Moving it removes the fuel.",
+        "w3": "Damp litter barely smoulders. Dry grass is the one that gets away.",
+        "rake": "Cut",
+        "drag": "Move the brush",
+        "water": "Wet it",
+        "douse": "Put it out"
+      },
+      "creciente": {
+        "title": "The flood",
+        "start": "The river rose. There are animals on the low ground.",
+        "end": "The water dropped. Everyone up, everything in place.",
+        "learn": "Floodplains are meant to flood. The reeds slow the water and hold the bank.",
+        "animal": "Carry it up high.",
+        "sandbag": "Put a sandbag on the bank.",
+        "carry": "Pick up",
+        "place": "Place the bag"
+      },
+      "nido": {
+        "title": "The fallen nest",
+        "start": "A nest came down. Two chicks inside.",
+        "end": "The mother came back. The nest is fine.",
+        "q": "Three trees nearby. Look at the fork and the feathers at the foot.",
+        "wrong": "Not this one. The mother did not come. Try another, no rush.",
+        "place": "Lift the nest up"
+      },
+      "residuos": {
+        "title": "Waste on the beach",
+        "start": "The tide left things on the beach.",
+        "end": "Clean beach. Everything where it goes.",
+        "learn": "Sorting is not paperwork: mixed waste is not recycled, it is buried.",
+        "bin": {
+          "reciclable": "Recyclable",
+          "organico": "Organic",
+          "peligroso": "Hazardous",
+          "no_reciclable": "Not recyclable"
+        },
+        "item": {
+          "botella_pet": "Plastic bottle",
+          "pila": "Battery",
+          "manzana": "Apple core",
+          "telgopor": "Polystyrene",
+          "lata": "Can",
+          "bolsa": "Plastic bag",
+          "cascara_huevo": "Eggshell",
+          "envase_yogur": "Yoghurt pot",
+          "colilla": "Cigarette butt",
+          "carton_mojado": "Wet cardboard",
+          "red_pesca": "Fishing net",
+          "frasco_vidrio": "Glass jar"
+        },
+        "why": {
+          "botella_pet": "PET recycles well if it goes in clean and dry. Wet or dirty, it does not.",
+          "pila": "One battery ruins a lot of water. It goes separately, at a hazardous waste point.",
+          "manzana": "Organic. In the compost it is soil again within weeks, with no effort.",
+          "telgopor": "Almost nobody recycles it: it is air with a little plastic. Not recyclable.",
+          "lata": "Aluminium recycles endlessly and saves enormous energy. Rinse it and in it goes.",
+          "bolsa": "Bags jam the machines at the plant. They do not go in loose with recycling.",
+          "cascara_huevo": "Organic. Crushed, it adds calcium to the soil and attracts nothing.",
+          "envase_yogur": "Recyclable if rinsed. With yoghurt left in it contaminates the whole bale.",
+          "colilla": "Plastic filter and metals. One of them contaminates hundreds of litres of water.",
+          "carton_mojado": "Cardboard recycles dry. Wet, the fibre is gone and it is no use.",
+          "red_pesca": "No plant processes it, and in the water it keeps fishing on its own for years.",
+          "frasco_vidrio": "Glass recycles whole and forever. No lid, and nothing left inside."
+        }
+      },
+      "sequia": {
+        "title": "The drought",
+        "start": "The water dropped. There is not enough for all of them.",
+        "end": "It rained. The ones that held on straightened up by themselves.",
+        "learn": "Old plants reach the deep water. The newly planted have nothing to reach with yet.",
+        "q": "Which one gets today s water?",
+        "wrong": "That one has deep roots and can wait. The new one cannot.",
+        "water": "Water it"
+      },
+      "visitante": {
+        "title": "The visitor",
+        "start": "Someone arrived at the shore.",
+        "end": "She left happy, and left something on the bench.",
+        "meet": "She is waiting at the shore.",
+        "sit": "She wants to sit with you a while.",
+        "greet": "Say hello",
+        "sitdown": "Sit down"
+      },
+      "paid": "+{n} seeds"
     },
     "accion": {
       "mojon": "Read"

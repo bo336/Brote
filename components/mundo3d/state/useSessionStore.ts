@@ -3,6 +3,17 @@
 import { create } from 'zustand';
 
 import type { BeatId, CeremonyRequest } from '@/lib/world/ceremony';
+import type { EventId } from '@/lib/world/types';
+import type { EventScript } from '@/lib/world/event-script';
+
+/** What the HUD needs to know about the event in play. */
+export interface EventRunSummary {
+  script: EventScript | null;
+  stage: number;
+  mistakes: number;
+  done: boolean;
+  skip: () => void;
+}
 import type { Interactable, PropId, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
@@ -98,6 +109,14 @@ interface SessionStoreState {
    * description, and this is where it goes. Same one-line slot as a soft
    * barrier, same self-clearing behaviour — a line, and then the world again.
    */
+  /**
+   * The event being played, or null.
+   *
+   * One at a time, and **always leavable** (`11-GAME-LOOP.md` §3.7). Setting it
+   * to null is the whole of "skippable": no confirmation, no cost, no state to
+   * unwind.
+   */
+  eventId: EventId | null;
   note: string | null;
   /**
    * Values a note's copy interpolates — a project marker's title, place and
@@ -127,6 +146,17 @@ interface SessionStoreState {
   setTimeOfDay: (timeOfDay: TimeOfDay) => void;
   setReducedMotion: (reducedMotion: boolean) => void;
   setLockedHint: (verb: VerbId | null) => void;
+  /**
+   * The live event's state, handed up from inside the canvas.
+   *
+   * Same seam as placement and the ceremony: the runtime lives where the world
+   * is, the card lives in the HUD, and what crosses is a summary that changes a
+   * handful of times per event rather than per frame.
+   */
+  eventRun: EventRunSummary | null;
+  setEventRun: (run: EventRunSummary | null) => void;
+  startEvent: (id: EventId) => void;
+  endEvent: () => void;
   setNote: (key: string | null) => void;
   setNoteValues: (values: Record<string, string>) => void;
 }
@@ -139,6 +169,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   timeOfDay: 'dia',
   reducedMotion: false,
   lockedHint: null,
+  eventId: null,
+  eventRun: null,
   note: null,
   noteValues: {},
   placement: EMPTY_PLACEMENT,
@@ -190,6 +222,17 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setLockedHint: (lockedHint) => set((s) => (s.lockedHint === lockedHint ? s : { lockedHint })),
+  setEventRun: (eventRun) =>
+    set((s) =>
+      s.eventRun?.stage === eventRun?.stage &&
+      s.eventRun?.done === eventRun?.done &&
+      s.eventRun?.mistakes === eventRun?.mistakes &&
+      s.eventRun?.script?.id === eventRun?.script?.id
+        ? s
+        : { eventRun },
+    ),
+  startEvent: (eventId) => set({ eventId }),
+  endEvent: () => set({ eventId: null }),
   setNote: (note) => set((s) => (s.note === note ? s : { note })),
   setNoteValues: (noteValues) => set({ noteValues }),
 }));

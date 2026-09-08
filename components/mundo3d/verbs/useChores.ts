@@ -8,7 +8,7 @@ import { WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Placement, RegionId, WorldDailyState } from '@/lib/world/types';
-import { registerInteractable } from '../interaction/InteractableRegistry';
+import { PRIORITY, registerInteractable } from '../interaction/InteractableRegistry';
 import { usePlayerStore } from '../state/usePlayerStore';
 
 /**
@@ -114,6 +114,7 @@ export function useChores({
         position: [spot.x, standingHeight(heightfield, spot.x, spot.z), spot.z],
         radius: spot.radius,
         labelKey: spot.def.nameKey,
+        priority: PRIORITY.chore,
         // A finished chore stays in the world and stops offering itself. Seeing
         // what you already did is a small win; being asked again is a nag.
         enabled: !spot.done,

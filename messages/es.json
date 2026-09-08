@@ -766,12 +766,99 @@
       "ajustar_puente": "Ajustar la soga del puente"
     },
     "event": {
-      "incendio": "El incendio",
-      "creciente": "La creciente",
-      "nido": "El nido caído",
-      "residuos": "Residuos en la playa",
-      "sequia": "La sequía",
-      "visitante": "La visitante"
+      "incendio": {
+        "title": "El incendio",
+        "start": "Hay humo en la arboleda.",
+        "end": "Se apagó. La arboleda vuelve mañana.",
+        "learn": "El fuego corre con el viento y come pasto seco. Cortar adelante rinde más que mojar atrás.",
+        "q1": "El viento lo empuja hacia allá. ¿Dónde cortás?",
+        "q2": "Hay ramas secas entre el fuego y ese árbol.",
+        "q3": "Saltaron dos focos: uno en pasto seco, otro en hojarasca húmeda.",
+        "w1": "Cortado atrás, el frente lo pasa de largo. Se corta adelante, del lado del viento.",
+        "w2": "Mojada, la rama seca igual arde. Sacarla del camino saca el combustible.",
+        "w3": "La hojarasca húmeda apenas humea. El pasto seco es el que se va de las manos.",
+        "rake": "Cortar",
+        "drag": "Sacar las ramas",
+        "water": "Mojar",
+        "douse": "Apagar"
+      },
+      "creciente": {
+        "title": "La creciente",
+        "start": "El río subió. Hay bichos en la parte baja.",
+        "end": "Bajó el agua. Todos arriba, todo en su lugar.",
+        "learn": "Los valles de inundación están hechos para inundarse. Los juncos frenan el agua y sostienen la orilla.",
+        "animal": "Llevalo a lo alto.",
+        "sandbag": "Poné una bolsa en la orilla.",
+        "carry": "Levantar",
+        "place": "Poner la bolsa"
+      },
+      "nido": {
+        "title": "El nido caído",
+        "start": "Se cayó un nido. Adentro hay dos pichones.",
+        "end": "Volvió la madre. El nido quedó bien.",
+        "q": "Tres árboles cerca. Mirá la horqueta y las plumas del pie.",
+        "wrong": "Este no era. La madre no vino. Probá con otro, sin apuro.",
+        "place": "Subir el nido"
+      },
+      "residuos": {
+        "title": "Residuos en la playa",
+        "start": "La marea dejó cosas en la playa.",
+        "end": "Playa limpia. Cada cosa donde va.",
+        "learn": "Separar bien no es un trámite: lo mezclado no se recicla, se entierra.",
+        "bin": {
+          "reciclable": "Reciclable",
+          "organico": "Orgánico",
+          "peligroso": "Peligroso",
+          "no_reciclable": "No reciclable"
+        },
+        "item": {
+          "botella_pet": "Botella de plástico",
+          "pila": "Pila",
+          "manzana": "Resto de manzana",
+          "telgopor": "Telgopor",
+          "lata": "Lata",
+          "bolsa": "Bolsa de plástico",
+          "cascara_huevo": "Cáscara de huevo",
+          "envase_yogur": "Envase de yogur",
+          "colilla": "Colilla",
+          "carton_mojado": "Cartón mojado",
+          "red_pesca": "Red de pesca",
+          "frasco_vidrio": "Frasco de vidrio"
+        },
+        "why": {
+          "botella_pet": "El PET se recicla bien si va limpio y seco. Mojado o con restos, no.",
+          "pila": "Una sola pila arruina mucha agua. Va aparte, en el punto de residuos peligrosos.",
+          "manzana": "Orgánico. En la compostera vuelve a ser tierra en unas semanas, sin hacer nada.",
+          "telgopor": "Casi nadie lo recicla: es aire con un poco de plástico. Va al no reciclable.",
+          "lata": "El aluminio se recicla infinitas veces y ahorra muchísima energía. Enjuagala y va.",
+          "bolsa": "Las bolsas trancan las máquinas de la planta. No van al reciclable suelto.",
+          "cascara_huevo": "Orgánico. Molida aporta calcio a la tierra y no atrae bichos.",
+          "envase_yogur": "Se recicla si va enjuagado. Con restos de yogur contamina todo el fardo.",
+          "colilla": "Tiene filtro de plástico y metales. Una sola contamina cientos de litros de agua.",
+          "carton_mojado": "El cartón se recicla seco. Mojado pierde la fibra y ya no sirve.",
+          "red_pesca": "Ninguna planta la procesa y en el agua sigue pescando sola durante años.",
+          "frasco_vidrio": "El vidrio se recicla entero y para siempre. Sin tapa y sin restos."
+        }
+      },
+      "sequia": {
+        "title": "La sequía",
+        "start": "Bajó el agua. No alcanza para todas.",
+        "end": "Llovió. Las que aguantaron se enderezaron solas.",
+        "learn": "Las plantas viejas llegan al agua profunda. Las recién puestas todavía no tienen con qué.",
+        "q": "¿A cuál le das el agua de hoy?",
+        "wrong": "Esa ya tiene raíz honda y aguanta. La recién puesta todavía no.",
+        "water": "Regar"
+      },
+      "visitante": {
+        "title": "La visitante",
+        "start": "Llegó alguien a la orilla.",
+        "end": "Se fue contenta. Dejó algo apoyado en el banco.",
+        "meet": "Está esperando en la orilla.",
+        "sit": "Quiere sentarse un rato con vos.",
+        "greet": "Saludar",
+        "sitdown": "Sentarse"
+      },
+      "paid": "+{n} semillas"
     },
     "accion": {
       "mojon": "Leer"

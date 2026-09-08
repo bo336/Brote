@@ -232,6 +232,11 @@ export interface Interactable {
    * unlock gates it. An interactable with no verb is always available.
    */
   verb?: VerbId;
+  /**
+   * How loudly this asks to be the one offered when several are in range.
+   * See `PRIORITY` in `interaction/InteractableRegistry.ts`. Default is normal.
+   */
+  priority?: number;
   enabled: boolean;
 }
 

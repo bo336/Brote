@@ -6,6 +6,7 @@ import type { ImpactTotals, JournalEntry } from '@/lib/world/types';
 import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
+import { EventCard } from './EventCard';
 import { HUD } from './HUD';
 import { MojonSheet } from './MojonSheet';
 import { PlacementBar } from './PlacementBar';
@@ -60,6 +61,7 @@ export function HudLayer({
   const setHud = useSessionStore((s) => s.setHud);
   const placement = useSessionStore((s) => s.placement);
   const placementActions = useSessionStore((s) => s.placementActions);
+  const eventRun = useSessionStore((s) => s.eventRun);
 
   return (
     <>
@@ -101,6 +103,7 @@ export function HudLayer({
           onExit={() => setHud('play')}
         />
       )}
+      {eventRun?.script && <EventCard run={eventRun} />}
       <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
       <MojonSheet
         open={hud === 'mojon'}

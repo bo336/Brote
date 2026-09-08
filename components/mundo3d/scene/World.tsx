@@ -30,6 +30,7 @@ import { useWorldStore } from '../state/useWorldStore';
 import type { RawMarker } from '@/lib/world/markers';
 import { useWorldVerbs } from '../verbs/useWorldVerbs';
 import { useIslandLife } from './useIslandLife';
+import { useEventRuntime } from '../events/useEventRuntime';
 import { useBlobShadows } from './useBlobShadows';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
@@ -146,6 +147,7 @@ export function World({
   /** Stable for the session: a chore must not move when the clock ticks over. */
   const today = useMemo(() => localDate(), []);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
+  const setEventRun = useSessionStore((s) => s.setEventRun);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -257,6 +259,13 @@ export function World({
    * the day's chores, the description on every prop and structure, the stone
    * for every real project.
    */
+  /**
+   * The day's event, if the server picked one. Played by walking; the only
+   * thing on screen is a way out and, at the end, one card.
+   */
+  const eventRun = useEventRuntime({ layout, heightfield, readOnly });
+  useEffect(() => setEventRun(eventRun), [eventRun, setEventRun]);
+
   const placedMarkers = useIslandLife({
     layout, heightfield, config, userId, localDate: today,
     placements, daily, readOnly, createdAt, liveliness, projectMarkers,

@@ -7,7 +7,7 @@ import { markerLine, placeMarkers, type RawMarker } from '@/lib/world/markers';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { ProjectMarker } from '@/lib/world/types';
-import { registerInteractable } from './InteractableRegistry';
+import { PRIORITY, registerInteractable } from './InteractableRegistry';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -53,6 +53,7 @@ export function useProjectMarkers({
         position: [m.x, sampleHeight(heightfield, m.x, m.z), m.z],
         radius: INTERACT.defaultRadiusM,
         labelKey: 'marker.name',
+        priority: PRIORITY.flavour,
         enabled: true,
         onInteract: () => {
           const line = markerLine(m);

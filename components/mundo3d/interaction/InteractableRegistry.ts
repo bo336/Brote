@@ -15,6 +15,26 @@ import type { Interactable, VerbId } from '@/lib/world/types';
  * by distance alone**, so standing between two objects while looking at one
  * picks the one you are looking at.
  */
+/**
+ * How loudly a thing asks to be the one offered.
+ *
+ * Everything in range competes for the single action button, and distance
+ * alone gets it wrong: standing between a bird you could log and the firebreak
+ * you are meant to cut, the bird wins on centimetres and the event stalls with
+ * no way to explain itself. So the thing that is *asking something of the
+ * player right now* outranks scenery, and within a rank the nearest wins.
+ */
+export const PRIORITY = {
+  /** Anything the world just put in front of you and is waiting on. */
+  event: 30,
+  /** Today's three. Asked for, but not urgent. */
+  chore: 20,
+  /** Verbs, El Mojón, the ordinary business of the island. */
+  normal: 10,
+  /** "This is a bench." Never worth interrupting anything else. */
+  flavour: 0,
+} as const;
+
 export interface RegisteredInteractable extends Interactable {
   onInteract: () => void;
 }
@@ -39,8 +59,16 @@ export function clearInteractables(): void {
  * where to walk to reach it — which is the difference between "chores exist"
  * and "chores exist somewhere I could not find".
  */
-export function listInteractables(): { id: string; position: [number, number, number]; enabled: boolean }[] {
-  return [...registry.values()].map((i) => ({ id: i.id, position: i.position, enabled: i.enabled }));
+export function listInteractables(): {
+  id: string; position: [number, number, number]; enabled: boolean; priority: number; radius: number;
+}[] {
+  return [...registry.values()].map((i) => ({
+    id: i.id,
+    position: i.position,
+    enabled: i.enabled,
+    priority: i.priority ?? PRIORITY.normal,
+    radius: i.radius,
+  }));
 }
 
 export function getInteractable(id: string): RegisteredInteractable | undefined {
@@ -54,6 +82,7 @@ export function getInteractable(id: string): RegisteredInteractable | undefined 
 export function findActive(x: number, z: number, yaw: number, verbs: readonly VerbId[]): RegisteredInteractable | null {
   let best: RegisteredInteractable | null = null;
   let bestScore = Infinity;
+  let bestRank = -Infinity;
   // Pip's facing, as a direction on the ground plane.
   const fx = Math.sin(yaw);
   const fz = Math.cos(yaw);
@@ -70,7 +99,10 @@ export function findActive(x: number, z: number, yaw: number, verbs: readonly Ve
     // 0 when Pip faces the object, 1 when it is directly behind them.
     const facing = distance < 0.001 ? 0 : (1 - (dx * fx + dz * fz) / distance) / 2;
     const score = distance / item.radius + facing * INTERACT.facingWeight;
-    if (score < bestScore) {
+    const rank = item.priority ?? PRIORITY.normal;
+    // Priority first, then the nearest thing you are facing within that rank.
+    if (rank > bestRank || (rank === bestRank && score < bestScore)) {
+      bestRank = rank;
       bestScore = score;
       best = item;
     }
