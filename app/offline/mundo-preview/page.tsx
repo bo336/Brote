@@ -85,6 +85,7 @@ const IMPACT_FIXTURES = [
 function Preview() {
   const params = useSearchParams();
   const at = params.get('at') as RegionId | null;
+  const eventoParam = params.get('evento');
   const tierUpParam = params.get('tierup');
   const tierUp = tierUpParam === null ? null : Number(tierUpParam);
   // A ceremony is for the tier being reached, so asking for one sets the world
@@ -284,7 +285,7 @@ function Preview() {
       store.queueCeremonies([{ kind, n: t }]);
       store.nextCeremony();
     };
-    const evento = params.get('evento');
+    const evento = eventoParam;
     if (evento) useSessionStore.getState().startEvent(evento as 'incendio');
     if (!at) return;
     /**
@@ -303,7 +304,17 @@ function Preview() {
      */
     const id = setInterval(() => w.__pipTo?.(at), 1500);
     return () => clearInterval(id);
-  }, [at, params]);
+    /**
+     * **Primitives, not `params`.**
+     *
+     * `useSearchParams()` hands back a fresh object on every render, so an
+     * effect that depends on it depends on nothing: it re-ran every pass, tore
+     * down the teleport interval and started another. While the world hydrates,
+     * the quality monitor settles and the camera invalidates, renders come
+     * faster than the interval's 1500 ms — so the jump was a coin flip, and the
+     * tour's screenshots contradicted each other from one URL.
+     */
+  }, [at, eventoParam]);
 
   return (
     <MundoGame
