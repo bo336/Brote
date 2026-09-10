@@ -42,6 +42,23 @@ const SAND_TO_GRASS = 0.09;
 /** How far the deep tones fold in with height, for value structure. */
 const DEPTH_SHADE = 0.45;
 /**
+ * The height, in metres, at which that fold is complete.
+ *
+ * **Sixteen, not three.** Folding the deep tones in with height is what gives
+ * the land value structure — low and bright at the shore, deep and quiet on the
+ * uplands. At three metres the ramp saturated almost immediately: every surface
+ * above knee height on a sixty-metre island got the *maximum* deep shift, so
+ * El Monte's twenty-three-metre mass was painted at full depth from base to
+ * peak. Compounded with the baked AO and the darkest light band, the mountain
+ * rendered as a hole in the world at midday — which is how a peak that was
+ * drawing correctly, with the camera ten metres above it, kept reading as "not
+ * drawn at all".
+ *
+ * Sixteen spreads the same ramp over the island's actual relief instead of over
+ * its first metre.
+ */
+const DEPTH_SPAN_M = 16;
+/**
  * How strongly the fine patch mask breaks the ground up.
  *
  * Without it a big field is one flat wash, and no amount of lighting fixes
@@ -146,7 +163,7 @@ function groundColor(
   target.copy(ramp.soil).lerp(ramp.grass, moisture);
   // Fold in the deep tones with height so the land has value structure rather
   // than one flat green (`06-ART-DIRECTION.md` §2 rule 3).
-  const depth = Math.min(1, above / 3);
+  const depth = Math.min(1, above / DEPTH_SPAN_M);
   scratchMix.copy(ramp.soilDeep).lerp(ramp.grassDeep, moisture);
   target.lerp(scratchMix, Math.min(1, depth * DEPTH_SHADE));
   /**

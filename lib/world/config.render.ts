@@ -105,6 +105,15 @@ export const CLAY = {
   bandCount: 3, // light quantised into shadow / mid / lit
   bandSoftness: 0.06, // transition width between bands
   /**
+   * How dark the darkest band is allowed to be.
+   *
+   * Not zero. Three bands quantised straight to `floor(l·3)/3` send anything
+   * under a tenth of full light to pure black, and a steep face turned away
+   * from the key light is under it — so El Monte's flank rendered as a hole in
+   * the world at midday. Clay in shadow is still clay.
+   */
+  bandFloor: 0.2,
+  /**
    * `pow(1 - dot(N, V), rimPower)`.
    *
    * **5, not 2.5.** A rim is a silhouette, and at 2.5 it was not one: the term

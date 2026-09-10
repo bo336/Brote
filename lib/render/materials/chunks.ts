@@ -65,7 +65,15 @@ export const CLAY_FRAG = /* glsl */ `
     float scaled = l * steps;
     float lower = floor(scaled);
     float f = smoothstep(0.5 - uBandSoftness * steps, 0.5 + uBandSoftness * steps, fract(scaled));
-    return (lower + f) / steps;
+    // **The darkest band is not black.** Quantising straight to (lower + f) /
+    // steps sends everything under about a tenth of full light to exactly
+    // zero — and a steep face turned away from the key gets there easily. El
+    // Monte's whole flank rendered as a hole in the world at midday, which is
+    // how a mountain that was drawing correctly kept reading as "not drawn".
+    // Clay in shadow is still clay (06-ART-DIRECTION section 2), so the ramp
+    // starts at a floor instead of at nothing. No backticks in here: this is a
+    // template literal, and one would end it.
+    return mix(uBandFloor, 1.0, (lower + f) / steps);
   }
 `;
 
@@ -258,6 +266,7 @@ export const CLAY_VERT_HEAD = /* glsl */ `
 export const CLAY_FRAG_HEAD = /* glsl */ `
   uniform float uBandCount;
   uniform float uBandSoftness;
+  uniform float uBandFloor;
   uniform vec3 uRimColor;
   uniform float uRimStrength;
   uniform float uRimPower;

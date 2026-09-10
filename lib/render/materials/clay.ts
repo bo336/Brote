@@ -127,6 +127,7 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uWindHeightBias: { value: WIND.heightBias },
     uBandCount: { value: CLAY.bandCount },
     uBandSoftness: { value: CLAY.bandSoftness },
+    uBandFloor: { value: CLAY.bandFloor },
     uRimColor: { value: new THREE.Color('#FFD9A0') },
     uRimStrength: { value: CLAY.rimStrength },
     uRimPower: { value: CLAY.rimPower },
