@@ -332,6 +332,10 @@ function Preview() {
       payload={payload}
       timeOfDay={(params.get('tod') as TimeOfDay | null) ?? 'dia'}
       demoProps={params.get('props') === '1'}
+      // A tour teleports Pip by writing the transform, which invalidates
+      // nothing. Without this the loop idles, the camera never follows, and
+      // every `?at=` screenshot is of the spawn.
+      alwaysRender={at !== null}
     />
   );
 }

@@ -90,6 +90,21 @@ export interface MundoGameProps {
   /** Lay one of each placeable prop out around the spawn, for review. */
   demoProps?: boolean;
   /**
+   * Hold the render loop open even when nothing is happening.
+   *
+   * The world idles into `frameloop="demand"`, which is right: continuous
+   * rendering when nothing moves is the cheapest waste there is. But the
+   * preview route's tour moves Pip by **writing `playerTransform` directly**,
+   * and a direct write invalidates nothing — so the camera never followed, and
+   * every screenshot of a region was a photograph of the spawn. That cost this
+   * build a week of contradictory frames and two wrong diagnoses of a mountain
+   * that was never broken.
+   *
+   * A player never needs this: walking, dragging and every state change the
+   * world cares about already wake the loop. Only a synthetic teleport does.
+   */
+  alwaysRender?: boolean;
+  /**
    * Everything the server sent, in one `world_bootstrap()` trip.
    *
    * Optional because the preview route drives the world from URL parameters
@@ -139,6 +154,7 @@ export default function MundoGame({
   liveliness = 0.5,
   timeOfDay: timeOfDayOverride,
   demoProps = false,
+  alwaysRender = false,
   payload,
   readOnly = false,
   visit,
@@ -305,7 +321,9 @@ export default function MundoGame({
           the probe rejects them, and a harness that samples nothing measures
           nothing (`07-RENDER-ARCHITECTURE.md` §6). */}
       <Canvas
-        frameloop={ceremonyRequest !== null || perf ? 'always' : hud !== 'play' ? 'demand' : frameloop}
+        frameloop={ceremonyRequest !== null || perf || alwaysRender
+          ? 'always'
+          : hud !== 'play' ? 'demand' : frameloop}
         dpr={params.dprCap}
         camera={{
           fov: CAMERA.fov,
