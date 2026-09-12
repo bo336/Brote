@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 
 import type { CharacterController, PropCollider } from '../control/CharacterController';
 import type { FollowCamera } from '../control/FollowCamera';
@@ -54,5 +54,12 @@ export function useColliders(
     [push],
   );
 
-  return { all, onProps, onTrees };
+  /**
+   * **Memoised, and it has to be.** `World`'s spawn effect lists this object in
+   * its dependencies. Returned fresh, every re-render of `World` counted as a
+   * change: the effect re-ran, called `resetPlayerTransform` and built a new
+   * camera — so a camera drag, which wakes the render loop and re-renders the
+   * tree, teleported Pip back to the spawn mid-walk.
+   */
+  return useMemo(() => ({ all, onProps, onTrees }), [all, onProps, onTrees]);
 }

@@ -35,6 +35,15 @@ const stick: InputVector = { x: 0, z: 0, magnitude: 0, running: false, active: f
 const keys = { up: false, down: false, left: false, right: false, shift: false };
 
 /**
+ * Is anything still asking the world to move? A held key, a thumb on the stick,
+ * or a character still easing to a stop. The render loop asks this before it
+ * lets itself sleep — without it, holding W past the idle delay walked nowhere.
+ */
+export function hasHeldInput(): boolean {
+  return keys.up || keys.down || keys.left || keys.right || input.active || input.magnitude > 0;
+}
+
+/**
  * The joystick calls this on every pointer move. `x` and `z` are already
  * dead-zoned and normalised to the stick radius by `Joystick.tsx`.
  */
@@ -108,14 +117,19 @@ const KEY_MAP: Record<string, keyof typeof keys> = {
 };
 
 /** Desktop keyboard, into the same vector. `E` interacts, `Esc` exits. */
-export function useKeyboardInput(opts: { onInteract?: () => void; onExit?: () => void } = {}): void {
-  const { onInteract, onExit } = opts;
+export function useKeyboardInput(
+  opts: { onInteract?: () => void; onExit?: () => void; onActivity?: () => void } = {},
+): void {
+  const { onInteract, onExit, onActivity } = opts;
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const mapped = KEY_MAP[e.code];
       if (mapped) {
         keys[mapped] = true;
         e.preventDefault();
+        // Walking is input. Only clicks used to wake the render loop, so four
+        // seconds after the page opened the keyboard stopped moving anyone.
+        onActivity?.();
         return;
       }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
@@ -124,7 +138,10 @@ export function useKeyboardInput(opts: { onInteract?: () => void; onExit?: () =>
     };
     const up = (e: KeyboardEvent) => {
       const mapped = KEY_MAP[e.code];
-      if (mapped) keys[mapped] = false;
+      if (mapped) {
+        keys[mapped] = false;
+        onActivity?.();
+      }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = false;
     };
     // A window that loses focus mid-stride would otherwise walk forever.
@@ -140,5 +157,5 @@ export function useKeyboardInput(opts: { onInteract?: () => void; onExit?: () =>
       window.removeEventListener('blur', blur);
       blur();
     };
-  }, [onInteract, onExit]);
+  }, [onInteract, onExit, onActivity]);
 }

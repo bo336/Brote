@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { CAMERA, JOYSTICK, RENDER_LOOP } from '@/lib/world/config';
+import { CAMERA, JOYSTICK } from '@/lib/world/config';
 import { isNight } from '@/lib/utils/dates';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
 import type { CeremonyScript } from '@/lib/world/ceremony';
@@ -23,6 +23,7 @@ import { useSnapshot } from './poster/useSnapshot';
 import { installAudioLifecycle } from './audio/engine';
 import { useSessionStore } from './state/useSessionStore';
 import { useHydrateWorld } from './state/useHydrateWorld';
+import { useFrameloop } from './state/useFrameloop';
 import { useWorldTeardown } from './state/useWorldTeardown';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
@@ -173,7 +174,6 @@ export default function MundoGame({
   const ceremonyRequest = useSessionStore((s) => s.ceremony.request);
 
   const [tier, setTier] = useState<QualityTier>(1);
-  const [frameloop, setFrameloop] = useState<'always' | 'demand'>('always');
   const [derivedTimeOfDay, setDerivedTimeOfDay] = useState<TimeOfDay>(() => (isNight() ? 'noche' : 'dia'));
   const timeOfDay = timeOfDayOverride ?? derivedTimeOfDay;
 
@@ -217,7 +217,6 @@ export default function MundoGame({
   const cameraRef = useRef<FollowCamera | null>(null);
   /** The live canvas, for the share card. See `share/ShareCard.ts`. */
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reducedMotion = prefersReducedMotion(reduceMotionSetting);
   const palette = useMemo(() => paletteForWorld(worldIndex, timeOfDay), [worldIndex, timeOfDay]);
@@ -273,21 +272,10 @@ export default function MundoGame({
     [setTierInStore],
   );
 
-  /** Continuous rendering when nothing moves is the cheapest waste there is. */
-  const wake = useCallback(() => {
-    setFrameloop('always');
-    if (idleTimer.current) clearTimeout(idleTimer.current);
-    idleTimer.current = setTimeout(() => setFrameloop('demand'), RENDER_LOOP.idleDemandDelayS * 1000);
-  }, []);
+  // Sleeps when idle, wakes on any input, and never sleeps while input is held.
+  const { frameloop, wake } = useFrameloop();
 
-  useEffect(() => {
-    wake();
-    return () => {
-      if (idleTimer.current) clearTimeout(idleTimer.current);
-    };
-  }, [wake]);
-
-  useKeyboardInput({ onInteract: wake });
+  useKeyboardInput({ onInteract: wake, onActivity: wake });
   const drag = useCameraDrag({ cameraRef, sensitivity, onInput: wake });
 
   useWorldTeardown(useCallback(() => rendererRef.current, []));

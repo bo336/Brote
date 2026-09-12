@@ -69,7 +69,11 @@ export function applyPreset(rig: LightRig, preset: LightPreset, t: number): void
   const c = rig.current;
 
   rig.key.color.lerp(colorOf(preset.keyColor), k);
-  c.keyIntensity = rig.key.intensity += (preset.keyIntensity - rig.key.intensity) * k;
+  // The cross-fade moves the BASE intensity. Liveliness warms the light on top
+  // of that base each frame; if the fade read the warmed value back, the two
+  // compounded — see `applyLiveliness`.
+  c.keyIntensity += (preset.keyIntensity - c.keyIntensity) * k;
+  rig.key.intensity = c.keyIntensity;
   c.keyElevationDeg += (preset.keyElevationDeg - c.keyElevationDeg) * k;
   positionKey(rig, c.keyElevationDeg);
 
@@ -96,7 +100,14 @@ function colorOf(hex: string): THREE.Color {
  * quieter — never dimmer, never greyer, never smaller.
  */
 export function applyLiveliness(rig: LightRig, liveliness: number): void {
-  rig.key.intensity *= warmerBy(LIVELINESS.keyWarmthGain, liveliness);
+  // **Assigned from the base, never multiplied into the live value.** This was
+  // `intensity *= warmth`, called every frame after the cross-fade, and the
+  // fade only pulls back a fraction of a percent per frame — so the sun grew
+  // about ten percent a frame, passed the float limit a few seconds in, and
+  // every lit surface went NaN, which draws as black. That was the black
+  // screen after walking for a while, and it was the "black El Monte" too:
+  // any view left open long enough went black.
+  rig.key.intensity = rig.current.keyIntensity * warmerBy(LIVELINESS.keyWarmthGain, liveliness);
 }
 
 /** The cross-fade rate, as a lambda for the exponential damping form. */
