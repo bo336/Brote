@@ -27,11 +27,15 @@ export interface PlayerTransform {
   /** Velocity, so acceleration and friction survive between frames. */
   vx: number;
   vz: number;
+  /** Vertical velocity, m/s. Non-zero only in a jump or a fall. */
+  vy: number;
   grounded: boolean;
+  /** In a jump or a fall — the rig stretches, the shadow spreads. */
+  airborne: boolean;
 }
 
 export const playerTransform: PlayerTransform = {
-  x: 0, y: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, grounded: true,
+  x: 0, y: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, vy: 0, grounded: true, airborne: false,
 };
 
 /** Reset before a fresh mount, so a remount never inherits a stale position. */
@@ -43,7 +47,9 @@ export function resetPlayerTransform(x = 0, y = 0, z = 0): void {
   playerTransform.speed = 0;
   playerTransform.vx = 0;
   playerTransform.vz = 0;
+  playerTransform.vy = 0;
   playerTransform.grounded = true;
+  playerTransform.airborne = false;
 }
 
 interface PlayerStoreState {

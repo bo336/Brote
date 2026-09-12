@@ -43,6 +43,21 @@ export function hasHeldInput(): boolean {
   return keys.up || keys.down || keys.left || keys.right || input.active || input.magnitude > 0;
 }
 
+/** A jump asked for and not yet taken. The solver buffers it; this only carries it there. */
+let jumpQueued = false;
+
+/** Space, or the jump button. */
+export function requestJump(): void {
+  jumpQueued = true;
+}
+
+/** Read once per step by the controller. */
+export function consumeJump(): boolean {
+  const j = jumpQueued;
+  jumpQueued = false;
+  return j;
+}
+
 /**
  * The joystick calls this on every pointer move. `x` and `z` are already
  * dead-zoned and normalised to the stick radius by `Joystick.tsx`.
@@ -116,13 +131,22 @@ const KEY_MAP: Record<string, keyof typeof keys> = {
   ArrowRight: 'right', KeyD: 'right',
 };
 
-/** Desktop keyboard, into the same vector. `E` interacts, `Esc` exits. */
+/**
+ * Desktop keyboard, into the same vector. `Space` jumps, `E` (or `F`, or
+ * `Enter`) uses whatever is in front of Pip, `Esc` exits.
+ *
+ * Space and E used to share one handler, and the handler was the render loop's
+ * wake-up call — neither key did anything a player could see.
+ */
 export function useKeyboardInput(
   opts: { onInteract?: () => void; onExit?: () => void; onActivity?: () => void } = {},
 ): void {
   const { onInteract, onExit, onActivity } = opts;
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      // A sheet's own fields and buttons keep their keys.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
       const mapped = KEY_MAP[e.code];
       if (mapped) {
         keys[mapped] = true;
@@ -133,8 +157,15 @@ export function useKeyboardInput(
         return;
       }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
-      else if (e.code === 'KeyE' || e.code === 'Space') onInteract?.();
-      else if (e.code === 'Escape') onExit?.();
+      else if (e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat) requestJump();
+        onActivity?.();
+      } else if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
+        e.preventDefault();
+        onActivity?.();
+        if (!e.repeat) onInteract?.();
+      } else if (e.code === 'Escape') onExit?.();
     };
     const up = (e: KeyboardEvent) => {
       const mapped = KEY_MAP[e.code];

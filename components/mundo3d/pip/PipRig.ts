@@ -36,6 +36,9 @@ export class PipRig {
   /** Milliseconds of anticipation squash left before the first hop. */
   private anticipation = 0;
   private wasMoving = false;
+  private wasAirborne = false;
+  /** Milliseconds of landing squash left. */
+  private landT = 0;
   private state: PlayerState = 'idle';
 
   constructor(root: PipRoot) {
@@ -65,11 +68,14 @@ export class PipRig {
     }
     this.wasMoving = moving;
     if (this.anticipation > 0) this.anticipation -= dt * 1000;
+    if (this.wasAirborne && !p.airborne) this.landT = PIP_RIG.landSquashMs;
+    this.wasAirborne = p.airborne;
+    if (this.landT > 0) this.landT -= dt * 1000;
 
     // ── Hop-walk. A blob that hops needs no legs and reads instantly.
     let hop = 0;
     let hopDerivative = 0;
-    if (moving) {
+    if (moving && !p.airborne) {
       const hz = Math.max(PIP_RIG.hopHzMin, p.speed * PIP_RIG.hopHzPerSpeed);
       this.hopPhase += dt * hz * Math.PI * 2;
       // `abs(sin)` gives two hops per cycle: contact, apex, contact.
@@ -97,6 +103,14 @@ export class PipRig {
       sx = 1 / Math.sqrt(sy);
     }
     if (moving) sy = 1 / (sx * sx); // preserve volume: x·y·z ≈ 1
+    // A jump stretches along the speed it is travelling at; a landing squashes.
+    if (p.airborne) {
+      sy = 1 + Math.max(-PIP_RIG.airStretchMax, Math.min(PIP_RIG.airStretchMax, p.vy * PIP_RIG.airStretchPerMps));
+      sx = 1 / Math.sqrt(sy);
+    } else if (this.landT > 0) {
+      sx = 1 + (PIP_RIG.landSquash - 1) * (this.landT / PIP_RIG.landSquashMs);
+      sy = 1 / (sx * sx);
+    }
     u.body.scale.set(sx, sy, sx);
     u.pattern?.scale.set(sx, sy, sx);
     u.face.scale.set(sx, sy, sx);

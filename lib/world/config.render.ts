@@ -78,6 +78,10 @@ export const PIP_RIG = {
   leafIdleAmp: 0.05, // …by this much
   leafLagMs: 80, // the leaf trails the body's rotation…
   leafOvershoot: 1.35, // …and overshoots. Secondary motion is most of the charm.
+  airStretchPerMps: 0.045, // a jump stretches Pip along their vertical speed…
+  airStretchMax: 0.2, // …by at most a fifth
+  landSquash: 1.24, // and the landing squashes them this wide…
+  landSquashMs: 150, // …for this long
 } as const;
 
 // ── Render loop and the quality monitor (`07-RENDER-ARCHITECTURE.md` §4) ────

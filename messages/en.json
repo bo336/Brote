@@ -642,6 +642,10 @@
     "typeMore": "Type at least two letters."
   },
   "mundo": {
+    "controls": {
+      "jump": "Jump",
+      "nothingNear": "Nothing nearby to use. Look for the green ring."
+    },
     "poster": {
       "enter": "Entrar a tu isla",
       "growth": "{actual} de {objetivo}"

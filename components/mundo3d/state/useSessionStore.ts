@@ -184,6 +184,15 @@ interface SessionStoreState {
   setCastBeat: (beat: { nameKey: string; key: string } | null) => void;
   setNote: (key: string | null) => void;
   setNoteValues: (values: Record<string, string>) => void;
+  /**
+   * Use whatever is in front of Pip — `E`, `Enter`, or the action button.
+   *
+   * Set by the world, which is where the verbs and the registry live. The key
+   * used to call the render loop's wake-up and nothing else, so pressing E next
+   * to a seed spot did exactly nothing a player could see.
+   */
+  interact: (() => void) | null;
+  setInteract: (fn: (() => void) | null) => void;
 }
 
 export const useSessionStore = create<SessionStoreState>((set) => ({
@@ -265,4 +274,6 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setCastBeat: (castBeat) => set((s) => (s.castBeat?.key === castBeat?.key ? s : { castBeat })),
   setNote: (note) => set((s) => (s.note === note ? s : { note })),
   setNoteValues: (noteValues) => set({ noteValues }),
+  interact: null,
+  setInteract: (interact) => set({ interact }),
 }));

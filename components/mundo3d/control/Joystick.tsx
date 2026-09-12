@@ -79,7 +79,8 @@ export function Joystick({ enabled = true, onRun }: JoystickProps) {
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!enabled || stateRef.current) return;
+      // A mouse has WASD for a stick; a click in the corner is a camera drag.
+      if (!enabled || stateRef.current || e.pointerType === 'mouse') return;
       const origin: StickState = { pointerId: e.pointerId, originX: e.clientX, originY: e.clientY };
       stateRef.current = origin;
       e.currentTarget.setPointerCapture(e.pointerId);

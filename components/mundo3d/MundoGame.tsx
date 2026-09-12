@@ -275,7 +275,12 @@ export default function MundoGame({
   // Sleeps when idle, wakes on any input, and never sleeps while input is held.
   const { frameloop, wake } = useFrameloop();
 
-  useKeyboardInput({ onInteract: wake, onActivity: wake });
+  // E uses what is in front of Pip. It used to be wired to `wake` and nothing else.
+  const interactNow = useCallback(() => {
+    wake();
+    useSessionStore.getState().interact?.();
+  }, [wake]);
+  useKeyboardInput({ onInteract: interactNow, onActivity: wake });
   const drag = useCameraDrag({ cameraRef, sensitivity, onInput: wake });
 
   useWorldTeardown(useCallback(() => rendererRef.current, []));
@@ -304,6 +309,7 @@ export default function MundoGame({
       onPointerMove={drag.onPointerMove}
       onPointerUp={drag.onPointerUp}
       onPointerCancel={drag.onPointerUp}
+      onWheel={drag.onWheel}
     >
       {/* A measurement run holds the loop open: `demand` gaps are not frames,
           the probe rejects them, and a harness that samples nothing measures

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo } from 'react';
 
 import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
-import { playerTransform } from '@/components/mundo3d/state/usePlayerStore';
+import { playerTransform, usePlayerStore } from '@/components/mundo3d/state/usePlayerStore';
 import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { isWater, snapToLand, terrainHeight } from '@/lib/world/terrain';
@@ -266,9 +266,13 @@ function Preview() {
     // chores in the world?" without walking the whole island to find out.
     w.__interactables = () => listInteractables();
     // Where Pip actually is, and what the button is currently offering.
+    // …and what the controls harness needs to check a jump and a press of E.
     w.__pip = () => ({
-      x: playerTransform.x, z: playerTransform.z,
+      x: playerTransform.x, y: playerTransform.y, z: playerTransform.z,
+      airborne: playerTransform.airborne, speed: playerTransform.speed,
       active: useSessionStore.getState().active?.id ?? null,
+      note: useSessionStore.getState().note,
+      verb: usePlayerStore.getState().verb,
     });
     // What shapes are actually live, for the perf protocol: a count says a
     // ceiling broke, the keys say which shape broke it.

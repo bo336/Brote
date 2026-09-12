@@ -2,13 +2,15 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sprout } from 'lucide-react';
+import { ArrowLeft, ChevronsUp, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
 import { INTERACT, JOYSTICK } from '@/lib/world/config';
+import { haptic } from '@/lib/utils/haptics';
 import { ActionButton } from '../interaction/ActionButton';
 import { Joystick } from '../control/Joystick';
+import { requestJump } from '../control/useInput';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { record } from '@/lib/world/telemetry';
 import { useSessionStore } from '../state/useSessionStore';
@@ -33,6 +35,9 @@ const NOTE_MS = 4200;
 const CLEAR_SLOP_MS = 250;
 /** A visitor's line is the longest thing the world says, so it stays longest. */
 const CAST_MS = 9000;
+/** The jump button: a thumb-sized circle, stacked above the action button's slot. */
+const JUMP_BUTTON_PX = 60;
+const JUMP_BUTTON_LIFT_PX = 76;
 
 export function HUD({ onOpenBitacora }: {
   /**
@@ -188,6 +193,24 @@ export function HUD({ onOpenBitacora }: {
       {playing && (
         <div className="pointer-events-auto">
           <ActionButton />
+          {/* The jump, for a thumb. A keyboard has Space; a fine pointer never sees this. */}
+          <button
+            type="button"
+            aria-label={t('controls.jump')}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              haptic('light');
+              requestJump();
+            }}
+            className="absolute right-6 flex items-center justify-center rounded-full bg-brote-ink/45 text-white backdrop-blur-sm transition-transform active:scale-90 [@media(pointer:fine)]:hidden"
+            style={{
+              bottom: `calc(max(env(safe-area-inset-bottom), ${JOYSTICK.safeAreaMinPx}px) + ${JUMP_BUTTON_LIFT_PX}px)`,
+              width: JUMP_BUTTON_PX,
+              height: JUMP_BUTTON_PX,
+            }}
+          >
+            <ChevronsUp className="h-6 w-6" aria-hidden />
+          </button>
         </div>
       )}
     </div>

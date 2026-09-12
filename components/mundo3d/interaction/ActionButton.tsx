@@ -4,10 +4,8 @@ import { useTranslations } from 'next-intl';
 import { Droplet, Sprout } from 'lucide-react';
 
 import { INTERACT, JOYSTICK } from '@/lib/world/config';
-import { haptic } from '@/lib/utils/haptics';
 import type { VerbId } from '@/lib/world/types';
 import { useSessionStore } from '../state/useSessionStore';
-import { getInteractable } from './InteractableRegistry';
 
 /**
  * The screen-space action button, in the right thumb zone.
@@ -38,8 +36,8 @@ export function ActionButton() {
       type="button"
       onPointerDown={(e) => {
         e.stopPropagation();
-        haptic('medium');
-        getInteractable(active.id)?.onInteract();
+        // The same door E goes through, so the key and the button cannot disagree.
+        useSessionStore.getState().interact?.();
       }}
       aria-label={label}
       className="absolute right-5 flex flex-col items-center gap-1 rounded-pill bg-brote-cream/95 px-5 py-3 text-brote-ink shadow-soft-lg transition-transform active:scale-95"
@@ -49,7 +47,13 @@ export function ActionButton() {
         minHeight: INTERACT.buttonMinPx,
       }}
     >
-      <Icon className="h-5 w-5" aria-hidden />
+      <span className="flex items-center gap-1.5">
+        <Icon className="h-5 w-5" aria-hidden />
+        {/* The key, for a keyboard. A phone has no E to press. */}
+        <kbd className="rounded-md border border-brote-ink/25 px-1.5 text-[11px] font-bold leading-5 [@media(pointer:coarse)]:hidden">
+          E
+        </kbd>
+      </span>
       {/* No `capitalize`: it title-cases every word, and Spanish does not.
           "Sembrar en otro mundo" was rendering as "Sembrar En Otro Mundo" on
           the one button the player reads most. The copy already arrives in the

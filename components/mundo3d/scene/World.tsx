@@ -23,6 +23,7 @@ import { Pip, type PipHandle } from '../pip/Pip';
 import { VisitorPip } from '../pip/VisitorPip';
 import type { VisitSession } from '../visit/useVisit';
 import { ProximityDetector } from '../interaction/ProximityDetector';
+import { useInteractBridge } from '../interaction/useInteractBridge';
 import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
@@ -230,11 +231,6 @@ export function World({
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
 
   /**
-   * Everything you can walk up to, and the line the island greets you with:
-   * the day's chores, the description on every prop and structure, the stone
-   * for every real project.
-   */
-  /**
    * The day's event, if the server picked one. Played by walking; the only
    * thing on screen is a way out and, at the end, one card.
    */
@@ -266,6 +262,8 @@ export function World({
     userId, seed: layout?.seed ?? 0,
     onAdvanceTime, onOpenMojon,
   });
+  // E, Enter and the action button, all through one door.
+  useInteractBridge(runtime);
 
   useFrame((state, delta) => {
     // Clamp: a tab that was backgrounded must not teleport Pip across the island.
