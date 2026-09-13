@@ -6,6 +6,10 @@ import type { ImpactTotals, JournalEntry } from '@/lib/world/types';
 import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
+import { ControlsHelp } from './ControlsHelp';
+import { ObjectiveCard } from './ObjectiveCard';
+import { RegionTitle } from './RegionTitle';
+import { RewardToast } from './RewardToast';
 import { EventCard } from './EventCard';
 import { FirstRunBar } from './FirstRunBar';
 import { HUD } from './HUD';
@@ -105,6 +109,11 @@ export function HudLayer({
         goal={worldGoal}
       />
       <HUD onOpenBitacora={() => setHud('bitacora')} />
+      {/* What to do, how to do it, and that it worked. */}
+      {hud === 'play' && <ObjectiveCard />}
+      {hud === 'play' && <ControlsHelp />}
+      <RegionTitle />
+      <RewardToast />
       <BitacoraSheet
         open={hud === 'bitacora'}
         onClose={() => setHud('play')}

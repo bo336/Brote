@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronsUp, Sprout } from 'lucide-react';
+import { ArrowLeft, ChevronsUp, HelpCircle, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
@@ -64,6 +64,8 @@ export function HUD({ onOpenBitacora }: {
   const castBeat = useSessionStore((s) => s.castBeat);
   const setCastBeat = useSessionStore((s) => s.setCastBeat);
   const setNote = useSessionStore((s) => s.setNote);
+  const helpOpen = useSessionStore((s) => s.helpOpen);
+  const setHelpOpen = useSessionStore((s) => s.setHelpOpen);
   const playing = hud === 'play';
 
   /**
@@ -146,6 +148,15 @@ export function HUD({ onOpenBitacora }: {
         className="absolute right-4 flex items-center gap-3"
         style={safeTop}
       >
+        {/* How to play, again — the help strip hides once every control is used. */}
+        <button
+          type="button"
+          onClick={() => setHelpOpen(!helpOpen)}
+          aria-label={t('guide.open')}
+          className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-brote-ink/40 text-white backdrop-blur-sm transition-transform active:scale-95"
+        >
+          <HelpCircle className="h-4 w-4" aria-hidden />
+        </button>
 {/* Semillas: small, and it fades back after a gain.
 
             **It is also how the Bitácora opens.** `16-UI-AUDIO-A11Y.md` §1

@@ -111,7 +111,12 @@ export interface TierHints {
   detailMode?: 'auto' | 'high' | 'mid' | 'low';
   /** `?mundoTier=0..3`, for testing. Overrides everything. */
   forced?: number | null;
+  /** A touch screen. Phones start where phones can run. */
+  coarsePointer?: boolean;
 }
+
+/** Cores at which a mouse-driven machine starts one tier up. */
+const DESKTOP_CORES = 8;
 
 /**
  * The starting tier. **Start at T1.** Static hints may only LOWER it, never
@@ -124,6 +129,14 @@ export function initialTier(hints: TierHints = {}): QualityTier {
   if (hints.detailMode === 'mid') return 2;
   if (hints.detailMode === 'high') return 3;
   let tier: QualityTier = 1;
+  /**
+   * **A desktop starts at T2** (`23-ART-DIRECTION-V2.md`, a deliberate break
+   * from "hints only lower"). T1 has no sun shadows and no lens, and the monitor
+   * needs 20 s of headroom to promote — so every desktop visit spent its first
+   * twenty seconds, which is the whole first impression, on the phone look. The
+   * monitor still demotes within three seconds if the machine cannot hold it.
+   */
+  if (!hints.coarsePointer && (hints.hardwareConcurrency ?? 4) >= DESKTOP_CORES) tier = 2;
   if ((hints.hardwareConcurrency ?? 4) < 4) tier = 0;
   if (hints.prefersReducedMotion) tier = 0;
   return tier;

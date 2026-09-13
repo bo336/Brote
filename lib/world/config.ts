@@ -120,6 +120,27 @@ export const PATHS = {
   minLengthM: 3, // a region closer than this to the spawn needs no path
 } as const;
 
+/**
+ * Guidance: the objective beacon, the arrow at Pip's feet, the saplings planting
+ * leaves behind (`components/mundo3d/scene/Guidance.tsx`). OURS, from screenshots.
+ */
+export const GUIDE = {
+  trackEveryS: 0.4, // how often the next objective is re-picked
+  beamRadiusM: 0.28,
+  beamHeightM: 14, // tall enough to see over a hill
+  beamOpacity: 0.85,
+  beamFadeNearM: 3, // gone once you are standing at it…
+  beamFadeFarM: 9, // …full strength from here out
+  arrowMinM: 5, // no arrow when the target is right there
+  arrowAheadM: 0.9, // how far in front of Pip the chevron sits
+  // Over the grass, not in it: at 6 cm the blades hid it completely.
+  arrowLiftM: 0.42,
+  arrowScale: 1.6,
+  arrowNudgeM: 0.12, // it nudges toward the target, a beckon
+  saplingGrowMs: 1600,
+  saplingScale: 0.55,
+} as const;
+
 // ── Movement, camera, input, interaction ────────────────────────────────────
 
 // They live in `config.controls.ts` for the 400-line rule; this is still the door.

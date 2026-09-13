@@ -7,6 +7,8 @@ import type { Heightfield } from '@/lib/world/terrain';
 import type { TraversalMode } from '@/lib/world/traversal';
 import { canTransition } from '@/lib/world/verbs';
 import type { PlayerState, VerbId, WorldConfig } from '@/lib/world/types';
+import { playSfx } from '../audio/sfx';
+import { emitFx } from '../state/feedback';
 import { playerTransform } from '../state/usePlayerStore';
 import { consumeJump, tickInput } from './useInput';
 
@@ -95,6 +97,12 @@ export class CharacterController {
     this.events.jumped = r.jumped;
     this.events.landed = r.landed;
     this.events.restored = r.restored;
+    // A jump has a sound; a landing has a sound and a puff of dust.
+    if (r.jumped) playSfx('jump');
+    if (r.landed) {
+      playSfx('land');
+      emitFx('dust', p.x, p.y, p.z);
+    }
 
     let next: PlayerState;
     switch (r.mode) {

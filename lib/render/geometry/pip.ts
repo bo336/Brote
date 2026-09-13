@@ -256,6 +256,8 @@ export function applyCosmetics(
     golden?: boolean;
     aura?: boolean;
     solid: THREE.Material;
+    /** The face's own glossier material; falls back to `solid`. */
+    face?: THREE.Material;
     patternMaterial?: THREE.Material;
     /** The shared flat, vertex-alpha material the halo is drawn with. */
     overlay?: THREE.Material;
@@ -272,7 +274,7 @@ export function applyCosmetics(
   // The stem takes the deep body tone; both leaves take the leaf pair. Repaint
   // walks the whole attribute, so the leaves are recoloured by range below.
   repaintLeaves(u.leaves, bodyDeep, leaf, leafDeep);
-  u.eyes.material = opts.solid;
+  u.eyes.material = opts.face ?? opts.solid;
 
   // Hat: mount the geometry, or hide the socket entirely.
   const hatId = cosmetics.hat ?? 'ninguno';

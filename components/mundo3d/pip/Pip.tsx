@@ -8,6 +8,7 @@ import { applyCosmetics, applyStage, buildPatternAtlas, buildPip, disposePip } f
 import { getClayMaterial, getOverlayMaterial, getTexture } from '@/lib/render/materials';
 import { PIP } from '@/lib/world/config';
 import { usePlayerStore } from '../state/usePlayerStore';
+import { useSessionStore } from '../state/useSessionStore';
 import { PipRig } from './PipRig';
 
 /**
@@ -46,8 +47,18 @@ export function Pip({ handle, lod = 0 }: PipProps) {
   const rigRef = useRef<PipRig | null>(null);
 
   // The two materials Pip is drawn with, both from the shared cache.
+  // A soft vinyl toy, not chalk: a little sheen, and the sun glowing through the
+  // body's edge when Pip stands against it (`23-ART-DIRECTION-V2.md`).
   const solid = useMemo(
-    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false, rimBoost: PIP.rimBoost }),
+    () => getClayMaterial({
+      vertexColors: true, wobble: false, wind: false, ao: false, rimBoost: PIP.rimBoost,
+      roughness: PIP.bodyRoughness, translucent: true,
+    }),
+    [],
+  );
+  /** The face on its own glossy material: eyes that catch the light are eyes that look back. */
+  const face = useMemo(
+    () => getClayMaterial({ vertexColors: true, wobble: false, wind: false, ao: false, rim: false, roughness: PIP.eyeRoughness }),
     [],
   );
   /**
@@ -96,13 +107,19 @@ export function Pip({ handle, lod = 0 }: PipProps) {
   // Equipping is a repaint and a `visible` toggle — never a load, never a
   // network round trip, never a material.
   useEffect(() => {
-    applyCosmetics(root, cosmetics, { golden, aura, solid, patternMaterial, overlay });
+    applyCosmetics(root, cosmetics, { golden, aura, solid, face, patternMaterial, overlay });
     applyStage(root, stage);
-  }, [root, cosmetics, golden, aura, stage, solid, patternMaterial, overlay]);
+  }, [root, cosmetics, golden, aura, stage, solid, face, patternMaterial, overlay]);
 
   useEffect(() => {
     rigRef.current?.setState(state);
   }, [state]);
+
+  // Every celebration bumps the counter; Pip answers each one with a hop.
+  const celebrateAt = useSessionStore((s) => s.celebrateAt);
+  useEffect(() => {
+    if (celebrateAt > 0) rigRef.current?.celebrate();
+  }, [celebrateAt]);
 
   useFrame((_, delta) => {
     rigRef.current?.update(delta, performance.now() / 1000);

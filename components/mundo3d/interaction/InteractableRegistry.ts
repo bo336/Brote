@@ -61,6 +61,7 @@ export function clearInteractables(): void {
  */
 export function listInteractables(): {
   id: string; position: [number, number, number]; enabled: boolean; priority: number; radius: number;
+  labelKey: string; verb?: VerbId;
 }[] {
   return [...registry.values()].map((i) => ({
     id: i.id,
@@ -68,6 +69,8 @@ export function listInteractables(): {
     enabled: i.enabled,
     priority: i.priority ?? PRIORITY.normal,
     radius: i.radius,
+    labelKey: i.labelKey,
+    verb: i.verb,
   }));
 }
 

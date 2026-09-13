@@ -238,6 +238,7 @@ export default function MundoGame({
   useEffect(() => {
     const start = initialTier({
       hardwareConcurrency: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : undefined,
+      coarsePointer: typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)')?.matches ?? false),
       prefersReducedMotion: reducedMotion,
       detailMode,
       forced: forcedTier,

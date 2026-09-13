@@ -23,7 +23,8 @@ export interface EventRunSummary {
   done: boolean;
   skip: () => void;
 }
-import type { Interactable, PropId, QualityTier, TimeOfDay, VerbId } from '@/lib/world/types';
+import type { Interactable, PropId, QualityTier, RegionId, TimeOfDay, VerbId } from '@/lib/world/types';
+import type { Objective } from '@/lib/world/objectives';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
 export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon';
@@ -193,7 +194,55 @@ interface SessionStoreState {
    */
   interact: (() => void) | null;
   setInteract: (fn: (() => void) | null) => void;
+  /**
+   * The one next thing to do (`lib/world/objectives.ts`). Deduplicated: the
+   * tracker recomputes twice a second, and a card that re-renders on every
+   * centimetre walked is a card that flickers.
+   */
+  objective: Objective | null;
+  setObjective: (o: Objective | null) => void;
+  /** The card that says what you just did. One at a time; the newest wins. */
+  reward: RewardCard | null;
+  showReward: (r: Omit<RewardCard, 'id'>) => void;
+  clearReward: () => void;
+  /** The region you just walked into for the first time this session. */
+  regionTitle: RegionId | null;
+  setRegionTitle: (r: RegionId | null) => void;
+  /** Bumped by every celebration, so Pip can hop without a store subscription per frame. */
+  celebrateAt: number;
+  bumpCelebrate: () => void;
+  /** Which controls the player has used, so the help strip can step aside. */
+  controlsUsed: Record<ControlKind, boolean>;
+  markControl: (k: ControlKind) => void;
+  helpOpen: boolean;
+  setHelpOpen: (open: boolean) => void;
+  /** Saplings planted this session, growing where they went in. */
+  plantings: Planting[];
+  addPlanting: (at: readonly [number, number, number]) => void;
 }
+
+export type ControlKind = 'move' | 'look' | 'jump' | 'use';
+
+export interface RewardCard {
+  id: number;
+  titleKey: string;
+  thingKey: string | null;
+  /** Data, not copy: a species' catalogue name. */
+  thingText?: string;
+  semillas: number;
+}
+
+export interface Planting {
+  x: number;
+  y: number;
+  z: number;
+  /** `performance.now()` when it went in. */
+  at: number;
+}
+
+/** Plantings kept at once; the oldest makes way. */
+const MAX_PLANTINGS = 12;
+let rewardSeq = 0;
 
 export const useSessionStore = create<SessionStoreState>((set) => ({
   ready: false,
@@ -276,4 +325,30 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setNoteValues: (noteValues) => set({ noteValues }),
   interact: null,
   setInteract: (interact) => set({ interact }),
+  objective: null,
+  setObjective: (objective) =>
+    set((s) => {
+      const a = s.objective;
+      const same = a && objective
+        && a.titleKey === objective.titleKey && a.targetId === objective.targetId
+        && a.progress?.done === objective.progress?.done && a.progress?.total === objective.progress?.total
+        && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5);
+      return same || (!a && !objective) ? s : { objective };
+    }),
+  reward: null,
+  showReward: (r) => set({ reward: { ...r, id: ++rewardSeq } }),
+  clearReward: () => set({ reward: null }),
+  regionTitle: null,
+  setRegionTitle: (regionTitle) => set({ regionTitle }),
+  celebrateAt: 0,
+  bumpCelebrate: () => set((s) => ({ celebrateAt: s.celebrateAt + 1 })),
+  controlsUsed: { move: false, look: false, jump: false, use: false },
+  markControl: (k) => set((s) => (s.controlsUsed[k] ? s : { controlsUsed: { ...s.controlsUsed, [k]: true } })),
+  helpOpen: false,
+  setHelpOpen: (helpOpen) => set({ helpOpen }),
+  plantings: [],
+  addPlanting: (at) =>
+    set((s) => ({
+      plantings: [...s.plantings, { x: at[0], y: at[1], z: at[2], at: performance.now() }].slice(-MAX_PLANTINGS),
+    })),
 }));

@@ -30,6 +30,7 @@ export function useInteractBridge(runtime: VerbRuntime): void {
         return;
       }
       haptic('medium');
+      store.markControl('use');
       target.onInteract();
     });
     return () => setInteract(null);

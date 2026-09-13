@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { JOYSTICK } from '@/lib/world/config';
+import { useSessionStore } from '../state/useSessionStore';
 
 /**
  * One normalised movement vector, from the joystick or the keyboard.
@@ -49,6 +50,7 @@ let jumpQueued = false;
 /** Space, or the jump button. */
 export function requestJump(): void {
   jumpQueued = true;
+  useSessionStore.getState().markControl('jump');
 }
 
 /** Read once per step by the controller. */
@@ -151,6 +153,7 @@ export function useKeyboardInput(
       if (mapped) {
         keys[mapped] = true;
         e.preventDefault();
+        useSessionStore.getState().markControl('move');
         // Walking is input. Only clicks used to wake the render loop, so four
         // seconds after the page opened the keyboard stopped moving anyone.
         onActivity?.();

@@ -4,12 +4,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { choreSpotsFor, type ChoreSpot } from '@/lib/world/chore-spots';
-import { WATER_LEVEL } from '@/lib/world/config';
+import { SEMILLAS, WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
+import type { FxKind } from '@/lib/render/fx';
 import type { IslandLayout } from '@/lib/world/layout';
-import type { Placement, RegionId, WorldDailyState } from '@/lib/world/types';
+import type { ChoreId, Placement, RegionId, WorldDailyState } from '@/lib/world/types';
 import { PRIORITY, registerInteractable } from '../interaction/InteractableRegistry';
+import { celebrate } from '../state/feedback';
 import { usePlayerStore } from '../state/usePlayerStore';
+
+/** What each chore throws into the air when it is done. */
+const CHORE_FX: Partial<Record<ChoreId, FxKind>> = {
+  regar_canteros: 'water',
+  limpiar_orilla: 'water',
+  podar_seco: 'leaves',
+  juntar_ramas: 'leaves',
+  dar_vuelta_compost: 'leaves',
+  llenar_comedero: 'berries',
+  colgar_farol: 'stars',
+  barrer_sendero: 'dust',
+  ajustar_puente: 'dust',
+  guiar_bicho: 'sparkle',
+};
 
 /**
  * The day's three chores, as places in the world.
@@ -59,13 +75,13 @@ export function useChores({
 }): ChoreSpot[] {
   const setSemillas = usePlayerStore((s) => s.setSemillas);
   /**
-   * Done this session, on top of whatever the server had already counted.
+   * **Which** chores were done this session, on top of the server's count.
    *
-   * Optimistic: the chore greys out the moment it is done rather than after a
-   * round trip. The server still owns the cap — a fourth chore is refused
-   * there, and refused quietly.
+   * It was a count, added to the server's, and the server's count marks the
+   * *first* N of the day's list as done — so finishing the third chore greyed
+   * out the first and left the one you just did still asking to be done.
    */
-  const [doneHere, setDoneHere] = useState(0);
+  const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(() => new Set());
   const inFlight = useRef(false);
 
   const spots = useMemo(() => {
@@ -75,17 +91,27 @@ export function useChores({
       localDate,
       unlockedRegions,
       placements,
-      choresDone: daily.chores_done + doneHere,
+      choresDone: daily.chores_done,
       anchors: layout.anchors,
       isGround,
-    });
-  }, [layout, heightfield, userId, localDate, unlockedRegions, placements, daily.chores_done, doneHere, isGround]);
+    }).map((s) => (doneIds.has(s.id) ? { ...s, done: true } : s));
+  }, [layout, heightfield, userId, localDate, unlockedRegions, placements, daily.chores_done, doneIds, isGround]);
 
   const complete = useCallback(
     (spot: ChoreSpot) => {
-      if (spot.done || readOnly || inFlight.current) return;
+      if (spot.done || doneIds.has(spot.id)) return;
+      setDoneIds((prev) => new Set(prev).add(spot.id));
+      // Seen and heard first, paid second: the world answers even offline, and
+      // even on a read-only island, where the preview is how the loop is judged.
+      celebrate({
+        titleKey: 'reward.chore',
+        thingKey: spot.def.nameKey,
+        semillas: SEMILLAS.chore,
+        fx: CHORE_FX[spot.id] ?? 'sparkle',
+        at: [spot.x, heightfield ? standingHeight(heightfield, spot.x, spot.z) : 0, spot.z],
+      });
+      if (readOnly || inFlight.current) return;
       inFlight.current = true;
-      setDoneHere((n) => n + 1);
       void (async () => {
         try {
           const supabase = createClient();
@@ -103,7 +129,7 @@ export function useChores({
         }
       })();
     },
-    [readOnly, setSemillas],
+    [readOnly, setSemillas, doneIds, heightfield],
   );
 
   useEffect(() => {

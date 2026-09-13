@@ -642,6 +642,71 @@
     "typeMore": "Escribí al menos dos letras."
   },
   "mundo": {
+    "goal": {
+      "eyebrow": "Ahora",
+      "move": "Movete un poco para empezar",
+      "first": "Andá al lugar marcado: {thing}",
+      "chore": "Tarea del día: {thing}",
+      "gather": "Cerca hay algo para {thing}",
+      "discover": "Cerca hay algo para {thing}",
+      "explore": "Explorá {thing}",
+      "rest": "Buscá un lugar para {thing}",
+      "free": "Recorré la isla a tu ritmo",
+      "progress": "{done} de {total} tareas",
+      "distance": "a {m} m"
+    },
+    "reward": {
+      "eyebrow": "¡Bien hecho!",
+      "chore": "Tarea hecha",
+      "first": "¡Tu primer brote!",
+      "semillas": "+{n} semillas",
+      "walk": "Caminaste",
+      "plant": "Plantaste un brote",
+      "water": "Regaste",
+      "log": "Nueva especie en tu Bitácora",
+      "climb": "Trepaste",
+      "forage": "Recolectaste",
+      "glide": "Planeaste",
+      "rest": "Descansaste un rato",
+      "swim": "Nadaste",
+      "fish": "¡Pescaste algo!",
+      "scale": "Escalaste",
+      "cave": "Exploraste la cueva",
+      "track": "Seguiste el rastro",
+      "sail": "Navegaste",
+      "observe": "Miraste el cielo",
+      "mentor": "Sembraste en otro mundo"
+    },
+    "guide": {
+      "arrive": "Llegaste a",
+      "title": "Cómo se juega",
+      "open": "Cómo se juega",
+      "close": "Entendido",
+      "label": {
+        "move": "Moverte",
+        "run": "Correr",
+        "jump": "Saltar",
+        "use": "Usar",
+        "look": "Mirar",
+        "zoom": "Acercar"
+      },
+      "keys": {
+        "move": "WASD",
+        "run": "Shift",
+        "jump": "Espacio",
+        "use": "E",
+        "look": "Arrastrá",
+        "zoom": "Rueda"
+      },
+      "touch": {
+        "move": "Izquierda",
+        "run": "Hasta el borde",
+        "jump": "Botón ⌃",
+        "use": "Botón",
+        "look": "Derecha",
+        "zoom": "Pellizco"
+      }
+    },
     "controls": {
       "jump": "Saltar",
       "nothingNear": "No hay nada cerca para usar. Buscá el aro verde."

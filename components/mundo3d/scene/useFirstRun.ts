@@ -12,6 +12,7 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Placement } from '@/lib/world/types';
 import { PRIORITY, registerInteractable } from '../interaction/InteractableRegistry';
+import { celebrate } from '../state/feedback';
 import { playerTransform } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 
@@ -123,7 +124,13 @@ export function useFirstRun({
       labelKey: 'first.plantAction',
       priority: PRIORITY.event,
       enabled: true,
-      onInteract: () => advance(),
+      // The first thing anyone ever grows: it grows, where they put it.
+      onInteract: () => {
+        const at = [x, sampleHeight(heightfield, x, z), z] as const;
+        celebrate({ titleKey: 'reward.first', fx: 'leaves', at });
+        useSessionStore.getState().addPlanting(at);
+        advance();
+      },
     });
   }, [beat, layout, heightfield, advance]);
 

@@ -28,6 +28,8 @@ const ACROSS = 9;
 const FILL = 0.72;
 /** The carve in `terrainHeight` reaches `width × 1.5` either side of the centre line. */
 const CARVE_HALF_WIDTH = 1.5;
+/** Deeper than this at sea level, a lagoon or the sea already has a surface here. */
+const BASIN_DEPTH_M = 0.05;
 
 export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMesh[] {
   const out: WaterMesh[] = [];
@@ -72,6 +74,10 @@ export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMe
         const d = c + 1;
         // A quad wholly under the banks is never seen; skip it.
         if (depths[a]! + depths[b]! + depths[c]! + depths[d]! === 0) continue;
+        // Where the river has reached the lagoon or the sea, their surface already
+        // covers it: two transparent sheets at one height drew a pale seam.
+        const level = positions[a * 3 + 1]! <= WATER_LEVEL + 1e-4 && positions[d * 3 + 1]! <= WATER_LEVEL + 1e-4;
+        if (level && depths[a]! > BASIN_DEPTH_M && depths[b]! > BASIN_DEPTH_M && depths[c]! > BASIN_DEPTH_M && depths[d]! > BASIN_DEPTH_M) continue;
         indices.push(a, c, b, b, c, d);
       }
     }

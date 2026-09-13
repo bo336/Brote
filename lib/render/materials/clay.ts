@@ -70,6 +70,8 @@ export interface ClayOptions {
   map?: THREE.Texture | null;
   /** Cut-out threshold for `map`'s alpha. Leaf cards, not glass. */
   alphaTest?: number;
+  /** Lets the sun through when seen against it. Foliage always does; Pip's soft body too. */
+  translucent?: boolean;
 }
 
 export interface ClayMaterial extends THREE.MeshStandardMaterial {
@@ -149,7 +151,8 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
 
   const defines: string[] = [];
   if (opts.wobble ?? true) defines.push('#define BH_WOBBLE');
-  if (opts.wind) defines.push('#define BH_WIND', '#define BH_TRANSLUCENT');
+  if (opts.wind) defines.push('#define BH_WIND');
+  if (opts.wind || opts.translucent) defines.push('#define BH_TRANSLUCENT');
   if (opts.heightFog ?? true) defines.push('#define BH_HEIGHT_FOG');
   if (opts.ao ?? true) defines.push('#define BH_AO');
   // The rim is Pip's now: on everything else it read as a glow painted round the edges.

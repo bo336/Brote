@@ -74,6 +74,7 @@ function clayKey(o: ClayOptions): string {
     o.roughness ?? '-',
     o.map?.uuid ?? '-',
     o.alphaTest ?? 0,
+    o.translucent ? 'sss' : '-',
   ].join(':');
 }
 

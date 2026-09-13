@@ -39,6 +39,8 @@ export class PipRig {
   private wasAirborne = false;
   /** Milliseconds of landing squash left. */
   private landT = 0;
+  /** Milliseconds of celebration left: a hop and a turn when something is done. */
+  private celebrateT = 0;
   private state: PlayerState = 'idle';
 
   constructor(root: PipRoot) {
@@ -48,6 +50,11 @@ export class PipRig {
 
   setState(state: PlayerState): void {
     this.state = state;
+  }
+
+  /** Something got done. Pip hops and turns once, happily. */
+  celebrate(): void {
+    this.celebrateT = PIP_RIG.celebrateMs;
   }
 
   /**
@@ -111,6 +118,16 @@ export class PipRig {
       sx = 1 + (PIP_RIG.landSquash - 1) * (this.landT / PIP_RIG.landSquashMs);
       sy = 1 / (sx * sx);
     }
+    let joyHop = 0;
+    let joySpin = 0;
+    if (this.celebrateT > 0) {
+      this.celebrateT -= dt * 1000;
+      const k = 1 - Math.max(0, this.celebrateT) / PIP_RIG.celebrateMs;
+      joyHop = Math.sin(k * Math.PI) * PIP_RIG.celebrateHopM;
+      joySpin = k * k * (3 - 2 * k) * Math.PI * 2;
+      sy = 1 + Math.sin(k * Math.PI) * 0.12;
+      sx = 1 / Math.sqrt(sy);
+    }
     u.body.scale.set(sx, sy, sx);
     u.pattern?.scale.set(sx, sy, sx);
     u.face.scale.set(sx, sy, sx);
@@ -123,8 +140,8 @@ export class PipRig {
 
     // ── Place the root. Position and yaw come from the controller; the hop, the
     //    lean and every scale below come from here. One owner, one transform.
-    this.root.position.set(p.x, p.y + hop, p.z);
-    this.root.rotation.set(this.lean, p.yaw + this.lookYaw, 0);
+    this.root.position.set(p.x, p.y + hop + joyHop, p.z);
+    this.root.rotation.set(this.lean, p.yaw + this.lookYaw + joySpin, 0);
 
     // ── The leaf trails the body's rotation and overshoots. Secondary motion is
     //    most of the charm, and it is nearly free.

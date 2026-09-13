@@ -40,6 +40,7 @@ import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { FirstRunMarks } from './FirstRunMarks';
 import { Grass } from './Grass';
+import { Guidance } from './Guidance';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
@@ -354,9 +355,8 @@ export function World({
         liveliness={liveliness}
         shadows={shadows}
       />
-      {/* The tier-up ceremony's beat clock and the marker it leaves behind.
-          Inside the canvas because both are made of time and geometry; the
-          cards it shows are in the HUD. */}
+      <Guidance layout={layout} heightfield={heightfield} />
+      {/* The tier-up ceremony's clock and marker; its cards are in the HUD. */}
       <CeremonyStage
         layout={layout}
         heightfield={heightfield}

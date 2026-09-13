@@ -642,6 +642,71 @@
     "typeMore": "Type at least two letters."
   },
   "mundo": {
+    "goal": {
+      "eyebrow": "Now",
+      "move": "Move around a little to start",
+      "first": "Go to the marked spot: {thing}",
+      "chore": "Today's chore: {thing}",
+      "gather": "There is something to {thing} nearby",
+      "discover": "There is something to {thing} nearby",
+      "explore": "Explore {thing}",
+      "rest": "Find a place to {thing}",
+      "free": "Wander the island at your own pace",
+      "progress": "{done} of {total} chores",
+      "distance": "{m} m away"
+    },
+    "reward": {
+      "eyebrow": "Nice work!",
+      "chore": "Chore done",
+      "first": "Your first sprout!",
+      "semillas": "+{n} seeds",
+      "walk": "You walked",
+      "plant": "You planted a sprout",
+      "water": "You watered",
+      "log": "New species in your log",
+      "climb": "You climbed",
+      "forage": "You foraged",
+      "glide": "You glided",
+      "rest": "You rested a while",
+      "swim": "You swam",
+      "fish": "You caught something!",
+      "scale": "You scaled it",
+      "cave": "You explored the cave",
+      "track": "You followed the tracks",
+      "sail": "You sailed",
+      "observe": "You watched the sky",
+      "mentor": "You planted in another world"
+    },
+    "guide": {
+      "arrive": "You reached",
+      "title": "How to play",
+      "open": "How to play",
+      "close": "Got it",
+      "label": {
+        "move": "Move",
+        "run": "Run",
+        "jump": "Jump",
+        "use": "Use",
+        "look": "Look",
+        "zoom": "Zoom"
+      },
+      "keys": {
+        "move": "WASD",
+        "run": "Shift",
+        "jump": "Space",
+        "use": "E",
+        "look": "Drag",
+        "zoom": "Wheel"
+      },
+      "touch": {
+        "move": "Left side",
+        "run": "To the edge",
+        "jump": "⌃ button",
+        "use": "Button",
+        "look": "Right side",
+        "zoom": "Pinch"
+      }
+    },
     "controls": {
       "jump": "Jump",
       "nothingNear": "Nothing nearby to use. Look for the green ring."

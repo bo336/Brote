@@ -116,7 +116,8 @@ const fragmentShader = /* glsl */ `
     vec3 body = mix(uShallow, uDeep, pow(d, 0.6));
     if (uCaustics > 0.0) {
       float c = bhNoise(p * 3.2 + vec2(t * 0.3, -t * 0.25)) * bhNoise(p * 2.7 - vec2(t * 0.22, t * 0.31));
-      body += vec3(0.9, 1.0, 0.85) * pow(c, 2.0) * (1.0 - d) * 0.5 * uCaustics;
+      // Faint and sun-tinted: at half strength over a shallow puddle they summed to white.
+      body += uSunColor * vec3(0.85, 1.0, 0.9) * pow(c, 3.0) * (1.0 - d) * 0.22 * uCaustics;
     }
 
     // A few centimetres of water over sand is mostly sand: the sky it reflects is

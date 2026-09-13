@@ -5,6 +5,7 @@ import type React from 'react';
 
 import { CAMERA, JOYSTICK } from '@/lib/world/config';
 import type { FollowCamera } from './FollowCamera';
+import { useSessionStore } from '../state/useSessionStore';
 
 /**
  * Manual camera. **A drag orbits and tilts; the wheel and a pinch zoom**
@@ -61,6 +62,7 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
         return;
       }
       lastPinch.current = null;
+      useSessionStore.getState().markControl('look');
       camera.orbit(
         (e.clientX - previous.x) * CAMERA.dragYawPerPx * sensitivity,
         // Drag down, look down from higher up — the convention every web 3D viewer uses.

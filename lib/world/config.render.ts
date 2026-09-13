@@ -32,13 +32,17 @@ export const PIP = {
   bodyCentreY: 0.25, // so Pip's feet land on y = 0
   stemRadius: 0.014,
   stemHeight: 0.07,
-  leafLength: 0.19,
-  leafWidth: 0.1,
-  eyeRadius: 0.036,
-  eyeSpread: 0.082, // half the distance between the eyes
+  // A bigger leaf and bigger eyes (`23-ART-DIRECTION-V2.md`): at 0.55 m under a
+  // six-metre camera, the old face read as two dots and the sprout as a twig.
+  leafLength: 0.24,
+  leafWidth: 0.125,
+  eyeRadius: 0.045,
+  eyeSpread: 0.086, // half the distance between the eyes
   eyeHeight: 0.045, // above the body centre
   eyeDepth: 0.9, // fraction of the body radius the eyes sit forward at
-  cheekRadius: 0.028,
+  cheekRadius: 0.032,
+  bodyRoughness: 0.5, // a soft vinyl sheen
+  eyeRoughness: 0.12, // wet and bright
   cheekSpread: 0.145,
   mouthWidth: 0.05,
   /** How much harder Pip's silhouette catches the key light than anything else. */
@@ -82,6 +86,8 @@ export const PIP_RIG = {
   airStretchMax: 0.2, // …by at most a fifth
   landSquash: 1.24, // and the landing squashes them this wide…
   landSquashMs: 150, // …for this long
+  celebrateMs: 720, // a job done: a hop and a full turn…
+  celebrateHopM: 0.34, // …this high
 } as const;
 
 // ── Render loop and the quality monitor (`07-RENDER-ARCHITECTURE.md` §4) ────

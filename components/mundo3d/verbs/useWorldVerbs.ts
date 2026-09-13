@@ -2,12 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { INTERACT, VERB_TIMING } from '@/lib/world/config';
+import { INTERACT, SEMILLAS, VERB_TIMING } from '@/lib/world/config';
 import { createClient } from '@/lib/supabase/client';
-import { haptic } from '@/lib/utils/haptics';
+import type { FxKind } from '@/lib/render/fx';
+import { SPECIES_BY_SLUG } from '@/lib/world/species';
+import type { VerbId } from '@/lib/world/types';
+import { celebrate } from '../state/feedback';
+import { useSessionStore } from '../state/useSessionStore';
+
+/** What each verb throws into the air when it lands. */
+const VERB_FX: Partial<Record<VerbId, FxKind>> = {
+  plant: 'leaves', water: 'water', log: 'sparkle', forage: 'berries', fish: 'water',
+  observe: 'stars', cave: 'dust', track: 'sparkle', mentor: 'stars',
+};
+/** What a verb shows on its card. The server pays; this only says so. */
+const VERB_SEMILLAS: Partial<Record<VerbId, number>> = {
+  log: SEMILLAS.censusFirst, forage: SEMILLAS.forageMin,
+};
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { SeasonId, TimeOfDay, WorldConfig } from '@/lib/world/types';
+
 import { registerInteractable } from '../interaction/InteractableRegistry';
 import { useMicroFacts } from '../interaction/useMicroFacts';
 import type { CharacterController } from '../control/CharacterController';
@@ -74,7 +89,20 @@ export function useWorldVerbs({
       controller?.setLocked(false);
       if (!result.success) return;
       // Sound, motion and haptic together: one alone reads as a bug (`10` §6).
-      haptic(result.verb === 'fish' ? 'success' : 'medium');
+      // It used to be the haptic alone, which is the whole of why planting
+      // "didn't work": it did, and nothing on screen said so.
+      if (spot) {
+        celebrate({
+          titleKey: `reward.${result.verb}`,
+          thingKey: result.verb === 'log' ? null : `verb.${result.verb}`,
+          thingText: result.verb === 'log' && spot.speciesSlug ? SPECIES_BY_SLUG.get(spot.speciesSlug)?.name_es : undefined,
+          semillas: VERB_SEMILLAS[result.verb] ?? 0,
+          fx: VERB_FX[result.verb] ?? 'sparkle',
+          sound: result.verb === 'fish' ? 'splash' : 'reward',
+          at: spot.position,
+        });
+        if (result.verb === 'plant') useSessionStore.getState().addPlanting(spot.position);
+      }
 
       /**
        * **Semillas come from the server or they do not come at all.**
@@ -154,6 +182,7 @@ export function useWorldVerbs({
           controller.setLocked(false);
           setVerb(null);
           onAdvanceTime?.();
+          celebrate({ titleKey: 'reward.rest', fx: 'stars', at: spot.position });
         }, VERB_TIMING.restAdvanceS * 1000);
         return;
       }
