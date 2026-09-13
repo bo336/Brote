@@ -9,7 +9,8 @@ import type { PropCollider } from '../control/CharacterController';
 import { useCanopyFade, type Canopy } from './useCanopyFade';
 import { flower, grassTuft, rock, sprout } from '@/lib/render/geometry/scatter';
 import { getTree, type TreeSpecies } from '@/lib/render/geometry';
-import { getClayMaterial } from '@/lib/render/materials';
+import { buildLeafAtlas } from '@/lib/render/geometry/leaf-atlas';
+import { getClayMaterial, getTexture } from '@/lib/render/materials';
 import { TIERS, variantsFor } from '@/lib/render/quality';
 import { mulberry32 } from '@/lib/world/rng';
 import { maturation, maturedScale } from '@/lib/world/growth';
@@ -112,6 +113,25 @@ export function Vegetation({
   // Foliage sways; rock and wood do not. Two materials, both shared, both cached.
   const foliage = useMemo(() => getClayMaterial({ vertexColors: true, wind: true, wobble: true }), []);
   const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
+  /**
+   * Canopies: leaf cards cut out of the painted atlas (`leaf-atlas.ts`), double
+   * sided, swaying, lit as one soft crown. Their shadow needs the same cut-out,
+   * or every tree throws a shadow made of squares.
+   */
+  const canopy = useMemo(
+    () => getClayMaterial({
+      vertexColors: true, wind: true, wobble: false, side: THREE.DoubleSide, alphaTest: 0.5,
+      map: getTexture('leaf-atlas', buildLeafAtlas),
+    }),
+    [],
+  );
+  const canopyDepth = useMemo(
+    () => new THREE.MeshDepthMaterial({
+      depthPacking: THREE.RGBADepthPacking, map: getTexture('leaf-atlas', buildLeafAtlas), alphaTest: 0.5,
+    }),
+    [],
+  );
+  useEffect(() => () => canopyDepth.dispose(), [canopyDepth]);
 
   const mix = biome.mix;
   /**
@@ -176,12 +196,20 @@ export function Vegetation({
       return {
         wood: track(new InstancePool(built.wood, solid, Math.ceil(max.trees / variants), { name: `wood${v}` })),
         leaves: track(
-          new InstancePool(built.leaves, foliage, Math.ceil(max.trees / variants), { name: `canopy${v}` }),
+          new InstancePool(built.leaves, canopy, Math.ceil(max.trees / variants), { name: `canopy${v}` }),
         ),
       };
     });
+    // Trees and rocks cast the sun's shadow; ground cover only receives it.
+    for (const pool of all) pool.mesh.receiveShadow = true;
+    for (const pool of rocks) pool.mesh.castShadow = true;
+    for (const { wood, leaves } of trees) {
+      wood.mesh.castShadow = true;
+      leaves.mesh.castShadow = true;
+      leaves.mesh.customDepthMaterial = canopyDepth;
+    }
     return { grass, flowers, rocks, sprouts, trees, all };
-  }, [foliage, solid, mix, treeLods, variants]);
+  }, [foliage, solid, canopy, canopyDepth, mix, treeLods, variants]);
 
   /**
    * Place everything once, from the layout's deterministic scatter pool.

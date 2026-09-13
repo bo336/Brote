@@ -177,13 +177,13 @@ export function Props({
             if (s.sways) swayRefs.current[i] = node;
           }}
         >
-          <mesh geometry={s.geometry} material={solid} />
+          <mesh geometry={s.geometry} material={solid} castShadow receiveShadow />
         </group>
       ))}
 
       {placed.map((p, i) => (
         <group key={p.key} position={p.position} rotation={[0, p.rotY, 0]}>
-          <mesh geometry={p.geometry} material={solid} />
+          <mesh geometry={p.geometry} material={solid} castShadow receiveShadow />
           {p.moving && (
             <group
               position={p.movingMount}

@@ -35,6 +35,8 @@ const ramp = {
   grassDeep: new THREE.Color(),
   stone: new THREE.Color(),
   snow: new THREE.Color(),
+  path: new THREE.Color(),
+  pathWorn: new THREE.Color(),
 };
 
 /** How high above water the beach gives way to grass, in metres. */
@@ -144,6 +146,8 @@ function groundColor(
   /** 0..1 fine break-up, so a field is painted rather than filled. */
   patch: number,
   snowLine: number | null,
+  /** 0..1, how much of a worn path this point is (`lib/world/paths.ts`). */
+  path = 0,
 ): void {
   const above = h - WATER_LEVEL;
   if (snowLine !== null && h > snowLine) {
@@ -180,7 +184,15 @@ function groundColor(
    * average brightness is unchanged.
    */
   target.multiplyScalar(1 + (patch - 0.5) * PATCH_SHADE);
+  // Tierra colorada where feet have worn the grass away — paler in the middle.
+  if (path > 0) {
+    scratchMix.copy(ramp.path).lerp(ramp.pathWorn, path * (0.4 + patch * 0.6));
+    target.lerp(scratchMix, path * PATH_STRENGTH);
+  }
 }
+
+/** How completely a path replaces the ground it crosses. */
+const PATH_STRENGTH = 0.92;
 /** Load the ramps for one bake. Called before any `groundColor` call. */
 export function primeRamp(palette: WorldPalette): void {
   ramp.sand.set(CLAY.sand);
@@ -190,6 +202,8 @@ export function primeRamp(palette: WorldPalette): void {
   ramp.grassDeep.set(CLAY.grassDeep);
   ramp.stone.set(CLAY.stone);
   ramp.snow.set(CLAY.snow);
+  ramp.path.set(CLAY.path);
+  ramp.pathWorn.set(CLAY.pathWorn);
 }
 
 /** The moisture mask at a point, already dried by the region it stands in. */

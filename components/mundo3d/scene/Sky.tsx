@@ -1,69 +1,48 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 
-import { getOverlayMaterial } from '@/lib/render/materials';
-import { buildSky, buildStars, disposeSky, paintSky, setTimeOfDay, type Sky as SkyState } from '@/lib/render/sky';
 import { PRESET_LAMBDA } from '@/lib/render/lights';
-import { TIERS } from '@/lib/render/quality';
+import { currentSun } from '@/lib/render/materials';
 import type { WorldPalette } from '@/lib/render/palette';
+import { buildSky, disposeSky, paintSky, tickSky } from '@/lib/render/sky';
 import type { QualityTier, TimeOfDay } from '@/lib/world/types';
 
 /**
- * The sky dome and the star field. **No skybox textures**
- * (`06-ART-DIRECTION.md` §6): one inverted sphere with a two-stop vertical
- * gradient in its vertex colours, and stars as one instanced mesh sharing the
- * same material.
+ * The sky dome: a gradient, a sun, clouds that drift, and stars at night — one
+ * shader, no texture (`23-ART-DIRECTION-V2.md`).
  *
- * The gradient is repainted only when the palette changes; the star fade is the
- * only thing that runs per frame.
+ * It follows the camera, so it is always exactly as far away as the horizon, and
+ * it reads the sun from the same place the materials do, so the bright side of
+ * the sky is always the side the shadows point away from.
  */
 export function Sky({
   palette,
   timeOfDay,
-  tier,
 }: {
   palette: WorldPalette;
   timeOfDay: TimeOfDay;
   tier: QualityTier;
 }) {
   const scene = useThree((s) => s.scene);
-  // The one flat vertex-coloured material, shared with the mist wall, the
-  // ghosted silhouette and the interaction cue.
-  const material = useMemo(() => getOverlayMaterial(), []);
-  // Star count rides the particle budget: a T0 phone gets a quiet sky rather
-  // than a slow one. It is rounded so a tier change does not rebuild the field
-  // for one extra star.
-  const starCount = Math.round(TIERS[tier].particles * 0.8);
-
-  const skyState = useMemo<SkyState>(
-    () => ({
-      dome: buildSky(material),
-      stars: buildStars(starCount, material),
-      nightness: 0,
-    }),
-    [material, starCount],
-  );
-  const stateRef = useRef<SkyState>(skyState);
+  const sky = useMemo(() => buildSky(), []);
 
   useEffect(() => {
-    stateRef.current = skyState;
-    scene.add(skyState.dome);
-    if (skyState.stars) scene.add(skyState.stars);
+    scene.add(sky.dome);
     return () => {
-      scene.remove(skyState.dome);
-      if (skyState.stars) scene.remove(skyState.stars);
-      disposeSky(skyState);
+      scene.remove(sky.dome);
+      disposeSky(sky);
     };
-  }, [scene, skyState]);
+  }, [scene, sky]);
 
   useEffect(() => {
-    paintSky(skyState.dome, palette);
-  }, [skyState, palette]);
+    paintSky(sky, palette, timeOfDay);
+  }, [sky, palette, timeOfDay]);
 
-  useFrame((_, delta) => {
-    setTimeOfDay(stateRef.current, timeOfDay, 1 - Math.exp(-PRESET_LAMBDA * delta));
+  useFrame(({ camera, clock }, delta) => {
+    const sun = currentSun();
+    tickSky(sky, camera.position, clock.elapsedTime, timeOfDay, 1 - Math.exp(-PRESET_LAMBDA * delta), sun.dir, sun.color);
   });
 
   return null;

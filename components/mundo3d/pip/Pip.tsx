@@ -81,6 +81,10 @@ export function Pip({ handle, lod = 0 }: PipProps) {
   useEffect(() => {
     const rig = new PipRig(root);
     rigRef.current = rig;
+    // Pip casts the sun's shadow; the aura is light, and light casts none.
+    root.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh && o.name !== 'aura') o.castShadow = true;
+    });
     if (handle) handle.current = { root, rig };
     return () => {
       rigRef.current = null;

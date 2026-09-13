@@ -152,16 +152,26 @@ export class FollowCamera {
     const dz = -Math.cos(this.yaw) * cosPitch;
     const dy = -Math.sin(pitchRad);
     const n = CAMERA.occlusionSamples;
+    // The line of sight starts at Pip's eye, not their feet, and only the lens end
+    // needs the full clearance: at a shallow tilt the first metre of boom rises
+    // less than the clearance, and demanding it there collapsed the camera onto Pip.
+    const eye = p.y + PIP_HEIGHT_M * CAMERA.lookHeightFrac;
     for (let i = 1; i <= n; i++) {
-      const d = (distance * i) / n;
+      const f = i / n;
+      const d = distance * f;
       const ground = sampleHeight(hf, p.x + dx * d, p.z + dz * d);
-      if (p.y + dy * d < ground + CAMERA.occlusionClearanceM) {
+      if (eye + dy * d < ground + CAMERA.occlusionClearanceM * f) {
         const safe = Math.max(CAMERA.occlusionMinM, d - CAMERA.occlusionMarginM);
         return Math.min(1, safe / Math.max(0.001, distance));
       }
     }
     // Trunks are solved, not sampled: the closest approach of the boom's ground
     // track to each circle, with the horizontal direction normalised.
+    //
+    // **Trunks, not crowns.** Testing the whole three-metre crown pulled the boom
+    // to its 1.3 m floor anywhere near a wood — the playtest's camera parked at
+    // Pip's heels, filling half the screen with him. A lens under a canopy is a
+    // good shot; the canopy fade already thins the leaves between it and Pip.
     const hx = dx / cosPitch;
     const hz = dz / cosPitch;
     const reach = distance * cosPitch;
@@ -173,7 +183,7 @@ export class FollowCamera {
       if (t <= 0 || t >= nearest) continue;
       const perpX = ox - hx * t;
       const perpZ = oz - hz * t;
-      const r = o.cameraRadius ?? o.radius;
+      const r = o.radius + CAMERA.occlusionMarginM;
       if (perpX * perpX + perpZ * perpZ < r * r) nearest = t;
     }
     if (nearest < reach) {

@@ -7,6 +7,7 @@ import { BLOB_SHADOW, PIP_HEIGHT_M } from '@/lib/world/config';
 import { getFlatMaterial, getTexture } from '@/lib/render/materials';
 import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
 import { TIERS } from '@/lib/render/quality';
+import type { QualityTier } from '@/lib/world/types';
 import type { PipHandle } from '../pip/Pip';
 
 /**
@@ -29,7 +30,7 @@ const STATIC_SHADOWS = TIERS[3].trees + TIERS[3].rocks + 64;
  */
 const MOVING_SHADOWS = TIERS[3].fauna * 2 + 4;
 
-export function useBlobShadows(pipRef: React.MutableRefObject<PipHandle>): BlobShadowPool {
+export function useBlobShadows(pipRef: React.MutableRefObject<PipHandle>, tier: QualityTier): BlobShadowPool {
   const scene = useThree((s) => s.scene);
 
   const shadowMaterial = useMemo(() => {
@@ -51,6 +52,11 @@ export function useBlobShadows(pipRef: React.MutableRefObject<PipHandle>): BlobS
       shadows.dispose();
     };
   }, [scene, shadows]);
+
+  // Where the sun casts real shadows, a blob under every tree is a second shadow.
+  useEffect(() => {
+    shadows.mesh.visible = !TIERS[tier].realShadows;
+  }, [shadows, tier]);
 
   useEffect(() => {
     const root = pipRef.current.root;

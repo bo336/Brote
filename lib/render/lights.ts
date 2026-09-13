@@ -1,37 +1,39 @@
 /**
- * The light rig: **four lights, forever** (`06-ART-DIRECTION.md` §6).
+ * The light rig: a sun, a sky, a rim, an ambient lift.
  *
- * No environment map. No HDRI. No area lights. One warm key and one cool fill,
- * and that single relationship does 80% of the work the old world's five
- * post-processing passes were attempting.
- *
- * Time of day is four **authored presets** cross-faded over ~2 s, not a
- * continuous sun simulation — so every frame of the game is a frame somebody
- * chose.
+ * **v2 (`23-ART-DIRECTION-V2.md`): the sun casts a real, soft shadow** at T2
+ * and up, from a shadow camera that follows Pip so its resolution is spent where
+ * the player is looking. Time of day is still four authored presets cross-faded
+ * over ~2 s — every frame is one somebody chose — but the presets are now
+ * written for physically based materials under AgX.
  */
 import * as THREE from 'three';
 
-import { LIGHT_PRESET_CROSSFADE_S, LIVELINESS } from '@/lib/world/config';
+import { LIGHT_PRESET_CROSSFADE_S, LIVELINESS, LOOK } from '@/lib/world/config';
 import type { TimeOfDay } from '@/lib/world/types';
 import { PRESETS, type LightPreset } from './palette';
 import { warmerBy } from '@/lib/world/liveliness';
 
 export interface LightRig {
   group: THREE.Group;
-  /** Warm sun. Casts a real shadow only at T3. */
+  /** The sun. Casts the shadow at T2+. */
   key: THREE.DirectionalLight;
-  /** Sky to ground. Does the ambient-occlusion-ish work for free. */
+  /** Sky to ground. Fills the shade blue and bounces the ground warm. */
   fill: THREE.HemisphereLight;
   /** Cool, from behind-left. Separates silhouettes from the sky. */
   rim: THREE.DirectionalLight;
-  /** Lifts the darkest band off pure black. */
+  /** Lifts the darkest shadow off pure black. */
   ambient: THREE.AmbientLight;
+  /** What the sun aims at: Pip, snapped to shadow texels. */
+  target: THREE.Object3D;
+  /** Unit vector from the ground toward the sun. Read by materials, sky and water. */
+  sunDir: THREE.Vector3;
   /** The preset currently in force, for the cross-fade to read from. */
   current: LightPreset;
 }
 
-/** How far out the key and rim lights sit. Direction is all that matters. */
-const LIGHT_DISTANCE = 14;
+/** The sun's azimuth, fixed: the island's good side faces it. */
+const SUN_AZIMUTH_Z = 0.5;
 
 export function buildLightRig(initial: TimeOfDay = 'dia'): LightRig {
   const preset = PRESETS[initial];
@@ -40,6 +42,13 @@ export function buildLightRig(initial: TimeOfDay = 'dia'): LightRig {
 
   const key = new THREE.DirectionalLight(preset.keyColor, preset.keyIntensity);
   key.name = 'key';
+  key.castShadow = false;
+  key.shadow.bias = LOOK.shadowBias;
+  key.shadow.normalBias = LOOK.shadowNormalBias;
+  const target = new THREE.Object3D();
+  target.name = 'sunTarget';
+  key.target = target;
+
   const fill = new THREE.HemisphereLight(preset.fillSky, preset.fillGround, preset.fillIntensity);
   fill.name = 'fill';
   const rim = new THREE.DirectionalLight(preset.rimColor, preset.rimIntensity);
@@ -48,34 +57,73 @@ export function buildLightRig(initial: TimeOfDay = 'dia'): LightRig {
   const ambient = new THREE.AmbientLight(preset.ambientColor, preset.ambientIntensity);
   ambient.name = 'ambient';
 
-  group.add(key, fill, rim, ambient);
-  const rig: LightRig = { group, key, fill, rim, ambient, current: { ...preset } };
-  positionKey(rig, preset.keyElevationDeg);
+  group.add(key, target, fill, rim, ambient);
+  const rig: LightRig = {
+    group, key, fill, rim, ambient, target, sunDir: new THREE.Vector3(), current: { ...preset },
+  };
+  aimSun(rig, preset.keyElevationDeg);
   return rig;
 }
 
-function positionKey(rig: LightRig, elevationDeg: number): void {
+function aimSun(rig: LightRig, elevationDeg: number): void {
   const e = (elevationDeg * Math.PI) / 180;
-  rig.key.position.set(Math.cos(e) * LIGHT_DISTANCE, Math.sin(e) * LIGHT_DISTANCE, LIGHT_DISTANCE * 0.5);
+  rig.sunDir.set(Math.cos(e), Math.sin(e), SUN_AZIMUTH_Z).normalize();
+}
+
+/**
+ * Shadows on or off, and at what resolution over how much ground. Called when
+ * the tier changes — rarely, and a shadow map is the one thing that has to be
+ * re-allocated when it does.
+ */
+export function configureShadows(rig: LightRig, enabled: boolean, mapSize: number, extentM: number): void {
+  const key = rig.key;
+  key.castShadow = enabled;
+  if (key.shadow.mapSize.x !== mapSize) {
+    key.shadow.mapSize.set(mapSize, mapSize);
+    key.shadow.map?.dispose();
+    key.shadow.map = null;
+  }
+  const cam = key.shadow.camera;
+  cam.left = -extentM;
+  cam.right = extentM;
+  cam.top = extentM;
+  cam.bottom = -extentM;
+  cam.near = LOOK.shadowNearM;
+  cam.far = LOOK.shadowFarM;
+  cam.updateProjectionMatrix();
+}
+
+/**
+ * Put the sun above Pip. The target is snapped to the shadow map's texel size,
+ * so walking does not make every shadow edge on the island crawl.
+ */
+export function followTarget(rig: LightRig, x: number, y: number, z: number, texelM: number): void {
+  const snap = Math.max(1e-3, texelM);
+  const tx = Math.round(x / snap) * snap;
+  const tz = Math.round(z / snap) * snap;
+  rig.target.position.set(tx, y, tz);
+  rig.key.position.set(
+    tx + rig.sunDir.x * LOOK.sunDistanceM,
+    y + rig.sunDir.y * LOOK.sunDistanceM,
+    tz + rig.sunDir.z * LOOK.sunDistanceM,
+  );
+  rig.target.updateMatrixWorld();
 }
 
 /**
  * Blend the rig toward a preset. `t` is a **frame-rate-independent** weight —
- * the caller passes `1 - Math.exp(-lambda * dt)`, never a raw constant
- * (`01-RULES.md` §3.13). Pass `t = 1` to snap.
+ * the caller passes `1 - Math.exp(-lambda * dt)`. Pass `t = 1` to snap.
  */
 export function applyPreset(rig: LightRig, preset: LightPreset, t: number): void {
   const k = Math.min(1, Math.max(0, t));
   const c = rig.current;
 
   rig.key.color.lerp(colorOf(preset.keyColor), k);
-  // The cross-fade moves the BASE intensity. Liveliness warms the light on top
-  // of that base each frame; if the fade read the warmed value back, the two
-  // compounded — see `applyLiveliness`.
+  // The cross-fade moves the BASE intensity; liveliness warms on top of it.
   c.keyIntensity += (preset.keyIntensity - c.keyIntensity) * k;
   rig.key.intensity = c.keyIntensity;
   c.keyElevationDeg += (preset.keyElevationDeg - c.keyElevationDeg) * k;
-  positionKey(rig, c.keyElevationDeg);
+  aimSun(rig, c.keyElevationDeg);
 
   rig.fill.color.lerp(colorOf(preset.fillSky), k);
   rig.fill.groundColor.lerp(colorOf(preset.fillGround), k);
@@ -88,25 +136,17 @@ export function applyPreset(rig: LightRig, preset: LightPreset, t: number): void
   rig.ambient.intensity += (preset.ambientIntensity - rig.ambient.intensity) * k;
 }
 
-/** Scratch colour: `THREE.Color.lerp` needs one, and it must not be allocated. */
 const scratchColor = new THREE.Color();
 function colorOf(hex: string): THREE.Color {
   return scratchColor.set(hex);
 }
 
 /**
- * `liveliness` adds warmth and **only** warmth (`01-RULES.md` §4.2). A player
- * returning after two months finds their island exactly as they left it, just
- * quieter — never dimmer, never greyer, never smaller.
+ * `liveliness` adds warmth and **only** warmth. **Assigned from the base, never
+ * multiplied into the live value** — `intensity *= warmth` every frame grew the
+ * sun past the float limit in seconds, and every lit surface went black.
  */
 export function applyLiveliness(rig: LightRig, liveliness: number): void {
-  // **Assigned from the base, never multiplied into the live value.** This was
-  // `intensity *= warmth`, called every frame after the cross-fade, and the
-  // fade only pulls back a fraction of a percent per frame — so the sun grew
-  // about ten percent a frame, passed the float limit a few seconds in, and
-  // every lit surface went NaN, which draws as black. That was the black
-  // screen after walking for a while, and it was the "black El Monte" too:
-  // any view left open long enough went black.
   rig.key.intensity = rig.current.keyIntensity * warmerBy(LIVELINESS.keyWarmthGain, liveliness);
 }
 
@@ -114,6 +154,7 @@ export function applyLiveliness(rig: LightRig, liveliness: number): void {
 export const PRESET_LAMBDA = 1 / LIGHT_PRESET_CROSSFADE_S;
 
 export function disposeLightRig(rig: LightRig): void {
+  rig.key.shadow.map?.dispose();
   rig.key.dispose();
   rig.fill.dispose();
   rig.rim.dispose();

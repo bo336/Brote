@@ -15,7 +15,7 @@ import * as THREE from 'three';
 
 import type { QualityTier } from '@/lib/world/types';
 import {
-  applyMood, applyReveal, createClayMaterial,
+  applyMood, applyReveal, applySun, createClayMaterial,
   type ClayMaterial, type ClayOptions, type WorldMood,
 } from './clay';
 import { createFlatMaterial, type FlatOptions } from './flat';
@@ -35,6 +35,27 @@ let lastMood: WorldMood | null = null;
  */
 let lastReveal: RevealState = REVEAL_OFF;
 
+/** The sun in force, so a material built mid-session is lit like the rest. */
+const lastSunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
+const lastSunColor = new THREE.Color(1, 0.9, 0.75);
+
+/** The sun, every frame: its direction and its colour times intensity. Allocates nothing. */
+export function updateSun(dirW: THREE.Vector3, color: THREE.Color): void {
+  lastSunDir.copy(dirW);
+  lastSunColor.copy(color);
+  for (const mat of clayCache.values()) applySun(mat, dirW, color);
+}
+
+/** The mood in force, read back — the grass takes its fog from it. */
+export function currentMood(): WorldMood | null {
+  return lastMood;
+}
+
+/** The same sun, read back — the sky and the water need it too. */
+export function currentSun(): { dir: THREE.Vector3; color: THREE.Color } {
+  return { dir: lastSunDir, color: lastSunColor };
+}
+
 function clayKey(o: ClayOptions): string {
   return [
     o.wind ? 'w' : '-',
@@ -50,6 +71,9 @@ function clayKey(o: ClayOptions): string {
     String(o.color ?? ''),
     o.alphaMap?.uuid ?? '-',
     o.rimBoost ?? 1,
+    o.roughness ?? '-',
+    o.map?.uuid ?? '-',
+    o.alphaTest ?? 0,
   ].join(':');
 }
 
@@ -63,6 +87,7 @@ export function getClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (hit) return hit;
   const mat = createClayMaterial(opts);
   if (lastMood) applyMood(mat, lastMood);
+  applySun(mat, lastSunDir, lastSunColor);
   applyReveal(mat, lastReveal);
   clayCache.set(key, mat);
   return mat;

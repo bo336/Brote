@@ -133,7 +133,79 @@ export const CLAY = {
   rimStrength: 0.35, // added, never multiplied
   aoStrength: 0.45, // baked vertical AO — this replaces SSAO entirely
   aoHeightM: 0.6, // smoothstep distance up from an object's base
-  chalkAmount: 0.12, // desaturation toward the palette cream; the spec says 8-15%
+  // 0.04, not the clay spec's 12%: under AgX and real light, chalking on top of the
+  // tone curve's own roll-off left every biome pastel (`23-ART-DIRECTION-V2.md`).
+  chalkAmount: 0.04,
+} as const;
+
+/**
+ * The look, v2 (`23-ART-DIRECTION-V2.md`): a real sun, real soft shadows, AgX
+ * tone mapping, and leaves the light comes through.
+ */
+export const LOOK = {
+  exposure: 1.0, // AgX exposure; the presets are authored against 1
+  roughness: 0.9, // most of the world is matte, not chalk: a little sheen reads as material
+  translucency: 0.55, // how much sun a back-lit leaf or blade passes
+  sunDistanceM: 60, // how far up the sun's shadow camera sits from Pip
+  shadowBias: -0.0004,
+  shadowNormalBias: 0.04,
+  shadowNearM: 1,
+  shadowFarM: 140,
+} as const;
+
+/**
+ * The grass field (`lib/render/grass.ts`): blades generated on the GPU in a
+ * window that follows Pip, anchored to the world so they never slide.
+ * `spacing` is metres between blades; `radius` how far the field reaches.
+ */
+export const GRASS = {
+  bladeHeightM: 0.32, // knee-high on Pip, who is 0.55 m
+  // Wider than a real blade: at this density a true blade is a spike, and the
+  // playtest-era frames read as a field of needles.
+  bladeWidthM: 0.09,
+  segments: 4, // bends per blade; four is enough for a curve to read
+  pushRadiusM: 0.6, // how far the grass parts around Pip
+  maxSlope: 0.45, // steeper than this is rock, and nothing grows
+  windAmp: 0.34,
+  windDir: [0.8, 0.6] as [number, number],
+  coastClearM: 0.6, // sand, not grass, this close to the sea
+  clearingFreq: 0.07, // how big the natural clearings are
+  byTier: [
+    { spacing: 0.3, radius: 8 },
+    { spacing: 0.22, radius: 11 },
+    { spacing: 0.16, radius: 14 },
+    { spacing: 0.12, radius: 18 },
+  ],
+} as const;
+
+/** The water (`lib/render/materials/water.ts`). Colours are the look; the rest is feel. */
+export const WATER = {
+  shallow: '#57CFC4', // turquoise over sand
+  deep: '#135F82', // the blue past the shelf
+  foam: '#F4FBFA',
+  // Depth the foam lip covers. Small: the puddle is 16 cm deep, and at 14 cm the
+  // whole of it was lip — a white disc on the pradera.
+  foamWidthM: 0.03,
+  ripple: 0.32, // how strongly the ripples tilt the surface
+  rippleLow: 0.18, // …at T0, where fewer pixels resolve them
+} as const;
+
+/** The post stack at T2+ (`components/mundo3d/scene/PostFx.tsx`). */
+export const POST = {
+  // A contact term, not murk. At 1.4 m and then 0.5 m the ground under Pip — a
+  // 22 cm sphere — occluded three quarters of him, and a darkened saturated green
+  // comes out of AgX as grey: the protagonist rendered as a stone.
+  aoRadiusM: 0.22,
+  aoFalloff: 1.5,
+  aoIntensity: 0.9,
+  bloomIntensity: 0.5,
+  bloomThreshold: 0.9, // only what is genuinely bright glows: sun on water, not grass
+  shadowTint: [-0.012, 0.01, 0.008] as [number, number, number], // shadows toward canopy green-teal
+  highlightTint: [0.03, 0.012, -0.02] as [number, number, number], // highlights toward dawn amber
+  saturation: 1.08,
+  vignetteOffset: 0.32,
+  vignetteDarkness: 0.42,
+  msaaSamples: 4,
 } as const;
 
 /** The static, world-position-driven handmade wobble. Off at T0, off on movers. */

@@ -63,9 +63,9 @@ export function Island({
 
   return (
     <group name="island">
-      <mesh geometry={ground} material={material} receiveShadow={false} />
-      <mesh geometry={body} material={material} />
-      {islet && <mesh geometry={islet} material={material} />}
+      <mesh geometry={ground} material={material} receiveShadow />
+      <mesh geometry={body} material={material} receiveShadow />
+      {islet && <mesh geometry={islet} material={material} receiveShadow />}
     </group>
   );
 }

@@ -39,6 +39,7 @@ import { useMood } from './useMood';
 import { Debris } from './Debris';
 import { Fauna } from './Fauna';
 import { FirstRunMarks } from './FirstRunMarks';
+import { Grass } from './Grass';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
@@ -215,7 +216,7 @@ export function World({
   // Movers: Pip and the walking animals. Statics: every tree, rock, structure
   // and placed prop on the island — what made the world look like it was
   // floating over its own ground before they existed.
-  const shadows = useBlobShadows(pipRef);
+  const shadows = useBlobShadows(pipRef, tier);
 
   useMood(palette, tier, mirror);
 
@@ -302,9 +303,10 @@ export function World({
   if (!layout || !heightfield) return null;
   return (
     <>
-      <Lights timeOfDay={timeOfDay} liveliness={liveliness} />
+      <Lights timeOfDay={timeOfDay} liveliness={liveliness} tier={tier} />
       <Sky palette={palette} timeOfDay={timeOfDay} tier={tier} />
       <Island heightfield={heightfield} layout={layout} palette={palette} tier={groundTier} />
+      <Grass heightfield={heightfield} layout={layout} palette={palette} biome={biome} worldTier={config.tier} tier={tier} />
       <Water heightfield={heightfield} layout={layout} palette={palette} tier={tier} flow={mirror.riverFlow} />
       <Vegetation
         heightfield={heightfield}

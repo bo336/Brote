@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { CAMERA, JOYSTICK } from '@/lib/world/config';
+import { CAMERA, JOYSTICK, LOOK } from '@/lib/world/config';
 import { isNight } from '@/lib/utils/dates';
 import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/settings';
 import type { CeremonyScript } from '@/lib/world/ceremony';
@@ -27,6 +27,7 @@ import { useFrameloop } from './state/useFrameloop';
 import { useWorldTeardown } from './state/useWorldTeardown';
 import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
+import { PostFx } from './scene/PostFx';
 import type { VisitSession } from './visit/useVisit';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
@@ -60,14 +61,16 @@ const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
 const PerfProbe = dynamic(() => import('./dev/PerfOverlay').then((m) => m.PerfProbe), { ssr: false });
 
 /**
- * Tone mapping is off on purpose: the palette is authored, and ACES only
- * desaturates it. The old world ran `ACESFilmicToneMapping` with five post
- * passes on top, which is why its FX read as stickers (`02-AUDIT.md` §3).
+ * AgX tone mapping and soft shadow maps (`23-ART-DIRECTION-V2.md`): a sun bright
+ * enough to model forms needs a curve that rolls its highlights off instead of
+ * clipping them, and AgX keeps the palette's hues where ACES bends them.
  */
 function Renderer({ onReady }: { onReady: (gl: THREE.WebGLRenderer) => void }) {
   const gl = useThree((s) => s.gl);
   useEffect(() => {
-    gl.toneMapping = THREE.NoToneMapping;
+    gl.toneMapping = THREE.AgXToneMapping;
+    gl.toneMappingExposure = LOOK.exposure;
+    gl.shadowMap.type = THREE.PCFSoftShadowMap;
     onReady(gl);
   }, [gl, onReady]);
   return null;
@@ -319,6 +322,7 @@ export default function MundoGame({
           ? 'always'
           : hud !== 'play' ? 'demand' : frameloop}
         dpr={params.dprCap}
+        shadows
         camera={{
           fov: CAMERA.fov,
           near: 0.1,
@@ -366,6 +370,7 @@ export default function MundoGame({
           onCelebrated={celebrate}
           onPoster={poster}
         />
+        <PostFx tier={tier} />
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 

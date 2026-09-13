@@ -13,14 +13,15 @@ import { SCALE_REFERENCE } from '@/lib/world/config';
 import type { FeatureId } from '@/lib/world/types';
 import { CLAY, DOMAIN_COLORS, PIP_PARTS } from '../palette';
 import { bevelBox, mergePainted, paintFlat, paintVertical, post } from './build';
+import { smoothRock } from './scatter';
 
 /** El Mojón: the one place impact numbers live. A stone marker, waist high. */
 function mojon(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  const base = new THREE.IcosahedronGeometry(0.42, 0);
-  base.scale(1, 0.5, 1);
-  base.translate(0, 0.2, 0);
-  parts.push(paintFlat(base, CLAY.stoneDeep));
+  const base = smoothRock(0.42, 11);
+  base.scale(1.1, 0.55, 1.1);
+  base.translate(0, 0.08, 0);
+  parts.push(base);
   const shaft = new THREE.CylinderGeometry(0.15, 0.2, 0.95, 7);
   shaft.translate(0, 0.72, 0);
   parts.push(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone));
@@ -87,11 +88,11 @@ function bridge(): THREE.BufferGeometry {
 function waterfall(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 5; i++) {
-    const rock = new THREE.IcosahedronGeometry(0.55 + (i % 3) * 0.18, 0);
-    rock.scale(1.3, 0.7, 1);
+    const rock = smoothRock(0.55 + (i % 3) * 0.18, 40 + i);
+    rock.scale(1.3, 0.9, 1);
     rock.rotateY(i * 1.3);
-    rock.translate(-1.4 + i * 0.7, 0.3 + (i % 2) * 0.2, (i % 2 ? 0.3 : -0.2));
-    parts.push(paintFlat(rock, i % 2 ? CLAY.stone : CLAY.stoneDeep));
+    rock.translate(-1.4 + i * 0.7, 0.2 + (i % 2) * 0.2, (i % 2 ? 0.3 : -0.2));
+    parts.push(rock);
   }
   return mergePainted(parts);
 }
@@ -125,11 +126,11 @@ function cave(): THREE.BufferGeometry {
   const segments = 10;
   for (let i = 0; i <= segments; i++) {
     const a = (i / segments) * Math.PI;
-    const rock = new THREE.IcosahedronGeometry(0.62, 0);
-    rock.scale(1, 0.9, 0.8);
+    const rock = smoothRock(0.66, 70 + i);
+    rock.scale(1, 1.25, 0.85);
     rock.rotateY(i * 0.8);
     rock.translate(Math.cos(a) * 1.7, Math.sin(a) * 2.1, 0);
-    parts.push(paintFlat(rock, i % 2 ? CLAY.stone : CLAY.stoneDeep));
+    parts.push(rock);
   }
   // The mouth itself: near-black, so the cave reads as depth rather than a hole.
   const mouth = new THREE.SphereGeometry(1.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);

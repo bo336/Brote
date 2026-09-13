@@ -77,11 +77,17 @@ export const CLAY_FRAG = /* glsl */ `
   }
 `;
 
-/** Height fog. Fog is the depth cue in this game; there is no depth of field. */
+/**
+ * Aerial perspective. Distance fades toward the horizon colour, and the side of
+ * the sky the sun is on fades warmer — the air in front of a low sun glows.
+ */
 export const HEIGHT_FOG_FRAG = /* glsl */ `
   #ifdef BH_HEIGHT_FOG
     float bhFog = smoothstep(uFogNear, uFogFar, vFogDepth);
-    gl_FragColor.rgb = mix(gl_FragColor.rgb, uFogColor, bhFog * uFogDensity);
+    vec3 bhFogDir = normalize(vClayWorld - cameraPosition);
+    float bhSunward = pow(clamp(dot(bhFogDir, uSunDirW), 0.0, 1.0), 6.0);
+    vec3 bhFogCol = mix(uFogColor, uFogColor * 0.6 + uSunColor * 0.25, bhSunward);
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, bhFogCol, bhFog * uFogDensity);
   #endif
 `;
 
@@ -262,6 +268,50 @@ export const CLAY_VERT_HEAD = /* glsl */ `
   ${NOISE3}
 `;
 
+/** Cheap 2D value noise for the fragment stage — the ground's detail. */
+export const NOISE2 = /* glsl */ `
+  float bh_hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float bh_noise2(vec2 p) {
+    vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(bh_hash2(i), bh_hash2(i + vec2(1.0, 0.0)), u.x),
+               mix(bh_hash2(i + vec2(0.0, 1.0)), bh_hash2(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+`;
+
+/**
+ * **The ground has detail at every scale** (`23-ART-DIRECTION-V2.md` rule 2).
+ *
+ * The baked vertex colour carries the island's layout — damp and dry, paths,
+ * sand, snow. This adds what a vertex every metre cannot: broad golden stretches
+ * of dry pampa through the green, patches a few metres across, a fine grain at
+ * your feet, and rock wherever the ground stands up, with strata you can read.
+ */
+export const GROUND_DETAIL_FRAG = /* glsl */ `
+  vec2 bhG = vClayWorld.xz;
+  float bhMacro = bh_noise2(bhG * 0.045);
+  float bhMid = bh_noise2(bhG * 0.32 + 7.1);
+  float bhFine = bh_noise2(bhG * 2.1) * 0.55 + bh_noise2(bhG * 6.7 + 3.3) * 0.45;
+  vec3 bhFaceN = normalize(cross(dFdx(vClayWorld), dFdy(vClayWorld)));
+  float bhUp = abs(bhFaceN.y);
+  vec3 bhBase = diffuseColor.rgb;
+  float bhSat = max(bhBase.r, max(bhBase.g, bhBase.b)) - min(bhBase.r, min(bhBase.g, bhBase.b));
+  bhBase = mix(vec3(dot(bhBase, vec3(0.2126, 0.7152, 0.0722))), bhBase, 1.2);
+  vec3 bhDry = bhBase * vec3(1.24, 1.08, 0.66);
+  bhBase = mix(bhBase, bhDry, smoothstep(0.5, 0.78, bhMacro) * 0.6);
+  bhBase *= 0.84 + 0.32 * bhMid;
+  bhBase *= 0.88 + 0.24 * bhFine;
+  // Grey stone that faces the sky grows moss and grass in patches.
+  vec3 bhMoss = vec3(0.16, 0.24, 0.1) * (0.8 + 0.4 * bhMid);
+  bhBase = mix(bhBase, bhMoss, (1.0 - smoothstep(0.02, 0.07, bhSat)) * smoothstep(0.72, 0.92, bhUp) * smoothstep(0.45, 0.7, bhMacro + bhFine * 0.3));
+  // Rock where the ground stands up: strata you can read, and cracks.
+  float bhRock = 1.0 - smoothstep(0.5, 0.78, bhUp);
+  float bhStrata = bh_noise2(vec2((bhG.x + bhG.y) * 0.35, vClayWorld.y * 1.8));
+  float bhCrack = 1.0 - smoothstep(0.0, 0.08, abs(bh_noise2(bhG * 0.8 + vec2(vClayWorld.y * 0.9)) - 0.5));
+  vec3 bhRockCol = mix(vec3(0.2, 0.19, 0.17), vec3(0.5, 0.47, 0.42), bhStrata) * (0.8 + 0.4 * bhFine);
+  bhRockCol *= 1.0 - 0.45 * bhCrack;
+  diffuseColor.rgb = mix(bhBase, bhRockCol, bhRock);
+`;
+
 /** Declarations every clay fragment shader needs. */
 export const CLAY_FRAG_HEAD = /* glsl */ `
   uniform float uBandCount;
@@ -276,6 +326,9 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
   uniform float uFogNear;
   uniform float uFogFar;
   uniform float uFogDensity;
+  uniform vec3 uSunDirW;
+  uniform vec3 uSunColor;
+  uniform float uTranslucency;
   uniform vec3 uRevealCentre;
   uniform vec3 uRevealBare;
   uniform float uRevealRadius;
@@ -285,4 +338,5 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
   varying float vFogDepth;
   varying float vFade;
   ${CLAY_FRAG}
+  ${NOISE2}
 `;

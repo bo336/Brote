@@ -4,8 +4,11 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 
 import { buildOpenSea, buildWaterMeshes } from '@/lib/render/geometry/terrain';
-import { getWaterMaterial, tickWaterMaterials } from '@/lib/render/materials';
-import { setWaterTier } from '@/lib/render/materials/water';
+import { buildRiverMeshes } from '@/lib/render/geometry/river';
+import * as THREE from 'three';
+
+import { currentSun, getWaterMaterial, tickWaterMaterials } from '@/lib/render/materials';
+import { applyWaterLight, setWaterTier } from '@/lib/render/materials/water';
 import type { WorldPalette } from '@/lib/render/palette';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Heightfield } from '@/lib/world/terrain';
@@ -40,8 +43,9 @@ export function Water({
   tier: QualityTier;
   flow: number;
 }) {
+  // Basins, and the river running down its channel (`geometry/river.ts`).
   const meshes = useMemo(
-    () => buildWaterMeshes(layout.terrain, heightfield),
+    () => [...buildWaterMeshes(layout.terrain, heightfield), ...buildRiverMeshes(layout.terrain, heightfield)],
     [layout, heightfield],
   );
   /**
@@ -73,7 +77,14 @@ export function Water({
   useEffect(() => () => meshes.forEach((m) => m.geometry.dispose()), [meshes]);
   useEffect(() => () => sea.geometry.dispose(), [sea]);
 
-  useFrame(({ clock }) => tickWaterMaterials(clock.elapsedTime, flow));
+  // The sky it reflects, from the palette; the sun, from the same place the lights put it.
+  const zenith = useMemo(() => new THREE.Color(palette.skyTop), [palette.skyTop]);
+  const horizon = useMemo(() => new THREE.Color(palette.skyHorizon), [palette.skyHorizon]);
+  useFrame(({ clock }) => {
+    tickWaterMaterials(clock.elapsedTime, flow);
+    const sun = currentSun();
+    applyWaterLight(material, sun.dir, sun.color, zenith, horizon);
+  });
 
   return (
     <group name="water">

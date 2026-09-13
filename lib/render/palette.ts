@@ -64,6 +64,36 @@ export const CLAY = {
   water: '#2DB4D4', // water surface
   waterDeep: '#1E88A8', // water depth
   foam: '#EAF7FA', // shoreline foam line
+  path: '#A85A34', // tierra colorada, where the paths wear through
+  pathWorn: '#C98A5C', // …and paler down the middle, where most feet go
+} as const;
+
+/**
+ * Native flora, for the v2 trees (`23-ART-DIRECTION-V2.md` §3). Leaf colours
+ * come in threes — underside, body, sunlit top — so a crown has value structure.
+ */
+export const NATIVE = {
+  ombuDeep: '#1F4A2A',
+  ombu: '#2F6B37',
+  ombuLight: '#5E9A45',
+  araucariaDeep: '#1D3F2B',
+  araucaria: '#2E5B3A',
+  araucariaLight: '#4F7F48',
+  jacarandaLeafDeep: '#2C5A32',
+  jacarandaLeaf: '#4C8A3E',
+  jacarandaLeafLight: '#7FB356',
+  jacaranda: '#8E6CC8',
+  ceiboLeafDeep: '#2A5530',
+  ceiboLeaf: '#467F3B',
+  ceiboLeafLight: '#72A650',
+  ceibo: '#D7263D',
+  bark: '#7A5A40',
+  barkDark: '#4A3526',
+  barkGrey: '#6B625A',
+  barkGreyLight: '#958A7E',
+  moss: '#5E7F3E',
+  stone: '#8E887D',
+  stoneDeep: '#5F5A52',
 } as const;
 
 /** The four lights. Warm key, cool fill — the whole lighting model (`06` §6). */
@@ -139,26 +169,32 @@ export interface LightPreset {
  * Four authored presets, cross-faded over ~2 s — not a continuous sun
  * simulation. Intensities follow `06-ART-DIRECTION.md` §6.
  */
+/**
+ * Authored for `MeshStandardMaterial` under AgX at exposure 1 (`23-ART-DIRECTION-V2.md`).
+ * The sun does the work and casts the shadow; the sky fills the shade blue; the
+ * ground bounces warm. Midday is not noon — a player sees the island at a
+ * flattering four o'clock, the sun high enough to light it and low enough to model it.
+ */
 export const PRESETS: Record<TimeOfDay, LightPreset> = {
   amanecer: {
-    keyColor: LIGHT.key, keyIntensity: 0.9, fillSky: LIGHT.fill, fillGround: CLAY.soilDeep,
-    fillIntensity: 0.6, rimColor: LIGHT.rim, rimIntensity: 0.45,
-    ambientColor: LIGHT.key, ambientIntensity: 0.14, keyElevationDeg: 12,
+    keyColor: '#FFD2A6', keyIntensity: 2.4, fillSky: '#B7C6E6', fillGround: '#7A5E48',
+    fillIntensity: 0.9, rimColor: LIGHT.rim, rimIntensity: 0.3,
+    ambientColor: '#F6C89A', ambientIntensity: 0.12, keyElevationDeg: 16,
   },
   dia: {
-    keyColor: LIGHT.key, keyIntensity: 1.1, fillSky: LIGHT.fill, fillGround: CLAY.soilDeep,
-    fillIntensity: 0.55, rimColor: LIGHT.rim, rimIntensity: 0.35,
-    ambientColor: LIGHT.key, ambientIntensity: 0.12, keyElevationDeg: 35,
+    keyColor: '#FFEBC8', keyIntensity: 3.1, fillSky: '#BFD9F2', fillGround: '#8A7452',
+    fillIntensity: 1.05, rimColor: LIGHT.rim, rimIntensity: 0.25,
+    ambientColor: LIGHT.key, ambientIntensity: 0.1, keyElevationDeg: 42,
   },
   atardecer: {
-    keyColor: BRAND.sun, keyIntensity: 1.0, fillSky: LIGHT.fill, fillGround: CLAY.soilDeep,
-    fillIntensity: 0.5, rimColor: LIGHT.rim, rimIntensity: 0.5,
-    ambientColor: LIGHT.rim, ambientIntensity: 0.14, keyElevationDeg: 8,
+    keyColor: '#FFB066', keyIntensity: 2.6, fillSky: '#C9A9C9', fillGround: '#7A4E36',
+    fillIntensity: 0.75, rimColor: '#FFC48A', rimIntensity: 0.35,
+    ambientColor: '#F79A5B', ambientIntensity: 0.12, keyElevationDeg: 11,
   },
   noche: {
-    keyColor: LIGHT.nightKey, keyIntensity: 0.4, fillSky: LIGHT.nightFill, fillGround: BRAND.ink,
-    fillIntensity: 0.4, rimColor: LIGHT.nightKey, rimIntensity: 0.28,
-    ambientColor: LIGHT.nightFill, ambientIntensity: 0.16, keyElevationDeg: 45,
+    keyColor: LIGHT.nightKey, keyIntensity: 0.7, fillSky: '#3A4E78', fillGround: BRAND.ink,
+    fillIntensity: 0.55, rimColor: LIGHT.nightKey, rimIntensity: 0.25,
+    ambientColor: LIGHT.nightFill, ambientIntensity: 0.18, keyElevationDeg: 50,
   },
 };
 
@@ -183,13 +219,13 @@ interface SkyPreset {
 
 const SKIES: Record<TimeOfDay, SkyPreset> = {
   // First light: a cool violet overhead, apricot along the horizon.
-  amanecer: { top: '#6E7BA8', topMix: 0.42, horizon: '#F6C89A', horizonMix: 0.6 },
-  // Midday is the authored biome sky, untouched. This is the reference frame.
-  dia: { top: BRAND.cream, topMix: 0, horizon: BRAND.cream, horizonMix: 0 },
+  amanecer: { top: '#5E6FA6', topMix: 0.55, horizon: '#F6C89A', horizonMix: 0.65 },
+  // Afternoon: a real blue overhead, a pale luminous horizon. The biome still tints both.
+  dia: { top: '#2F7BD6', topMix: 0.9, horizon: '#D8EAF4', horizonMix: 0.65 },
   // Dusk: the deepest sky of the three lit presets, and the warmest horizon.
-  atardecer: { top: '#3E5480', topMix: 0.5, horizon: '#F79A5B', horizonMix: 0.7 },
+  atardecer: { top: '#34497A', topMix: 0.6, horizon: '#F79A5B', horizonMix: 0.75 },
   // Night keeps its own ink; the mix is a full replacement.
-  noche: { top: BRAND.inkSoft, topMix: 1, horizon: LIGHT.nightFill, horizonMix: 1 },
+  noche: { top: '#0E1830', topMix: 1, horizon: LIGHT.nightFill, horizonMix: 1 },
 };
 
 export interface WorldPalette {

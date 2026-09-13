@@ -15,6 +15,7 @@ import * as THREE from 'three';
 
 import { CLAY as CLAY_CFG, WATER_LEVEL } from '@/lib/world/config';
 import { coastRadiusAt, type IslandLayout } from '@/lib/world/layout';
+import { pathsFor, pathWeight } from '@/lib/world/paths';
 import { sampleHeight, sampleSlope, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 import type { WorldPalette } from '../palette';
 import { CLAY } from '../palette';
@@ -44,6 +45,7 @@ export function buildGround(
   const color = new Float32Array(vertexCount * 3);
   const indices: number[] = [];
   const seed = layout.seed * 0.001;
+  const paths = pathsFor(layout);
 
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
@@ -52,7 +54,7 @@ export function buildGround(
     // says damp or dry, the fine one keeps a big field from being one colour.
     const moisture = moistureAt(x, z, seed, layout);
     const patch = patchAt(x, z, seed);
-    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine);
+    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine, pathWeight(x, z, paths));
     const ao = bakedAO(hf, x, z, h);
     position[v * 3] = x;
     position[v * 3 + 1] = h;

@@ -314,7 +314,8 @@ export function applyCosmetics(
   // warm tone; everyone else the brand green.
   if (opts.overlay) u.aura.material = opts.overlay;
   repaintRGBA(u.aura, opts.golden ? PIP_PARTS.auraGolden : PIP_PARTS.aura);
-  u.aura.visible = !!opts.aura;
+  // Off under the v2 light; see `applyStage`.
+  u.aura.visible = false;
 }
 
 /**
@@ -355,7 +356,10 @@ export function applyStage(root: PipRoot, stage: PipStage): void {
   const scale = stage === 'seed' ? 0 : stage === 'sprout' ? 0.62 : 1;
   u.leaves.scale.setScalar(Math.max(0.0001, scale));
   u.leaves.visible = stage !== 'seed';
-  u.aura.visible = stage === 'guardian' || stage === 'radiant';
+  // The halo as a transparent sphere read as a hard-edged yellow polygon around
+  // Pip under the v2 light (`23-ART-DIRECTION-V2.md`). It stays built, and off,
+  // until it comes back as light rather than as a shell.
+  u.aura.visible = false;
 }
 
 /** Free everything this root owns. Cosmetic geometry is cached and shared. */

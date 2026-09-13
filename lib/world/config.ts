@@ -106,6 +106,20 @@ export const LAYOUT = {
   steepScatter: 260, // rock-only points on ground too steep to plant (El Monte, La Cumbre)
 } as const;
 
+/**
+ * The worn paths from El Claro to every open region (`lib/world/paths.ts`).
+ * OURS, judged from screenshots: wide enough to read from the default camera,
+ * narrow enough to be a path and not a road.
+ */
+export const PATHS = {
+  widthM: 1.3, // the worn middle
+  edgeM: 0.9, // the soft edge into the grass
+  samples: 16, // segments per path; a curve at this length needs no more
+  bendFrac: 0.28, // how far sideways the S is pushed, as a fraction of the path's length
+  arriveFrac: 0.3, // stop this fraction of the region's radius short of its centre
+  minLengthM: 3, // a region closer than this to the spawn needs no path
+} as const;
+
 // ── Movement, camera, input, interaction ────────────────────────────────────
 
 // They live in `config.controls.ts` for the 400-line rule; this is still the door.
