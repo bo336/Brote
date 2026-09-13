@@ -165,23 +165,49 @@ export const LOOK = {
  * `spacing` is metres between blades; `radius` how far the field reaches.
  */
 export const GRASS = {
-  bladeHeightM: 0.32, // knee-high on Pip, who is 0.55 m
-  // Wider than a real blade: at this density a true blade is a spike, and the
-  // playtest-era frames read as a field of needles.
-  bladeWidthM: 0.09,
-  segments: 4, // bends per blade; four is enough for a curve to read
+  bladeHeightM: 0.3, // knee-high on Pip, who is 0.55 m
+  /**
+   * A real blade's width, nearly. At 9 cm the 2026-09-13 review called the field
+   * "drawn by a five-year-old": wide flat triangles read as paper, not as grass.
+   * Thin blades need density, which is what the rings are for.
+   */
+  bladeWidthM: 0.026,
   pushRadiusM: 0.6, // how far the grass parts around Pip
   maxSlope: 0.45, // steeper than this is rock, and nothing grows
-  windAmp: 0.34,
+  windAmp: 0.55,
   windDir: [0.8, 0.6] as [number, number],
   coastClearM: 0.6, // sand, not grass, this close to the sea
   clearingFreq: 0.07, // how big the natural clearings are
+  ringFadeM: 1.6, // neighbouring rings cross-fade over this much ground, so no edge shows
+  translucency: 1.25, // how bright a blade glows against the sun
+  /** Rings, nearest first. Each draws blades with this many bends. */
+  ringSegments: [5, 3, 1] as const,
+  /**
+   * Per quality tier, per ring: blade spacing, the annulus the ring owns
+   * (`outer: 0` switches it off), and how much wider its blades are drawn —
+   * sparser rings need fatter blades to cover the same ground.
+   */
   byTier: [
-    { spacing: 0.3, radius: 8 },
-    { spacing: 0.22, radius: 11 },
-    { spacing: 0.16, radius: 14 },
-    { spacing: 0.12, radius: 18 },
+    [{ spacing: 0.16, inner: 0, outer: 6, width: 3.5 }, { spacing: 0.34, inner: 6, outer: 12, width: 7 }, { spacing: 0.5, inner: 0, outer: 0, width: 1 }],
+    [{ spacing: 0.12, inner: 0, outer: 4.5, width: 2.5 }, { spacing: 0.28, inner: 4.5, outer: 11, width: 5 }, { spacing: 0.4, inner: 0, outer: 0, width: 1 }],
+    [{ spacing: 0.065, inner: 0, outer: 4.5, width: 1.4 }, { spacing: 0.14, inner: 4.5, outer: 11, width: 3 }, { spacing: 0.3, inner: 11, outer: 20, width: 6 }],
+    [{ spacing: 0.045, inner: 0, outer: 5.5, width: 1 }, { spacing: 0.1, inner: 5.5, outer: 13, width: 2.2 }, { spacing: 0.22, inner: 13, outer: 26, width: 4.5 }],
   ],
+} as const;
+
+/** The ground's own surface detail (`lib/render/geometry/ground-detail.ts`). */
+export const GROUND = {
+  detailScale: 0.55, // repeats per metre of the fine detail map
+  broadScale: 0.19, // …and of the same map at a second, broader scale, to hide the repeat
+  normalStrength: 0.85, // how much the pebbles and grain tilt the light
+  underGrass: 0.8, // how fully dense grass turns the ground to its own root shade
+  pathMapRes: 384, // texels across the island's distance-to-path map; distance interpolates, so edges stay crisp
+  pathMapMaxM: 4, // distances past this read as "far from any path"
+  pathRaggedM: 0.26, // how far the worn edge wanders in and out of the grass
+  pathEndFrac: 0.3, // over this last fraction of its length a path narrows and breaks up into the grass
+  // No path is drawn lower than this above the water: fords are sand, not trail.
+  // The meadows by the river sit barely 0.17 m up, so this has to be tight.
+  pathAboveWaterM: 0.03,
 } as const;
 
 /** The water (`lib/render/materials/water.ts`). Colours are the look; the rest is feel. */
@@ -189,9 +215,24 @@ export const WATER = {
   shallow: '#57CFC4', // turquoise over sand
   deep: '#135F82', // the blue past the shelf
   foam: '#F4FBFA',
-  // Depth the foam lip covers. Small: the puddle is 16 cm deep, and at 14 cm the
-  // whole of it was lip — a white disc on the pradera.
-  foamWidthM: 0.03,
+  /**
+   * How far out from the shore the foam lip reaches, in metres of ground. It
+   * used to be measured in depth, and a flat margin a centimetre deep was lip
+   * across its whole width — the white haze round the puddle.
+   */
+  foamWidthM: 0.28,
+  // Lake cells no wider than this. At 40 cells a side a lagoon's were metres
+  // across, and each one whose centre sat on a sandbar left a square of dry sand.
+  lakeCellM: 0.8,
+  lakeMaxSegments: 240,
+  /**
+   * A body of water this small is a puddle, not a shore: no surf, only a thin wet
+   * line, and coloured against its own few centimetres. Drawn with the lagoon's
+   * material it was a milky lens with a glowing rim.
+   */
+  puddleRadiusM: 3,
+  puddleDepthScaleM: 0.3,
+  puddleFoamM: 0.05,
   ripple: 0.32, // how strongly the ripples tilt the surface
   rippleLow: 0.18, // …at T0, where fewer pixels resolve them
 } as const;

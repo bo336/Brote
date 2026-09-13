@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 
 import { buildOpenSea, buildWaterMeshes } from '@/lib/render/geometry/terrain';
 import { buildRiverMeshes } from '@/lib/render/geometry/river';
+import { heightInfo, heightTextureFor } from '@/lib/render/height-texture';
 import * as THREE from 'three';
 
 import { currentSun, getWaterMaterial, tickWaterMaterials } from '@/lib/render/materials';
@@ -12,7 +13,7 @@ import { applyWaterLight, setWaterTier } from '@/lib/render/materials/water';
 import type { WorldPalette } from '@/lib/render/palette';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Heightfield } from '@/lib/world/terrain';
-import { SEA_DEPTH_M } from '@/lib/world/config';
+import { SEA_DEPTH_M, WATER } from '@/lib/world/config';
 import type { QualityTier } from '@/lib/world/types';
 
 /**
@@ -72,7 +73,27 @@ export function Water({
     () => getWaterMaterial({ tier: initialTier, color: palette.water, depthScale }),
     [initialTier, palette.water, depthScale],
   );
-  useEffect(() => setWaterTier(material, tier), [material, tier]);
+  // A puddle is not a shore (`WATER.puddleRadiusM`): its own material, with no
+  // surf, a thin wet line, and colour measured against its own few centimetres.
+  const puddleMaterial = useMemo(
+    () => getWaterMaterial({
+      tier: initialTier, color: palette.water, depthScale: WATER.puddleDepthScaleM, foamWidth: WATER.puddleFoamM,
+    }),
+    [initialTier, palette.water],
+  );
+  useEffect(() => {
+    setWaterTier(material, tier);
+    setWaterTier(puddleMaterial, tier);
+  }, [material, puddleMaterial, tier]);
+  // The ground's height, so the surface measures its true depth per pixel and
+  // its shoreline is the ground's own curve rather than its mesh's grid.
+  useEffect(() => {
+    for (const mat of [material, puddleMaterial]) {
+      const u = mat.waterUniforms;
+      u.uHeightTex!.value = heightTextureFor(heightfield);
+      heightInfo(heightfield, u.uHeightInfo!.value as THREE.Vector4);
+    }
+  }, [material, puddleMaterial, heightfield]);
 
   useEffect(() => () => meshes.forEach((m) => m.geometry.dispose()), [meshes]);
   useEffect(() => () => sea.geometry.dispose(), [sea]);
@@ -84,6 +105,7 @@ export function Water({
     tickWaterMaterials(clock.elapsedTime, flow);
     const sun = currentSun();
     applyWaterLight(material, sun.dir, sun.color, zenith, horizon);
+    applyWaterLight(puddleMaterial, sun.dir, sun.color, zenith, horizon);
   });
 
   return (
@@ -92,7 +114,7 @@ export function Water({
           world that is not the sky. */}
       <mesh name="openSea" geometry={sea.geometry} material={material} renderOrder={1} />
       {meshes.map((m, i) => (
-        <mesh key={i} geometry={m.geometry} material={material} renderOrder={2} />
+        <mesh key={i} geometry={m.geometry} material={m.puddle ? puddleMaterial : material} renderOrder={2} />
       ))}
     </group>
   );

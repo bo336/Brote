@@ -65,10 +65,16 @@ export function pathsFor(layout: IslandLayout): PathSet {
   return set;
 }
 
-/** How much of a path a point stands on: 1 in the worn middle, 0 off it. */
-export function pathWeight(x: number, z: number, paths: PathSet): number {
+/**
+ * How far a point is from the nearest path's centre line, in metres. Infinity
+ * with no paths. `along`, when given, receives how far along that path the
+ * nearest point is: 0 at the spawn, 1 where the path arrives.
+ */
+export function pathDistance(x: number, z: number, paths: PathSet, along?: { t: number }): number {
   const s = paths.segments;
   let best = Infinity;
+  let bestI = 0;
+  let bestT = 0;
   for (let i = 0; i < paths.count; i++) {
     const o = i * 4;
     const ax = s[o]!;
@@ -82,9 +88,20 @@ export function pathWeight(x: number, z: number, paths: PathSet): number {
     const qx = ax + ex * t - x;
     const qz = az + ez * t - z;
     const d = qx * qx + qz * qz;
-    if (d < best) best = d;
+    if (d < best) {
+      best = d;
+      bestI = i;
+      bestT = t;
+    }
   }
-  const dist = Math.sqrt(best);
+  // Every path is exactly `samples` segments, packed one path after another.
+  if (along) along.t = ((bestI % PATHS.samples) + bestT) / PATHS.samples;
+  return Math.sqrt(best);
+}
+
+/** How much of a path a point stands on: 1 in the worn middle, 0 off it. */
+export function pathWeight(x: number, z: number, paths: PathSet): number {
+  const dist = pathDistance(x, z, paths);
   const half = PATHS.widthM * 0.5;
   if (dist <= half) return 1;
   const k = Math.min(1, (dist - half) / PATHS.edgeM);

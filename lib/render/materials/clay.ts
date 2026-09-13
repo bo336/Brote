@@ -20,11 +20,11 @@
  */
 import * as THREE from 'three';
 
-import { CLAY, FOG, LOOK, WIND, WOBBLE } from '@/lib/world/config';
+import { CLAY, FOG, GROUND, LOOK, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
 import {
-  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, GROUND_DETAIL_FRAG, HEIGHT_FOG_FRAG, REVEAL_FRAG,
-  REVEAL_VERT, WIND_VERT, WOBBLE_VERT,
+  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, GROUND_DETAIL_FRAG, GROUND_NORMAL_FRAG, HEIGHT_FOG_FRAG,
+  REVEAL_FRAG, REVEAL_VERT, WIND_VERT, WOBBLE_VERT,
 } from './chunks';
 import { REVEAL_OFF, revealModeIndex, type RevealState } from '../reveal';
 
@@ -87,6 +87,16 @@ export function fogRange(renderDistanceM: number): { near: number; far: number }
 const CREAM = BRAND.cream;
 const DEFAULT_FOG = fogRange(60);
 
+let blank: THREE.DataTexture | null = null;
+/** A flat 1×1 stand-in: mid grey, a normal pointing straight up, no grass. */
+function blankTexture(): THREE.DataTexture {
+  if (!blank) {
+    blank = new THREE.DataTexture(new Uint8Array([128, 128, 255, 0]), 1, 1);
+    blank.needsUpdate = true;
+  }
+  return blank;
+}
+
 function defaultUniforms(): Record<string, THREE.IUniform> {
   return {
     uTime: { value: 0 },
@@ -113,6 +123,18 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uSunDirW: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
     uSunColor: { value: new THREE.Color(1, 0.9, 0.75) },
     uTranslucency: { value: LOOK.translucency },
+    // The ground's detail maps and the grass mask, set once the island is built.
+    uGroundDetail: { value: blankTexture() },
+    uGroundNormal: { value: blankTexture() },
+    uGrassMask: { value: blankTexture() },
+    uGrassMaskInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    uGroundScales: { value: new THREE.Vector4(GROUND.detailScale, GROUND.broadScale, GROUND.underGrass, GROUND.normalStrength) },
+    // The paths' distance map (`geometry/path-map.ts`); the blank reads as "no path anywhere".
+    uPathMap: { value: blankTexture() },
+    uPathInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    uPathColor: { value: new THREE.Color() },
+    uPathWorn: { value: new THREE.Color() },
+    uPathFloor: { value: 0 },
     uRevealCentre: { value: new THREE.Vector3() },
     uRevealBare: { value: new THREE.Color(0.45, 0.42, 0.4) },
     uRevealRadius: { value: 1 },
@@ -259,6 +281,15 @@ ${CLAY_FRAG_HEAD}`),
         #if defined(BH_CARD_NORMALS) && defined(DOUBLE_SIDED)
           normal *= faceDirection;
         #endif
+      `,
+    );
+
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
+      '#include <normal_fragment_maps>',
+      /* glsl */ `
+        #include <normal_fragment_maps>
+        ${GROUND_NORMAL_FRAG}
       `,
     );
 

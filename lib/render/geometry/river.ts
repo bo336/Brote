@@ -19,15 +19,12 @@ import * as THREE from 'three';
 import { LAYOUT, WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 import type { WaterMesh } from './terrain';
+import { CARVE_HALF_WIDTH, inLake, RIVER_FILL } from './water-cover';
 
 /** Metres between cross-sections along the river. */
 const STEP_M = 0.45;
 /** Vertices across the channel. */
 const ACROSS = 9;
-/** How full the channel runs, as a fraction of its carved depth. */
-const FILL = 0.72;
-/** The carve in `terrainHeight` reaches `width × 1.5` either side of the centre line. */
-const CARVE_HALF_WIDTH = 1.5;
 /** Deeper than this at sea level, a lagoon or the sea already has a surface here. */
 const BASIN_DEPTH_M = 0.05;
 
@@ -55,7 +52,7 @@ export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMe
       const t = s / steps;
       const cx = ax + dx * t;
       const cz = az + dz * t;
-      const surface = Math.max(WATER_LEVEL, sampleHeight(hf, cx, cz) + depth * FILL);
+      const surface = Math.max(WATER_LEVEL, sampleHeight(hf, cx, cz) + depth * RIVER_FILL);
       for (let k = 0; k < ACROSS; k++) {
         const f = (k / (ACROSS - 1)) * 2 - 1;
         const x = cx + nx * f * half;
@@ -74,10 +71,13 @@ export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMe
         const d = c + 1;
         // A quad wholly under the banks is never seen; skip it.
         if (depths[a]! + depths[b]! + depths[c]! + depths[d]! === 0) continue;
-        // Where the river has reached the lagoon or the sea, their surface already
-        // covers it: two transparent sheets at one height drew a pale seam.
+        // Where the river has reached a lagoon, the lagoon's surface already covers
+        // it: two transparent sheets at one height drew a pale seam. Only inside a
+        // lake's own grid, though — skipped anywhere else, nothing covered it, and
+        // the low meadow river was drawn as squares of dry sand.
         const level = positions[a * 3 + 1]! <= WATER_LEVEL + 1e-4 && positions[d * 3 + 1]! <= WATER_LEVEL + 1e-4;
-        if (level && depths[a]! > BASIN_DEPTH_M && depths[b]! > BASIN_DEPTH_M && depths[c]! > BASIN_DEPTH_M && depths[d]! > BASIN_DEPTH_M) continue;
+        if (level && depths[a]! > BASIN_DEPTH_M && depths[b]! > BASIN_DEPTH_M && depths[c]! > BASIN_DEPTH_M && depths[d]! > BASIN_DEPTH_M
+          && inLake(terrain, positions[a * 3]!, positions[a * 3 + 2]!) && inLake(terrain, positions[d * 3]!, positions[d * 3 + 2]!)) continue;
         indices.push(a, c, b, b, c, d);
       }
     }

@@ -46,6 +46,22 @@ export function updateSun(dirW: THREE.Vector3, color: THREE.Color): void {
   for (const mat of clayCache.values()) applySun(mat, dirW, color);
 }
 
+/** The grass mask in force, for the ground to darken under the blades. */
+let groundGrass: { tex: THREE.Texture; info: THREE.Vector4 } | null = null;
+
+function applyGroundGrass(mat: ClayMaterial): void {
+  const u = mat.clayUniforms;
+  if (!groundGrass || !u.uGrassMask) return;
+  u.uGrassMask.value = groundGrass.tex;
+  (u.uGrassMaskInfo!.value as THREE.Vector4).copy(groundGrass.info);
+}
+
+/** The grass's density mask and where it sits, handed to every world material that is ground. */
+export function setGroundGrass(tex: THREE.Texture, res: number, step: number, extent: number): void {
+  groundGrass = { tex, info: new THREE.Vector4(res, step, extent, 1) };
+  for (const mat of clayCache.values()) applyGroundGrass(mat);
+}
+
 /** The mood in force, read back — the grass takes its fog from it. */
 export function currentMood(): WorldMood | null {
   return lastMood;
@@ -89,6 +105,7 @@ export function getClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   const mat = createClayMaterial(opts);
   if (lastMood) applyMood(mat, lastMood);
   applySun(mat, lastSunDir, lastSunColor);
+  applyGroundGrass(mat);
   applyReveal(mat, lastReveal);
   clayCache.set(key, mat);
   return mat;
@@ -197,6 +214,7 @@ export function disposeAll(): void {
   textureCache.clear();
   lastMood = null;
   lastReveal = REVEAL_OFF;
+  groundGrass = null;
 }
 
 export type { ClayMaterial, ClayOptions, WaterMaterial, WaterOptions, WorldMood, QualityTier };

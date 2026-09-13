@@ -65,6 +65,8 @@ const fragmentShader = /* glsl */ `
   uniform float uRevealRadius;
   uniform float uRevealAmount;
   uniform float uRevealMode;
+  uniform sampler2D uHeightTex;
+  uniform vec4 uHeightInfo;
   varying float vDepth;
   varying vec3 vWorld;
   varying float vFogDepth;
@@ -82,12 +84,47 @@ const fragmentShader = /* glsl */ `
          + (bhNoise(q * 3.7 - t * vec2(0.18, 0.33)) - 0.5) * 0.09;
   }
 
+  // Cubic B-spline height from four bilinear taps. With plain bilinear filtering
+  // a puddle a few texels across came out a polygon.
+  float bhHeightSmooth(vec2 uv, float res) {
+    vec2 st = uv * res - 0.5;
+    vec2 i = floor(st);
+    vec2 f = st - i;
+    vec2 w0 = (1.0 - f) * (1.0 - f) * (1.0 - f) / 6.0;
+    vec2 w1 = (4.0 - 6.0 * f * f + 3.0 * f * f * f) / 6.0;
+    vec2 w2 = (1.0 + 3.0 * f + 3.0 * f * f - 3.0 * f * f * f) / 6.0;
+    vec2 w3 = f * f * f / 6.0;
+    vec2 g0 = w0 + w1;
+    vec2 g1 = w2 + w3;
+    vec2 h0 = (i - 0.5 + w1 / g0) / res;
+    vec2 h1 = (i + 1.5 + w3 / g1) / res;
+    return g0.y * (g0.x * texture2D(uHeightTex, h0).r + g1.x * texture2D(uHeightTex, vec2(h1.x, h0.y)).r)
+         + g1.y * (g0.x * texture2D(uHeightTex, vec2(h0.x, h1.y)).r + g1.x * texture2D(uHeightTex, h1).r);
+  }
+
   void main() {
     if (uRevealMode > 3.5) {
       float bhD = length(vWorld.xz - uRevealCentre.xz);
       float bhFront = uRevealAmount * uRevealRadius;
       if (bhD > bhFront + bhNoise(vWorld.xz * 3.0 + vec2(uTime * 0.9, 0.0)) * 0.9) discard;
     }
+
+    // True depth, per pixel, against the ground itself — and how steep the ground
+    // is here, which turns depth into distance from the shore. Depth interpolated
+    // across the mesh's vertices drew the grid: sawtooth banks, square shores.
+    float depthM = vDepth;
+    float shoreSlope = 0.1;
+    if (uHeightInfo.w > 0.5) {
+      vec2 huv = ((vWorld.xz + uHeightInfo.z) / uHeightInfo.y + 0.5) / uHeightInfo.x;
+      if (huv.x > 0.0 && huv.x < 1.0 && huv.y > 0.0 && huv.y < 1.0) {
+        float tx = 1.0 / uHeightInfo.x;
+        float gxH = texture2D(uHeightTex, huv + vec2(tx, 0.0)).r - texture2D(uHeightTex, huv - vec2(tx, 0.0)).r;
+        float gzH = texture2D(uHeightTex, huv + vec2(0.0, tx)).r - texture2D(uHeightTex, huv - vec2(0.0, tx)).r;
+        depthM = vWorld.y - bhHeightSmooth(huv, uHeightInfo.x);
+        shoreSlope = length(vec2(gxH, gzH)) / (2.0 * uHeightInfo.y);
+      }
+    }
+    if (depthM <= 0.0) discard;
 
     float t = uTime * uFlow;
     vec2 p = vWorld.xz;
@@ -108,12 +145,15 @@ const fragmentShader = /* glsl */ `
     vec3 r = reflect(-v, n);
     // The reflected sky, a little darker than the sky itself: water absorbs, and a
     // mirror-bright surface read as white stripes rather than as the sea.
-    vec3 sky = mix(uHorizon, uZenith, pow(clamp(r.y, 0.0, 1.0), 0.45)) * 0.78;
+    // The pale horizon is what a low view reflects most, and it washed rivers milky.
+    vec3 sky = mix(uHorizon * 0.8, uZenith, pow(clamp(r.y, 0.0, 1.0), 0.3)) * 0.66;
     float glint = pow(max(dot(r, uSunDir), 0.0), 700.0) * 14.0 + pow(max(dot(r, uSunDir), 0.0), 60.0) * 0.35;
     vec3 reflection = sky + uSunColor * glint * uSpecular;
 
-    float d = clamp(vDepth / uDepthScale, 0.0, 1.0);
-    vec3 body = mix(uShallow, uDeep, pow(d, 0.6));
+    // Coloured by real metres as well as against the deepest basin: a river a few
+    // decimetres deep was all "shallow" next to the lagoon, and read milky.
+    float d = clamp(max(depthM / uDepthScale, 1.0 - exp(-depthM / 0.6)), 0.0, 1.0);
+    vec3 body = mix(uShallow, uDeep, pow(d, 0.75));
     if (uCaustics > 0.0) {
       float c = bhNoise(p * 3.2 + vec2(t * 0.3, -t * 0.25)) * bhNoise(p * 2.7 - vec2(t * 0.22, t * 0.31));
       // Faint and sun-tinted: at half strength over a shallow puddle they summed to white.
@@ -122,20 +162,26 @@ const fragmentShader = /* glsl */ `
 
     // A few centimetres of water over sand is mostly sand: the sky it reflects is
     // faint there. At full strength a puddle seen from Pip's height was a white disc.
-    fresnel *= mix(0.35, 1.0, smoothstep(0.0, 0.35, vDepth));
+    fresnel *= mix(0.35, 1.0, smoothstep(0.0, 0.35, depthM));
     vec3 col = mix(body, reflection, fresnel);
-    float alpha = mix(mix(0.45, 0.94, smoothstep(0.0, 0.55, d)), 1.0, fresnel);
+    float alpha = mix(mix(0.35, 0.95, smoothstep(0.0, 0.5, d)), 1.0, fresnel);
 
-    // Foam: a solid lip on the sand, and bands that roll in toward it.
-    float edge = vDepth / max(uFoamWidth, 0.001);
+    // Foam: a thin broken lip right at the shore, and bands that roll in toward
+    // it — both measured in metres from the shore, not in depth.
+    float shoreM = depthM / max(shoreSlope, 0.02);
     float breakup = bhNoise(p * 4.0 + vec2(t * 0.4, t * 0.25));
-    float lip = 1.0 - smoothstep(0.2, 1.0, edge + (breakup - 0.5) * 0.5);
-    // Bands only where there is a shore to roll toward: a puddle has no surf.
-    float bands = smoothstep(0.72, 1.0, sin(edge * 1.6 - t * 1.8 + breakup * 1.5))
-      * (1.0 - smoothstep(1.0, 4.5, edge)) * smoothstep(0.3, 1.0, uDepthScale);
-    float foam = clamp(lip + bands * 0.55, 0.0, 1.0);
+    float lip = 1.0 - smoothstep(0.04, uFoamWidth, shoreM + (breakup - 0.5) * uFoamWidth * 0.9);
+    // Broken along its length: an unbroken lip read as a sticker's outline.
+    lip *= 0.45 + 0.55 * smoothstep(0.3, 0.7, bhNoise(p * 1.7 - vec2(t * 0.2, 0.0)));
+    // Bands only where there is a shore to roll toward, and in patches: a
+    // continuous band along a river drew white stripes down its length.
+    float bands = smoothstep(0.72, 1.0, sin(shoreM * 5.0 - t * 1.8 + breakup * 1.5))
+      * (1.0 - smoothstep(0.4, 2.2, shoreM)) * smoothstep(0.3, 1.0, uDepthScale)
+      * smoothstep(0.45, 0.8, bhNoise(p * 0.5 + vec2(t * 0.12, 0.0)));
+    float foam = clamp(lip * 0.7 + bands * 0.3, 0.0, 1.0) * smoothstep(0.0, 0.004, depthM);
     col = mix(col, uFoam * (0.8 + 0.25 * max(uSunDir.y, 0.0)), foam);
-    alpha = max(alpha, foam * 0.95);
+    // The surface itself thins to nothing at the waterline, so the edge is soft.
+    alpha = max(alpha * smoothstep(0.0, 0.02, depthM), foam * 0.9);
 
     float fogT = smoothstep(uFogNear, uFogFar, vFogDepth) * uFogDensity;
     col = mix(col, uFogColor, fogT);
@@ -198,6 +244,9 @@ export function createWaterMaterial(opts: WaterOptions): WaterMaterial {
     uRevealRadius: { value: 1 },
     uRevealAmount: { value: 1 },
     uRevealMode: { value: 0 },
+    // The ground's height (`height-texture.ts`), set once the island is built; w = 0 until then.
+    uHeightTex: { value: null },
+    uHeightInfo: { value: new THREE.Vector4(1, 1, 1, 0) },
   };
 
   const mat = new THREE.ShaderMaterial({

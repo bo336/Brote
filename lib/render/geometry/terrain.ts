@@ -13,9 +13,8 @@
  */
 import * as THREE from 'three';
 
-import { CLAY as CLAY_CFG, WATER_LEVEL } from '@/lib/world/config';
+import { CLAY as CLAY_CFG, WATER, WATER_LEVEL } from '@/lib/world/config';
 import { coastRadiusAt, type IslandLayout } from '@/lib/world/layout';
-import { pathsFor, pathWeight } from '@/lib/world/paths';
 import { sampleHeight, sampleSlope, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 import type { WorldPalette } from '../palette';
 import { CLAY } from '../palette';
@@ -23,6 +22,7 @@ import { CLAY } from '../palette';
 import {
   bakedAO, cliffColor, groundColor, moistureAt, patchAt, primeCliffRamp, primeRamp, scratch,
 } from './ground-paint';
+import { LAKE_EXTENT, riverRunsAbove } from './water-cover';
 
 
 /**
@@ -45,7 +45,6 @@ export function buildGround(
   const color = new Float32Array(vertexCount * 3);
   const indices: number[] = [];
   const seed = layout.seed * 0.001;
-  const paths = pathsFor(layout);
 
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
@@ -54,7 +53,9 @@ export function buildGround(
     // says damp or dry, the fine one keeps a big field from being one colour.
     const moisture = moistureAt(x, z, seed, layout);
     const patch = patchAt(x, z, seed);
-    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine, pathWeight(x, z, paths));
+    // Paths are drawn by the ground shader from their distance map
+    // (`path-map.ts`); baked in here they were as blurry as the grid.
+    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine, 0);
     const ao = bakedAO(hf, x, z, h);
     position[v * 3] = x;
     position[v * 3 + 1] = h;
@@ -234,6 +235,8 @@ export interface WaterMesh {
   geometry: THREE.BufferGeometry;
   /** The deepest point, for the shader's depth normalisation. */
   maxDepth: number;
+  /** Small enough to be a puddle rather than a shore (`WATER.puddleRadiusM`). */
+  puddle?: boolean;
 }
 
 /**
@@ -313,10 +316,11 @@ export function buildOpenSea(layout: IslandLayout, deepAt: number): WaterMesh {
   return { geometry: geo, maxDepth: deepAt };
 }
 
-export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments = 40): WaterMesh[] {
+export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, minSegments = 40): WaterMesh[] {
   const out: WaterMesh[] = [];
   for (const lake of terrain.lakes) {
-    const extent = lake.r * 1.45;
+    const extent = lake.r * LAKE_EXTENT;
+    const segments = Math.min(WATER.lakeMaxSegments, Math.max(minSegments, Math.ceil((extent * 2) / WATER.lakeCellM)));
     const step = (extent * 2) / segments;
     const positions: number[] = [];
     const depths: number[] = [];
@@ -341,9 +345,17 @@ export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments
 
     for (let iz = 0; iz < segments; iz++) {
       for (let ix = 0; ix < segments; ix++) {
-        const cx = lake.x - extent + (ix + 0.5) * step;
-        const cz = lake.z - extent + (iz + 0.5) * step;
-        if (sampleHeight(hf, cx, cz) >= WATER_LEVEL) continue;
+        // Kept if any corner is under water. The shader measures true depth per
+        // pixel and discards what is dry, so the shoreline is the ground's, not the grid's.
+        const x0 = lake.x - extent + ix * step;
+        const z0 = lake.z - extent + iz * step;
+        const lowest = Math.min(
+          sampleHeight(hf, x0, z0), sampleHeight(hf, x0 + step, z0),
+          sampleHeight(hf, x0, z0 + step), sampleHeight(hf, x0 + step, z0 + step),
+        );
+        if (lowest >= WATER_LEVEL) continue;
+        // Where a river runs above sea level its own strip is the surface (`water-cover.ts`).
+        if (riverRunsAbove(terrain, hf, x0 + step * 0.5, z0 + step * 0.5)) continue;
         const a = vertexAt(ix, iz);
         const b = vertexAt(ix + 1, iz);
         const c = vertexAt(ix + 1, iz + 1);
@@ -358,7 +370,7 @@ export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments
     geo.setAttribute('aDepth', new THREE.Float32BufferAttribute(depths, 1));
     geo.setIndex(indices);
     geo.computeVertexNormals();
-    out.push({ geometry: geo, maxDepth: Math.max(CLAY_CFG.bandSoftness, maxDepth) });
+    out.push({ geometry: geo, maxDepth: Math.max(CLAY_CFG.bandSoftness, maxDepth), puddle: lake.r <= WATER.puddleRadiusM });
   }
   return out;
 }

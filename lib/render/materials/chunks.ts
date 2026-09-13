@@ -290,8 +290,13 @@ export const GROUND_DETAIL_FRAG = /* glsl */ `
   vec2 bhG = vClayWorld.xz;
   float bhMacro = bh_noise2(bhG * 0.045);
   float bhMid = bh_noise2(bhG * 0.32 + 7.1);
-  float bhFine = bh_noise2(bhG * 2.1) * 0.55 + bh_noise2(bhG * 6.7 + 3.3) * 0.45;
-  vec3 bhFaceN = normalize(cross(dFdx(vClayWorld), dFdy(vClayWorld)));
+  // The detail map, at two scales so its repeat never lines up.
+  vec4 bhDetA = texture2D(uGroundDetail, bhG * uGroundScales.x);
+  vec4 bhDetB = texture2D(uGroundDetail, bhG * uGroundScales.y + vec2(0.37, 0.71));
+  float bhFine = mix(bhDetA.r, bhDetB.r, 0.35);
+  // The interpolated normal, not the triangle's: rock and moss decided per face
+  // painted every hillside in visible facets.
+  vec3 bhFaceN = normalize((vec4(vNormal, 0.0) * viewMatrix).xyz);
   float bhUp = abs(bhFaceN.y);
   vec3 bhBase = diffuseColor.rgb;
   float bhSat = max(bhBase.r, max(bhBase.g, bhBase.b)) - min(bhBase.r, min(bhBase.g, bhBase.b));
@@ -299,7 +304,44 @@ export const GROUND_DETAIL_FRAG = /* glsl */ `
   vec3 bhDry = bhBase * vec3(1.24, 1.08, 0.66);
   bhBase = mix(bhBase, bhDry, smoothstep(0.5, 0.78, bhMacro) * 0.6);
   bhBase *= 0.84 + 0.32 * bhMid;
-  bhBase *= 0.88 + 0.24 * bhFine;
+  bhBase *= 0.55 + 0.9 * bhFine;
+  // A green floor is turf, not pastel paint: short grass, dark and olive, with
+  // the grain showing through. Only where the baked colour is green.
+  float bhGreen = smoothstep(1.02, 1.3, bhBase.g / max(max(bhBase.r, bhBase.b), 0.001));
+  vec3 bhTurf = vec3(0.05, 0.11, 0.022) * (0.55 + 0.9 * bhFine) * (0.8 + 0.4 * bhMid);
+  bhBase = mix(bhBase, bhTurf, bhGreen * 0.85);
+  // The worn paths, cut from their distance map: a crisp edge that wanders in
+  // and out of the grass, a trodden rim just outside it, and a paler middle.
+  vec4 bhPathTex = texture2D(uPathMap, (bhG + uPathInfo.x) / (2.0 * uPathInfo.x));
+  float bhPathD = bhPathTex.r * uPathInfo.y;
+  // Toward where it arrives a path narrows, frays, and gives out into the grass.
+  float bhHalf = uPathInfo.z * mix(0.3, 1.0, bhPathTex.g);
+  float bhRag = ((bhDetA.r - 0.5) * 0.9 + (bhDetB.r - 0.5) * 0.9 + (bhMid - 0.5)) * uPathInfo.w * mix(2.2, 1.0, bhPathTex.g);
+  // Not under the water, and not on the sand of a ford.
+  float bhAbove = smoothstep(uPathFloor, uPathFloor + 0.06, vClayWorld.y);
+  float bhPath = (1.0 - smoothstep(bhHalf - 0.05, bhHalf + 0.05, bhPathD + bhRag)) * bhAbove * smoothstep(0.0, 0.35, bhPathTex.g);
+  float bhTrod = (1.0 - smoothstep(bhHalf, bhHalf + 0.45, bhPathD + bhRag)) * (1.0 - bhPath) * bhAbove;
+  bhBase = mix(bhBase, bhBase * vec3(1.15, 1.0, 0.55), bhTrod * 0.55);
+  float bhWorn = (1.0 - smoothstep(0.0, bhHalf, bhPathD + bhRag * 0.5)) * (0.4 + 0.6 * bhMid);
+  vec3 bhPathCol = mix(uPathColor, uPathWorn, bhWorn) * (0.62 + 0.76 * bhFine);
+  bhPathCol = mix(vec3(dot(bhPathCol, vec3(0.2126, 0.7152, 0.0722))), bhPathCol, 0.8);
+  // Packed earth is never one colour: browner where it is compacted, darker
+  // where it stays damp, and shaded just inside the lip of turf along its edge.
+  bhPathCol = mix(bhPathCol, vec3(0.17, 0.1, 0.055), 0.22 + 0.2 * bhMacro);
+  bhPathCol *= mix(1.0, 0.68, smoothstep(0.55, 0.85, bhMid) * 0.6);
+  bhPathCol *= mix(1.0, 0.72, smoothstep(bhHalf - 0.22, bhHalf, bhPathD + bhRag));
+  bhBase = mix(bhBase, bhPathCol, bhPath);
+  // Stones grey the ground toward stone — on bare earth and paths, seldom in
+  // turf, where they read as sprinkles. Litter browns it.
+  float bhPebble = bhDetA.g * (1.0 - bhGreen * 0.75 * (1.0 - bhPath));
+  bhBase = mix(bhBase, vec3(0.17, 0.15, 0.13) * (0.7 + 0.6 * bhDetA.r), bhPebble * 0.85);
+  bhBase = mix(bhBase, bhBase * vec3(0.6, 0.46, 0.28), bhDetA.b * 0.6);
+  // Under dense grass the ground is the grass's own root shade, so the gaps
+  // between blades read as depth instead of bare floor.
+  vec2 bhGrassUV = ((bhG + uGrassMaskInfo.z) / uGrassMaskInfo.y + 0.5) / uGrassMaskInfo.x;
+  float bhGrass = smoothstep(0.02, 0.4, texture2D(uGrassMask, bhGrassUV).a) * uGrassMaskInfo.w * (1.0 - bhPath);
+  vec3 bhRootShade = vec3(0.05, 0.1, 0.025) * (0.8 + 0.5 * bhFine);
+  bhBase = mix(bhBase, bhRootShade, bhGrass * uGroundScales.z);
   // Grey stone that faces the sky grows moss and grass in patches.
   vec3 bhMoss = vec3(0.16, 0.24, 0.1) * (0.8 + 0.4 * bhMid);
   bhBase = mix(bhBase, bhMoss, (1.0 - smoothstep(0.02, 0.07, bhSat)) * smoothstep(0.72, 0.92, bhUp) * smoothstep(0.45, 0.7, bhMacro + bhFine * 0.3));
@@ -309,6 +351,10 @@ export const GROUND_DETAIL_FRAG = /* glsl */ `
   float bhCrack = 1.0 - smoothstep(0.0, 0.08, abs(bh_noise2(bhG * 0.8 + vec2(vClayWorld.y * 0.9)) - 0.5));
   vec3 bhRockCol = mix(vec3(0.2, 0.19, 0.17), vec3(0.5, 0.47, 0.42), bhStrata) * (0.8 + 0.4 * bhFine);
   bhRockCol *= 1.0 - 0.45 * bhCrack;
+  // Ground under the water, and the band just above it, is wet: darker, its
+  // stones no longer speckling through — which is also what makes water read deep.
+  float bhWet = 1.0 - smoothstep(uPathFloor - 0.02, uPathFloor + 0.08, vClayWorld.y);
+  bhBase = mix(bhBase, bhBase * vec3(0.5, 0.52, 0.5), bhWet);
   diffuseColor.rgb = mix(bhBase, bhRockCol, bhRock);
 `;
 
@@ -337,6 +383,28 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
   varying vec3 vClayWorld;
   varying float vFogDepth;
   varying float vFade;
+  #ifdef BH_REVEAL_GROUND
+    uniform sampler2D uGroundDetail;
+    uniform sampler2D uGroundNormal;
+    uniform sampler2D uGrassMask;
+    uniform vec4 uGrassMaskInfo;
+    uniform vec4 uGroundScales;
+    uniform sampler2D uPathMap;
+    uniform vec4 uPathInfo;
+    uniform vec3 uPathColor;
+    uniform vec3 uPathWorn;
+    uniform float uPathFloor;
+  #endif
   ${CLAY_FRAG}
   ${NOISE2}
+`;
+
+/** Pebbles and grain tilt the light: the detail map's bump, in world space, on the ground only. */
+export const GROUND_NORMAL_FRAG = /* glsl */ `
+  #ifdef BH_REVEAL_GROUND
+    vec2 bhBump = texture2D(uGroundNormal, vClayWorld.xz * uGroundScales.x).xy * 2.0 - 1.0;
+    vec3 bhWorldN = normalize((vec4(normal, 0.0) * viewMatrix).xyz);
+    bhWorldN = normalize(bhWorldN + vec3(bhBump.x, 0.0, bhBump.y) * uGroundScales.w);
+    normal = normalize((viewMatrix * vec4(bhWorldN, 0.0)).xyz);
+  #endif
 `;

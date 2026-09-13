@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import type * as THREE from 'three';
 
 import { buildGround, buildIslandBody, buildIsletGround } from '@/lib/render/geometry/terrain';
-import { getClayMaterial } from '@/lib/render/materials';
+import { buildGroundDetail, type GroundDetail } from '@/lib/render/geometry/ground-detail';
+import { pathInfo, pathMapFor } from '@/lib/render/geometry/path-map';
+import { getClayMaterial, getTexture } from '@/lib/render/materials';
 import { TIERS } from '@/lib/render/quality';
-import type { WorldPalette } from '@/lib/render/palette';
+import { CLAY, type WorldPalette } from '@/lib/render/palette';
+import { GROUND, WATER_LEVEL } from '@/lib/world/config';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { Heightfield } from '@/lib/world/terrain';
 import type { QualityTier } from '@/lib/world/types';
@@ -38,12 +42,18 @@ export function Island({
   // Terrain opts out of BOTH silhouette effects: the vertical AO (its occlusion
   // is already baked per vertex) and the Fresnel rim (on a floor, a rim term is
   // a wash, not an edge).
-  const material = useMemo(
+  const material = useMemo(() => {
     // `ground: true` is what lets the tier-up uplift deform this and carry
     // everything standing on it instead (`lib/render/reveal.ts`).
-    () => getClayMaterial({ vertexColors: true, ao: false, rim: false, wobble: true, ground: true }),
-    [],
-  );
+    const mat = getClayMaterial({ vertexColors: true, ao: false, rim: false, wobble: true, ground: true });
+    // Soil grain, pebbles and litter, and their bump (`geometry/ground-detail.ts`).
+    // Both maps come out of one bake; the cache owns their disposal.
+    let built: GroundDetail | null = null;
+    const detail = () => (built ??= buildGroundDetail());
+    mat.clayUniforms.uGroundDetail!.value = getTexture('ground-detail', () => detail().albedo);
+    mat.clayUniforms.uGroundNormal!.value = getTexture('ground-normal', () => detail().normal);
+    return mat;
+  }, []);
   const grid = TIERS[tier].terrainGrid;
 
   const ground = useMemo(
@@ -56,6 +66,16 @@ export function Island({
     () => (layout.terrain.islet ? buildIsletGround(heightfield, layout.terrain.islet, palette) : null),
     [heightfield, layout, palette],
   );
+
+  // The worn paths, cut by the shader from their distance map (`geometry/path-map.ts`).
+  useEffect(() => {
+    const u = material.clayUniforms;
+    u.uPathMap!.value = pathMapFor(layout, heightfield.extent);
+    pathInfo(heightfield.extent, u.uPathInfo!.value as THREE.Vector4);
+    (u.uPathColor!.value as THREE.Color).set(CLAY.path);
+    (u.uPathWorn!.value as THREE.Color).set(CLAY.pathWorn);
+    u.uPathFloor!.value = WATER_LEVEL + GROUND.pathAboveWaterM;
+  }, [material, layout, heightfield]);
 
   useEffect(() => () => ground.dispose(), [ground]);
   useEffect(() => () => body.dispose(), [body]);
