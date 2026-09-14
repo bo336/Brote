@@ -10,7 +10,7 @@
  *
  * `Math.random()` is banned here (`01-RULES.md` §3.11).
  */
-import { LAYOUT, SCALE_REFERENCE, TERRAIN } from './config';
+import { LAYOUT, MOORING, SCALE_REFERENCE, TERRAIN, WATER_LEVEL } from './config';
 import { bridgeCrossing } from './crossing';
 import { CACHE_SPOTS, REGION_SPECS, regionCentre, regionRadius } from './regions';
 import { islandRadius, tierForRegion } from './progression';
@@ -291,12 +291,25 @@ function buildScatter(terrain: WorldLayout, regions: RegionAnchor[], seed: numbe
 }
 
 /** Fixed structures. One per feature, placed relative to its region's anchor. */
-function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: readonly FeatureId[]): AnchorPoint[] {
+function buildAnchors(
+  regions: RegionAnchor[],
+  terrain: WorldLayout,
+  features: readonly FeatureId[],
+  coastline: Parameters<typeof coastRadiusAt>[0],
+): AnchorPoint[] {
   const out: AnchorPoint[] = [];
   const at = (id: RegionId): [number, number] => regionCentre(id);
   const push = (id: string, feature: FeatureId, x: number, z: number, rotY: number) => {
     if (!features.includes(feature)) return;
-    out.push({ id, feature, x, z, rotY });
+    let px = x;
+    let pz = z;
+    // Out of any water it lands in. Once the mountain sends El Río across the
+    // meadow, it runs past El Claro — and El Mojón was standing in it.
+    if (feature !== 'puddle' && terrainHeight(x, z, terrain) < WATER_LEVEL + TERRAIN.plantableMinHeight) {
+      const snapped = snapToLand(x, z, terrain, mulberry32(hashInt(`anchor:${id}`)));
+      if (snapped) [px, pz] = snapped;
+    }
+    out.push({ id, feature, x: px, z: pz, rotY });
   };
   // El Mojón sits on the path between El Claro and La Pradera, from tier 1.
   const [px, pz] = at('pradera');
@@ -321,9 +334,28 @@ function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: r
   const [cx, cz] = at('cumbre');
   push('telescopio', 'telescope', cx * 1.02, cz * 0.94, 0);
   push('monumento', 'monument', cx, cz, 0);
+  // El bote waits in the water off the beach that faces El Islote, bow toward it.
+  // At seven tenths of the islet's centre it was parked on the grass.
   const [ix, iz] = at('islote');
-  push('bote', 'boat', ix * 0.7, iz * 0.7, Math.atan2(iz, ix));
+  if (features.includes('boat')) {
+    const moored = mooring(coastline, ix, iz);
+    out.push({ id: 'bote', feature: 'boat', x: moored.x, z: moored.z, rotY: moored.rotY });
+  }
   return out;
+}
+
+/**
+ * Just past the coastline, on the line toward a point, bow toward it. The sea is
+ * whatever lies past the coast — the height function there is undrawn land a few
+ * centimetres up, so it cannot be asked where the water starts.
+ */
+function mooring(coastline: Parameters<typeof coastRadiusAt>[0], tx: number, tz: number): { x: number; z: number; rotY: number } {
+  const angle = Math.atan2(tz, tx);
+  const r = coastRadiusAt(coastline, angle) + MOORING.offsetM;
+  const dx = Math.cos(angle);
+  const dz = Math.sin(angle);
+  // three's rotation.y takes local +Z (the bow) to (sin θ, cos θ).
+  return { x: dx * r, z: dz * r, rotY: Math.atan2(dx, dz) };
 }
 
 /**
@@ -365,7 +397,7 @@ export function buildLayout(userId: string, cfg: WorldConfig): IslandLayout {
   const terrain = buildTerrainLayout(R, seed, cfg.features);
   const coastline = buildCoastline(R, seed);
   const scatter = buildScatter(terrain, regions, seed);
-  const anchors = buildAnchors(regions, terrain, cfg.features);
+  const anchors = buildAnchors(regions, terrain, cfg.features, coastline);
   const caches = buildCaches(regions, cfg.verbs);
 
   const river = terrain.rivers[0];

@@ -27,6 +27,8 @@ const STEP_M = 0.45;
 const ACROSS = 9;
 /** How far below the lower bank the water line must stay. */
 const BANK_FREEBOARD_M = 0.08;
+/** Steeper than this (rise over run) and the surface is not drawn as lying water. */
+const MAX_SURFACE_SLOPE = 0.35;
 
 export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMesh[] {
   const out: WaterMesh[] = [];
@@ -78,6 +80,9 @@ export function buildRiverMeshes(terrain: WorldLayout, hf: Heightfield): WaterMe
         const d = c + 1;
         // A quad wholly under the banks is never seen; skip it.
         if (depths[a]! + depths[b]! + depths[c]! + depths[d]! === 0) continue;
+        // Where the channel falls steeply — down the mountain from its source — a
+        // sheet of water lying on the slope read as a smear of white paint.
+        if (Math.abs(positions[a * 3 + 1]! - positions[c * 3 + 1]!) > STEP_M * MAX_SURFACE_SLOPE) continue;
         // At sea level the shallows are the surface (`water-grid.ts`): two
         // transparent sheets at one height drew a pale seam, and a strip that
         // stopped where a lake's grid did not start drew squares of dry sand.

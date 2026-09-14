@@ -216,6 +216,12 @@ export const GROUND = {
   pathAboveWaterM: 0.03,
 } as const;
 
+/** El bote, moored off the beach that faces El Islote (`layout.ts`). */
+export const MOORING = {
+  offsetM: 0.9, // how far past the coastline it floats — close enough to board from the sand
+  floatM: 0.04, // how far the hull sits below the water line
+} as const;
+
 /** El puente: where it goes, how it is built, how it is walked (`crossing.ts`, `decks.ts`). */
 export const BRIDGE = {
   samples: 60, // points along each river considered for the crossing
@@ -254,6 +260,11 @@ export const WATER = {
   // across, and each one whose centre sat on a sandbar left a square of dry sand.
   lakeCellM: 0.8,
   lakeMaxSegments: 240,
+  // Past the coast the height function is dry land nobody draws; the water
+  // measures itself against sea floor there instead (`render/height-texture.ts`).
+  seaFloorM: 2.5, // below the water line, once past the shelf
+  seaShelfM: 4, // the floor falls away over this far past the coastline
+  isletShoreFrac: 1.35, // …except this close to El Islote, whose own beach is real
   /**
    * A body of water this small is a puddle, not a shore: no surf, only a thin wet
    * line, and coloured against its own few centimetres. Drawn with the lagoon's

@@ -4,10 +4,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { buildProp, buildMovingPart, buildStructure, propFootprint, PROP_IDS, PROP_SPECS } from '@/lib/render/geometry';
-import { getClayMaterial } from '@/lib/render/materials';
+import {
+  buildProp, buildMovingPart, buildStructure, getTree, propFootprint, PROP_IDS, PROP_SPECS,
+} from '@/lib/render/geometry';
+import { buildLeafAtlas } from '@/lib/render/geometry/leaf-atlas';
+import { getClayMaterial, getTexture } from '@/lib/render/materials';
 import { DOMAIN_COLORS } from '@/lib/render/palette';
-import { WIND } from '@/lib/world/config';
+import { MOORING, SCALE_REFERENCE, WATER_LEVEL, WIND } from '@/lib/world/config';
 import { bridgeDeck } from '@/lib/world/decks';
 import type { IslandLayout } from '@/lib/world/layout';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
@@ -30,6 +33,8 @@ const SWAY_AMPLITUDE = 0.06;
 const DEMO_RING_M = 4.2;
 /** Blob footprint for a fixed structure, in metres. Props use their own. */
 const STRUCTURE_SHADOW = 0.55;
+/** Where along its height an ombú forks, as a fraction — the treehouse deck sits there. */
+const TREEHOUSE_FORK = 0.6;
 
 /** Where each prop's moving part is mounted, relative to the prop's origin. */
 const MOVING_MOUNTS: Partial<Record<PropId, [number, number, number]>> = {
@@ -71,6 +76,29 @@ export function Props({
   const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
   const movingRefs = useRef<(THREE.Object3D | null)[]>([]);
   const swayRefs = useRef<(THREE.Object3D | null)[]>([]);
+  /** The same leaf material and shadow cut-out as the island's trees (`Vegetation.tsx`). */
+  const canopy = useMemo(
+    () => getClayMaterial({
+      vertexColors: true, wind: true, wobble: false, side: THREE.DoubleSide, alphaTest: 0.5,
+      map: getTexture('leaf-atlas', buildLeafAtlas),
+    }),
+    [],
+  );
+  const canopyDepth = useMemo(
+    () => new THREE.MeshDepthMaterial({
+      depthPacking: THREE.RGBADepthPacking, map: getTexture('leaf-atlas', buildLeafAtlas), alphaTest: 0.5,
+    }),
+    [],
+  );
+  useEffect(() => () => canopyDepth.dispose(), [canopyDepth]);
+  /** The treehouse's ombú, scaled so its fork meets the deck. */
+  const treehouseTree = useMemo(() => {
+    // `oak` is the ombú's shape in the tree builder: the broad umbrella crown.
+    const built = getTree('oak', 1, 0);
+    if (!built.wood.boundingBox) built.wood.computeBoundingBox();
+    const height = built.wood.boundingBox!.max.y || 1;
+    return { ...built, scale: (SCALE_REFERENCE.fullTreeM * 0.62) / (height * TREEHOUSE_FORK) };
+  }, []);
 
   /** The fixed structures: one per feature the tier has actually granted. */
   const structures = useMemo(() => {
@@ -79,9 +107,13 @@ export function Props({
         const geometry = buildStructure(anchor.feature, anchor.span);
         if (!geometry) return null;
         const walkable = anchor.feature === 'bridge';
+        const ground = sampleHeight(heightfield, anchor.x, anchor.z);
         // The bridge rests on its banks, not on the riverbed under its middle —
-        // the same height the movement solver stands Pip on (`decks.ts`).
-        const y = walkable ? bridgeDeck(anchor, heightfield).baseY : sampleHeight(heightfield, anchor.x, anchor.z);
+        // the same height the movement solver stands Pip on (`decks.ts`). The
+        // boat floats at the water line, whatever the bottom under it does.
+        const y = walkable
+          ? bridgeDeck(anchor, heightfield).baseY
+          : anchor.feature === 'boat' ? WATER_LEVEL - MOORING.floatM : ground;
         return {
           key: anchor.id,
           geometry,
@@ -89,10 +121,13 @@ export function Props({
           rotY: anchor.rotY,
           sways: anchor.feature === 'hammock',
           walkable,
+          // The treehouse had a platform and a ladder and no tree: a deck floating
+          // in the air. It grows its own ombú, sized so the deck sits in the fork.
+          tree: anchor.feature === 'treehouse' ? treehouseTree : null,
         };
       })
       .filter((s): s is NonNullable<typeof s> => s !== null);
-  }, [layout, heightfield]);
+  }, [layout, heightfield, treehouseTree]);
 
   /** The placed props — the player's, or the demo ring while there are none. */
   const placed = useMemo<Placed[]>(() => {
@@ -187,6 +222,18 @@ export function Props({
           }}
         >
           <mesh geometry={s.geometry} material={solid} castShadow receiveShadow />
+          {s.tree && (
+            <group scale={s.tree.scale}>
+              <mesh geometry={s.tree.wood} material={solid} castShadow receiveShadow />
+              <mesh
+                geometry={s.tree.leaves}
+                material={canopy}
+                customDepthMaterial={canopyDepth}
+                castShadow
+                receiveShadow
+              />
+            </group>
+          )}
         </group>
       ))}
 

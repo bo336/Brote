@@ -103,7 +103,7 @@ export function bakeGrassTextures(
   }
 
   // Shared with the water, which measures its depth against it.
-  const heightTex = heightTextureFor(hf);
+  const heightTex = heightTextureFor(hf, layout);
   const maskTex = new THREE.DataTexture(mask, res, res, THREE.RGBAFormat, THREE.UnsignedByteType);
   maskTex.magFilter = maskTex.minFilter = THREE.LinearFilter;
   maskTex.needsUpdate = true;

@@ -97,10 +97,10 @@ export function Water({
   useEffect(() => {
     for (const mat of [material, puddleMaterial]) {
       const u = mat.waterUniforms;
-      u.uHeightTex!.value = heightTextureFor(heightfield);
+      u.uHeightTex!.value = heightTextureFor(heightfield, layout);
       heightInfo(heightfield, u.uHeightInfo!.value as THREE.Vector4);
     }
-  }, [material, puddleMaterial, heightfield]);
+  }, [material, puddleMaterial, heightfield, layout]);
 
   useEffect(() => () => meshes.forEach((m) => m.geometry.dispose()), [meshes]);
   useEffect(() => () => sea.geometry.dispose(), [sea]);
