@@ -984,7 +984,15 @@
       "close": "Cerrar",
       "suggestion": "Completaste {dominio}. Hay una acción real que va con eso.",
       "suggestionGo": "Ver",
-      "suggestionNo": "Ahora no"
+      "suggestionNo": "Ahora no",
+      "pathTitle": "Tu camino",
+      "pathLevel": "Nivel {n} de {max} · {rank}",
+      "pathNow": "Estás acá",
+      "pathNext": "Lo que viene",
+      "pathHow": "Cada nivel llega con acciones reales en la app: el agua, la energía, lo que consumís.",
+      "pathWorld": "Mundo {n}",
+      "pathWorldProgress": "{growth} de {goal} acciones",
+      "pathWorldInfinite": "Los mundos no se terminan: cada uno le cambia el aire y el paisaje a tu isla."
     },
     "tod": {
       "amanecer": "al amanecer",

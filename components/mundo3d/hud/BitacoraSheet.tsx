@@ -8,6 +8,7 @@ import { getDomainColor } from '@/lib/domains';
 import { pagesFor, progressFor } from '@/lib/world/journal';
 import { cn } from '@/lib/utils/cn';
 import { DomainSuggestion } from './DomainSuggestion';
+import { LevelPath } from './LevelPath';
 import { useRegionCensus } from './useRegionCensus';
 import type { JournalEntry } from '@/lib/world/types';
 
@@ -34,10 +35,15 @@ interface BitacoraSheetProps {
   canArrange: boolean;
   onArrange: () => void;
   onOpenSettings: () => void;
+  /** The world the biome is on, and real actions into it — for "Tu camino". */
+  worldIndex: number;
+  worldGrowth: number;
+  worldGoal: number;
 }
 
 export function BitacoraSheet({
   open, onClose, userId, tier, journal, readOnly, canArrange, onArrange, onOpenSettings,
+  worldIndex, worldGrowth, worldGoal,
 }: BitacoraSheetProps) {
   const t = useTranslations('mundo.bitacora');
   const tHud = useTranslations('mundo');
@@ -97,6 +103,10 @@ export function BitacoraSheet({
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
+        {/* First, not after four thousand pixels of census: where you are, and
+            what the next level brings, is the question somebody opens this with. */}
+        <LevelPath tier={tier} worldIndex={worldIndex} growth={worldGrowth} goal={worldGoal} />
+
         {total.seen === 0 && (
           <p className="mt-6 text-body text-brote-cream/80">{t('empty')}</p>
         )}

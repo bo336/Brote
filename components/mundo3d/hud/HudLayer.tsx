@@ -124,6 +124,9 @@ export function HudLayer({
         canArrange={placement.props.length > 0}
         onArrange={() => setHud('placement')}
         onOpenSettings={() => setHud('settings')}
+        worldIndex={worldIndex}
+        worldGrowth={worldGrowth}
+        worldGoal={worldGoal}
       />
       {hud === 'placement' && placementActions && (
         <PlacementBar
