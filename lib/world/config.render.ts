@@ -264,7 +264,7 @@ export const WATER = {
   // measures itself against sea floor there instead (`render/height-texture.ts`).
   seaFloorM: 2.5, // below the water line, once past the shelf
   seaShelfM: 4, // the floor falls away over this far past the coastline
-  isletShoreFrac: 1.35, // …except this close to El Islote, whose own beach is real
+  isletRimFrac: 0.95, // …and past this fraction of El Islote's radius, where its own ground mesh ends
   /**
    * A body of water this small is a puddle, not a shore: no surf, only a thin wet
    * line, and coloured against its own few centimetres. Drawn with the lagoon's

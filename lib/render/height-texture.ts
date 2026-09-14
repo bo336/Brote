@@ -36,9 +36,13 @@ export function heightTextureFor(hf: Heightfield, layout: IslandLayout): THREE.D
         const x = -extent + ix * step;
         const i = iz * res + ix;
         let h = data[i]!;
-        const past = Math.hypot(x, z) - coastRadiusAt(layout.coastline, Math.atan2(z, x));
-        const nearIslet = islet !== null && Math.hypot(x - islet.x, z - islet.z) < islet.r * WATER.isletShoreFrac;
-        if (past > 0 && !nearIslet) {
+        // Sea is whatever lies past the main coast AND past El Islote's own rim.
+        // Keeping a whole ring round the islet dry left undrawn land there, the
+        // sea discarded itself over it, and the sky showed through as a pale band.
+        const pastMain = Math.hypot(x, z) - coastRadiusAt(layout.coastline, Math.atan2(z, x));
+        const pastIslet = islet === null ? Infinity : Math.hypot(x - islet.x, z - islet.z) - islet.r * WATER.isletRimFrac;
+        const past = Math.min(pastMain, pastIslet);
+        if (past > 0) {
           const k = Math.min(1, past / WATER.seaShelfM);
           const shelf = k * k * (3 - 2 * k);
           h = Math.min(h, h + (floor - h) * shelf);

@@ -26,6 +26,7 @@ import {
   CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, GROUND_DETAIL_FRAG, GROUND_NORMAL_FRAG, HEIGHT_FOG_FRAG,
   REVEAL_FRAG, REVEAL_VERT, WIND_VERT, WOBBLE_VERT,
 } from './chunks';
+import { FAUNA_NORMAL_VERT, FAUNA_POSITION_VERT, FAUNA_VERT_HEAD } from './fauna-rig';
 import { REVEAL_OFF, revealModeIndex, type RevealState } from '../reveal';
 
 export interface WorldMood {
@@ -72,6 +73,8 @@ export interface ClayOptions {
   alphaTest?: number;
   /** Lets the sun through when seen against it. Foliage always does; Pip's soft body too. */
   translucent?: boolean;
+  /** The animals: wings, legs, tail and head move on the GPU (`fauna-rig.ts`). Instanced meshes only. */
+  fauna?: boolean;
 }
 
 export interface ClayMaterial extends THREE.MeshStandardMaterial {
@@ -180,6 +183,7 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   // The rim is Pip's now: on everything else it read as a glow painted round the edges.
   if ((opts.rim ?? true) && (opts.rimBoost ?? 1) > 1) defines.push('#define BH_RIM');
   if (opts.ground) defines.push('#define BH_REVEAL_GROUND');
+  if (opts.fauna) defines.push('#define BH_FAUNA');
   // Leaf cards carry the crown's normal on both faces; the default flip darkens every back face.
   if (opts.map && opts.side === THREE.DoubleSide) defines.push('#define BH_CARD_NORMALS');
   const defineBlock = defines.join('\n');
@@ -202,10 +206,12 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
       inject(
         inject(shader.vertexShader, '#include <common>', `#include <common>
 ${defineBlock}
-${CLAY_VERT_HEAD}`),
+${CLAY_VERT_HEAD}
+${FAUNA_VERT_HEAD}`),
         '#include <begin_vertex>',
         /* glsl */ `
         #include <begin_vertex>
+        ${FAUNA_POSITION_VERT}
         vec3 bhWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
         #ifdef USE_INSTANCING
           bhWorld = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
@@ -226,6 +232,13 @@ ${CLAY_VERT_HEAD}`),
         #include <fog_vertex>
         vFogDepth = -mvPosition.z;
       `,
+    );
+
+    shader.vertexShader = inject(
+      shader.vertexShader,
+      '#include <beginnormal_vertex>',
+      `#include <beginnormal_vertex>
+        ${FAUNA_NORMAL_VERT}`,
     );
 
     shader.fragmentShader = inject(

@@ -91,6 +91,7 @@ function clayKey(o: ClayOptions): string {
     o.map?.uuid ?? '-',
     o.alphaTest ?? 0,
     o.translucent ? 'sss' : '-',
+    o.fauna ? 'fauna' : '-',
   ].join(':');
 }
 
