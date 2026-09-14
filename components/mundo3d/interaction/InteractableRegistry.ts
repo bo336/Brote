@@ -82,7 +82,19 @@ export function getInteractable(id: string): RegisteredInteractable | undefined 
  * The nearest usable interactable, or `null`. Called every third frame, so it
  * allocates nothing and iterates a map that is never long.
  */
-export function findActive(x: number, z: number, yaw: number, verbs: readonly VerbId[]): RegisteredInteractable | null {
+export function findActive(
+  x: number,
+  z: number,
+  yaw: number,
+  verbs: readonly VerbId[],
+  /**
+   * What the objective card points at. It wins a tie with anything of its own
+   * rank: walking up to the berries the card asked for and getting "Registrar"
+   * for a daisy beside them left the objective unfinishable from where it said
+   * to stand.
+   */
+  preferId: string | null = null,
+): RegisteredInteractable | null {
   let best: RegisteredInteractable | null = null;
   let bestScore = Infinity;
   let bestRank = -Infinity;
@@ -102,7 +114,8 @@ export function findActive(x: number, z: number, yaw: number, verbs: readonly Ve
     // 0 when Pip faces the object, 1 when it is directly behind them.
     const facing = distance < 0.001 ? 0 : (1 - (dx * fx + dz * fz) / distance) / 2;
     const score = distance / item.radius + facing * INTERACT.facingWeight;
-    const rank = item.priority ?? PRIORITY.normal;
+    // Half a rank: above its peers, never above something more urgent.
+    const rank = (item.priority ?? PRIORITY.normal) + (item.id === preferId ? 5 : 0);
     // Priority first, then the nearest thing you are facing within that rank.
     if (rank > bestRank || (rank === bestRank && score < bestScore)) {
       bestRank = rank;

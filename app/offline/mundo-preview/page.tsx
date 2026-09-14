@@ -193,6 +193,7 @@ function Preview() {
       __geometries?: () => string[];
       __interactables?: () => unknown[];
       __anchors?: () => unknown[];
+      __objective?: () => unknown;
       __pip?: () => unknown;
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
@@ -269,6 +270,13 @@ function Preview() {
     // Where the ladder's structures stand, for framing the bridge, the treehouse
     // or the telescope without knowing today's chores.
     w.__anchors = () => useWorldStore.getState().layout?.anchors ?? [];
+    // The one next thing to do, and what just paid out — for walking the loop
+    // task by task instead of guessing at it from the card.
+    w.__objective = () => ({
+      objective: useSessionStore.getState().objective,
+      reward: useSessionStore.getState().reward,
+      semillas: usePlayerStore.getState().semillas,
+    });
     // Where Pip actually is, and what the button is currently offering.
     // …and what the controls harness needs to check a jump and a press of E.
     w.__pip = () => ({

@@ -1,13 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { INTERACT, SEMILLAS, VERB_TIMING } from '@/lib/world/config';
 import { createClient } from '@/lib/supabase/client';
 import type { FxKind } from '@/lib/render/fx';
 import { SPECIES_BY_SLUG } from '@/lib/world/species';
 import type { VerbId } from '@/lib/world/types';
-import { celebrate } from '../state/feedback';
+import { haptic } from '@/lib/utils/haptics';
+import { playSfx } from '../audio/sfx';
+import { celebrate, emitFx } from '../state/feedback';
 import { useSessionStore } from '../state/useSessionStore';
 
 /** What each verb throws into the air when it lands. */
@@ -27,7 +29,7 @@ import { registerInteractable } from '../interaction/InteractableRegistry';
 import { useMicroFacts } from '../interaction/useMicroFacts';
 import type { CharacterController } from '../control/CharacterController';
 import { usePlayerStore } from '../state/usePlayerStore';
-import { VerbRuntime, type VerbResult } from './runtime';
+import { VerbRuntime, type VerbActivity, type VerbResult } from './runtime';
 import { useVerbSpots, type VerbSpot } from './register';
 import { useForage } from './useForage';
 
@@ -81,6 +83,16 @@ export function useWorldVerbs({
   /** One sentence, in world space, at most a tenth of the session. */
   const facts = useMicroFacts();
 
+  /**
+   * Foraging nodes empty when picked and come back on their own timers. An
+   * empty one stays in the world and stops offering itself.
+   */
+  const forage = useForage({ userId, seed, readOnly });
+  /** Sightings filed this session. */
+  const [logged, setLogged] = useState<ReadonlySet<string>>(() => new Set());
+  /** Everything that is not offering itself right now: empty bushes, filed sightings. */
+  const quiet = useMemo(() => new Set([...forage.empty, ...logged]), [forage.empty, logged]);
+
   const onVerbFinish = useCallback(
     (result: VerbResult) => {
       const spot = inFlight.current;
@@ -88,6 +100,16 @@ export function useWorldVerbs({
       setVerb(null);
       controller?.setLocked(false);
       if (!result.success) return;
+      /**
+       * **The bush empties when the picking is done, not when it starts.** It
+       * used to empty on the press of E: the node stopped offering itself, the
+       * runtime saw its target vanish and cancelled the verb, and the player got
+       * no berries, no card, and a Pip stuck mid-gesture.
+       */
+      if (result.verb === 'forage' && spot) forage.pick(spot.id);
+      // A sighting filed is filed: the spot stops offering itself, or every
+      // press of E said "new species" again for the same bird.
+      if (result.verb === 'log' && spot) setLogged((prev) => (prev.has(spot.id) ? prev : new Set(prev).add(spot.id)));
       // Sound, motion and haptic together: one alone reads as a bug (`10` §6).
       // It used to be the haptic alone, which is the whole of why planting
       // "didn't work": it did, and nothing on screen said so.
@@ -146,21 +168,43 @@ export function useWorldVerbs({
       // nothing awards it). Until it does, foraging pays **nothing** rather
       // than a number this file made up.
     },
-    [controller, setVerb, setSemillas, timeOfDay, readOnly, facts],
+    [controller, setVerb, setSemillas, timeOfDay, readOnly, facts, forage],
   );
 
-  const runtime = useMemo(() => new VerbRuntime(onVerbFinish), [onVerbFinish]);
+  /**
+   * **The bite has to be seen, heard and felt.** A splash where the line is, the
+   * splash sound, a tap, and one line on screen saying what to do — for the
+   * whole 900 ms window, which is otherwise the easiest thing in the game to miss.
+   */
+  const onVerbPhase = useCallback((activity: VerbActivity) => {
+    if (activity.verb !== 'fish' || activity.phase !== 'window') return;
+    const at = inFlight.current?.position;
+    if (at) emitFx('water', at[0], at[1] + 0.1, at[2]);
+    playSfx('splash');
+    haptic('success');
+    useSessionStore.getState().setNote('fish.bite');
+  }, []);
+
+  /**
+   * **One runtime for the life of the island.** It used to be rebuilt whenever
+   * its callbacks changed identity — and they change on nearly every render — so
+   * a fishing line cast into one runtime was waiting in an object nobody updated
+   * any more: no bite, no catch, and a Pip stuck holding the rod. The callbacks
+   * go through refs instead; the runtime and whatever it is doing survive.
+   */
+  const finishRef = useRef(onVerbFinish);
+  const phaseRef = useRef(onVerbPhase);
+  finishRef.current = onVerbFinish;
+  phaseRef.current = onVerbPhase;
+  const runtime = useMemo(
+    () => new VerbRuntime((result) => finishRef.current(result), (activity) => phaseRef.current(activity)),
+    [],
+  );
 
   /**
    * Using a verb. `sail` and `rest` change how movement works rather than
    * pausing it, so they go to the controller; everything else is a timed action.
    */
-  /**
-   * Foraging nodes empty when picked and come back on their own timers. An
-   * empty one stays in the world and stops offering itself.
-   */
-  const forage = useForage({ userId, seed, readOnly });
-
   const onUseVerb = useCallback(
     (spot: VerbSpot) => {
       if (!controller) return;
@@ -170,9 +214,9 @@ export function useWorldVerbs({
         controller.boardBoat();
         return;
       }
-      if (spot.verb === 'forage') {
-        // Picked here and paid for by the server, which owns the daily cap.
-        forage.pick(spot.id);
+      if (spot.verb === 'fish') {
+        // The wait is three to ten seconds; say so, or it reads as nothing happening.
+        useSessionStore.getState().setNote('fish.cast');
       }
       if (spot.verb === 'rest') {
         // Resting advances the time of day one preset — the only control over
@@ -189,10 +233,10 @@ export function useWorldVerbs({
       controller.setLocked(true);
       runtime.begin(spot.verb, spot.id);
     },
-    [controller, runtime, setVerb, onAdvanceTime, forage],
+    [controller, runtime, setVerb, onAdvanceTime],
   );
 
-  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb, forage.empty);
+  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb, quiet);
 
   /**
    * El Mojón, the one place a number lives.

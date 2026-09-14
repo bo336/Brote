@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 
+import { openGround } from '@/lib/world/bands';
 import { INTERACT } from '@/lib/world/config';
 import { regionCentre } from '@/lib/world/layout';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -108,7 +109,8 @@ export function buildVerbSpots(
   if (has('log')) {
     for (const region of layout.regions) {
       if (!region.unlocked) continue;
-      const candidates = layout.scatter.filter((p) => p.region === region.id);
+      // Never on a tree's point: its trunk would stand between Pip and the sighting.
+      const candidates = openGround(layout.scatter.filter((p) => p.region === region.id));
       if (candidates.length === 0) continue;
       const visible = speciesFor(region.id, config.tier, timeOfDay, season);
       visible.forEach((species, i) => {
@@ -124,7 +126,8 @@ export function buildVerbSpots(
 
   // ── recolectar: berry and seed nodes in La Arboleda, from tier 5.
   if (has('forage')) {
-    const candidates = layout.scatter.filter((p) => p.region === 'arboleda');
+    // La Arboleda is mostly trees; a bush inside a trunk could never be picked.
+    const candidates = openGround(layout.scatter.filter((p) => p.region === 'arboleda'));
     for (let i = 0; i < Math.min(FORAGE_NODES, candidates.length); i++) {
       const point = candidates[Math.floor((i / FORAGE_NODES) * candidates.length)]!;
       spots.push({

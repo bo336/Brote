@@ -711,6 +711,10 @@
       "jump": "Jump",
       "nothingNear": "Nothing nearby to use. Look for the green ring."
     },
+    "fish": {
+      "cast": "Line's out. Wait for a bite…",
+      "bite": "It's biting! Press E or the button, now."
+    },
     "poster": {
       "enter": "Entrar a tu isla",
       "growth": "{actual} de {objetivo}"

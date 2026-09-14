@@ -711,6 +711,10 @@
       "jump": "Saltar",
       "nothingNear": "No hay nada cerca para usar. Buscá el aro verde."
     },
+    "fish": {
+      "cast": "Tiraste la línea. Esperá a que pique…",
+      "bite": "¡Pica! Tocá E o el botón, ya."
+    },
     "poster": {
       "enter": "Entrar a tu isla",
       "growth": "{actual} de {objetivo}"

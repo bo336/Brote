@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 
 import { GUIDE } from '@/lib/world/config';
 import type { IslandLayout } from '@/lib/world/layout';
-import { hasVisited, pickObjective } from '@/lib/world/objectives';
+import { DONE_NEAR_M, hasVisited, pickObjective } from '@/lib/world/objectives';
 import type { Heightfield } from '@/lib/world/terrain';
 import type { RegionId } from '@/lib/world/types';
 import { listInteractables } from '../interaction/InteractableRegistry';
@@ -26,6 +26,9 @@ import { WorldFx } from './WorldFx';
 export function Guidance({ layout, heightfield }: { layout: IslandLayout; heightfield: Heightfield }) {
   const visited = useRef(new Set<RegionId>(['claro']));
   const since = useRef<number>(GUIDE.trackEveryS);
+  /** What already paid out this session, so the card moves on (`pickObjective`'s `skip`). */
+  const done = useRef(new Set<string>());
+  const lastReward = useRef<number | null>(null);
 
   useFrame((_, dt) => {
     since.current += dt;
@@ -33,6 +36,15 @@ export function Guidance({ layout, heightfield }: { layout: IslandLayout; height
     since.current = 0;
     const p = playerTransform;
     const store = useSessionStore.getState();
+    // A reward card next to the thing the card pointed at is that thing done.
+    const reward = store.reward;
+    if (reward && reward.id !== lastReward.current) {
+      lastReward.current = reward.id;
+      const o = store.objective;
+      if (o?.targetId && o.target && Math.hypot(o.target.x - p.x, o.target.z - p.z) < DONE_NEAR_M) {
+        done.current.add(o.targetId);
+      }
+    }
     for (const region of layout.regions) {
       if (!region.unlocked || visited.current.has(region.id) || !hasVisited(region, p.x, p.z)) continue;
       visited.current.add(region.id);
@@ -45,6 +57,7 @@ export function Guidance({ layout, heightfield }: { layout: IslandLayout; height
         regions: layout.regions,
         visited: visited.current,
         firstRunBeat: store.firstRun?.beat ?? null,
+        skip: done.current,
       }),
     );
   });

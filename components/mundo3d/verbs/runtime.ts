@@ -71,10 +71,17 @@ function waitSeconds(seed: number): number {
 export class VerbRuntime {
   private activity: VerbActivity | null = null;
   private onFinish: (result: VerbResult) => void;
+  /**
+   * A phase the player has to react to has begun. Fishing's bite used to open
+   * its 900 ms window in silence — nothing on screen, no sound — so the only
+   * way to catch a fish was to press E at random.
+   */
+  private onPhase?: (activity: VerbActivity) => void;
   private casts = 0;
 
-  constructor(onFinish: (result: VerbResult) => void) {
+  constructor(onFinish: (result: VerbResult) => void, onPhase?: (activity: VerbActivity) => void) {
     this.onFinish = onFinish;
+    this.onPhase = onPhase;
   }
 
   get current(): VerbActivity | null {
@@ -162,6 +169,7 @@ export class VerbRuntime {
           a.phase = 'window';
           a.remainingS = VERB_TIMING.fishTugWindowMs / 1000;
           a.progress = 0;
+          this.onPhase?.(a);
         }
         break;
       }

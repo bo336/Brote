@@ -85,11 +85,19 @@ export function useForage({
 
   const pick = useCallback(
     (nodeId: string) => {
-      if (readOnly || inFlight.current) return;
-      inFlight.current = true;
-      const next = { ...readPicked(userId), [nodeId]: Date.now() };
-      writePicked(userId, next);
+      /**
+       * **The bush empties whether or not anything can be written.** This used to
+       * return before touching the node on a read-only island, so a picked bush
+       * stayed ripe, kept offering itself, and the objective card pointed at it
+       * forever. Emptying a node is world state, not currency: only the award
+       * below needs the server.
+       */
+      if (inFlight.current) return;
+      const next = { ...(readOnly ? picked : readPicked(userId)), [nodeId]: Date.now() };
+      if (!readOnly) writePicked(userId, next);
       setPicked(next);
+      if (readOnly) return;
+      inFlight.current = true;
 
       void (async () => {
         try {
@@ -107,7 +115,7 @@ export function useForage({
         }
       })();
     },
-    [userId, readOnly, setSemillas],
+    [userId, readOnly, setSemillas, picked],
   );
 
   /** Nodes the clock has emptied, whether or not this browser picked them. */

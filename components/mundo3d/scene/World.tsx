@@ -26,6 +26,7 @@ import { ProximityDetector } from '../interaction/ProximityDetector';
 import { useInteractBridge } from '../interaction/useInteractBridge';
 import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
+import { ForageBushes } from './ForageBushes';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
 import type { RawMarker } from '@/lib/world/markers';
@@ -319,6 +320,8 @@ export function World({
         createdAt={createdAt}
         onColliders={colliders.onTrees}
       />
+      {/* The calafates you forage from. Only once the tier has granted the verb. */}
+      {config.verbs.includes('forage') && <ForageBushes />}
       {arrange.editing && (
         <PlacementMode
           layout={layout}

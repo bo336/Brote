@@ -94,6 +94,12 @@ export const NATIVE = {
   moss: '#5E7F3E',
   stone: '#8E887D',
   stoneDeep: '#5F5A52',
+  // El calafate: small hard leaves, and the blue-black berry of the south.
+  calafateLeafDeep: '#23422B',
+  calafateLeaf: '#3A6538',
+  calafateLeafLight: '#6A944B',
+  calafateBerry: '#3C3170',
+  calafateBerryBloom: '#8E82C4',
 } as const;
 
 /** The four lights. Warm key, cool fill — the whole lighting model (`06` §6). */

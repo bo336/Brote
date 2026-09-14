@@ -49,6 +49,19 @@ export const BANDS: Record<BandKey, readonly [number, number]> = {
   ],
 };
 
+/**
+ * Points no tree can grow on, for things the player has to walk up to.
+ *
+ * Census and foraging spots were picked from the same scatter the trees use,
+ * so a berry bush could sit at the exact point an ombú's trunk stands on — the
+ * trunk's collider kept Pip out of reach, and the objective card pointed at a
+ * thing nobody could ever pick. Excluding the whole tree band keeps the answer
+ * independent of the tier, the biome and the region's character.
+ */
+export function openGround(list: readonly ScatterPoint[]): ScatterPoint[] {
+  return list.filter((p) => !p.steep && (p.roll < BANDS.trees[0] || p.roll >= BANDS.trees[1]));
+}
+
 /** One variant's slice of a band, so three variants split it evenly. */
 export function pick(
   points: readonly ScatterPoint[],

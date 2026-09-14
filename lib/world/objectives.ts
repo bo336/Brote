@@ -81,14 +81,25 @@ export function hasVisited(region: ObjectiveRegion, x: number, z: number): boole
   return Math.hypot(region.x - x, region.z - z) < region.radius * VISIT_FRACTION;
 }
 
+/** A reward this close to what the card pointed at is that thing paying out. */
+export const DONE_NEAR_M = 4;
+
 export function pickObjective(input: {
   pip: { x: number; z: number };
   things: readonly ObjectiveThing[];
   regions: readonly ObjectiveRegion[];
   visited: ReadonlySet<RegionId>;
   firstRunBeat: string | null;
+  /**
+   * Things that just paid out this session. A fishing spot never switches off,
+   * so without this the card pointed at the same spot forever after the fish
+   * was landed, and never got as far as "go see El Monte".
+   */
+  skip?: ReadonlySet<string>;
 }): Objective {
-  const { pip, things } = input;
+  const { pip } = input;
+  const skip = input.skip;
+  const things = skip && skip.size > 0 ? input.things.filter((t) => !skip.has(t.id)) : input.things;
   const base = { progress: null, distanceM: null } as const;
 
   // 1. The first session leads, and it leads by where to go.
@@ -104,9 +115,10 @@ export function pickObjective(input: {
     };
   }
 
-  // 2. Today's chores, nearest first.
-  const chores = things.filter((t) => t.id.startsWith('chore-'));
-  const open = chores.filter((t) => t.enabled).map(asPoint);
+  // 2. Today's chores, nearest first. Counted from everything registered: a
+  //    chore done this session is still one of today's three.
+  const chores = input.things.filter((t) => t.id.startsWith('chore-'));
+  const open = things.filter((t) => t.id.startsWith('chore-') && t.enabled).map(asPoint);
   const near = nearest(open, pip.x, pip.z);
   if (near) {
     const [p, d] = near;
