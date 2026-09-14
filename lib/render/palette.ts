@@ -102,6 +102,30 @@ export const NATIVE = {
   calafateBerryBloom: '#8E82C4',
 } as const;
 
+/** Native fauna (`lib/render/geometry/fauna.ts`): the real colours of the animals, not accents. */
+export const FAUNA = {
+  hornero: '#A8653A',
+  horneroDark: '#6E4128',
+  horneroBelly: '#E6D0AB',
+  beak: '#5A4636',
+  butterflyWing: '#E68A2E',
+  butterflyEdge: '#1F1B18',
+  condor: '#1D1C20',
+  condorWhite: '#ECE8DF',
+  condorHead: '#B98E86',
+  condorBeak: '#E4D9C0',
+  fishBack: '#4E6B67',
+  fishBelly: '#C9D6D2',
+  huemul: '#8B6B4A',
+  huemulDark: '#5A4431',
+  huemulBelly: '#D7C4A2',
+  antler: '#D8CDB8',
+  fox: '#8E877D',
+  foxRufous: '#B77544',
+  foxBelly: '#E6DDCF',
+  foxDark: '#2B2724',
+} as const;
+
 /** The four lights. Warm key, cool fill — the whole lighting model (`06` §6). */
 export const LIGHT = {
   key: '#FFE2AE', // sun, warm

@@ -6,163 +6,92 @@
  * scene can walk the layout's anchors and never has to know what a bridge is —
  * which is also what makes the tier-up ceremony's "the feature arrives" beat a
  * matter of animating something that already exists (`08` §5.3).
+ *
+ * The carpentry ones (bridge, compost bin, treehouse, boat, telescope) are in
+ * `structures-wood.ts`; the bench and the hammock are the placeable props'
+ * own shapes (`props-build.ts`). This file holds the stone ones and the registry.
  */
 import * as THREE from 'three';
 
-import { BRIDGE, SCALE_REFERENCE } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import type { FeatureId } from '@/lib/world/types';
-import { CLAY, DOMAIN_COLORS, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical, post } from './build';
+import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
+import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
+import { weather } from './carpentry';
+import { banco, hamaca } from './props-build';
 import { smoothRock } from './scatter';
+import { boat, bridge, compost, telescope, treehouse } from './structures-wood';
 
-/** El Mojón: the one place impact numbers live. A stone marker, waist high. */
+/** A patch of moss, sitting on whatever it is placed on. */
+function moss(parts: THREE.BufferGeometry[], x: number, y: number, z: number, r: number): void {
+  const m = new THREE.SphereGeometry(r, 8, 4);
+  m.scale(1, 0.28, 1);
+  m.translate(x, y, z);
+  parts.push(paintVertical(m, NATIVE.moss, CLAY.grass, 1.3));
+}
+
+/**
+ * El Mojón: the one place impact numbers live. A waist-high stone post, hewn
+ * rather than turned, with a carved panel angled to the light, moss at its foot
+ * and the small stones people leave on a marker.
+ */
 function mojon(): THREE.BufferGeometry {
+  const rng = mulberry32(1201);
   const parts: THREE.BufferGeometry[] = [];
   const base = smoothRock(0.42, 11);
   base.scale(1.1, 0.55, 1.1);
   base.translate(0, 0.08, 0);
   parts.push(base);
-  const shaft = new THREE.CylinderGeometry(0.15, 0.2, 0.95, 7);
+  const shaft = new THREE.CylinderGeometry(0.15, 0.21, 0.98, 10, 8);
+  const pos = shaft.attributes.position as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    const a = Math.atan2(pos.getZ(i), pos.getX(i));
+    const k = 1 + Math.sin(a * 3 + 1.3) * 0.05 + Math.sin(a * 7 + pos.getY(i) * 5) * 0.025;
+    pos.setX(i, pos.getX(i) * k);
+    pos.setZ(i, pos.getZ(i) * k);
+  }
+  shaft.computeVertexNormals();
   shaft.translate(0, 0.72, 0);
-  parts.push(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone));
-  // The face that carries the panel, angled to catch the key light.
-  const face = bevelBox(0.34, 0.4, 0.06, CLAY.sand);
-  face.rotateX(-0.28);
-  face.translate(0, 0.95, 0.16);
-  parts.push(face);
-  return mergePainted(parts);
-}
-
-/** El banco del mirador. Shares the placeable bench's shape at a fixed spot. */
-function bench(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (const side of [-1, 1]) parts.push(bevelBox(0.09, 0.42, 0.34, CLAY.barkDeep).translate(side * 0.44, 0.21, 0));
-  parts.push(bevelBox(1.1, 0.08, 0.36, CLAY.bark).translate(0, 0.45, 0));
-  parts.push(bevelBox(1.05, 0.18, 0.06, CLAY.bark).translate(0, 0.7, -0.15));
-  return mergePainted(parts);
-}
-
-/** La compostera: a slatted bin that the waste channel grows (`13` §2). */
-function compost(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (const [dx, dz, w, d] of [[0, -0.5, 1.1, 0.08], [0, 0.5, 1.1, 0.08], [-0.5, 0, 0.08, 1.1], [0.5, 0, 0.08, 1.1]] as const) {
-    for (let slat = 0; slat < 3; slat++) {
-      const board = bevelBox(w, 0.14, d, CLAY.bark);
-      board.translate(dx, 0.12 + slat * 0.2, dz);
-      parts.push(board);
-    }
+  parts.push(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone, 0.9));
+  const frame = bevelBox(0.38, 0.44, 0.05, weather(CLAY.stoneDeep, rng, 0.5), 0.9);
+  const face = bevelBox(0.31, 0.37, 0.04, CLAY.sand, 0.94);
+  face.translate(0, 0, 0.018);
+  for (const g of [frame, face]) {
+    g.rotateX(-0.28);
+    g.translate(0, 0.96, 0.17);
+    parts.push(g);
   }
-  const heap = new THREE.SphereGeometry(0.45, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2);
-  heap.scale(1, 0.55, 1);
-  heap.translate(0, 0.06, 0);
-  parts.push(paintFlat(heap, CLAY.soilDeep));
-  return mergePainted(parts);
-}
-
-/**
- * El puente de madera, sized to its crossing (`lib/world/crossing.ts`): two
- * stringers under the planks, planks with a little play in them — a gap between
- * each, never quite straight, never quite one shade — and posts standing on both
- * banks carrying a top rail and a lower one, all along a gentle camber. The
- * deck's top is `BRIDGE.deckTopM` plus the camber, which is exactly the floor
- * `lib/world/decks.ts` stands Pip on.
- */
-function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const rng = mulberry32(Math.round(span * 1000));
-  const half = span / 2;
-  const deckHalf = BRIDGE.deckWidthM / 2;
-  const plankY = BRIDGE.deckTopM - 0.035;
-  const lift = (t: number) => Math.sin(t * Math.PI) * BRIDGE.camberM;
-  const tilt = (t: number) => Math.atan((Math.cos(t * Math.PI) * Math.PI * BRIDGE.camberM) / span);
-  /** A beam between two points along the span, following the camber. */
-  const beam = (t0: number, t1: number, y: number, z: number, h: number, d: number, hex: string) => {
-    const x0 = -half + t0 * span;
-    const x1 = -half + t1 * span;
-    const y0 = y + lift(t0);
-    const y1 = y + lift(t1);
-    const b = bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9);
-    b.rotateZ(Math.atan2(y1 - y0, x1 - x0));
-    b.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
-    return b;
-  };
-
-  const segments = Math.max(4, Math.round(span / 0.8));
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < segments; i++) {
-      parts.push(beam(i / segments, (i + 1) / segments, plankY - 0.12, side * (deckHalf - 0.22), 0.16, 0.13, CLAY.barkDeep));
-    }
+  for (let i = 0; i < 6; i++) {
+    const a = rng() * Math.PI * 2;
+    moss(parts, Math.cos(a) * 0.32, 0.2 + rng() * 0.05, Math.sin(a) * 0.3, 0.06 + rng() * 0.04);
   }
-
-  const planks = Math.max(8, Math.round(span / 0.3));
-  const pitch = span / planks;
-  for (let i = 0; i < planks; i++) {
-    const t = (i + 0.5) / planks;
-    const tone = rng();
-    const hex = tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
-    const plank = bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94);
-    plank.rotateY((rng() - 0.5) * 0.06);
-    plank.rotateZ(tilt(t));
-    plank.translate(-half + t * span, plankY + lift(t) + (rng() - 0.5) * 0.015, (rng() - 0.5) * 0.06);
-    parts.push(plank);
-  }
-
-  const posts = Math.max(3, Math.round(span / 1.5) + 1);
-  const railZ = deckHalf - 0.05;
-  const at = (i: number) => 0.03 + (i / (posts - 1)) * 0.94;
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < posts; i++) {
-      const p = post(0.055, 1.0, CLAY.barkDeep, 7);
-      p.translate(-half + at(i) * span, plankY - 0.3 + lift(at(i)), side * railZ);
-      parts.push(p);
-    }
-    for (let i = 0; i < posts - 1; i++) {
-      parts.push(beam(at(i), at(i + 1), plankY + 0.62, side * railZ, 0.07, 0.08, CLAY.bark));
-      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, CLAY.barkRoof));
-    }
+  for (let i = 0; i < 3; i++) {
+    const pebble = smoothRock(0.05 - i * 0.01, 1210 + i);
+    pebble.scale(1, 0.6, 1);
+    pebble.translate(0.24, 0.27 + i * 0.045, -0.12);
+    parts.push(pebble);
   }
   return mergePainted(parts);
 }
 
 /** La cascada: the rock lip the water breaks over. The sheet is a water mesh. */
 function waterfall(): THREE.BufferGeometry {
+  const rng = mulberry32(1301);
   const parts: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 5; i++) {
     const rock = smoothRock(0.55 + (i % 3) * 0.18, 40 + i);
     rock.scale(1.3, 0.9, 1);
     rock.rotateY(i * 1.3);
-    rock.translate(-1.4 + i * 0.7, 0.2 + (i % 2) * 0.2, (i % 2 ? 0.3 : -0.2));
+    rock.translate(-1.4 + i * 0.7, 0.2 + (i % 2) * 0.2, i % 2 ? 0.3 : -0.2);
     parts.push(rock);
-  }
-  return mergePainted(parts);
-}
-
-/** La casita del árbol: a platform, a rail and a ladder. The glide launch point. */
-function treehouse(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const H = SCALE_REFERENCE.fullTreeM * 0.62;
-  const deck = bevelBox(2.4, 0.14, 2.4, CLAY.bark);
-  deck.translate(0, H, 0);
-  parts.push(deck);
-  for (const [dx, dz] of [[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]] as const) {
-    parts.push(post(0.09, 0.85, CLAY.barkDeep).translate(dx, H + 0.07, dz));
-  }
-  for (const side of [-1, 1]) {
-    parts.push(bevelBox(2.3, 0.07, 0.07, CLAY.bark).translate(0, H + 0.9, side * 1.1));
-    parts.push(bevelBox(0.07, 0.07, 2.3, CLAY.bark).translate(side * 1.1, H + 0.9, 0));
-  }
-  // The ladder — the way up before `climb` exists as a verb.
-  for (let i = 0; i < 9; i++) {
-    const rung = bevelBox(0.5, 0.05, 0.05, CLAY.barkDeep);
-    rung.translate(0, 0.4 + i * ((H - 0.4) / 8), 1.32);
-    parts.push(rung);
+    moss(parts, -1.4 + i * 0.7, 0.55 + (i % 2) * 0.2, (i % 2 ? 0.3 : -0.2) + 0.1, 0.12 + rng() * 0.08);
   }
   return mergePainted(parts);
 }
 
 /** La boca de la cueva: an arch of rock with a dark interior. */
 function cave(): THREE.BufferGeometry {
+  const rng = mulberry32(1401);
   const parts: THREE.BufferGeometry[] = [];
   const segments = 10;
   for (let i = 0; i <= segments; i++) {
@@ -172,6 +101,7 @@ function cave(): THREE.BufferGeometry {
     rock.rotateY(i * 0.8);
     rock.translate(Math.cos(a) * 1.7, Math.sin(a) * 2.1, 0);
     parts.push(rock);
+    if (i % 2 === 0) moss(parts, Math.cos(a) * 1.7, Math.sin(a) * 2.1 + 0.6, 0.25, 0.14 + rng() * 0.1);
   }
   // The mouth itself: near-black, so the cave reads as depth rather than a hole.
   const mouth = new THREE.SphereGeometry(1.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -181,82 +111,40 @@ function cave(): THREE.BufferGeometry {
   return mergePainted(parts);
 }
 
-/** El bote: the way to El Islote. A hull, a bench and an oar. */
-function boat(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const hull = new THREE.SphereGeometry(1, 12, 7, 0, Math.PI * 2, 0, Math.PI / 2);
-  hull.scale(0.62, 0.42, 1.5);
-  hull.rotateX(Math.PI);
-  hull.translate(0, 0.42, 0);
-  parts.push(paintFlat(hull, CLAY.bark));
-  const rim = new THREE.TorusGeometry(0.62, 0.055, 5, 16);
-  rim.rotateX(Math.PI / 2);
-  rim.scale(1, 1, 2.42);
-  rim.translate(0, 0.42, 0);
-  parts.push(paintFlat(rim, CLAY.barkRoof));
-  parts.push(bevelBox(1.05, 0.06, 0.28, CLAY.barkDeep).translate(0, 0.4, 0));
-  const oar = bevelBox(0.05, 0.05, 1.5, CLAY.bark);
-  oar.rotateX(0.35);
-  oar.translate(0.5, 0.5, 0.1);
-  parts.push(oar);
-  return mergePainted(parts);
-}
-
-/** El telescopio: the tier-10 `observe` spot at the summit. */
-function telescope(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 3; i++) {
-    const leg = bevelBox(0.05, 1.0, 0.05, PIP_PARTS.metal);
-    leg.rotateZ(0.28);
-    leg.rotateY((i / 3) * Math.PI * 2);
-    leg.translate(0, 0.5, 0);
-    parts.push(leg);
-  }
-  const tube = new THREE.CylinderGeometry(0.11, 0.15, 0.95, 9);
-  tube.rotateZ(Math.PI / 2 - 0.55);
-  tube.translate(0, 1.15, 0);
-  parts.push(paintFlat(tube, PIP_PARTS.eye));
-  const lens = new THREE.SphereGeometry(0.12, 8, 6);
-  lens.scale(1, 1, 0.3);
-  lens.translate(0.42, 1.42, 0);
-  parts.push(paintFlat(lens, DOMAIN_COLORS.ciencia));
-  return mergePainted(parts);
-}
-
-/** El Monumento: the tier-11 legacy marker. Golden, and deliberately simple. */
+/** El Monumento: the tier-11 legacy marker. A golden seed on a plinth of cut stone. */
 function monument(): THREE.BufferGeometry {
+  const rng = mulberry32(1501);
   const parts: THREE.BufferGeometry[] = [];
-  const base = new THREE.CylinderGeometry(1.05, 1.3, 0.45, 10);
-  base.translate(0, 0.22, 0);
-  parts.push(paintFlat(base, CLAY.stone));
-  const step = new THREE.CylinderGeometry(0.8, 0.95, 0.3, 10);
-  step.translate(0, 0.58, 0);
-  parts.push(paintFlat(step, CLAY.stoneDeep));
-  // A seed, three metres tall, standing on the summit.
-  const seed = new THREE.SphereGeometry(0.75, 14, 10);
-  seed.scale(0.85, 1.35, 0.8);
-  seed.translate(0, 1.85, 0);
-  parts.push(paintVertical(seed, CLAY.sand, DOMAIN_COLORS.energia, 0.7));
-  const leaf = new THREE.SphereGeometry(0.5, 9, 6);
-  leaf.scale(1, 0.16, 0.42);
-  leaf.translate(0.5, 0, 0);
-  leaf.rotateZ(0.55);
-  leaf.translate(0, 3.15, 0);
-  parts.push(paintFlat(leaf, DOMAIN_COLORS.energia));
-  return mergePainted(parts);
-}
-
-/** La hamaca, as a fixed tier-6 structure rather than a placed prop. */
-function hammock(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const segments = 9;
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const sag = Math.sin(t * Math.PI) * 0.24;
-    const seg = bevelBox(1.8 / segments, 0.035, 0.44, PIP_PARTS.cloth);
-    seg.translate(-0.9 + t * 1.8, 1.0 - sag, 0);
-    parts.push(seg);
+  // Two courses of cut stone, each block its own tone.
+  for (const [radius, y, count, h] of [[1.2, 0.18, 14, 0.36], [0.88, 0.5, 11, 0.28]] as const) {
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + (y > 0.3 ? 0.14 : 0);
+      const w = ((Math.PI * 2 * radius) / count) * 0.97;
+      const block = bevelBox(w, h, 0.34, weather(CLAY.stone, rng, 0.7), 0.9);
+      block.rotateY(-a + Math.PI / 2);
+      block.translate(Math.cos(a) * radius, y, Math.sin(a) * radius);
+      parts.push(block);
+    }
+    const fill = new THREE.CylinderGeometry(radius - 0.05, radius - 0.05, h * 0.98, count * 2);
+    fill.translate(0, y, 0);
+    parts.push(paintFlat(fill, weather(CLAY.stoneDeep, rng, 0.4)));
   }
+  // A seed, three metres tall, standing on the summit.
+  const seed = new THREE.SphereGeometry(0.75, 28, 20);
+  seed.scale(0.85, 1.35, 0.8);
+  seed.translate(0, 1.66, 0);
+  parts.push(paintVertical(seed, CLAY.sand, DOMAIN_COLORS.energia, 0.7));
+  for (const side of [-1, 1]) {
+    const leaf = new THREE.SphereGeometry(0.5, 16, 8);
+    leaf.scale(1, 0.14, 0.42);
+    leaf.translate(0.5, 0, 0);
+    leaf.rotateZ(side > 0 ? 0.55 : Math.PI - 0.55);
+    leaf.translate(0, 2.96, 0);
+    parts.push(paintVertical(leaf, DOMAIN_COLORS.energia, CLAY.sand, 1.2));
+  }
+  const plaque = bevelBox(0.5, 0.2, 0.03, weather(DOMAIN_COLORS.energia, rng, 0.3), 0.94);
+  plaque.translate(0, 0.52, 0.9);
+  parts.push(plaque);
   return mergePainted(parts);
 }
 
@@ -277,7 +165,7 @@ function nest(): THREE.BufferGeometry {
 }
 
 const BUILDERS: Partial<Record<FeatureId, (size?: number) => THREE.BufferGeometry>> = {
-  mojon, bench, compost, bridge, waterfall, treehouse, cave, boat, telescope, monument, hammock, nest,
+  mojon, bench: banco, compost, bridge, waterfall, treehouse, cave, boat, telescope, monument, hammock: hamaca, nest,
 };
 
 const cache = new Map<string, THREE.BufferGeometry>();
