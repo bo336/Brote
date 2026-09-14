@@ -174,6 +174,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
   let belowSinceMs: number | null = null;
   let aboveSinceMs: number | null = null;
   let lockedUntilMs = 0;
+  let startedMs: number | null = null;
 
   function median(): number {
     if (filled === 0) return 0;
@@ -185,6 +186,9 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
 
   return {
     sample(frameMs, nowMs) {
+      startedMs ??= nowMs;
+      if (frameMs > QUALITY_MONITOR.hitchMs) return null;
+      if (nowMs - startedMs < QUALITY_MONITOR.graceS * 1000) return null;
       ring[head] = frameMs;
       head = (head + 1) % window;
       if (filled < window) filled++;
@@ -236,6 +240,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
       tier = next;
       filled = 0;
       head = 0;
+      startedMs = null;
       belowSinceMs = null;
       aboveSinceMs = null;
       lockedUntilMs = 0;

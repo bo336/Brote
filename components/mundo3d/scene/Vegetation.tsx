@@ -139,8 +139,17 @@ export function Vegetation({
    * placed and read every frame by the fade below — never rebuilt per frame.
    */
   const canopyRef = useRef<Canopy[]>([]);
+  /**
+   * **What grows is decided once, at the tier the session started on** — like
+   * the ground. A demotion used to rebuild the pools with one species instead of
+   * three and trim the tree count, so the jacarandás and ceibos a desktop opened
+   * with were gone a few seconds later: "the best trees only appear for a second".
+   * A demotion still has shadows, the lens, the grass rings and resolution to
+   * give back, and none of those makes a tree vanish.
+   */
+  const plantTier = useRef(tier).current;
   // LOD level from the tier's tree-LOD budget: 3 levels means full detail.
-  const treeLods = (TIERS[tier].treeLods >= 3 ? 0 : TIERS[tier].treeLods >= 2 ? 1 : 2) as 0 | 1 | 2;
+  const treeLods = (TIERS[plantTier].treeLods >= 3 ? 0 : TIERS[plantTier].treeLods >= 2 ? 1 : 2) as 0 | 1 | 2;
   /**
    * One shape per kind at the low tiers, three at the high ones.
    *
@@ -149,7 +158,7 @@ export function Vegetation({
    * there, and taking a prefix of a differently-shaped pool is what keeps that
    * true — the positions come from the same scatter either way.
    */
-  const variants = variantsFor(tier);
+  const variants = variantsFor(plantTier);
 
   const pools = useMemo<PoolSet>(() => {
     const max = TIERS[MAX_TIER];
@@ -357,9 +366,9 @@ export function Vegetation({
     };
   }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders]);
 
-  /** A tier change is one integer per pool. It allocates nothing and frees nothing. */
+  /** The counts for the session's tier: one integer per pool, set once. */
   useEffect(() => {
-    const t = TIERS[tier];
+    const t = TIERS[plantTier];
     pools.grass.forEach((pool) => pool.resize(Math.ceil(t.grassTufts / variants)));
     pools.flowers.forEach((pool) => pool.resize(Math.ceil(t.flowers / pools.flowers.length)));
     pools.rocks.forEach((pool) => pool.resize(Math.ceil(t.rocks / variants)));
@@ -369,7 +378,7 @@ export function Vegetation({
       wood.resize(n);
       leaves.resize(n);
     });
-  }, [pools, tier, variants]);
+  }, [pools, plantTier, variants]);
 
   useCanopyFade(canopyRef);
 

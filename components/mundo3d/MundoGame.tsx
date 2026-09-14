@@ -176,7 +176,18 @@ export default function MundoGame({
   const setHud = useSessionStore((s) => s.setHud);
   const ceremonyRequest = useSessionStore((s) => s.ceremony.request);
 
-  const [tier, setTier] = useState<QualityTier>(1);
+  /**
+   * **The starting tier, decided before the first render.** It used to start at
+   * 1 and be corrected by an effect, so everything built once "at the tier the
+   * session started on" — the ground, the plants — was built at T1 on a desktop.
+   */
+  const [tier, setTier] = useState<QualityTier>(() => initialTier({
+    hardwareConcurrency: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : undefined,
+    coarsePointer: typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)')?.matches ?? false),
+    prefersReducedMotion: prefersReducedMotion(reduceMotionSetting),
+    detailMode,
+    forced: forcedTier,
+  }));
   const [derivedTimeOfDay, setDerivedTimeOfDay] = useState<TimeOfDay>(() => (isNight() ? 'noche' : 'dia'));
   const timeOfDay = timeOfDayOverride ?? derivedTimeOfDay;
 
@@ -232,7 +243,12 @@ export default function MundoGame({
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).
-  const manual = detailModeToTier(detailMode);
+  // A tier forced from the URL is a manual choice too: the monitor used to
+  // demote it within seconds, and a review of "q=3" was a review of T2.
+  const forcedManual = forcedTier != null && forcedTier >= 0 && forcedTier <= 3
+    ? (Math.floor(forcedTier) as QualityTier)
+    : null;
+  const manual = forcedManual ?? detailModeToTier(detailMode);
   const monitor = useMemo(() => createQualityMonitor({ start: 1, manual }), [manual]);
 
   useEffect(() => {
@@ -322,7 +338,9 @@ export default function MundoGame({
         frameloop={ceremonyRequest !== null || perf || alwaysRender
           ? 'always'
           : hud !== 'play' ? 'demand' : frameloop}
-        dpr={params.dprCap}
+        // A range, not a number: a number *forces* that ratio, so a 1080p screen at
+        // DPR 1 was drawn at 1.75× — 3360×1890 — and ran at a tenth of its speed.
+        dpr={[Math.min(1, params.dprCap), params.dprCap]}
         shadows
         camera={{
           fov: CAMERA.fov,

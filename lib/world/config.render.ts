@@ -103,6 +103,12 @@ export const QUALITY_MONITOR = {
   promoteAfterS: 20, // …sustained for this long, to promote once
   promoteCooldownS: 60, // then wait this long before promoting again
   demoteLockoutS: 60, // a demotion locks out promotion for this long. Never oscillate.
+  // The first seconds are loading — textures baked, shaders compiled — not the
+  // machine's speed. Judged on them, every desktop demoted on arrival.
+  graceS: 6,
+  // A single frame this long is a hitch (a compile, a tab switch, an idle gap in
+  // `demand` mode), not sustained load; it is left out of the median.
+  hitchMs: 250,
 } as const;
 
 // ── Art direction (`06-ART-DIRECTION.md` §4-7) ──────────────────────────────

@@ -306,8 +306,29 @@ function Preview() {
      * was a coin flip — which is where the run of impossible screenshots came
      * from, a summit in one shot and the spawn in the next, from one URL.
      */
-    const id = setInterval(() => w.__pipTo?.(at), 1500);
-    return () => clearInterval(id);
+    /**
+     * **…and then it has to stop.** It never did: it re-applied every 1.5 s for
+     * the whole session, so anybody who opened a tour link and walked was put
+     * back in the same spot a second later — the 2026-09-13 playtest's "after a
+     * second my position restarts at the spawn". It now keeps going only until
+     * the world is up and Pip has stayed where he was sent, and the first key or
+     * click hands him to the player.
+     */
+    let settled = 0;
+    const id = setInterval(() => {
+      const target = w.__pipTo?.(at);
+      if (!target || !useSessionStore.getState().ready) return;
+      if (Math.hypot(playerTransform.x - target[0], playerTransform.z - target[1]) < 0.5) settled++;
+      if (settled >= 2) stop();
+    }, 500);
+    const stop = () => {
+      clearInterval(id);
+      window.removeEventListener('keydown', stop);
+      window.removeEventListener('pointerdown', stop);
+    };
+    window.addEventListener('keydown', stop);
+    window.addEventListener('pointerdown', stop);
+    return stop;
     /**
      * **Primitives, not `params`.**
      *
