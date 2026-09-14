@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 
 import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
+import type { WorldPayload } from '@/lib/world/types';
 
 /**
  * The code-split boundary.
@@ -23,22 +24,19 @@ interface MundoClientProps {
   perf: boolean;
   /** `?mundoTier=0..3` forces a quality tier, for testing. */
   forcedTier: number | null;
-  /** From `profiles.mundo_state`, read on the server. Never written from here. */
-  userId: string;
-  tier: number;
-  worldIndex: number;
-  liveliness: number;
+  /** One `world_bootstrap()` trip, parsed on the server. Read, never written. */
+  payload: WorldPayload;
+  /** The bootstrap failed and this is a filled-in default, not their island. */
+  degraded?: boolean;
 }
 
-export function MundoClient({ perf, forcedTier, userId, tier, worldIndex, liveliness }: MundoClientProps) {
+export function MundoClient({ perf, forcedTier, payload, degraded = false }: MundoClientProps) {
   return (
     <MundoGame
       perf={perf}
       forcedTier={forcedTier}
-      userId={userId}
-      tier={tier}
-      worldIndex={worldIndex}
-      liveliness={liveliness}
+      payload={payload}
+      readOnly={degraded}
     />
   );
 }

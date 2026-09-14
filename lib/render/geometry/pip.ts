@@ -62,10 +62,47 @@ const scratchColor = new THREE.Color();
 /** Repaint an existing colour attribute in place. No allocation, no material. */
 function repaint(mesh: THREE.Mesh, hex: string): void {
   const attr = mesh.geometry.getAttribute('color') as THREE.BufferAttribute | undefined;
-  if (!attr) return;
+  // Three components only — see `repaintRGBA` for what happens otherwise.
+  if (!attr || attr.itemSize !== 3) return;
   scratchColor.set(hex);
   const arr = attr.array as Float32Array;
   for (let i = 0; i < arr.length; i += 3) {
+    arr[i] = scratchColor.r;
+    arr[i + 1] = scratchColor.g;
+    arr[i + 2] = scratchColor.b;
+  }
+  attr.needsUpdate = true;
+}
+
+/** Paint a geometry with a colour AND an alpha, for the overlay material. */
+function paintRGBA(geo: THREE.BufferGeometry, hex: string, alpha: number): THREE.BufferGeometry {
+  const count = (geo.attributes.position as THREE.BufferAttribute).count;
+  const colors = new Float32Array(count * 4);
+  scratchColor.set(hex);
+  for (let i = 0; i < count; i++) {
+    colors[i * 4] = scratchColor.r;
+    colors[i * 4 + 1] = scratchColor.g;
+    colors[i * 4 + 2] = scratchColor.b;
+    colors[i * 4 + 3] = alpha;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 4));
+  return geo;
+}
+
+/**
+ * Recolour an RGBA-painted mesh, leaving its alpha alone.
+ *
+ * The `itemSize` guard is not paranoia. `repaint` strides by three; run it over
+ * a four-component attribute and it writes red into alpha, green into the next
+ * vertex's red, and so on down the buffer — which is exactly what happened to
+ * the aura and turned the guardian halo into an iridescent soap bubble.
+ */
+function repaintRGBA(mesh: THREE.Mesh, hex: string): void {
+  const attr = mesh.geometry.getAttribute('color') as THREE.BufferAttribute | undefined;
+  if (!attr || attr.itemSize !== 4) return;
+  scratchColor.set(hex);
+  const arr = attr.array as Float32Array;
+  for (let i = 0; i < arr.length; i += 4) {
     arr[i] = scratchColor.r;
     arr[i + 1] = scratchColor.g;
     arr[i + 2] = scratchColor.b;
@@ -184,8 +221,14 @@ export function buildPip(lod: PipLod = 0): PipRoot {
   glassesSocket.position.set(0, PIP.bodyCentreY + PIP.eyeHeight, front + 0.02);
   root.add(glassesSocket);
 
+  // **The aura carries its own alpha.** It is nearly twice Pip's radius, so as
+  // an opaque mesh it did not read as a halo — it swallowed him whole, and from
+  // tier 8 up the player was looking at a plain sphere where their character
+  // used to be. Four components, like the interaction cue and the sky, so it
+  // rides the shared overlay material and costs none of the eight.
   const auraGeo = new THREE.SphereGeometry(PIP.auraRadius, 12, 8);
-  const aura = new THREE.Mesh(paint(auraGeo, PIP_PARTS.aura));
+  paintRGBA(auraGeo, PIP_PARTS.aura, PIP.auraOpacity);
+  const aura = new THREE.Mesh(auraGeo);
   aura.name = 'aura';
   aura.position.y = PIP.bodyCentreY;
   aura.visible = false;
@@ -209,7 +252,16 @@ export function buildPip(lod: PipLod = 0): PipRoot {
 export function applyCosmetics(
   root: PipRoot,
   cosmetics: PipCosmetics,
-  opts: { golden?: boolean; aura?: boolean; solid: THREE.Material; patternMaterial?: THREE.Material } = {
+  opts: {
+    golden?: boolean;
+    aura?: boolean;
+    solid: THREE.Material;
+    /** The face's own glossier material; falls back to `solid`. */
+    face?: THREE.Material;
+    patternMaterial?: THREE.Material;
+    /** The shared flat, vertex-alpha material the halo is drawn with. */
+    overlay?: THREE.Material;
+  } = {
     solid: new THREE.MeshBasicMaterial(),
   },
 ): void {
@@ -222,7 +274,7 @@ export function applyCosmetics(
   // The stem takes the deep body tone; both leaves take the leaf pair. Repaint
   // walks the whole attribute, so the leaves are recoloured by range below.
   repaintLeaves(u.leaves, bodyDeep, leaf, leafDeep);
-  u.eyes.material = opts.solid;
+  u.eyes.material = opts.face ?? opts.solid;
 
   // Hat: mount the geometry, or hide the socket entirely.
   const hatId = cosmetics.hat ?? 'ninguno';
@@ -260,9 +312,12 @@ export function applyCosmetics(
     }
   }
 
-  u.aura.material = opts.solid;
-  u.aura.visible = !!opts.aura;
-  repaint(u.aura, opts.golden ? PIP_PARTS.auraGolden : PIP_PARTS.aura);
+  // The halo, on the overlay material when one is supplied. Golden Pips get the
+  // warm tone; everyone else the brand green.
+  if (opts.overlay) u.aura.material = opts.overlay;
+  repaintRGBA(u.aura, opts.golden ? PIP_PARTS.auraGolden : PIP_PARTS.aura);
+  // Off under the v2 light; see `applyStage`.
+  u.aura.visible = false;
 }
 
 /**
@@ -303,7 +358,10 @@ export function applyStage(root: PipRoot, stage: PipStage): void {
   const scale = stage === 'seed' ? 0 : stage === 'sprout' ? 0.62 : 1;
   u.leaves.scale.setScalar(Math.max(0.0001, scale));
   u.leaves.visible = stage !== 'seed';
-  u.aura.visible = stage === 'guardian' || stage === 'radiant';
+  // The halo as a transparent sphere read as a hard-edged yellow polygon around
+  // Pip under the v2 light (`23-ART-DIRECTION-V2.md`). It stays built, and off,
+  // until it comes back as light rather than as a shell.
+  u.aura.visible = false;
 }
 
 /** Free everything this root owns. Cosmetic geometry is cached and shared. */

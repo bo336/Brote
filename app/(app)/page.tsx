@@ -105,6 +105,7 @@ export default function HoyPage() {
           signature leaf notch (§4). */}
       <MundoPoster
         mundo={profile?.mundoState}
+        snapshotUrl={profile?.worldSnapshotUrl}
         height={320}
         className="leaf-clip shadow-soft-lg"
       />

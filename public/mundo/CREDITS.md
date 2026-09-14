@@ -1,19 +1,46 @@
-# Créditos de assets — Mundo
+# Créditos de audio — El Mundo
 
-Todo lo que se envía acá tiene que poder venderse comercialmente con **cero gasto
-en assets**: solo CC0, MIT o licencias explícitamente permisivas para uso
-comercial. **Nunca CC-BY-NC** — Brote monetiza (`03-RESEARCH-TECH.md` §10).
+Cada archivo de sonido que entra a `public/mundo/audio/` se anota acá **en el
+mismo commit en que se agrega**, con su URL de origen y su licencia. Un archivo
+sin fila en esta tabla es un archivo que hay que sacar.
 
-Cada asset de terceros se anota en esta tabla **en el momento en que se agrega**,
-con su URL de origen y su licencia. Si no podés linkear la licencia, el asset no
-entra.
+## La regla que no se negocia
 
-| Archivo | Qué es | Origen (URL) | Autor | Licencia | Fecha |
-|---|---|---|---|---|---|
-| — | — | — | — | — | — |
+**Nunca CC-BY-NC.** Brote cobra, así que una licencia no comercial en cualquier
+parte del árbol es un problema legal y no uno de atribución. Las licencias
+aceptadas son **CC0**, **CC-BY**, **CC-BY-SA** y dominio público, y
+`lib/world/audio.ts` las tiene listadas para que la prueba las verifique en vez
+de que las verifique alguien leyendo.
+
+Fuentes recomendadas por `16-UI-AUDIO-A11Y.md` §2: los paquetes CC0 de Kenney
+—un solo autor da un set coherente— y Freesound filtrado a **CC0**.
+
+## El presupuesto
+
+| Límite | Valor |
+|---|---|
+| Carga inicial | ≤ 1,5 MB |
+| Total | ≤ 4 MB |
+| Fuentes posicionales simultáneas | 4 |
+| Música | **un** loop de 60–90 s, ~96 kbps mono AAC |
+| Efectos | 25, mono, 22–32 kHz, ~64 kbps, 5–20 KB cada uno |
+
+La variación de la música se hace **filtrando el mismo loop** —un pasa-bajos de
+noche, un agachado adentro de la cueva— y nunca mandando más audio.
+
+## Los archivos
+
+| Archivo | Qué es | Origen | Autor | Licencia |
+|---|---|---|---|---|
+| _(ninguno todavía)_ | | | | |
 
 ## Estado
 
-**Fase 1: ningún asset de terceros.** Todo lo que se dibuja es geometría
-procedural y color del paladar de `lib/render/palette.ts`. Los 25 efectos de
-sonido y el loop de música llegan en la fase 5.
+**No hay un solo archivo de audio en el repositorio.** El motor está construido
+—un solo `AudioContext`, el desbloqueo de iOS, `visibilitychange`, silenciado
+por defecto en teléfono, tope de cuatro fuentes— y la lista de sonidos está en
+`14-CONTENT.md` §8, pero elegir y descargar veintiséis archivos con licencia
+verificada es un trabajo de curaduría que necesita a una persona escuchándolos.
+
+Hasta que esa fila diga algo, el mundo anda en silencio, que es exactamente lo
+que hace hoy en un teléfono de todas formas.

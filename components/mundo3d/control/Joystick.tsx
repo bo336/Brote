@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { HAPTIC_MS, JOYSTICK } from '@/lib/world/config';
 import { clearStickInput, setStickInput } from './useInput';
+import { useSessionStore } from '../state/useSessionStore';
 
 /**
  * The floating-origin joystick. Hand-rolled, ~120 lines
@@ -56,6 +57,7 @@ export function Joystick({ enabled = true, onRun }: JoystickProps) {
 
       const nx = dx / (distance || 1);
       const ny = dy / (distance || 1);
+      useSessionStore.getState().markControl('move');
       // Screen down is world forward: the camera looks along -Z.
       setStickInput(nx, ny, magnitude, true);
 
@@ -79,7 +81,8 @@ export function Joystick({ enabled = true, onRun }: JoystickProps) {
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!enabled || stateRef.current) return;
+      // A mouse has WASD for a stick; a click in the corner is a camera drag.
+      if (!enabled || stateRef.current || e.pointerType === 'mouse') return;
       const origin: StickState = { pointerId: e.pointerId, originX: e.clientX, originY: e.clientY };
       stateRef.current = origin;
       e.currentTarget.setPointerCapture(e.pointerId);

@@ -12,16 +12,25 @@
  */
 import * as THREE from 'three';
 
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
 import { mulberry32 } from '@/lib/world/rng';
-import { CLAY } from '../palette';
+import { CLAY, NATIVE } from '../palette';
 import { mergePainted, paintFlat, paintVertical } from './build';
 
 /**
  * One blade: a tapered, slightly curved strip. Three segments is enough for the
  * curve to read and cheap enough to draw a thousand of them.
+ *
+ * **Open-ended.** The caps were a quarter of every blade in the game and not
+ * one of their triangles is ever seen: the bottom is buried in the ground and
+ * the top is a four-millimetre disc pointing at the sky. A tuft is four blades,
+ * a T2 island draws eleven hundred tufts, and that made the caps alone
+ * twenty-six thousand triangles — a sixth of the whole T2 budget, spent on
+ * geometry facing away from every camera the game has.
  */
 function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
-  const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, false);
+  const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, true);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
     const t = (pos.getY(i) + height / 2) / height;
@@ -86,24 +95,73 @@ export function flower(variant = 0, accent: string = CLAY.leaf): THREE.BufferGeo
 }
 
 /**
- * A rock: a jittered icosahedron, flat-shaded so every face catches the light
- * band differently. Deterministic from the seed, like everything else.
+ * A rock: **smooth, weathered, mossy** (`23-ART-DIRECTION-V2.md` rule 2).
+ *
+ * It was a jittered icosahedron — twenty shards, the most "low-poly asset pack"
+ * shape in the game. Now a subdivided sphere pushed out by layered noise,
+ * flattened where it meets the ground and sunk a little into it, with darker
+ * crevices where the noise dips and moss on whatever faces the sky.
  */
 export function rock(seed = 1): THREE.BufferGeometry {
+  return smoothRock(0.15, seed);
+}
+
+/** The same weathered stone at any size — the cave arch, the waterfall lip, the mojón's foot. */
+export function smoothRock(radius: number, seed: number): THREE.BufferGeometry {
   const rng = mulberry32(seed);
-  // Pip is 0.55 m tall. A rock the size of Pip is a boulder, and El Claro is
-  // not a boulder field — these are stones you step over.
-  const geo = new THREE.IcosahedronGeometry(0.13, 0);
-  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const ox = rng() * 100;
+  const oz = rng() * 100;
+  const stretch = 0.85 + rng() * 0.5;
+  // Pip is 0.55 m tall: these are stones you step around, not boulders.
+  const indexed = mergeVertices(new THREE.IcosahedronGeometry(radius, 2));
+  const pos = indexed.attributes.position as THREE.BufferAttribute;
+  const bumps = new Float32Array(pos.count);
+  const v = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) {
-    const j = 0.72 + rng() * 0.5;
-    pos.setXYZ(i, pos.getX(i) * j, pos.getY(i) * j * 0.72, pos.getZ(i) * j);
+    v.fromBufferAttribute(pos, i).normalize();
+    const n = rockNoise(v.x * 2.2 + ox, v.y * 2.2, v.z * 2.2 + oz) * 0.6
+      + rockNoise(v.x * 5.1 + oz, v.y * 5.1, v.z * 5.1 + ox) * 0.25;
+    bumps[i] = n;
+    const r = radius * (0.78 + n * 0.45);
+    let y = v.y * r * 0.7;
+    // A flat underside, so it sits rather than balances.
+    if (y < 0) y *= 0.35;
+    pos.setXYZ(i, v.x * r * stretch, y, v.z * r);
   }
-  // Sit it on the ground rather than half-buried at the origin.
-  geo.computeBoundingBox();
-  geo.translate(0, -geo.boundingBox!.min.y * 0.55, 0);
-  geo.computeVertexNormals();
-  return paintVertical(geo, CLAY.stoneDeep, CLAY.stone, 0.8);
+  indexed.translate(0, -radius * 0.08, 0);
+  indexed.computeVertexNormals();
+  const nor = indexed.attributes.normal as THREE.BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  const stone = new THREE.Color(NATIVE.stone);
+  const deep = new THREE.Color(NATIVE.stoneDeep);
+  const moss = new THREE.Color(NATIVE.moss);
+  const c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    c.copy(deep).lerp(stone, THREE.MathUtils.clamp(0.25 + bumps[i]! * 0.9, 0, 1));
+    c.lerp(moss, THREE.MathUtils.smoothstep(nor.getY(i), 0.55, 0.9) * 0.75);
+    colors.set([c.r, c.g, c.b], i * 3);
+  }
+  indexed.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return indexed;
+}
+
+/** Smooth 3D value noise for rock shapes, 0..1. Build-time only. */
+function rockNoise(x: number, y: number, z: number): number {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const iz = Math.floor(z);
+  const fx = x - ix;
+  const fy = y - iy;
+  const fz = z - iz;
+  const h = (a: number, b: number, d: number) => {
+    const s = Math.sin(a * 127.1 + b * 311.7 + d * 74.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+  const u = (t: number) => t * t * (3 - 2 * t);
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const x0 = lerp(lerp(h(ix, iy, iz), h(ix + 1, iy, iz), u(fx)), lerp(h(ix, iy + 1, iz), h(ix + 1, iy + 1, iz), u(fx)), u(fy));
+  const x1 = lerp(lerp(h(ix, iy, iz + 1), h(ix + 1, iy, iz + 1), u(fx)), lerp(h(ix, iy + 1, iz + 1), h(ix + 1, iy + 1, iz + 1), u(fx)), u(fy));
+  return lerp(x0, x1, u(fz));
 }
 
 /** A fern frond: a low arc of paired blades. Undergrowth, from tier 5. */

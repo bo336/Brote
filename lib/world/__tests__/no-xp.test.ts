@@ -16,6 +16,7 @@ import { test } from 'node:test';
  */
 const FORBIDDEN = [
   ['complete', '_activity'],
+  ['activity', '_completions'],
   ['brote_grant', '_xp'],
   ['total', '_xp'],
   ['brote_grant', '_points'],
@@ -87,4 +88,28 @@ test('the poster never pulls the 3D bundle into the feed', () => {
     assert.ok(!/from '(three|@react-three\/[a-z]+)'/.test(source), `${file} imports three`);
     assert.ok(!/from '@\/lib\/render/.test(source), `${file} imports lib/render`);
   }
+});
+
+test('the world cannot invent semillas', () => {
+  // The other half of the one-way valve (`11-GAME-LOOP.md` §1). XP comes only
+  // from verified real actions; semillas come only from the server, which
+  // writes a ledger row for every one of them. A client-side increment looks
+  // identical on screen and is an unauditable second currency path — so the
+  // store has no adder, and this is what keeps it that way.
+  const banned = [
+    ['add', 'Semillas'].join(''),
+    ['semillas', ' +='].join(''),
+    ['semillas', ' + '].join(''),
+  ];
+  const hits: string[] = [];
+  for (const root of ROOTS) {
+    for (const file of walk(path.join(REPO_ROOT, root))) {
+      if (path.extname(file) === '.sql') continue; // the server is where awards belong
+      const source = fs.readFileSync(file, 'utf8');
+      for (const needle of banned) {
+        if (source.includes(needle)) hits.push(`${path.relative(REPO_ROOT, file)} → ${needle}`);
+      }
+    }
+  }
+  assert.deepEqual(hits, [], `the client is minting currency:\n${hits.join('\n')}`);
 });

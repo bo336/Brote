@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { JOYSTICK } from '@/lib/world/config';
+import { useSessionStore } from '../state/useSessionStore';
 
 /**
  * One normalised movement vector, from the joystick or the keyboard.
@@ -33,6 +34,31 @@ export const input: InputVector = { x: 0, z: 0, magnitude: 0, running: false, ac
 const stick: InputVector = { x: 0, z: 0, magnitude: 0, running: false, active: false };
 /** What the keyboard writes. */
 const keys = { up: false, down: false, left: false, right: false, shift: false };
+
+/**
+ * Is anything still asking the world to move? A held key, a thumb on the stick,
+ * or a character still easing to a stop. The render loop asks this before it
+ * lets itself sleep — without it, holding W past the idle delay walked nowhere.
+ */
+export function hasHeldInput(): boolean {
+  return keys.up || keys.down || keys.left || keys.right || input.active || input.magnitude > 0;
+}
+
+/** A jump asked for and not yet taken. The solver buffers it; this only carries it there. */
+let jumpQueued = false;
+
+/** Space, or the jump button. */
+export function requestJump(): void {
+  jumpQueued = true;
+  useSessionStore.getState().markControl('jump');
+}
+
+/** Read once per step by the controller. */
+export function consumeJump(): boolean {
+  const j = jumpQueued;
+  jumpQueued = false;
+  return j;
+}
 
 /**
  * The joystick calls this on every pointer move. `x` and `z` are already
@@ -107,24 +133,49 @@ const KEY_MAP: Record<string, keyof typeof keys> = {
   ArrowRight: 'right', KeyD: 'right',
 };
 
-/** Desktop keyboard, into the same vector. `E` interacts, `Esc` exits. */
-export function useKeyboardInput(opts: { onInteract?: () => void; onExit?: () => void } = {}): void {
-  const { onInteract, onExit } = opts;
+/**
+ * Desktop keyboard, into the same vector. `Space` jumps, `E` (or `F`, or
+ * `Enter`) uses whatever is in front of Pip, `Esc` exits.
+ *
+ * Space and E used to share one handler, and the handler was the render loop's
+ * wake-up call — neither key did anything a player could see.
+ */
+export function useKeyboardInput(
+  opts: { onInteract?: () => void; onExit?: () => void; onActivity?: () => void } = {},
+): void {
+  const { onInteract, onExit, onActivity } = opts;
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      // A sheet's own fields and buttons keep their keys.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
       const mapped = KEY_MAP[e.code];
       if (mapped) {
         keys[mapped] = true;
         e.preventDefault();
+        useSessionStore.getState().markControl('move');
+        // Walking is input. Only clicks used to wake the render loop, so four
+        // seconds after the page opened the keyboard stopped moving anyone.
+        onActivity?.();
         return;
       }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
-      else if (e.code === 'KeyE' || e.code === 'Space') onInteract?.();
-      else if (e.code === 'Escape') onExit?.();
+      else if (e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat) requestJump();
+        onActivity?.();
+      } else if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
+        e.preventDefault();
+        onActivity?.();
+        if (!e.repeat) onInteract?.();
+      } else if (e.code === 'Escape') onExit?.();
     };
     const up = (e: KeyboardEvent) => {
       const mapped = KEY_MAP[e.code];
-      if (mapped) keys[mapped] = false;
+      if (mapped) {
+        keys[mapped] = false;
+        onActivity?.();
+      }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = false;
     };
     // A window that loses focus mid-stride would otherwise walk forever.
@@ -140,5 +191,5 @@ export function useKeyboardInput(opts: { onInteract?: () => void; onExit?: () =>
       window.removeEventListener('blur', blur);
       blur();
     };
-  }, [onInteract, onExit]);
+  }, [onInteract, onExit, onActivity]);
 }

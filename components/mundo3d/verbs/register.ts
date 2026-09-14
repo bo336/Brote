@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 
+import { openGround } from '@/lib/world/bands';
 import { INTERACT } from '@/lib/world/config';
 import { regionCentre } from '@/lib/world/layout';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -37,8 +38,10 @@ export interface VerbSpot {
   trackIndex?: number;
 }
 
+const EMPTY_SET: ReadonlySet<string> = new Set();
+
 /** How many foraging nodes a region carries at once (`11-GAME-LOOP.md` §3.5). */
-const FORAGE_NODES = 6;
+export const FORAGE_NODES = 6;
 /** Prints in a tracking chain. The last one is where the animal is.  */
 const TRACK_CHAIN = 5;
 const TRACK_STRIDE_M = 3.2;
@@ -106,7 +109,8 @@ export function buildVerbSpots(
   if (has('log')) {
     for (const region of layout.regions) {
       if (!region.unlocked) continue;
-      const candidates = layout.scatter.filter((p) => p.region === region.id);
+      // Never on a tree's point: its trunk would stand between Pip and the sighting.
+      const candidates = openGround(layout.scatter.filter((p) => p.region === region.id));
       if (candidates.length === 0) continue;
       const visible = speciesFor(region.id, config.tier, timeOfDay, season);
       visible.forEach((species, i) => {
@@ -122,7 +126,8 @@ export function buildVerbSpots(
 
   // ── recolectar: berry and seed nodes in La Arboleda, from tier 5.
   if (has('forage')) {
-    const candidates = layout.scatter.filter((p) => p.region === 'arboleda');
+    // La Arboleda is mostly trees; a bush inside a trunk could never be picked.
+    const candidates = openGround(layout.scatter.filter((p) => p.region === 'arboleda'));
     for (let i = 0; i < Math.min(FORAGE_NODES, candidates.length); i++) {
       const point = candidates[Math.floor((i / FORAGE_NODES) * candidates.length)]!;
       spots.push({
@@ -196,6 +201,15 @@ export function useVerbSpots(
   timeOfDay: TimeOfDay,
   season: SeasonId,
   onUse: (spot: VerbSpot) => void,
+  /**
+   * Which spots are carrying nothing right now.
+   *
+   * Foraging nodes empty and come back on staggered 4-8 hour timers
+   * (`lib/world/growth.ts`). An empty node stays **in the world** and stops
+   * offering itself — a bush that vanishes is a bug, a bush with nothing on it
+   * is a reason to come back.
+   */
+  empty: ReadonlySet<string> = EMPTY_SET,
 ): VerbSpot[] {
   const spots = useMemo(
     () => (layout && heightfield ? buildVerbSpots(layout, heightfield, config, timeOfDay, season) : []),
@@ -210,13 +224,13 @@ export function useVerbSpots(
         radius: spot.radius,
         labelKey: VERB_TABLE[spot.verb].labelKey,
         verb: spot.verb,
-        enabled: true,
+        enabled: !empty.has(spot.id),
         onInteract: () => onUse(spot),
       };
       return registerInteractable(item);
     });
     return () => dispose.forEach((fn) => fn());
-  }, [spots, onUse]);
+  }, [spots, onUse, empty]);
 
   return spots;
 }

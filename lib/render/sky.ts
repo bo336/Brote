@@ -1,164 +1,161 @@
 /**
- * The sky: one inverted sphere with a two-stop vertical gradient, plus a cheap
- * star field at night. **No skybox textures** (`06-ART-DIRECTION.md` §6).
+ * The sky: one dome that follows the camera, painted in a shader.
  *
- * The gradient lives in `attributes.color`, so changing time of day rewrites a
- * few hundred floats rather than uploading anything — and the dome shares the
- * one flat vertex-coloured material with the mist wall and the stars, which is
- * how the whole game stays inside its budget of eight live materials.
+ * **v2 (`23-ART-DIRECTION-V2.md`).** A two-stop vertex gradient read as a
+ * backdrop — nothing moved in it and nothing lit it. Now the dome carries a
+ * gradient the biome tints, a sun with a disc and the haze around it, a horizon
+ * that warms on the sun's side, clouds that drift and catch the light, and at
+ * night a field of stars. All of it is one full-screen-ish draw with no texture.
  */
 import * as THREE from 'three';
 
 import type { TimeOfDay } from '@/lib/world/types';
-import { mulberry32 } from '@/lib/world/rng';
 import type { WorldPalette } from './palette';
 
-/** Far enough to sit behind everything, near enough to stay inside the far plane. */
 const SKY_RADIUS = 400;
-const SKY_SEGMENTS = 24;
+const SKY_SEGMENTS = 32;
 const SKY_RINGS = 16;
-/** Where the horizon colour gives way to the top colour, as a fraction of height. */
-const HORIZON_BLEND = 0.55;
 
-const scratchTop = new THREE.Color();
-const scratchHorizon = new THREE.Color();
+/** How much of the sky is cloud, by time of day. Lower is more. */
+const CLOUD_COVER: Record<TimeOfDay, number> = { amanecer: 0.5, dia: 0.56, atardecer: 0.5, noche: 0.6 };
+
+const vertexShader = /* glsl */ `
+  varying vec3 vDir;
+  void main() {
+    vDir = position;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * mv;
+    // Pinned to the far plane, so the dome never clips anything in front of it.
+    gl_Position.z = gl_Position.w;
+  }
+`;
+
+const fragmentShader = /* glsl */ `
+  uniform vec3 uZenith;
+  uniform vec3 uHorizon;
+  uniform vec3 uSunDir;
+  uniform vec3 uSunColor;
+  uniform vec3 uCloudLit;
+  uniform vec3 uCloudShade;
+  uniform float uCloudCover;
+  uniform float uNight;
+  uniform float uTime;
+  varying vec3 vDir;
+
+  float bhHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float bhNoise(vec2 p) {
+    vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(bhHash(i), bhHash(i + vec2(1.0, 0.0)), u.x), mix(bhHash(i + vec2(0.0, 1.0)), bhHash(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+  float bhFbm(vec2 p) {
+    float s = 0.0; float a = 0.5;
+    for (int i = 0; i < 5; i++) { s += a * bhNoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }
+    return s;
+  }
+
+  void main() {
+    vec3 d = normalize(vDir);
+    float h = d.y;
+    float sd = max(dot(d, uSunDir), 0.0);
+
+    // The gradient: deep overhead, pale at the horizon, a little darker below it.
+    vec3 sky = mix(uHorizon, uZenith, pow(clamp(h, 0.0, 1.0), 0.5));
+    sky = h < 0.0 ? mix(uHorizon, uHorizon * 0.82, clamp(-h * 5.0, 0.0, 1.0)) : sky;
+    // The tone curve drains saturation from bright values; give the blue back before it does.
+    sky = mix(vec3(dot(sky, vec3(0.2126, 0.7152, 0.0722))), sky, 1.3);
+
+    // The horizon warms on the sun's side; the sun has a disc and a haze.
+    float day = 1.0 - uNight;
+    sky += uSunColor * pow(1.0 - abs(h), 5.0) * pow(sd, 3.0) * 0.35 * day;
+    sky += uSunColor * (pow(sd, 1200.0) * 24.0 + pow(sd, 48.0) * 0.5 + pow(sd, 6.0) * 0.12) * day;
+
+    // Clouds: a layer overhead, projected, drifting, lit from the sun's side.
+    if (h > 0.0) {
+      vec2 uv = d.xz / (h + 0.12) * 0.55 + uTime * vec2(0.006, 0.0022);
+      float n = bhFbm(uv * 1.6);
+      float cover = smoothstep(uCloudCover, uCloudCover + 0.22, n);
+      float ahead = bhFbm(uv * 1.6 + uSunDir.xz * 0.12);
+      float lit = clamp(0.6 + (n - ahead) * 3.5, 0.0, 1.0);
+      vec3 cloud = mix(uCloudShade, uCloudLit, lit) + uSunColor * pow(sd, 6.0) * 0.6 * day;
+      sky = mix(sky, cloud, cover * smoothstep(0.0, 0.2, h) * 0.92);
+    }
+
+    // Stars, only at night, twinkling.
+    if (uNight > 0.01 && h > 0.0) {
+      vec2 cell = floor(vec2(atan(d.z, d.x) * 180.0, h * 360.0));
+      float s = bhHash(cell);
+      float star = step(0.996, s) * smoothstep(0.0, 0.3, h) * (0.6 + 0.4 * sin(uTime * 2.3 + s * 91.0));
+      sky += vec3(star) * uNight * 1.6;
+    }
+
+    gl_FragColor = vec4(sky, 1.0);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
 
 export interface Sky {
   dome: THREE.Mesh;
-  stars: THREE.InstancedMesh | null;
-  /** 0 = day, 1 = full night. Drives the star opacity. */
+  material: THREE.ShaderMaterial;
+  /** 0 = day, 1 = full night. */
   nightness: number;
 }
 
-/**
- * Paint the dome. Called once at build and again on every time-of-day change —
- * both are cheap, and neither touches a texture or a material.
- */
-export function paintSky(dome: THREE.Mesh, palette: WorldPalette): void {
-  const geo = dome.geometry;
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  let attr = geo.getAttribute('color') as THREE.BufferAttribute | undefined;
-  if (!attr) {
-    // Four components: the sky is opaque (alpha 1) but shares its material with
-    // the mist wall, which is not — and one material for both is what keeps the
-    // whole game inside its budget of eight.
-    attr = new THREE.BufferAttribute(new Float32Array(pos.count * 4), 4);
-    geo.setAttribute('color', attr);
-  }
-  const arr = attr.array as Float32Array;
-  scratchTop.set(palette.skyTop);
-  scratchHorizon.set(palette.skyHorizon);
-  for (let i = 0; i < pos.count; i++) {
-    // Two stops: horizon at and below y = 0, top by `HORIZON_BLEND` of the way up.
-    const h = Math.min(1, Math.max(0, pos.getY(i) / (SKY_RADIUS * HORIZON_BLEND)));
-    const t = h * h;
-    arr[i * 4] = scratchHorizon.r + (scratchTop.r - scratchHorizon.r) * t;
-    arr[i * 4 + 1] = scratchHorizon.g + (scratchTop.g - scratchHorizon.g) * t;
-    arr[i * 4 + 2] = scratchHorizon.b + (scratchTop.b - scratchHorizon.b) * t;
-    arr[i * 4 + 3] = 1;
-  }
-  attr.needsUpdate = true;
-}
+const scratch = new THREE.Color();
 
-/**
- * The dome, unpainted. The caller paints it with `paintSky` — keeping the two
- * apart is what lets a palette change repaint the sky instead of rebuilding it,
- * which would drop the cross-fade on the floor.
- */
-export function buildSky(material: THREE.Material): THREE.Mesh {
-  const geo = new THREE.SphereGeometry(SKY_RADIUS, SKY_SEGMENTS, SKY_RINGS);
-  const dome = new THREE.Mesh(geo, material);
+export function buildSky(): Sky {
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uZenith: { value: new THREE.Color('#5A9BD8') },
+      uHorizon: { value: new THREE.Color('#DCEBF2') },
+      uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
+      uSunColor: { value: new THREE.Color(1, 0.9, 0.75) },
+      uCloudLit: { value: new THREE.Color('#FFF8EE') },
+      uCloudShade: { value: new THREE.Color('#B9C6D6') },
+      uCloudCover: { value: CLOUD_COVER.dia },
+      uNight: { value: 0 },
+      uTime: { value: 0 },
+    },
+    vertexShader,
+    fragmentShader,
+    side: THREE.BackSide,
+    depthWrite: false,
+    depthTest: true,
+    fog: false,
+  });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(SKY_RADIUS, SKY_SEGMENTS, SKY_RINGS), material);
   dome.name = 'sky';
-  // Inside-out, and never culled or depth-tested against the world.
-  dome.scale.set(-1, 1, 1);
-  dome.renderOrder = -1;
-  return dome;
+  dome.renderOrder = -2;
+  dome.frustumCulled = false;
+  return { dome, material, nightness: 0 };
 }
 
-/**
- * The star field: one `InstancedMesh` of a tiny inward-facing quad. A `Points`
- * cloud would need its own `PointsMaterial`, and the material budget has no
- * room for one — this shares the sky's.
- */
-export function buildStars(count: number, material: THREE.Material, seed = 20261): THREE.InstancedMesh {
-  const quad = new THREE.PlaneGeometry(1, 1);
-  const quadVerts = (quad.attributes.position as THREE.BufferAttribute).count;
-  const colors = new Float32Array(quadVerts * 4).fill(1);
-  quad.setAttribute('color', new THREE.BufferAttribute(colors, 4));
-
-  const mesh = new THREE.InstancedMesh(quad, material, Math.max(1, count));
-  mesh.name = 'stars';
-  // Per-instance colour is how a star fades: it multiplies the vertex colour, so
-  // the field can go from invisible to full without a second material and
-  // without moving a single vertex.
-  mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, count) * 3), 3);
-  const rng = mulberry32(seed);
-  const brightness = new Float32Array(Math.max(1, count));
-  const m = new THREE.Matrix4();
-  const q = new THREE.Quaternion();
-  const p = new THREE.Vector3();
-  const s = new THREE.Vector3();
-  const up = new THREE.Vector3(0, 0, 1);
-  const dir = new THREE.Vector3();
-  const radius = SKY_RADIUS * 0.94;
-
-  for (let i = 0; i < count; i++) {
-    // A hemisphere above the horizon, biased away from it so the field reads.
-    const theta = rng() * Math.PI * 2;
-    const y = 0.08 + rng() * 0.92;
-    const r = Math.sqrt(1 - y * y);
-    p.set(Math.cos(theta) * r, y, Math.sin(theta) * r).multiplyScalar(radius);
-    // Face the centre — the camera never leaves the island.
-    dir.copy(p).normalize().negate();
-    q.setFromUnitVectors(up, dir);
-    const size = radius * (0.0015 + rng() * 0.0035);
-    s.set(size, size, size);
-    m.compose(p, q, s);
-    mesh.setMatrixAt(i, m);
-    // A little variation in brightness, fixed per star.
-    brightness[i] = 0.55 + rng() * 0.45;
-  }
-  mesh.instanceMatrix.needsUpdate = true;
-  mesh.userData.brightness = brightness;
-  mesh.renderOrder = -1;
-  mesh.visible = false;
-  return mesh;
+/** The biome's sky at a time of day. Called when the palette changes, never per frame. */
+export function paintSky(sky: Sky, palette: WorldPalette, tod: TimeOfDay): void {
+  const u = sky.material.uniforms;
+  (u.uZenith!.value as THREE.Color).set(palette.skyTop);
+  (u.uHorizon!.value as THREE.Color).set(palette.skyHorizon);
+  // Clouds lit by the horizon's warmth, shaded toward the zenith's blue.
+  (u.uCloudLit!.value as THREE.Color).set(palette.skyHorizon).lerp(scratch.set('#FFFFFF'), 0.6);
+  (u.uCloudShade!.value as THREE.Color).set(palette.skyTop).lerp(scratch.set(palette.skyHorizon), 0.55);
+  u.uCloudCover!.value = CLOUD_COVER[tod];
 }
 
-/**
- * Advance the night fade. `t` is the same frame-rate-independent weight the
- * light rig takes, so the sky and the lights cross-fade together and neither
- * can lead.
- *
- * The gradient itself is repainted by `paintSky` only when the palette actually
- * changes — a few hundred vertices is cheap, but not every frame for nothing.
- */
-export function setTimeOfDay(sky: Sky, tod: TimeOfDay, t: number): void {
-  const target = tod === 'noche' ? 1 : 0;
-  sky.nightness += (target - sky.nightness) * Math.min(1, Math.max(0, t));
-  if (sky.stars) {
-    sky.stars.visible = sky.nightness > 0.02;
-    if (sky.stars.visible) fadeStars(sky.stars, sky.nightness);
-  }
-}
-
-/** Scale every star's instance colour by the night weight. No allocation. */
-function fadeStars(stars: THREE.InstancedMesh, nightness: number): void {
-  const attr = stars.instanceColor;
-  const brightness = stars.userData.brightness as Float32Array | undefined;
-  if (!attr || !brightness) return;
-  const arr = attr.array as Float32Array;
-  for (let i = 0; i < brightness.length; i++) {
-    const v = brightness[i]! * nightness;
-    arr[i * 3] = v;
-    arr[i * 3 + 1] = v;
-    arr[i * 3 + 2] = v;
-  }
-  attr.needsUpdate = true;
+/** One frame: follow the lens, advance the clouds, fade the night, take the sun. */
+export function tickSky(
+  sky: Sky, cameraPosition: THREE.Vector3, timeS: number, tod: TimeOfDay, fade: number,
+  sunDir: THREE.Vector3, sunColor: THREE.Color,
+): void {
+  sky.dome.position.copy(cameraPosition);
+  sky.nightness += ((tod === 'noche' ? 1 : 0) - sky.nightness) * Math.min(1, Math.max(0, fade));
+  const u = sky.material.uniforms;
+  u.uTime!.value = timeS;
+  u.uNight!.value = sky.nightness;
+  (u.uSunDir!.value as THREE.Vector3).copy(sunDir);
+  (u.uSunColor!.value as THREE.Color).copy(sunColor);
 }
 
 export function disposeSky(sky: Sky): void {
   sky.dome.geometry.dispose();
-  sky.stars?.geometry.dispose();
-  sky.stars?.dispose();
+  sky.material.dispose();
 }

@@ -219,7 +219,13 @@ const TIER_ELEMENTS: Record<number, StructuralElement[]> = {
   11: ['golden'],
 };
 
-function pipStageForTier(tier: number): PipStage {
+/**
+ * Pip's stage for a rank tier. Exported (additively — the contract with the
+ * database is untouched) because the 3D world needs it too: the store defaulted
+ * to `seed`, nothing ever set it, and `applyStage` hides Pip's leaves at seed.
+ * Pip was a bare ball at every tier.
+ */
+export function pipStageForTier(tier: number): PipStage {
   if (tier >= 11) return 'radiant';
   if (tier >= 8) return 'guardian';
   if (tier >= 4) return 'leafy';

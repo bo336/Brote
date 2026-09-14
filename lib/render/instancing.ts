@@ -40,6 +40,18 @@ export class InstancePool {
   readonly mesh: THREE.InstancedMesh;
   readonly max: number;
   private used = 0;
+  /**
+   * Per-instance visibility, 1 solid and 0 gone, for the occluder fade
+   * (`10-CONTROLS-AND-CAMERA.md` §4).
+   *
+   * **Every** pool carries it, not only the ones that fade, and it costs no
+   * material: three compiles a separate program for a material used on an
+   * `InstancedMesh` (`USE_INSTANCING` is part of its program cache key), so the
+   * clay shader can read `aFade` behind that guard and the plain-mesh program
+   * never sees it. A per-pool material variant would have spent the eighth and
+   * last material slot on this.
+   */
+  readonly fade: THREE.InstancedBufferAttribute;
 
   constructor(
     geometry: THREE.BufferGeometry,
@@ -54,6 +66,9 @@ export class InstancePool {
     // Start empty: a pool with `count = max` and no matrices written renders
     // `max` copies of an identity transform stacked at the origin.
     this.mesh.count = 0;
+    this.fade = new THREE.InstancedBufferAttribute(new Float32Array(this.max).fill(1), 1);
+    this.fade.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.geometry.setAttribute('aFade', this.fade);
     if (opts.colors) {
       this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(this.max * 3).fill(1), 3);
       this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
@@ -64,10 +79,30 @@ export class InstancePool {
     }
   }
 
+  /** How solid one instance is, 1 solid and 0 gone. See `fade` above. */
+  setFade(i: number, value: number): void {
+    if (i < 0 || i >= this.max) return;
+    this.fade.setX(i, value);
+    this.fade.needsUpdate = true;
+  }
+
   /** Claim the next slot, or -1 when the pool is full. */
   alloc(): number {
     if (this.used >= this.max) return -1;
     return this.used++;
+  }
+
+  /**
+   * Give every slot back and start the list again.
+   *
+   * Almost nothing in the world needs this: a tree is placed once and stays.
+   * The stickers a visitor leaves are the exception — the list grows while the
+   * page is open, and re-placing eight pools is cheaper and simpler than
+   * building a ninth mesh for each new token.
+   */
+  reset(): void {
+    this.used = 0;
+    this.mesh.count = 0;
   }
 
   /** How many slots have been claimed. */

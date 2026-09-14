@@ -108,8 +108,10 @@ export function mergePainted(parts: THREE.BufferGeometry[]): THREE.BufferGeometr
  * planks, benches and posts are built from this rather than from `BoxGeometry`.
  * A rounded box is a squashed sphere with enough segments to keep its edges.
  */
-export function bevelBox(w: number, h: number, d: number, hex: string): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.5, 10, 6);
+export function bevelBox(w: number, h: number, d: number, hex: string, square = 0.72): THREE.BufferGeometry {
+  // `square` runs from 0 (a squashed sphere) to 1 (a hard box). The default suits
+  // chunky shapes; a long thin board needs more, or its ends round into a pill.
+  const geo = new THREE.SphereGeometry(0.5, square > 0.8 ? 16 : 10, square > 0.8 ? 8 : 6);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   // Push the sphere out toward a cube, leaving the corners rounded.
   for (let i = 0; i < pos.count; i++) {
@@ -117,7 +119,7 @@ export function bevelBox(w: number, h: number, d: number, hex: string): THREE.Bu
     const y = pos.getY(i);
     const z = pos.getZ(i);
     const m = Math.max(Math.abs(x), Math.abs(y), Math.abs(z)) || 1;
-    const k = 0.72;
+    const k = square;
     pos.setXYZ(i, (x / m) * 0.5 * k + x * (1 - k), (y / m) * 0.5 * k + y * (1 - k), (z / m) * 0.5 * k + z * (1 - k));
   }
   geo.scale(w, h, d);

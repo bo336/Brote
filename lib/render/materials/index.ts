@@ -14,9 +14,13 @@
 import * as THREE from 'three';
 
 import type { QualityTier } from '@/lib/world/types';
-import { applyMood, createClayMaterial, type ClayMaterial, type ClayOptions, type WorldMood } from './clay';
+import {
+  applyMood, applyReveal, applySun, createClayMaterial,
+  type ClayMaterial, type ClayOptions, type WorldMood,
+} from './clay';
 import { createFlatMaterial, type FlatOptions } from './flat';
-import { createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
+import { applyWaterMood, applyWaterReveal, createWaterMaterial, type WaterMaterial, type WaterOptions } from './water';
+import { REVEAL_OFF, type RevealState } from '../reveal';
 
 const clayCache = new Map<string, ClayMaterial>();
 const waterCache = new Map<string, WaterMaterial>();
@@ -24,6 +28,49 @@ const flatCache = new Map<string, THREE.MeshBasicMaterial>();
 const textureCache = new Map<string, THREE.Texture>();
 
 let lastMood: WorldMood | null = null;
+/**
+ * The arrival in force. Held here for the same reason the mood is: a material
+ * built mid-session — a prop placed during a ceremony, say — has to arrive
+ * matching the ones around it rather than at its finished state.
+ */
+let lastReveal: RevealState = REVEAL_OFF;
+
+/** The sun in force, so a material built mid-session is lit like the rest. */
+const lastSunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
+const lastSunColor = new THREE.Color(1, 0.9, 0.75);
+
+/** The sun, every frame: its direction and its colour times intensity. Allocates nothing. */
+export function updateSun(dirW: THREE.Vector3, color: THREE.Color): void {
+  lastSunDir.copy(dirW);
+  lastSunColor.copy(color);
+  for (const mat of clayCache.values()) applySun(mat, dirW, color);
+}
+
+/** The grass mask in force, for the ground to darken under the blades. */
+let groundGrass: { tex: THREE.Texture; info: THREE.Vector4 } | null = null;
+
+function applyGroundGrass(mat: ClayMaterial): void {
+  const u = mat.clayUniforms;
+  if (!groundGrass || !u.uGrassMask) return;
+  u.uGrassMask.value = groundGrass.tex;
+  (u.uGrassMaskInfo!.value as THREE.Vector4).copy(groundGrass.info);
+}
+
+/** The grass's density mask and where it sits, handed to every world material that is ground. */
+export function setGroundGrass(tex: THREE.Texture, res: number, step: number, extent: number): void {
+  groundGrass = { tex, info: new THREE.Vector4(res, step, extent, 1) };
+  for (const mat of clayCache.values()) applyGroundGrass(mat);
+}
+
+/** The mood in force, read back — the grass takes its fog from it. */
+export function currentMood(): WorldMood | null {
+  return lastMood;
+}
+
+/** The same sun, read back — the sky and the water need it too. */
+export function currentSun(): { dir: THREE.Vector3; color: THREE.Color } {
+  return { dir: lastSunDir, color: lastSunColor };
+}
 
 function clayKey(o: ClayOptions): string {
   return [
@@ -33,11 +80,18 @@ function clayKey(o: ClayOptions): string {
     o.ao === false ? '-' : 'a',
     o.rim === false ? '-' : 'r',
     o.vertexColors === false ? '-' : 'c',
+    o.ground ? 'g' : '-',
     o.transparent ? 't' : '-',
     o.side ?? THREE.FrontSide,
     o.wobbleScale ?? 1,
     String(o.color ?? ''),
     o.alphaMap?.uuid ?? '-',
+    o.rimBoost ?? 1,
+    o.roughness ?? '-',
+    o.map?.uuid ?? '-',
+    o.alphaTest ?? 0,
+    o.translucent ? 'sss' : '-',
+    o.fauna ? 'fauna' : '-',
   ].join(':');
 }
 
@@ -51,6 +105,9 @@ export function getClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (hit) return hit;
   const mat = createClayMaterial(opts);
   if (lastMood) applyMood(mat, lastMood);
+  applySun(mat, lastSunDir, lastSunColor);
+  applyGroundGrass(mat);
+  applyReveal(mat, lastReveal);
   clayCache.set(key, mat);
   return mat;
 }
@@ -60,6 +117,8 @@ export function getWaterMaterial(opts: WaterOptions): WaterMaterial {
   const hit = waterCache.get(key);
   if (hit) return hit;
   const mat = createWaterMaterial(opts);
+  if (lastMood) applyWaterMood(mat, lastMood);
+  applyWaterReveal(mat, lastReveal);
   waterCache.set(key, mat);
   return mat;
 }
@@ -68,6 +127,7 @@ export function getFlatMaterial(opts: FlatOptions = {}): THREE.MeshBasicMaterial
   const key = [
     String(opts.color ?? ''), opts.map?.uuid ?? '', opts.opacity ?? 1,
     opts.side ?? '', opts.depthWrite ?? '', opts.vertexColors ? 'vc' : '-',
+    opts.polygonOffset ?? '',
   ].join(':');
   const hit = flatCache.get(key);
   if (hit) return hit;
@@ -108,6 +168,23 @@ export function getTexture(key: string, build: () => THREE.Texture): THREE.Textu
 export function updateMood(mood: WorldMood): void {
   lastMood = mood;
   for (const mat of clayCache.values()) applyMood(mat, mood);
+  // The sea takes the fog band too. It is the only surface that reaches the
+  // horizon, so it is the only one where leaving fog out is visible as a hard
+  // line between the water and the sky.
+  for (const mat of waterCache.values()) applyWaterMood(mat, mood);
+}
+
+/**
+ * The tier-up ceremony's beat 3, pushed to every live material at once.
+ *
+ * Called every frame for the ~8-15 seconds an arrival runs and once on either
+ * side of it. Six numbers per material, no allocation, no recompile — see
+ * `lib/render/reveal.ts` for why it can afford to be in every shader.
+ */
+export function updateReveal(reveal: RevealState): void {
+  lastReveal = reveal;
+  for (const mat of clayCache.values()) applyReveal(mat, reveal);
+  for (const mat of waterCache.values()) applyWaterReveal(mat, reveal);
 }
 
 /** How many materials are live — the perf overlay watches this against the 8. */
@@ -137,6 +214,8 @@ export function disposeAll(): void {
   flatCache.clear();
   textureCache.clear();
   lastMood = null;
+  lastReveal = REVEAL_OFF;
+  groundGrass = null;
 }
 
 export type { ClayMaterial, ClayOptions, WaterMaterial, WaterOptions, WorldMood, QualityTier };

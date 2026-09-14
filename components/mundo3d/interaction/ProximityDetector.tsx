@@ -25,7 +25,9 @@ export function ProximityDetector({ verbs }: { verbs: readonly VerbId[] }) {
     frame.current += 1;
     if (frame.current % INTERACT.scanEveryNFrames !== 0) return;
     const p = playerTransform;
-    setActive(findActive(p.x, p.z, p.yaw, verbs));
+    // The thing the objective card points at wins a tie with its peers.
+    const target = useSessionStore.getState().objective?.targetId ?? null;
+    setActive(findActive(p.x, p.z, p.yaw, verbs, target));
   });
 
   return null;

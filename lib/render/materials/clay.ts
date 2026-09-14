@@ -1,26 +1,33 @@
 /**
- * `clayMaterial` — everything solid in the game.
+ * The world material — everything solid in the game.
  *
- * `MeshLambertMaterial` (cheap, diffuse-only, no specular) extended through
- * `onBeforeCompile`. **Not `MeshStandardMaterial`**: PBR buys nothing in a
- * chalk-matte art direction and costs a lot (`18-DECISIONS.md` T4). Not
- * `MeshToonMaterial` either — a hand-rolled 3-band quantise gives more control
- * than a gradient-map lookup.
+ * **Art direction v2 (`23-ART-DIRECTION-V2.md`).** This was a Lambert material
+ * with light quantised into three bands, and the owner's first playtest called
+ * the result "basic and generic". The bands are gone. The base is now
+ * `MeshStandardMaterial` — a real sun with real soft shadows, a sky that fills
+ * the shade — and on top of it the handful of things that make it ours:
  *
- * It provides, in order of importance: vertex colours as the primary colour
- * channel, a 3-band diffuse quantise, an added Fresnel rim, baked vertical AO,
- * the global wobble, and height fog.
+ *  - vertex colours as the primary colour channel, still;
+ *  - **translucency**: foliage and grass let the sun through when you look at
+ *    them against it, which is most of what golden-hour light *is*;
+ *  - baked vertical AO where things meet the ground;
+ *  - the Fresnel rim, now reserved for Pip, who must read against any ground;
+ *  - wind on foliage, the occluder dither, the tier-up reveal, and height fog
+ *    that warms toward the sun.
  *
- * All uniforms are driven from ONE mood object, so time of day and biome shift
- * the whole scene by changing ~11 numbers — never by re-creating a material.
- * Every new material is a shader compile, which is a visible hitch on cheap
- * Android (`06-ART-DIRECTION.md` §4).
+ * All uniforms are shared through one mood and one sun, so time of day shifts
+ * the whole scene by changing numbers — never by rebuilding a material.
  */
 import * as THREE from 'three';
 
-import { CLAY, FOG, WIND, WOBBLE } from '@/lib/world/config';
+import { CLAY, FOG, GROUND, LOOK, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
-import { CLAY_FRAG_HEAD, CLAY_VERT_HEAD, HEIGHT_FOG_FRAG, WIND_VERT, WOBBLE_VERT } from './chunks';
+import {
+  CLAY_FRAG_HEAD, CLAY_VERT_HEAD, FADE_FRAG, FADE_VERT, GROUND_DETAIL_FRAG, GROUND_NORMAL_FRAG, HEIGHT_FOG_FRAG,
+  REVEAL_FRAG, REVEAL_VERT, WIND_VERT, WOBBLE_VERT,
+} from './chunks';
+import { FAUNA_NORMAL_VERT, FAUNA_POSITION_VERT, FAUNA_VERT_HEAD } from './fauna-rig';
+import { REVEAL_OFF, revealModeIndex, type RevealState } from '../reveal';
 
 export interface WorldMood {
   rimColor: THREE.ColorRepresentation;
@@ -31,61 +38,68 @@ export interface WorldMood {
   fogDensity: number;
   /** Seconds, for the wind term only. The wobble is deliberately static. */
   time: number;
-  /**
-   * The wobble and wind amplitudes, which the QUALITY TIER zeroes at T0.
-   *
-   * They are uniforms rather than defines for the same reason the water's
-   * swells are: a tier change may never recompile a shader, and a recompile is
-   * a visible hitch on cheap Android (`07-RENDER-ARCHITECTURE.md` §4.3).
-   */
+  /** Amplitudes the quality tier zeroes at T0 — uniforms, so a tier change never recompiles. */
   wobbleAmp: number;
   windAmp: number;
 }
 
 export interface ClayOptions {
-  /** Foliage sways; ground, rock and props do not. */
+  /** Foliage sways; ground, rock and props do not. Foliage is also translucent. */
   wind?: boolean;
   /** Off at T0, and off on anything that moves. */
   wobble?: boolean;
   /** Amplitude is a fraction of the object's size — a mountain wobbles more. */
   wobbleScale?: number;
   heightFog?: boolean;
-  /**
-   * Vertical AO darkens where an object meets the ground. The GROUND is that
-   * reference surface, so it opts out — otherwise the terrain darkens itself.
-   */
+  /** Vertical AO darkens where an object meets the ground. The ground itself opts out. */
   ao?: boolean;
-  /**
-   * The Fresnel rim makes an object read as a solid volume by catching light on
-   * its silhouette. On a large ground plane **every** fragment is at a grazing
-   * angle, so the same term stops being an edge and becomes a wash — it turned
-   * a green pradera warm brown. Terrain opts out.
-   */
+  /** The Fresnel rim. On a ground plane every fragment is grazing, so terrain opts out. */
   rim?: boolean;
+  /** Multiply the rim on this material only — Pip, who must read against any ground. */
+  rimBoost?: number;
   vertexColors?: boolean;
+  /** This mesh **is** the ground, for the tier-up uplift (`../reveal.ts`). */
+  ground?: boolean;
   transparent?: boolean;
   side?: THREE.Side;
   color?: THREE.ColorRepresentation;
   /** Pip's pattern atlas, used as an alpha mask over the body's own colour. */
   alphaMap?: THREE.Texture | null;
+  /** 0 mirror … 1 chalk. Most of the world is near 1; wet and waxy things are lower. */
+  roughness?: number;
+  /** An albedo texture multiplied by the vertex colour — the leaf atlas. */
+  map?: THREE.Texture | null;
+  /** Cut-out threshold for `map`'s alpha. Leaf cards, not glass. */
+  alphaTest?: number;
+  /** Lets the sun through when seen against it. Foliage always does; Pip's soft body too. */
+  translucent?: boolean;
+  /** The animals: wings, legs, tail and head move on the GPU (`fauna-rig.ts`). Instanced meshes only. */
+  fauna?: boolean;
 }
 
-export interface ClayMaterial extends THREE.MeshLambertMaterial {
+export interface ClayMaterial extends THREE.MeshStandardMaterial {
   /** The shared uniform block. Mutate these; never rebuild the material. */
   clayUniforms: Record<string, THREE.IUniform>;
 }
 
-/** The fog band for a render distance — near is a fraction of far (`06` §4). */
+/** The fog band for a render distance — near is a fraction of far. */
 export function fogRange(renderDistanceM: number): { near: number; far: number } {
   return { near: renderDistanceM * FOG.nearFraction, far: renderDistanceM };
 }
 
 const CREAM = BRAND.cream;
-
-/** The T1 render distance, so an unmoodied material still has a sane fog band. */
 const DEFAULT_FOG = fogRange(60);
 
-/** The default uniform block, straight from `lib/world/config.ts`. */
+let blank: THREE.DataTexture | null = null;
+/** A flat 1×1 stand-in: mid grey, a normal pointing straight up, no grass. */
+function blankTexture(): THREE.DataTexture {
+  if (!blank) {
+    blank = new THREE.DataTexture(new Uint8Array([128, 128, 255, 0]), 1, 1);
+    blank.needsUpdate = true;
+  }
+  return blank;
+}
+
 function defaultUniforms(): Record<string, THREE.IUniform> {
   return {
     uTime: { value: 0 },
@@ -98,6 +112,7 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uWindHeightBias: { value: WIND.heightBias },
     uBandCount: { value: CLAY.bandCount },
     uBandSoftness: { value: CLAY.bandSoftness },
+    uBandFloor: { value: CLAY.bandFloor },
     uRimColor: { value: new THREE.Color('#FFD9A0') },
     uRimStrength: { value: CLAY.rimStrength },
     uRimPower: { value: CLAY.rimPower },
@@ -106,56 +121,83 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uFogColor: { value: new THREE.Color(CREAM) },
     uFogNear: { value: DEFAULT_FOG.near },
     uFogFar: { value: DEFAULT_FOG.far },
-    // Zero until a mood says otherwise. A material whose DEFAULT state paints
-    // the world solid white is not a default, it is a trap: `near 0, far 1`
-    // fogs every fragment at full strength the moment it is drawn.
+    // Zero until a mood says otherwise: a default that fogs every fragment white is a trap.
     uFogDensity: { value: 0 },
+    uSunDirW: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
+    uSunColor: { value: new THREE.Color(1, 0.9, 0.75) },
+    uTranslucency: { value: LOOK.translucency },
+    // The ground's detail maps and the grass mask, set once the island is built.
+    uGroundDetail: { value: blankTexture() },
+    uGroundNormal: { value: blankTexture() },
+    uGrassMask: { value: blankTexture() },
+    uGrassMaskInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    uGroundScales: { value: new THREE.Vector4(GROUND.detailScale, GROUND.broadScale, GROUND.underGrass, GROUND.normalStrength) },
+    // The paths' distance map (`geometry/path-map.ts`); the blank reads as "no path anywhere".
+    uPathMap: { value: blankTexture() },
+    uPathInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    uPathColor: { value: new THREE.Color() },
+    uPathWorn: { value: new THREE.Color() },
+    uPathFloor: { value: 0 },
+    uRevealCentre: { value: new THREE.Vector3() },
+    uRevealBare: { value: new THREE.Color(0.45, 0.42, 0.4) },
+    uRevealRadius: { value: 1 },
+    uRevealAmount: { value: 1 },
+    uRevealMode: { value: 0 },
   };
 }
 
-/**
- * Replace a three.js shader-chunk anchor, and **shout if the anchor is gone**.
- *
- * `String.replace` on a missing needle silently returns the input, so a chunk
- * that three renamed takes the whole clay read out of the material with no
- * error anywhere. That is exactly how the band quantise and the vertical AO
- * came to be missing while everything still "worked": the material compiled,
- * drew, and looked wrong. Never let that be silent again.
- */
+/** Replace a three.js shader-chunk anchor, and **shout if the anchor is gone**. */
 function inject(source: string, anchor: string, replacement: string): string {
   const out = source.replace(anchor, replacement);
   if (out === source && process.env.NODE_ENV !== 'production') {
-    console.error(`[mundo] clay shader anchor missing: ${anchor} — three.js renamed a chunk.`);
+    console.error(`[mundo] world shader anchor missing: ${anchor} — three.js renamed a chunk.`);
   }
   return out;
 }
 
-/**
- * Build one clay material. Callers go through `getClayMaterial` in `./index` so
- * the cache keeps the live-material count inside the budget of eight.
- */
+/** Build one material. Callers go through `getClayMaterial` in `./index`, which caches. */
 export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
-  const mat = new THREE.MeshLambertMaterial({
+  const mat = new THREE.MeshStandardMaterial({
     vertexColors: opts.vertexColors ?? true,
     transparent: opts.transparent ?? false,
     side: opts.side ?? THREE.FrontSide,
     color: opts.color ?? 0xffffff,
     alphaMap: opts.alphaMap ?? null,
+    map: opts.map ?? null,
+    alphaTest: opts.alphaTest ?? 0,
+    roughness: opts.roughness ?? LOOK.roughness,
+    metalness: 0,
   }) as ClayMaterial;
 
   const uniforms = defaultUniforms();
+  uniforms.uRimStrength!.value = CLAY.rimStrength * (opts.rimBoost ?? 1);
   uniforms.uWobbleScale!.value = opts.wobbleScale ?? 1;
   mat.clayUniforms = uniforms;
 
-  // The defines decide which chunks compile in at all, so a T0 device pays
-  // nothing for a wobble it will never see.
   const defines: string[] = [];
   if (opts.wobble ?? true) defines.push('#define BH_WOBBLE');
   if (opts.wind) defines.push('#define BH_WIND');
+  if (opts.wind || opts.translucent) defines.push('#define BH_TRANSLUCENT');
   if (opts.heightFog ?? true) defines.push('#define BH_HEIGHT_FOG');
   if (opts.ao ?? true) defines.push('#define BH_AO');
-  if (opts.rim ?? true) defines.push('#define BH_RIM');
+  // The rim is Pip's now: on everything else it read as a glow painted round the edges.
+  if ((opts.rim ?? true) && (opts.rimBoost ?? 1) > 1) defines.push('#define BH_RIM');
+  if (opts.ground) defines.push('#define BH_REVEAL_GROUND');
+  if (opts.fauna) defines.push('#define BH_FAUNA');
+  // Leaf cards carry the crown's normal on both faces; the default flip darkens every back face.
+  if (opts.map && opts.side === THREE.DoubleSide) defines.push('#define BH_CARD_NORMALS');
   const defineBlock = defines.join('\n');
+
+  /**
+   * **The defines are part of the program's identity.** three keys its program
+   * cache on `onBeforeCompile.toString()`, and every world material shares this
+   * one function's source — so two materials with the same base parameters
+   * shared ONE compiled program, whichever compiled first, whatever their own
+   * defines said. Pip and the bench were drawn with the ground's shader, whose
+   * rock-on-steep-faces detail painted every vertical surface stone grey; and
+   * Pip's own uniforms were never bound, which is why zeroing his rim did nothing.
+   */
+  mat.customProgramCacheKey = () => `bh-world:${defines.join('|')}`;
 
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -164,17 +206,25 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
       inject(
         inject(shader.vertexShader, '#include <common>', `#include <common>
 ${defineBlock}
-${CLAY_VERT_HEAD}`),
+${CLAY_VERT_HEAD}
+${FAUNA_VERT_HEAD}`),
         '#include <begin_vertex>',
         /* glsl */ `
         #include <begin_vertex>
+        ${FAUNA_POSITION_VERT}
         vec3 bhWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+        #ifdef USE_INSTANCING
+          bhWorld = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+        #endif
         vClayWorld = bhWorld;
-        // The AO base is the object's own origin in world space, so a tall tree
-        // and a low rock both darken over the same 0.6 m above the ground.
         vAOBase = modelMatrix[3].y;
+        #ifdef USE_INSTANCING
+          vAOBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).y;
+        #endif
+        ${REVEAL_VERT}
         ${WOBBLE_VERT}
         ${WIND_VERT}
+        ${FADE_VERT}
         `,
       ),
       '#include <fog_vertex>',
@@ -184,32 +234,37 @@ ${CLAY_VERT_HEAD}`),
       `,
     );
 
+    shader.vertexShader = inject(
+      shader.vertexShader,
+      '#include <beginnormal_vertex>',
+      `#include <beginnormal_vertex>
+        ${FAUNA_NORMAL_VERT}`,
+    );
+
     shader.fragmentShader = inject(
       inject(
         inject(shader.fragmentShader, '#include <common>', `#include <common>
 ${defineBlock}
 ${CLAY_FRAG_HEAD}`),
-        // `lights_fragment_end` is where `reflectedLight` is finally accumulated.
-        // (The old `lights_lambert_fragment` chunk this originally anchored on
-        // has not existed in three for many versions — see `inject` below.)
         '#include <lights_fragment_end>',
         /* glsl */ `
         #include <lights_fragment_end>
-        // 1. Quantise the diffuse light into bands — this IS the clay read.
-        float bhLum = dot(reflectedLight.directDiffuse, vec3(0.2126, 0.7152, 0.0722));
-        float bhBanded = bh_bands(clamp(bhLum, 0.0, 1.0));
-        reflectedLight.directDiffuse *= bhLum > 0.0001 ? bhBanded / bhLum : 1.0;
-        // 2. Baked vertical AO: darken the base of every object. Replaces SSAO.
         #ifdef BH_AO
           float bhAO = mix(1.0 - uAOStrength, 1.0, smoothstep(0.0, uAOHeight, vClayWorld.y - vAOBase));
           reflectedLight.indirectDiffuse *= bhAO;
+          reflectedLight.directDiffuse *= mix(1.0, bhAO, 0.5);
+        #endif
+        #ifdef BH_TRANSLUCENT
+          // Light through a leaf: strongest seen against the sun, tinted by the leaf itself.
+          vec3 bhV = normalize(cameraPosition - vClayWorld);
+          float bhBack = pow(clamp(dot(bhV, -uSunDirW), 0.0, 1.0), 3.0);
+          reflectedLight.directDiffuse += diffuseColor.rgb * uSunColor * bhBack * uTranslucency;
         #endif
         `,
       ),
-      // The rim goes in BEFORE the output encoding, in the same linear space as
-      // the bands. Added, never multiplied.
       '#include <opaque_fragment>',
       /* glsl */ `
+        ${FADE_FRAG}
         #ifdef BH_RIM
           vec3 bhViewDir = normalize(vViewPosition);
           float bhRim = pow(1.0 - clamp(dot(normalize(vNormal), bhViewDir), 0.0, 1.0), uRimPower);
@@ -219,8 +274,38 @@ ${CLAY_FRAG_HEAD}`),
       `,
     );
 
-    // Height fog goes last, after three's own output encoding — the same place
-    // three puts its fog, so the two agree about what a colour is.
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
+      '#include <color_fragment>',
+      /* glsl */ `
+        #include <color_fragment>
+        ${REVEAL_FRAG}
+        #ifdef BH_REVEAL_GROUND
+          ${GROUND_DETAIL_FRAG}
+        #endif
+      `,
+    );
+
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
+      '#include <normal_fragment_begin>',
+      /* glsl */ `
+        #include <normal_fragment_begin>
+        #if defined(BH_CARD_NORMALS) && defined(DOUBLE_SIDED)
+          normal *= faceDirection;
+        #endif
+      `,
+    );
+
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
+      '#include <normal_fragment_maps>',
+      /* glsl */ `
+        #include <normal_fragment_maps>
+        ${GROUND_NORMAL_FRAG}
+      `,
+    );
+
     shader.fragmentShader = inject(
       shader.fragmentShader,
       '#include <dithering_fragment>',
@@ -245,7 +330,19 @@ varying float vAOBase;`,
   return mat;
 }
 
-/** Push one mood into a material's uniforms. Eleven numbers, zero recompiles. */
+/** Push the arrival state in. Four numbers and two colours, zero recompiles. */
+export function applyReveal(mat: ClayMaterial, reveal: RevealState): void {
+  const u = mat.clayUniforms;
+  (u.uRevealCentre!.value as THREE.Vector3).set(...reveal.centre);
+  (u.uRevealBare!.value as THREE.Color).setRGB(...reveal.bare);
+  u.uRevealRadius!.value = reveal.radius;
+  u.uRevealAmount!.value = reveal.amount;
+  u.uRevealMode!.value = revealModeIndex(reveal.mode);
+}
+
+export const CLAY_REVEAL_OFF = REVEAL_OFF;
+
+/** Push one mood into a material's uniforms. Zero recompiles. */
 export function applyMood(mat: ClayMaterial, mood: WorldMood): void {
   const u = mat.clayUniforms;
   (u.uRimColor!.value as THREE.Color).set(mood.rimColor);
@@ -258,3 +355,9 @@ export function applyMood(mat: ClayMaterial, mood: WorldMood): void {
   u.uWindAmp!.value = mood.windAmp;
 }
 
+/** The sun, for translucency and the fog's warm side. Called every frame; allocates nothing. */
+export function applySun(mat: ClayMaterial, dirW: THREE.Vector3, color: THREE.Color): void {
+  const u = mat.clayUniforms;
+  (u.uSunDirW!.value as THREE.Vector3).copy(dirW);
+  (u.uSunColor!.value as THREE.Color).copy(color);
+}

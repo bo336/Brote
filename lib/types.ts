@@ -16,6 +16,8 @@ export interface ProfileSummary {
   streakFreezes: number;
   equippedTitle: string | null;
   mundoState: MundoState | null;
+  /** Their island as it looked on their last visit, or null for the SVG. */
+  worldSnapshotUrl?: string | null;
   /** Lifetime scoring completions — drives per-completion world micro-growth. */
   completionsCount?: number;
   /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */

@@ -1,37 +1,56 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { PIP_HEIGHT_M, TERRAIN, VERB_TIMING, WIND, WOBBLE } from '@/lib/world/config';
+import { TERRAIN } from '@/lib/world/config';
 import { seasonFor } from '@/lib/world/season';
-import { haptic } from '@/lib/utils/haptics';
+import { localDate } from '@/lib/utils/dates';
 import { bakeHeightfield, bakeResolutionFor, sampleHeight } from '@/lib/world/terrain';
 import { paletteFor } from '@/lib/render/palette';
 import { TIERS, type QualityMonitor } from '@/lib/render/quality';
-import { getFlatMaterial, getTexture } from '@/lib/render/materials';
-import { BlobShadowPool, buildBlobTexture } from '@/lib/render/shadows';
-import { fogRange } from '@/lib/render/materials/clay';
-import { updateMood } from '@/lib/render/materials';
-import type { Placement, QualityTier, TimeOfDay } from '@/lib/world/types';
-import { SEMILLAS } from '@/lib/world/config';
-import { CharacterController, type PropCollider } from '../control/CharacterController';
+import type { CeremonyScript } from '@/lib/world/ceremony';
+import type { WorldDailyState } from '@/lib/world/types';
+import type { Placement, QualityTier, TimeOfDay, WorldLayout } from '@/lib/world/types';
+import { CeremonyStage } from '../ceremony/CeremonyStage';
+
+import { PlacementMode } from '../placement/PlacementMode';
+import { usePlacementBridge } from '../placement/usePlacementBridge';
+import { CharacterController } from '../control/CharacterController';
 import { FollowCamera } from '../control/FollowCamera';
 import { Pip, type PipHandle } from '../pip/Pip';
+import { VisitorPip } from '../pip/VisitorPip';
+import type { VisitSession } from '../visit/useVisit';
 import { ProximityDetector } from '../interaction/ProximityDetector';
+import { useInteractBridge } from '../interaction/useInteractBridge';
 import { WorldCue } from '../interaction/WorldCue';
 import { resetPlayerTransform, usePlayerStore } from '../state/usePlayerStore';
+import { ForageBushes } from './ForageBushes';
 import { useSessionStore } from '../state/useSessionStore';
 import { useWorldStore } from '../state/useWorldStore';
-import { VerbRuntime, type VerbResult } from '../verbs/runtime';
-import { useVerbSpots, type VerbSpot } from '../verbs/register';
+import type { RawMarker } from '@/lib/world/markers';
+import { useWorldVerbs } from '../verbs/useWorldVerbs';
+import { useIslandLife } from './useIslandLife';
+import { useEventRuntime } from '../events/useEventRuntime';
+import { useBlobShadows } from './useBlobShadows';
+import { useColliders } from './useColliders';
+import { useFirstRun } from './useFirstRun';
+import { useMood } from './useMood';
+import { Debris } from './Debris';
 import { Fauna } from './Fauna';
+import { FirstRunMarks } from './FirstRunMarks';
+import { Grass } from './Grass';
+import { Guidance } from './Guidance';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
+import { ProjectMarkers } from './ProjectMarkers';
+import { Wilting } from './Wilting';
+import { PosterShot } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
+import { Stickers } from './Stickers';
 import { Vegetation } from './Vegetation';
 import { Water } from './Water';
 
@@ -47,6 +66,12 @@ import { Water } from './Water';
  * it *is* — otherwise a promotion would move the floor under Pip mid-step.
  */
 const EMPTY_PLACEMENTS: readonly Placement[] = [];
+const EMPTY_OWNED: readonly string[] = [];
+const EMPTY_MARKERS: readonly RawMarker[] = [];
+/** A world nobody owns has done nothing today. Stable, so nothing rebuilds. */
+const EMPTY_DAILY: WorldDailyState = {
+  chores_done: 0, forage_done: 0, event_done: false, event_slug: null, semillas_awarded: 0,
+};
 
 export function World({
   tier,
@@ -57,6 +82,21 @@ export function World({
   placements = EMPTY_PLACEMENTS,
   demoProps = false,
   onAdvanceTime,
+  onCelebrated,
+  previousBiome,
+  onPoster,
+  onOpenMojon,
+  ownedCosmetics = EMPTY_OWNED,
+  savedLayouts,
+  userId = 'demo',
+  daily = EMPTY_DAILY,
+  createdAt = 0,
+  onboardedAt = 0,
+  projectMarkers = EMPTY_MARKERS,
+  dueReviews = 0,
+  readOnly = false,
+  visit,
+  onPlacementsChanged,
 }: {
   tier: QualityTier;
   timeOfDay: TimeOfDay;
@@ -67,9 +107,44 @@ export function World({
   demoProps?: boolean;
   /** `descansar` hands time forward; the route owns which preset comes next. */
   onAdvanceTime?: () => void;
+  /** Opens El Mojón. The world knows where the stone is; the HUD owns the sheet. */
+  onOpenMojon?: () => void;
+  /** What the player owns, for the placement tray. */
+  ownedCosmetics?: readonly string[];
+  /** Saved arrangements from `world_bootstrap`. */
+  savedLayouts?: readonly WorldLayout[];
+  /** Whose island it is, for the deterministic chore draw. */
+  userId?: string;
+  /** Today's counters from `world_daily`, so a done chore stays done. */
+  daily?: WorldDailyState;
+  /** When the island was made, for idle maturation. */
+  createdAt?: number;
+  /** When the first session finished, or 0 for somebody who has never been here. */
+  onboardedAt?: number;
+  /** The real projects they went to, for the commemorative stones. */
+  projectMarkers?: readonly RawMarker[];
+  /** Academia items overdue for review, from the bootstrap. */
+  dueReviews?: number;
+  /** The bootstrap failed and this island is a default. Nothing may write. */
+  readOnly?: boolean;
+  /**
+   * This island belongs to somebody else and we are standing on it.
+   *
+   * It adds two things and takes nothing away: the host's Pip, idling, and
+   * every sticker anyone has left. Everything a visitor may not do is already
+   * gated by `readOnly`, which a visit always sets.
+   */
+  visit?: VisitSession;
+  /** The arrangement changed and wants saving. Debounced by the caller. */
+  onPlacementsChanged?: (placements: Placement[]) => void;
+  /** A ceremony finished playing. The route persists it. */
+  onCelebrated?: (script: CeremonyScript) => void;
+  /** The ground colour of the world being left, for the palette wash. */
+  previousBiome?: string;
+  /** Take the poster. Handed a canvas holding a frame that was just drawn. */
+  onPoster?: (canvas: HTMLCanvasElement) => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const scene = useThree((s) => s.scene);
   const invalidate = useThree((s) => s.invalidate);
 
   const config = useWorldStore((s) => s.config);
@@ -94,9 +169,11 @@ export function World({
   const groundTier = useRef(tier).current;
   const lastStateRef = useRef(usePlayerStore.getState().state);
   const season = useMemo(() => seasonFor(new Date()), []);
-  const addSemillas = usePlayerStore((s) => s.addSemillas);
-  const setVerb = usePlayerStore((s) => s.setVerb);
+  /** Stable for the session: a chore must not move when the clock ticks over. */
+  const today = useMemo(() => localDate(), []);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
+  const setEventRun = useSessionStore((s) => s.setEventRun);
+  const setFirstRun = useSessionStore((s) => s.setFirstRun);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -111,19 +188,20 @@ export function World({
     [heightfield, layout, config],
   );
 
-  /** Props become things you walk around, not things you walk through. */
-  const onColliders = useCallback(
-    (colliders: PropCollider[]) => controller?.setColliders(colliders),
-    [controller],
-  );
+  const colliders = useColliders(controller, cameraRef);
 
   useEffect(() => {
     if (!layout || !heightfield) return;
     const [sx, sz] = layout.spawn;
     resetPlayerTransform(sx, sampleHeight(heightfield, sx, sz), sz);
     const follow = new FollowCamera({ camera, reducedMotion });
-    // The boom needs the ground so it can duck under the hillside.
+    // The boom needs the ground so it can duck under the hillside…
     follow.setTerrain(heightfield);
+    // …and whatever is standing on it. Handed over here as well as in
+    // `pushColliders`, because React runs a child's effects before its parent's:
+    // Vegetation and Props have already reported by the time this camera
+    // exists, and their calls found `cameraRef.current` still null.
+    follow.setOccluders(colliders.all());
     follow.snap();
     cameraRef.current = follow;
     setReady(true);
@@ -131,52 +209,18 @@ export function World({
       cameraRef.current = null;
       setReady(false);
     };
-  }, [layout, heightfield, camera, reducedMotion, cameraRef, setReady]);
+  }, [layout, heightfield, camera, reducedMotion, cameraRef, setReady, colliders]);
 
   useEffect(() => {
     cameraRef.current?.setReducedMotion(reducedMotion);
   }, [reducedMotion, cameraRef]);
 
-  // ── Blob shadows: one instanced mesh, one draw call, every shadow in the game.
-  const shadowMaterial = useMemo(() => {
-    const map = getTexture('blob-shadow', buildBlobTexture);
-    return getFlatMaterial({ map, transparent: true, opacity: 0.32, depthWrite: false });
-  }, []);
-  const shadows = useMemo(() => new BlobShadowPool(shadowMaterial, TIERS[3].fauna + 4), [shadowMaterial]);
-  useEffect(() => {
-    scene.add(shadows.mesh);
-    return () => {
-      scene.remove(shadows.mesh);
-      shadows.dispose();
-    };
-  }, [scene, shadows]);
-  useEffect(() => {
-    const root = pipRef.current.root;
-    if (!root) return;
-    const slot = shadows.attach(root, PIP_HEIGHT_M * 0.42);
-    return () => shadows.detach(slot);
-  }, [shadows]);
+  // Movers: Pip and the walking animals. Statics: every tree, rock, structure
+  // and placed prop on the island — what made the world look like it was
+  // floating over its own ground before they existed.
+  const shadows = useBlobShadows(pipRef, tier);
 
-  // ── The mood: one object, ~11 uniforms, every clay material in the scene.
-  useEffect(() => {
-    // `mirror.fogFar` is already in metres (45 at zero impact, 110 at full).
-    // Clamp it to what the tier is willing to draw, and let the near plane fall
-    // out of that — an earlier version divided by the T3 distance and fogged
-    // the whole island out at 24 m.
-    const { near, far } = fogRange(Math.min(TIERS[tier].renderDistanceM, mirror.fogFar));
-    updateMood({
-      rimColor: palette.light.rimColor,
-      fogColor: palette.fog,
-      fogNear: near,
-      fogFar: Math.max(near + 1, far),
-      fogDensity: mirror.fogDensity,
-      time: 0,
-      // T0 turns the handmade wobble and the wind off entirely, by amplitude
-      // rather than by rebuilding anything (`06-ART-DIRECTION.md` §5).
-      wobbleAmp: TIERS[tier].wobble ? WOBBLE.amp : 0,
-      windAmp: TIERS[tier].wind ? WIND.amp : 0,
-    });
-  }, [palette, tier, mirror]);
+  useMood(palette, tier, mirror);
 
   /**
    * **Explicit invalidation on any state change** (`07-RENDER-ARCHITECTURE.md`
@@ -190,55 +234,39 @@ export function World({
   }, [invalidate, layout, heightfield, palette, tier, timeOfDay, config, mirror]);
 
   /**
-   * The verb runtime. Completing a verb pays semillas and **never XP** — the
-   * one-way valve is the product's premise, and `no-xp.test.ts` greps this whole
-   * tree to keep it that way (`11-GAME-LOOP.md` §1).
+   * The day's event, if the server picked one. Played by walking; the only
+   * thing on screen is a way out and, at the end, one card.
    */
-  const onVerbFinish = useCallback(
-    (result: VerbResult) => {
-      setVerb(null);
-      controller?.setLocked(false);
-      if (!result.success) return;
-      // Sound, motion and haptic together: one alone reads as a bug (`10` §6).
-      haptic(result.verb === 'fish' ? 'success' : 'medium');
-      if (result.verb === 'forage') addSemillas(SEMILLAS.forageMin);
-      if (result.verb === 'log') addSemillas(SEMILLAS.censusFirst);
-    },
-    [controller, setVerb, addSemillas],
-  );
-
-  const runtime = useMemo(() => new VerbRuntime(onVerbFinish), [onVerbFinish]);
+  const eventRun = useEventRuntime({ layout, heightfield, readOnly });
+  useEffect(() => setEventRun(eventRun), [eventRun, setEventRun]);
 
   /**
-   * Using a verb. `sail` and `rest` change how movement works rather than
-   * pausing it, so they go to the controller; everything else is a timed action.
+   * The first three minutes (`11-GAME-LOOP.md` §7). Runs once ever, and only
+   * for somebody whose island has never been opened.
    */
-  const onUseVerb = useCallback(
-    (spot: VerbSpot) => {
-      if (!controller) return;
-      setVerb(spot.verb);
-      if (spot.verb === 'sail') {
-        controller.boardBoat();
-        return;
-      }
-      if (spot.verb === 'rest') {
-        // Resting advances the time of day one preset — the only control over
-        // time the player has (`10-CONTROLS-AND-CAMERA.md` §3).
-        controller.setLocked(true);
-        window.setTimeout(() => {
-          controller.setLocked(false);
-          setVerb(null);
-          onAdvanceTime?.();
-        }, VERB_TIMING.restAdvanceS * 1000);
-        return;
-      }
-      controller.setLocked(true);
-      runtime.begin(spot.verb, spot.id);
-    },
-    [controller, runtime, setVerb, onAdvanceTime],
-  );
+  const firstRun = useFirstRun({
+    layout, heightfield, onboardedAt, tier: config.tier, readOnly,
+    onPlace: (p) => onPlacementsChanged?.([...placements, p]),
+  });
+  useEffect(() => {
+    setFirstRun(firstRun.beat ? {
+      beat: firstRun.beat, choose: firstRun.choose, advance: firstRun.advance, skip: firstRun.skip,
+    } : null);
+  }, [firstRun, setFirstRun]);
 
-  useVerbSpots(layout, heightfield, config, timeOfDay, season, onUseVerb);
+  const placedMarkers = useIslandLife({
+    layout, heightfield, config, userId, localDate: today,
+    placements, daily, readOnly, createdAt, liveliness, projectMarkers,
+  });
+
+  // The verbs, the semillas they pay, and El Mojón, which is not a verb.
+  const runtime = useWorldVerbs({
+    controller, layout, heightfield, config, timeOfDay, season, readOnly,
+    userId, seed: layout?.seed ?? 0,
+    onAdvanceTime, onOpenMojon,
+  });
+  // E, Enter and the action button, all through one door.
+  useInteractBridge(runtime);
 
   useFrame((state, delta) => {
     // Clamp: a tab that was backgrounded must not teleport Pip across the island.
@@ -268,25 +296,105 @@ export function World({
     if (promoted !== null) onTierChange(promoted);
   });
 
+  // ── Placement mode. The editor lives here because this is where the layout,
+  //    the heightfield and the camera are; the controls live in the HUD.
+  const arrange = usePlacementBridge({
+    layout, config, ownedCosmetics, placements, savedLayouts, readOnly, onPlacementsChanged,
+  });
+
   if (!layout || !heightfield) return null;
   return (
     <>
-      <Lights timeOfDay={timeOfDay} liveliness={liveliness} />
+      <Lights timeOfDay={timeOfDay} liveliness={liveliness} tier={tier} />
       <Sky palette={palette} timeOfDay={timeOfDay} tier={tier} />
       <Island heightfield={heightfield} layout={layout} palette={palette} tier={groundTier} />
+      <Grass heightfield={heightfield} layout={layout} palette={palette} biome={biome} worldTier={config.tier} tier={tier} />
       <Water heightfield={heightfield} layout={layout} palette={palette} tier={tier} flow={mirror.riverFlow} />
-      <Vegetation heightfield={heightfield} layout={layout} config={config} tier={tier} biome={biome} />
+      <Vegetation
+        heightfield={heightfield}
+        layout={layout}
+        config={config}
+        tier={tier}
+        biome={biome}
+        shadows={shadows}
+        createdAt={createdAt}
+        onColliders={colliders.onTrees}
+      />
+      {/* The calafates you forage from. Only once the tier has granted the verb. */}
+      {config.verbs.includes('forage') && <ForageBushes />}
+      {arrange.editing && (
+        <PlacementMode
+          layout={layout}
+          heightfield={heightfield}
+          ghost={arrange.ghost}
+          placements={arrange.placements}
+          onMove={arrange.moveGhost}
+          onPickUp={arrange.pickUp}
+          onReady={arrange.setPlaceInFront}
+        />
+      )}
       <Props
         heightfield={heightfield}
         layout={layout}
         mirror={mirror}
         timeOfDay={timeOfDay}
-        placements={placements}
+        placements={arrange.editing ? arrange.placements : placements}
         demo={demoProps}
-        onColliders={onColliders}
+        onColliders={colliders.onProps}
+        shadows={shadows}
       />
-      <Fauna heightfield={heightfield} layout={layout} config={config} tier={tier} liveliness={liveliness} />
+      {/* La Costa: the waste channel, and the only system that starts worse. */}
+      <Debris
+        heightfield={heightfield}
+        layout={layout}
+        debrisCount={mirror.debrisCount}
+        shadows={shadows}
+      />
+      <Fauna
+        heightfield={heightfield}
+        layout={layout}
+        config={config}
+        tier={tier}
+        liveliness={liveliness}
+        shadows={shadows}
+        demo={demoProps}
+      />
+      <Guidance layout={layout} heightfield={heightfield} />
+      {/* The tier-up ceremony's clock and marker; its cards are in the HUD. */}
+      <CeremonyStage
+        layout={layout}
+        heightfield={heightfield}
+        cameraRef={cameraRef}
+        controller={controller}
+        reducedMotion={reducedMotion}
+        previousBiome={previousBiome}
+        onCelebrated={onCelebrated}
+      />
+      {onPoster && <PosterShot onShoot={onPoster} />}
+      {/* Overdue reviews, as plants that want water. Never more than three,
+          never blocking, and they come back on their own in a week. */}
+      {dueReviews > 0 && (
+        <Wilting layout={layout} heightfield={heightfield} due={dueReviews} />
+      )}
+      {/* A small cairn for every real project. Standing where you walk past. */}
+      {placedMarkers.length > 0 && (
+        <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />
+      )}
+      {firstRun.beat && (
+        <FirstRunMarks beat={firstRun.beat} layout={layout} heightfield={heightfield} />
+      )}
       <MistWall layout={layout} config={config} palette={palette} />
+      {visit && (
+        <>
+          <VisitorPip
+            layout={layout}
+            heightfield={heightfield}
+            cosmetics={visit.hostPip}
+            tier={visit.hostTier}
+          />
+          <Stickers stickers={visit.stickers} heightfield={heightfield} />
+        </>
+      )}
       <Pip handle={pipRef} />
       <ProximityDetector verbs={config.verbs} />
       <WorldCue />

@@ -15,6 +15,9 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // A second build directory for a dev server running beside a production one,
+  // so iterating on the world never overwrites the build somebody is testing.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // The 3D world and image-heavy surfaces benefit from modern formats.
   images: {
     formats: ['image/avif', 'image/webp'],

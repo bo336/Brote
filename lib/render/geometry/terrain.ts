@@ -13,99 +13,17 @@
  */
 import * as THREE from 'three';
 
-import { CLAY as CLAY_CFG, WATER_LEVEL } from '@/lib/world/config';
+import { CLAY as CLAY_CFG, WATER, WATER_LEVEL } from '@/lib/world/config';
 import { coastRadiusAt, type IslandLayout } from '@/lib/world/layout';
-import { fbm, sampleHeight, sampleSlope, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
+import { sampleHeight, sampleSlope, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 import type { WorldPalette } from '../palette';
 import { CLAY } from '../palette';
+// Colour lives next door — see `ground-paint.ts` for why.
+import {
+  bakedAO, cliffColor, groundColor, moistureAt, patchAt, primeCliffRamp, primeRamp, scratch,
+} from './ground-paint';
+import { LAKE_EXTENT, riverRunsAbove } from './water-cover';
 
-const scratch = new THREE.Color();
-/**
- * A SECOND scratch colour, and the reason is worth writing down: `groundColor`
- * is called with `scratch` as its output, so using `scratch` again inside it as
- * a temporary silently overwrote the result. Every ground vertex came out as
- * the shadow tone — a green pradera rendered as flat mud, with nothing in the
- * shader to blame.
- */
-const scratchMix = new THREE.Color();
-const ramp = {
-  sand: new THREE.Color(),
-  soil: new THREE.Color(),
-  soilDeep: new THREE.Color(),
-  grass: new THREE.Color(),
-  grassDeep: new THREE.Color(),
-  stone: new THREE.Color(),
-  snow: new THREE.Color(),
-};
-
-/** How high above water the beach gives way to grass, in metres. */
-const SAND_TO_GRASS = 0.09;
-/** How far the deep tones fold in with height, for value structure. */
-const DEPTH_SHADE = 0.45;
-/** Slope above which ground reads as rock rather than cover. */
-const ROCK_SLOPE = 0.42;
-/** Ring offsets used by the AO probe, in metres. */
-const AO_RADII = [0.6, 1.6, 3.2];
-/**
- * How strongly a higher neighbour darkens a vertex, and how dark it may get.
- *
- * The first pass used a gain of 1.6 with no floor, which on rolling terrain
- * pushed the average vertex to about half brightness and turned a green pradera
- * into flat brown. AO is a *contact* cue — it belongs in the hollows and at the
- * foot of the cliff, not across the whole field.
- */
-const AO_GAIN = 0.85;
-const AO_FLOOR = 0.62;
-
-/**
- * Approximate AO from the heightfield itself: a vertex surrounded by ground
- * higher than it sits in a hollow and is darker. Eight directions at three
- * radii is enough to read valleys, cliff bases and the inside of a bowl.
- */
-function bakedAO(hf: Heightfield, x: number, z: number, h: number): number {
-  let occlusion = 0;
-  for (const r of AO_RADII) {
-    for (let k = 0; k < 8; k++) {
-      const a = (k / 8) * Math.PI * 2;
-      const dh = sampleHeight(hf, x + Math.cos(a) * r, z + Math.sin(a) * r) - h;
-      if (dh > 0) occlusion += Math.min(1, dh / r);
-    }
-  }
-  return Math.max(AO_FLOOR, 1 - (occlusion / (AO_RADII.length * 8)) * AO_GAIN);
-}
-
-/** The colour of the ground at a point, before AO. */
-function groundColor(
-  target: THREE.Color,
-  x: number,
-  z: number,
-  h: number,
-  slope: number,
-  moisture: number,
-  snowLine: number | null,
-): void {
-  const above = h - WATER_LEVEL;
-  if (snowLine !== null && h > snowLine) {
-    target.copy(ramp.snow);
-    return;
-  }
-  if (slope > ROCK_SLOPE) {
-    target.copy(ramp.stone);
-    return;
-  }
-  if (above < SAND_TO_GRASS) {
-    // The shoreline: sand fading into whatever the bank is made of.
-    target.copy(ramp.sand).lerp(ramp.grass, Math.max(0, above / SAND_TO_GRASS) * moisture);
-    return;
-  }
-  // Dry ground reads as soil, damp ground as grass; the mask does the mixing.
-  target.copy(ramp.soil).lerp(ramp.grass, moisture);
-  // Fold in the deep tones with height so the land has value structure rather
-  // than one flat green (`06-ART-DIRECTION.md` §2 rule 3).
-  const depth = Math.min(1, above / 3);
-  scratchMix.copy(ramp.soilDeep).lerp(ramp.grassDeep, moisture);
-  target.lerp(scratchMix, depth * DEPTH_SHADE);
-}
 
 /**
  * The walkable surface. `res` is the tier's terrain grid; it becomes
@@ -118,13 +36,7 @@ export function buildGround(
   palette: WorldPalette,
   res: number,
 ): THREE.BufferGeometry {
-  ramp.sand.set(CLAY.sand);
-  ramp.soil.set(palette.ground);
-  ramp.soilDeep.set(CLAY.soilDeep);
-  ramp.grass.set(palette.grass);
-  ramp.grassDeep.set(CLAY.grassDeep);
-  ramp.stone.set(CLAY.stone);
-  ramp.snow.set(CLAY.snow);
+  primeRamp(palette);
 
   const segments = Math.max(16, Math.floor(res));
   const rings = Math.max(8, Math.floor(res / 2));
@@ -137,10 +49,13 @@ export function buildGround(
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
     const slope = sampleSlope(hf, x, z);
-    // A low-frequency moisture mask, seeded per island: where it is damp, grass;
-    // where it is dry, bare earth. One noise call, not a texture.
-    const moisture = Math.min(1, Math.max(0, fbm(x * 0.06 + seed, z * 0.06 - seed, 2) * 1.7 - 0.25));
-    groundColor(scratch, x, z, h, slope, moisture, layout.snowLine);
+    // Two masks, seeded per island, and no texture between them: the broad one
+    // says damp or dry, the fine one keeps a big field from being one colour.
+    const moisture = moistureAt(x, z, seed, layout);
+    const patch = patchAt(x, z, seed);
+    // Paths are drawn by the ground shader from their distance map
+    // (`path-map.ts`); baked in here they were as blurry as the grid.
+    groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine, 0);
     const ao = bakedAO(hf, x, z, h);
     position[v * 3] = x;
     position[v * 3 + 1] = h;
@@ -199,8 +114,7 @@ export function buildGround(
  * a painted edge (`06-ART-DIRECTION.md` §1).
  */
 export function buildIslandBody(hf: Heightfield, layout: IslandLayout, segments = 96): THREE.BufferGeometry {
-  ramp.stone.set(CLAY.stone);
-  ramp.soilDeep.set(CLAY.soilDeep);
+  primeCliffRamp();
   // Ring profile: `[radius scale, y offset]`, from the rim down to the tip.
   const profile: [number, number][] = [
     [1.0, 0],
@@ -227,9 +141,7 @@ export function buildIslandBody(hf: Heightfield, layout: IslandLayout, segments 
       position[v * 3] = Math.cos(angle) * radius;
       position[v * 3 + 1] = rimHeight + drop;
       position[v * 3 + 2] = Math.sin(angle) * radius;
-      // Rock at the waterline, dark soil in the undercut: the cliff has to read
-      // as a different value group from the ground on top of it.
-      scratch.copy(ramp.stone).lerp(ramp.soilDeep, p / (profile.length - 1));
+      cliffColor(scratch, p / (profile.length - 1));
       color[v * 3] = scratch.r;
       color[v * 3 + 1] = scratch.g;
       color[v * 3 + 2] = scratch.b;
@@ -269,13 +181,7 @@ export function buildIsletGround(
   palette: WorldPalette,
   segments = 32,
 ): THREE.BufferGeometry {
-  ramp.sand.set(CLAY.sand);
-  ramp.soil.set(palette.ground);
-  ramp.soilDeep.set(CLAY.soilDeep);
-  ramp.grass.set(palette.grass);
-  ramp.grassDeep.set(CLAY.grassDeep);
-  ramp.stone.set(CLAY.stone);
-  ramp.snow.set(CLAY.snow);
+  primeRamp(palette);
 
   const rings = Math.max(4, Math.floor(segments / 2));
   const vertexCount = 1 + segments * rings;
@@ -285,7 +191,10 @@ export function buildIsletGround(
 
   const write = (v: number, x: number, z: number) => {
     const h = sampleHeight(hf, x, z);
-    groundColor(scratch, x, z, h, sampleSlope(hf, x, z), 0.35, null);
+    // The islet takes the same fine break-up as the mainland, offset by its own
+    // position so the two never repeat the same patch.
+    const patch = patchAt(x, z, islet.x + islet.z);
+    groundColor(scratch, x, z, h, sampleSlope(hf, x, z), 0.35, patch, null);
     position[v * 3] = x;
     position[v * 3 + 1] = h;
     position[v * 3 + 2] = z;
@@ -326,6 +235,8 @@ export interface WaterMesh {
   geometry: THREE.BufferGeometry;
   /** The deepest point, for the shader's depth normalisation. */
   maxDepth: number;
+  /** Small enough to be a puddle rather than a shore (`WATER.puddleRadiusM`). */
+  puddle?: boolean;
 }
 
 /**
@@ -334,10 +245,89 @@ export interface WaterMesh {
  * the mesh is exactly the shape of the water and its edge is where the foam
  * line belongs.
  */
-export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments = 40): WaterMesh[] {
+/**
+ * **The open sea, out to the horizon.**
+ *
+ * The island had no ocean. `buildWaterMeshes` builds only what
+ * `terrain.lakes` declares — a puddle and the lagoon — and the ground mesh
+ * stops at the coastline, so past the rim there was *nothing*: no water, no
+ * ground, just the sky dome showing through. At eye level nobody notices,
+ * because the island's own rim sits at the horizon. From La Cumbre, El Monte
+ * and El Monumento you look **over** that rim, and three quarters of the frame
+ * was empty sky with a deer standing in it.
+ *
+ * Those are the three regions the ladder spends nine tiers earning, so this is
+ * not a background detail: it is the end of the game.
+ *
+ * An annulus rather than a disc — nothing is drawn under the island — with
+ * three rings:
+ *
+ *  - one tucked just inside the coastline, at depth zero, so the shader paints
+ *    its foam line where the sand actually meets the water;
+ *  - one a few metres out at full depth, which is where the foam ends;
+ *  - and one at `SEA_RADIUS`, just inside the sky dome, which is the horizon.
+ *
+ * Three hundred and eighty-four triangles and **no new material**: it is the
+ * same water the lagoon is made of, so one mood update still moves all of it.
+ */
+const SEA_RADIUS = 380;
+/** How far under the rim the inner edge tucks, so no seam shows at the beach. */
+export const SEA_UNDERLAP = 1.2;
+/** How far out the shelf reaches full depth. The foam line lives inside this. */
+const SEA_SHELF_M = 4;
+
+export function buildOpenSea(layout: IslandLayout, deepAt: number): WaterMesh {
+  const segments = layout.coastline.length;
+  const positions: number[] = [];
+  const depths: number[] = [];
+  const indices: number[] = [];
+
+  for (let s = 0; s < segments; s++) {
+    const angle = (s / segments) * Math.PI * 2;
+    const coast = coastRadiusAt(layout.coastline, angle);
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (const [radius, depth] of [
+      [coast - SEA_UNDERLAP, 0],
+      [coast + SEA_SHELF_M, deepAt],
+      [SEA_RADIUS, deepAt],
+    ] as const) {
+      positions.push(cos * radius, WATER_LEVEL, sin * radius);
+      depths.push(depth);
+    }
+  }
+
+  for (let s = 0; s < segments; s++) {
+    const a = s * 3;
+    const b = ((s + 1) % segments) * 3;
+    for (let ring = 0; ring < 2; ring++) {
+      // Wound to face the sky, like the ground: the other order gives every
+      // triangle a downward normal and the key light misses the sea entirely.
+      indices.push(a + ring, b + ring, b + ring + 1);
+      indices.push(a + ring, b + ring + 1, a + ring + 1);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('aDepth', new THREE.Float32BufferAttribute(depths, 1));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return { geometry: geo, maxDepth: deepAt };
+}
+
+/**
+ * One grid per lake. `onlyPuddles` keeps just the small ones: every other body
+ * of water at sea level is part of the shallows (`water-grid.ts`).
+ */
+export function buildWaterMeshes(
+  terrain: WorldLayout, hf: Heightfield, minSegments = 40, onlyPuddles = false,
+): WaterMesh[] {
   const out: WaterMesh[] = [];
   for (const lake of terrain.lakes) {
-    const extent = lake.r * 1.45;
+    if (onlyPuddles && lake.r > WATER.puddleRadiusM) continue;
+    const extent = lake.r * LAKE_EXTENT;
+    const segments = Math.min(WATER.lakeMaxSegments, Math.max(minSegments, Math.ceil((extent * 2) / WATER.lakeCellM)));
     const step = (extent * 2) / segments;
     const positions: number[] = [];
     const depths: number[] = [];
@@ -362,9 +352,17 @@ export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments
 
     for (let iz = 0; iz < segments; iz++) {
       for (let ix = 0; ix < segments; ix++) {
-        const cx = lake.x - extent + (ix + 0.5) * step;
-        const cz = lake.z - extent + (iz + 0.5) * step;
-        if (sampleHeight(hf, cx, cz) >= WATER_LEVEL) continue;
+        // Kept if any corner is under water. The shader measures true depth per
+        // pixel and discards what is dry, so the shoreline is the ground's, not the grid's.
+        const x0 = lake.x - extent + ix * step;
+        const z0 = lake.z - extent + iz * step;
+        const lowest = Math.min(
+          sampleHeight(hf, x0, z0), sampleHeight(hf, x0 + step, z0),
+          sampleHeight(hf, x0, z0 + step), sampleHeight(hf, x0 + step, z0 + step),
+        );
+        if (lowest >= WATER_LEVEL) continue;
+        // Where a river runs above sea level its own strip is the surface (`water-cover.ts`).
+        if (riverRunsAbove(terrain, hf, x0 + step * 0.5, z0 + step * 0.5)) continue;
         const a = vertexAt(ix, iz);
         const b = vertexAt(ix + 1, iz);
         const c = vertexAt(ix + 1, iz + 1);
@@ -379,7 +377,7 @@ export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, segments
     geo.setAttribute('aDepth', new THREE.Float32BufferAttribute(depths, 1));
     geo.setIndex(indices);
     geo.computeVertexNormals();
-    out.push({ geometry: geo, maxDepth: Math.max(CLAY_CFG.bandSoftness, maxDepth) });
+    out.push({ geometry: geo, maxDepth: Math.max(CLAY_CFG.bandSoftness, maxDepth), puddle: lake.r <= WATER.puddleRadiusM });
   }
   return out;
 }

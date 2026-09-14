@@ -5,22 +5,20 @@ import type React from 'react';
 
 import { CAMERA, JOYSTICK } from '@/lib/world/config';
 import type { FollowCamera } from './FollowCamera';
+import { useSessionStore } from '../state/useSessionStore';
 
 /**
- * Manual camera: **a drag anywhere outside the joystick zone orbits the yaw**,
- * and a two-finger pinch adjusts distance within a clamp
- * (`10-CONTROLS-AND-CAMERA.md` §4).
+ * Manual camera. **A drag orbits and tilts; the wheel and a pinch zoom**
+ * (`10-CONTROLS-AND-CAMERA.md` §4, and the 2026-09-12 playtest's "the angle
+ * should be adjustable like the rotation").
  *
- * The joystick owns the bottom-left of the screen, so this deliberately ignores
- * any pointer that starts there — otherwise walking would swing the camera.
+ * On a touch screen the joystick owns the bottom-left, so a finger that starts
+ * there never turns the camera. A mouse has no joystick — WASD is its stick —
+ * so it may drag from anywhere.
  *
- * Sensitivity is a setting, separately adjustable, because a fixed rate is an
- * accessibility failure for anyone with limited range of motion (XAG 117).
+ * Sensitivity is a setting, because a fixed rate is an accessibility failure for
+ * anyone with limited range of motion (XAG 117).
  */
-const RADIANS_PER_PIXEL = 0.006;
-/** Metres of dolly per pixel of pinch. */
-const METRES_PER_PIXEL = 0.02;
-
 interface DragOptions {
   cameraRef: React.MutableRefObject<FollowCamera | null>;
   sensitivity: number;
@@ -32,6 +30,7 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
   const lastPinch = useRef<number | null>(null);
 
   const inJoystickZone = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') return false;
     const w = window.innerWidth;
     const h = window.innerHeight;
     return e.clientX < w * JOYSTICK.zoneWidthPct && e.clientY > h * (1 - JOYSTICK.zoneHeightPct);
@@ -55,18 +54,20 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
       onInput();
 
       if (pointers.current.size >= 2) {
-        // Two fingers: pinch to dolly, clamped so no shot is ever too near.
         const [a, b] = Array.from(pointers.current.values());
         if (!a || !b) return;
         const spread = Math.hypot(a.x - b.x, a.y - b.y);
-        if (lastPinch.current !== null) {
-          camera.zoom((lastPinch.current - spread) * METRES_PER_PIXEL);
-        }
+        if (lastPinch.current !== null) camera.zoom((lastPinch.current - spread) * CAMERA.pinchMetresPerPx);
         lastPinch.current = spread;
         return;
       }
       lastPinch.current = null;
-      camera.orbit((e.clientX - previous.x) * RADIANS_PER_PIXEL * sensitivity);
+      useSessionStore.getState().markControl('look');
+      camera.orbit(
+        (e.clientX - previous.x) * CAMERA.dragYawPerPx * sensitivity,
+        // Drag down, look down from higher up — the convention every web 3D viewer uses.
+        -(e.clientY - previous.y) * CAMERA.dragPitchPerPx * sensitivity,
+      );
     },
     [cameraRef, sensitivity, onInput],
   );
@@ -76,5 +77,15 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
     if (pointers.current.size < 2) lastPinch.current = null;
   }, []);
 
-  return { onPointerDown, onPointerMove, onPointerUp };
+  const onWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const camera = cameraRef.current;
+      if (!camera) return;
+      onInput();
+      camera.zoom(e.deltaY * CAMERA.wheelMetresPerPx);
+    },
+    [cameraRef, onInput],
+  );
+
+  return { onPointerDown, onPointerMove, onPointerUp, onWheel };
 }

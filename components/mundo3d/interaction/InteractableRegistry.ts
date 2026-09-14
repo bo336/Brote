@@ -15,6 +15,26 @@ import type { Interactable, VerbId } from '@/lib/world/types';
  * by distance alone**, so standing between two objects while looking at one
  * picks the one you are looking at.
  */
+/**
+ * How loudly a thing asks to be the one offered.
+ *
+ * Everything in range competes for the single action button, and distance
+ * alone gets it wrong: standing between a bird you could log and the firebreak
+ * you are meant to cut, the bird wins on centimetres and the event stalls with
+ * no way to explain itself. So the thing that is *asking something of the
+ * player right now* outranks scenery, and within a rank the nearest wins.
+ */
+export const PRIORITY = {
+  /** Anything the world just put in front of you and is waiting on. */
+  event: 30,
+  /** Today's three. Asked for, but not urgent. */
+  chore: 20,
+  /** Verbs, El Mojón, the ordinary business of the island. */
+  normal: 10,
+  /** "This is a bench." Never worth interrupting anything else. */
+  flavour: 0,
+} as const;
+
 export interface RegisteredInteractable extends Interactable {
   onInteract: () => void;
 }
@@ -32,6 +52,28 @@ export function clearInteractables(): void {
   registry.clear();
 }
 
+/**
+ * Everything currently registered, for the perf and review protocols.
+ *
+ * A count says the world built; the ids and positions say *what* it built and
+ * where to walk to reach it — which is the difference between "chores exist"
+ * and "chores exist somewhere I could not find".
+ */
+export function listInteractables(): {
+  id: string; position: [number, number, number]; enabled: boolean; priority: number; radius: number;
+  labelKey: string; verb?: VerbId;
+}[] {
+  return [...registry.values()].map((i) => ({
+    id: i.id,
+    position: i.position,
+    enabled: i.enabled,
+    priority: i.priority ?? PRIORITY.normal,
+    radius: i.radius,
+    labelKey: i.labelKey,
+    verb: i.verb,
+  }));
+}
+
 export function getInteractable(id: string): RegisteredInteractable | undefined {
   return registry.get(id);
 }
@@ -40,16 +82,30 @@ export function getInteractable(id: string): RegisteredInteractable | undefined 
  * The nearest usable interactable, or `null`. Called every third frame, so it
  * allocates nothing and iterates a map that is never long.
  */
-export function findActive(x: number, z: number, yaw: number, verbs: readonly VerbId[]): RegisteredInteractable | null {
+export function findActive(
+  x: number,
+  z: number,
+  yaw: number,
+  verbs: readonly VerbId[],
+  /**
+   * What the objective card points at. It wins a tie with anything of its own
+   * rank: walking up to the berries the card asked for and getting "Registrar"
+   * for a daisy beside them left the objective unfinishable from where it said
+   * to stand.
+   */
+  preferId: string | null = null,
+): RegisteredInteractable | null {
   let best: RegisteredInteractable | null = null;
   let bestScore = Infinity;
+  let bestRank = -Infinity;
   // Pip's facing, as a direction on the ground plane.
   const fx = Math.sin(yaw);
   const fz = Math.cos(yaw);
 
   for (const item of registry.values()) {
     if (!item.enabled) continue;
-    if (!verbs.includes(item.verb)) continue;
+    // No verb means no unlock gates it — see `Interactable.verb`.
+    if (item.verb && !verbs.includes(item.verb)) continue;
     const dx = item.position[0] - x;
     const dz = item.position[2] - z;
     const distance = Math.hypot(dx, dz);
@@ -58,7 +114,11 @@ export function findActive(x: number, z: number, yaw: number, verbs: readonly Ve
     // 0 when Pip faces the object, 1 when it is directly behind them.
     const facing = distance < 0.001 ? 0 : (1 - (dx * fx + dz * fz) / distance) / 2;
     const score = distance / item.radius + facing * INTERACT.facingWeight;
-    if (score < bestScore) {
+    // Half a rank: above its peers, never above something more urgent.
+    const rank = (item.priority ?? PRIORITY.normal) + (item.id === preferId ? 5 : 0);
+    // Priority first, then the nearest thing you are facing within that rank.
+    if (rank > bestRank || (rank === bestRank && score < bestScore)) {
+      bestRank = rank;
       bestScore = score;
       best = item;
     }

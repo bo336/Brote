@@ -27,11 +27,15 @@ export interface PlayerTransform {
   /** Velocity, so acceleration and friction survive between frames. */
   vx: number;
   vz: number;
+  /** Vertical velocity, m/s. Non-zero only in a jump or a fall. */
+  vy: number;
   grounded: boolean;
+  /** In a jump or a fall — the rig stretches, the shadow spreads. */
+  airborne: boolean;
 }
 
 export const playerTransform: PlayerTransform = {
-  x: 0, y: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, grounded: true,
+  x: 0, y: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, vy: 0, grounded: true, airborne: false,
 };
 
 /** Reset before a fresh mount, so a remount never inherits a stale position. */
@@ -43,7 +47,9 @@ export function resetPlayerTransform(x = 0, y = 0, z = 0): void {
   playerTransform.speed = 0;
   playerTransform.vx = 0;
   playerTransform.vz = 0;
+  playerTransform.vy = 0;
   playerTransform.grounded = true;
+  playerTransform.airborne = false;
 }
 
 interface PlayerStoreState {
@@ -61,7 +67,19 @@ interface PlayerStoreState {
   /** Optimistic: mutate locally, fire the write, roll back on failure. */
   setCosmetics: (cosmetics: PipCosmetics) => void;
   setAppearance: (a: { stage: PipStage; golden: boolean; aura: boolean }) => void;
-  addSemillas: (n: number) => void;
+  /**
+   * The authoritative balance from the server. **Replaces, never adds.**
+   *
+   * **There is deliberately no way to increment.** Every award writes a
+   * `semilla_ledger` row through `brote_grant_semillas` (`15-DATA-MODEL.md`
+   * §4), and the balance on screen is whatever that call returned. A local
+   * increment looks identical and is a second currency path: the number goes
+   * up, no row is written, and it is gone on the next load. With no adder on
+   * the store, no client code can invent one by accident — and `no-xp.test.ts`
+   * greps this tree to keep it that way, which is why the name it bans does
+   * not appear here.
+   */
+  setSemillas: (n: number) => void;
 }
 
 export const usePlayerStore = create<PlayerStoreState>((set) => ({
@@ -76,5 +94,5 @@ export const usePlayerStore = create<PlayerStoreState>((set) => ({
   setVerb: (verb) => set({ verb }),
   setCosmetics: (cosmetics) => set({ cosmetics }),
   setAppearance: ({ stage, golden, aura }) => set({ stage, golden, aura }),
-  addSemillas: (n) => set((s) => ({ semillas: Math.max(0, s.semillas + n) })),
+  setSemillas: (n) => set({ semillas: Math.max(0, Math.trunc(n)) }),
 }));

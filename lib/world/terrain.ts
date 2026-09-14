@@ -193,7 +193,11 @@ export function terrainHeight(x: number, z: number, L: WorldLayout): number {
       const peak = Math.pow(smooth(t), 1.6) * m.h;
       // Rocky detail on the slopes
       const rough = (fbm(x * 3.1 + s, z * 3.1 - s, 3) - 0.5) * 0.12 * smooth(t);
-      h += peak + rough;
+      // Ridges and gullies, scaled to the mountain. A pure cone was the one shape
+      // on the island nobody would call a mountain (`23-ART-DIRECTION-V2.md`).
+      const ridged = 1 - Math.abs(fbm(x * 0.28 + s * 2, z * 0.28 - s, 3) * 2 - 1);
+      const ridges = (ridged - 0.55) * m.h * 0.14 * Math.sin(Math.PI * Math.min(1, t * 1.15));
+      h += peak + rough + ridges;
     }
   }
 

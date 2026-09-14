@@ -12,6 +12,7 @@ import { growTree, type TreeBuild, type TreeLod, type TreeSpecies } from './tree
 import { disposeFauna } from './fauna';
 import { disposeProps } from './props';
 import { disposeStructures } from './structures';
+import { disposeDebris } from './debris';
 
 const cache = new Map<string, THREE.BufferGeometry>();
 const treeCache = new Map<string, TreeBuild>();
@@ -36,6 +37,17 @@ export function getTree(species: TreeSpecies, variant: number, lod: TreeLod = 0)
 }
 
 /** How many geometries are live — the perf overlay watches this against the tier. */
+/**
+ * What is in the cache, for the perf protocol.
+ *
+ * A count tells you a ceiling was crossed; the keys tell you which shape did
+ * it, which is the difference between trimming a budget and finding a
+ * duplicate that should never have been built twice.
+ */
+export function liveGeometryKeys(): string[] {
+  return [...cache.keys(), ...[...treeCache.keys()].map((k) => `tree:${k}`)];
+}
+
 export function liveGeometryCount(): number {
   return cache.size + treeCache.size * 2;
 }
@@ -46,6 +58,7 @@ export function disposeAll(): void {
   disposeProps();
   disposeStructures();
   disposeFauna();
+  disposeDebris();
   for (const geo of cache.values()) geo.dispose();
   for (const t of treeCache.values()) {
     t.wood.dispose();
@@ -59,4 +72,5 @@ export { growTree, mergePieces } from './tree';
 export { buildProp, buildMovingPart, propFootprint, PROP_IDS, PROP_SPECS } from './props';
 export { buildStructure } from './structures';
 export { buildFauna, type FaunaKind } from './fauna';
+export { buildDebris, type DebrisKind } from './debris';
 export type { TreeBuild, TreeLod, TreeSpecies } from './tree';

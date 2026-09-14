@@ -21,6 +21,9 @@ export interface TierParams {
   antialias: boolean;
   postProcessing: boolean;
   realShadows: boolean;
+  /** Shadow map resolution, and the half-width of the square around Pip it covers. */
+  shadowMapSize: number;
+  shadowExtentM: number;
   blobShadows: boolean;
   terrainGrid: number;
   grassTufts: number;
@@ -44,32 +47,60 @@ export interface TierParams {
 export const TIERS: Record<QualityTier, TierParams> = {
   0: {
     name: 'mínimo', dprCap: 0.75, antialias: false, postProcessing: false, realShadows: false,
+    shadowMapSize: 512, shadowExtentM: 10,
     blobShadows: true, terrainGrid: 64, grassTufts: 0, flowers: 20, trees: 30, treeLods: 1,
     rocks: 12, groundDetail: 0, fauna: 2, particles: 30, water: 0, wobble: false, wind: false,
     heightFog: false, renderDistanceM: 45, targetFps: 30,
   },
   1: {
     name: 'bajo', dprCap: 1.0, antialias: false, postProcessing: false, realShadows: false,
+    shadowMapSize: 512, shadowExtentM: 10,
     // T1 takes the far tree silhouette, not the mid one: it shared T2's LOD
     // until a tier-11 island put it 410 triangles over its own ceiling, and a
     // 30 fps phone is the last place to spend them on canopy interiors.
-    blobShadows: true, terrainGrid: 96, grassTufts: 250, flowers: 60, trees: 60, treeLods: 1,
+    // Grass came down from 250 when the protocol was finally run at **tier 11**
+    // rather than tier 8: the full island put T1 at 70,770 against its own
+    // 70,000 ceiling. Grass is the right thing to lose — it is the cheapest
+    // silhouette on the island and the last thing read on a 30 fps phone.
+    blobShadows: true, terrainGrid: 128, grassTufts: 0, flowers: 60, trees: 60, treeLods: 1,
     rocks: 30, groundDetail: 60, fauna: 4, particles: 80, water: 1, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 60, targetFps: 30,
   },
   2: {
-    name: 'medio', dprCap: 1.25, antialias: true, postProcessing: false, realShadows: false,
-    blobShadows: true, terrainGrid: 128, grassTufts: 700, flowers: 140, trees: 110, treeLods: 2,
+    name: 'medio', dprCap: 1.25, antialias: true, postProcessing: true, realShadows: true,
+    shadowMapSize: 1024, shadowExtentM: 16,
+    // 1100 tufts put a tier-11 island at 191,910 against a 160,000 ceiling,
+    // with grass alone accounting for more than half of it. The open-ended
+    // blade took a quarter off every tuft; this takes the rest.
+    blobShadows: true, terrainGrid: 192, grassTufts: 0, flowers: 140, trees: 110, treeLods: 2,
     rocks: 60, groundDetail: 180, fauna: 8, particles: 200, water: 2, wobble: true, wind: true,
     heightFog: false, renderDistanceM: 80, targetFps: 45,
   },
   3: {
     name: 'alto', dprCap: 1.75, antialias: true, postProcessing: true, realShadows: true,
-    blobShadows: true, terrainGrid: 160, grassTufts: 1500, flowers: 260, trees: 180, treeLods: 3,
+    shadowMapSize: 2048, shadowExtentM: 22,
+    blobShadows: true, terrainGrid: 256, grassTufts: 0, flowers: 260, trees: 180, treeLods: 3,
     rocks: 90, groundDetail: 350, fauna: 14, particles: 400, water: 3, wobble: true, wind: true,
     heightFog: true, renderDistanceM: 110, targetFps: 60,
   },
 };
+
+/**
+ * How many shape variants a scattered thing gets, by tier.
+ *
+ * Three grasses, three rocks and three trees is twelve instanced pools, and
+ * twelve pools is twelve draw calls. On a 30 fps phone drawing the far tree LOD
+ * at a 60 m render distance, the second and third variants are variety nobody
+ * can resolve — and they are what put a tier-11 island at 45 of 45 draw calls
+ * with nothing left for the wilting plants or a project marker.
+ *
+ * So the low tiers get one shape each and the high tiers get three. It is the
+ * same trade the tier table makes everywhere else: spend the budget where it
+ * can be seen.
+ */
+export function variantsFor(tier: QualityTier): number {
+  return tier >= 2 ? 3 : 1;
+}
 
 export const TIER_ORDER: QualityTier[] = [0, 1, 2, 3];
 
@@ -80,7 +111,12 @@ export interface TierHints {
   detailMode?: 'auto' | 'high' | 'mid' | 'low';
   /** `?mundoTier=0..3`, for testing. Overrides everything. */
   forced?: number | null;
+  /** A touch screen. Phones start where phones can run. */
+  coarsePointer?: boolean;
 }
+
+/** Cores at which a mouse-driven machine starts one tier up. */
+const DESKTOP_CORES = 8;
 
 /**
  * The starting tier. **Start at T1.** Static hints may only LOWER it, never
@@ -93,6 +129,14 @@ export function initialTier(hints: TierHints = {}): QualityTier {
   if (hints.detailMode === 'mid') return 2;
   if (hints.detailMode === 'high') return 3;
   let tier: QualityTier = 1;
+  /**
+   * **A desktop starts at T2** (`23-ART-DIRECTION-V2.md`, a deliberate break
+   * from "hints only lower"). T1 has no sun shadows and no lens, and the monitor
+   * needs 20 s of headroom to promote — so every desktop visit spent its first
+   * twenty seconds, which is the whole first impression, on the phone look. The
+   * monitor still demotes within three seconds if the machine cannot hold it.
+   */
+  if (!hints.coarsePointer && (hints.hardwareConcurrency ?? 4) >= DESKTOP_CORES) tier = 2;
   if ((hints.hardwareConcurrency ?? 4) < 4) tier = 0;
   if (hints.prefersReducedMotion) tier = 0;
   return tier;
@@ -130,6 +174,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
   let belowSinceMs: number | null = null;
   let aboveSinceMs: number | null = null;
   let lockedUntilMs = 0;
+  let startedMs: number | null = null;
 
   function median(): number {
     if (filled === 0) return 0;
@@ -141,6 +186,9 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
 
   return {
     sample(frameMs, nowMs) {
+      startedMs ??= nowMs;
+      if (frameMs > QUALITY_MONITOR.hitchMs) return null;
+      if (nowMs - startedMs < QUALITY_MONITOR.graceS * 1000) return null;
       ring[head] = frameMs;
       head = (head + 1) % window;
       if (filled < window) filled++;
@@ -192,6 +240,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
       tier = next;
       filled = 0;
       head = 0;
+      startedMs = null;
       belowSinceMs = null;
       aboveSinceMs = null;
       lockedUntilMs = 0;

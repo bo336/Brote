@@ -2,24 +2,37 @@
 
 import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 
-import { applyLiveliness, applyPreset, buildLightRig, disposeLightRig, PRESET_LAMBDA } from '@/lib/render/lights';
+import {
+  applyLiveliness, applyPreset, buildLightRig, configureShadows, disposeLightRig, followTarget, PRESET_LAMBDA,
+} from '@/lib/render/lights';
+import { updateSun } from '@/lib/render/materials';
 import { PRESETS } from '@/lib/render/palette';
-import type { TimeOfDay } from '@/lib/world/types';
+import { TIERS } from '@/lib/render/quality';
+import type { QualityTier, TimeOfDay } from '@/lib/world/types';
+import { playerTransform } from '../state/usePlayerStore';
 
 /**
- * The four-light rig, cross-fading between the four authored time-of-day
- * presets over ~2 s (`06-ART-DIRECTION.md` §6).
+ * The light rig, cross-fading between the four time-of-day presets, with a sun
+ * that follows Pip so its shadow is sharp where the player is and costs nothing
+ * where they are not.
  *
- * The fade uses the exponential form, so the two-second figure holds at 30 fps
- * and at 60 (`01-RULES.md` §3.13) — a raw per-frame constant would make the
- * same transition take twice as long on the device we actually target.
+ * Every frame it also hands the sun to the materials — direction and colour —
+ * so leaves and grass can glow when you look at them against it.
  */
-export function Lights({ timeOfDay, liveliness }: { timeOfDay: TimeOfDay; liveliness: number }) {
+const scratchSun = new THREE.Color();
+
+export function Lights({
+  timeOfDay,
+  liveliness,
+  tier,
+}: {
+  timeOfDay: TimeOfDay;
+  liveliness: number;
+  tier: QualityTier;
+}) {
   const scene = useThree((s) => s.scene);
-  // Built once with the default preset; the first frames cross-fade it to
-  // whatever the actual time of day is, which is the same path every later
-  // change takes.
   const rig = useMemo(() => buildLightRig(), []);
 
   useEffect(() => {
@@ -30,10 +43,20 @@ export function Lights({ timeOfDay, liveliness }: { timeOfDay: TimeOfDay; liveli
     };
   }, [scene, rig]);
 
+  useEffect(() => {
+    const t = TIERS[tier];
+    configureShadows(rig, t.realShadows, t.shadowMapSize, t.shadowExtentM);
+  }, [rig, tier]);
+
   useFrame((_, delta) => {
     applyPreset(rig, PRESETS[timeOfDay], 1 - Math.exp(-PRESET_LAMBDA * delta));
-    // Liveliness adds warmth and only warmth. It never removes anything.
     applyLiveliness(rig, liveliness);
+    const t = TIERS[tier];
+    const p = playerTransform;
+    followTarget(rig, p.x, p.y, p.z, (t.shadowExtentM * 2) / t.shadowMapSize);
+    // Radiance, the way the lighting model counts it: colour × intensity / π.
+    scratchSun.copy(rig.key.color).multiplyScalar(rig.key.intensity / Math.PI);
+    updateSun(rig.sunDir, scratchSun);
   });
 
   return null;

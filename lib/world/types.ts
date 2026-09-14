@@ -78,6 +78,21 @@ export type EventId = 'incendio' | 'creciente' | 'nido' | 'residuos' | 'sequia' 
 
 export type TimeOfDay = 'amanecer' | 'dia' | 'atardecer' | 'noche';
 export type SeasonId = 'verano' | 'otono' | 'invierno' | 'primavera';
+
+/**
+ * The same ids at runtime, for validating data that crosses a boundary.
+ *
+ * A union type is gone by the time a row arrives from Postgres, so anything
+ * parsing a payload needs the list itself. `satisfies` keeps the two in step:
+ * add a region to the union without adding it here and this stops compiling.
+ */
+export const REGION_IDS = [
+  'claro', 'pradera', 'jardin', 'arboleda', 'rio', 'monte', 'cumbre', 'islote', 'monumento',
+] as const satisfies readonly RegionId[];
+
+export const TIME_OF_DAY_IDS = [
+  'amanecer', 'dia', 'atardecer', 'noche',
+] as const satisfies readonly TimeOfDay[];
 export type QualityTier = 0 | 1 | 2 | 3;
 export type BiomeKind = 'pradera' | 'bosque' | 'costa' | 'desierto' | 'selva' | 'tundra';
 
@@ -209,10 +224,23 @@ export interface Interactable {
   radius: number;
   /** i18n key, never a literal string. */
   labelKey: string;
-  verb: VerbId;
+  /**
+   * The verb this needs, when it needs one.
+   *
+   * **Optional, because not everything you can walk up to is one of the
+   * sixteen.** El Mojón is a stone you read; it is there from tier 1 and no
+   * unlock gates it. An interactable with no verb is always available.
+   */
+  verb?: VerbId;
+  /**
+   * How loudly this asks to be the one offered when several are in range.
+   * See `PRIORITY` in `interaction/InteractableRegistry.ts`. Default is normal.
+   */
+  priority?: number;
   enabled: boolean;
 }
 
+/** A placed marker: what the server said, plus where the island put it. */
 export interface ProjectMarker {
   id: string;
   title: string;
@@ -222,10 +250,32 @@ export interface ProjectMarker {
   z: number;
 }
 
+/** Today's counters, from `world_daily`. Caps live on the server. */
+export interface WorldDailyState {
+  chores_done: number;
+  forage_done: number;
+  event_done: boolean;
+  event_slug: string | null;
+  semillas_awarded: number;
+}
+
+/** A saved arrangement, from `user_world.layouts`. */
+export interface WorldLayout {
+  name: string;
+  placements: Placement[];
+  saved_at?: string;
+}
+
 /** Everything `/mundo` needs, fetched in one RPC round trip. */
 export interface WorldPayload {
   userId: string;
   seed: number;
+  /** The ladder itself, from `profiles.mundo_state`. Read, never written. */
+  tier: number;
+  worldIndex: number;
+  liveliness: number;
+  palette: string;
+  dominantDomain: string | null;
   pip: PipCosmetics;
   ownedCosmetics: string[];
   semillas: number;
@@ -233,7 +283,29 @@ export interface WorldPayload {
   collectiveWaterL: number;
   placements: Placement[];
   journal: JournalEntry[];
+  dailyState: WorldDailyState;
+  layouts: WorldLayout[];
+  /** Where this world sits against its goal, for the share card. */
+  worldGrowth: number;
+  worldGoal: number;
+  /** Tiers reached but not yet celebrated, ascending. */
   pendingCeremonies: number[];
-  projectMarkers: ProjectMarker[];
+  /**
+   * When this island was made, epoch ms, for idle maturation
+   * (`11-GAME-LOOP.md` §3.6). Zero when the server did not say, which reads as
+   * "nothing has grown on its own" — the safe answer, not a guessed one.
+   */
+  createdAt: number;
+  /**
+   * When the first-session sequence was finished, epoch ms, or 0 for somebody
+   * who has never opened the world (`11-GAME-LOOP.md` §7).
+   */
+  onboardedAt: number;
+  /** The highest tier already shown, so the queue can be rebuilt from source. */
+  celebratedTier: number;
+  celebratedWorld: number;
+  snapshotUrl: string | null;
+  /** Straight from the server, before the island decides where each one goes. */
+  projectMarkers: { id: string; title: string; place: string | null; date: string }[];
   dueReviews: number;
 }

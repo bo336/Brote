@@ -22,6 +22,9 @@ export interface ShareMeta {
   line?: string;
   /** The shareable URL printed on the card. */
   siteLabel: string;
+  /** Already-translated captions for the tier-up card's two shots. */
+  beforeLabel?: string;
+  afterLabel?: string;
 }
 
 export type ShareFormat = 'portrait' | 'square';
@@ -48,14 +51,28 @@ export function composeShareCard(
 
   // The world shot, cover-fitted into the top of the card.
   const shotH = Math.round(H * SHARE_CARD.shotHeightPct);
-  const scale = Math.max(W / canvas.width, shotH / canvas.height);
-  const dw = canvas.width * scale;
-  const dh = canvas.height * scale;
   ctx.fillStyle = BRAND.ink;
   ctx.fillRect(0, 0, W, H);
-  ctx.drawImage(canvas, (W - dw) / 2, (shotH - dh) / 2, dw, dh);
+  drawCover(ctx, canvas, 0, 0, W, shotH);
+  paintBand(ctx, meta, W, H, shotH);
 
-  // The brand band, faded up out of the shot so nothing is cut off hard.
+  return new Promise((resolve) => card.toBlob(resolve, 'image/png'));
+}
+
+/**
+ * The brand band under the shot: world, growth, the ceremony's line, the mark.
+ *
+ * Shared by both cards so the two can never drift into looking like they came
+ * from different products.
+ */
+function paintBand(
+  ctx: CanvasRenderingContext2D,
+  meta: ShareMeta,
+  W: number,
+  H: number,
+  shotH: number,
+): void {
+  // Faded up out of the shot so nothing is cut off hard.
   const fade = SHARE_CARD.bandFadeStartPx;
   const grad = ctx.createLinearGradient(0, shotH - fade, 0, H);
   grad.addColorStop(0, 'rgba(12,26,19,0)');
@@ -87,8 +104,6 @@ export function composeShareCard(
   ctx.fillStyle = CLAY.sand;
   ctx.font = `${Math.round(W * 0.033)}px ${FONT_STACK}`;
   ctx.fillText(meta.siteLabel, pad, H - Math.round(H * 0.018));
-
-  return new Promise((resolve) => card.toBlob(resolve, 'image/png'));
 }
 
 /**
@@ -114,4 +129,87 @@ export async function shareCard(blob: Blob, fileName = 'mi-isla-brote.png'): Pro
   a.click();
   URL.revokeObjectURL(url);
   return true;
+}
+
+/**
+ * The tier-up card: the same island, before and after.
+ *
+ * `08-WORLD-AND-PROGRESSION.md` §5 beat 6 asks for an auto-composed before/after
+ * in 9:16 and 1:1, one tap to share, **no upsell and no interstitial**. The two
+ * shots are stacked inside the same shot area the single-shot card uses, from
+ * the same framed camera position, so the only thing that changes between them
+ * is the world.
+ *
+ * `before` is a data URL taken during beat 2. When it is missing — a tainted
+ * canvas, a ceremony resumed after a reload — this degrades to the ordinary
+ * card rather than failing: a card of the finished island is still worth having.
+ */
+export async function composeTierUpCard(
+  canvas: HTMLCanvasElement,
+  before: string | null,
+  meta: ShareMeta,
+  format: ShareFormat = 'portrait',
+): Promise<Blob | null> {
+  if (!before) return composeShareCard(canvas, meta, format);
+
+  const shot = await loadImage(before);
+  if (!shot) return composeShareCard(canvas, meta, format);
+
+  const W = format === 'square' ? SHARE_CARD.squareSize : SHARE_CARD.width;
+  const H = format === 'square' ? SHARE_CARD.squareSize : SHARE_CARD.height;
+  const card = document.createElement('canvas');
+  card.width = W;
+  card.height = H;
+  const ctx = card.getContext('2d');
+  if (!ctx) return null;
+
+  ctx.fillStyle = BRAND.ink;
+  ctx.fillRect(0, 0, W, H);
+
+  const shotH = Math.round(H * SHARE_CARD.shotHeightPct);
+  const half = Math.floor(shotH / 2);
+  drawCover(ctx, shot, 0, 0, W, half);
+  drawCover(ctx, canvas, 0, half, W, shotH - half);
+
+  // A hairline between them, so the join is a decision rather than an artefact.
+  ctx.fillStyle = BRAND.ink;
+  ctx.fillRect(0, half - 1, W, 2);
+
+  const label = Math.round(W * 0.030);
+  ctx.font = `bold ${label}px ${FONT_STACK}`;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText(meta.beforeLabel ?? '', Math.round(W * 0.035), Math.round(W * 0.035) + label);
+  ctx.fillText(meta.afterLabel ?? '', Math.round(W * 0.035), half + Math.round(W * 0.035) + label);
+
+  paintBand(ctx, meta, W, H, shotH);
+  return new Promise((resolve) => card.toBlob(resolve, 'image/png'));
+}
+
+/** Cover-fit a source into a box, cropping the overflow rather than squashing. */
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  src: CanvasImageSource & { width: number; height: number },
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
+  const scale = Math.max(w / src.width, h / src.height);
+  const dw = src.width * scale;
+  const dh = src.height * scale;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.drawImage(src, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
 }

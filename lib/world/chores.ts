@@ -10,31 +10,47 @@
  */
 import { DAILY_CAPS } from './config';
 import { mulberry32, hashInt } from './rng';
-import type { ChoreId, RegionId, VerbId } from './types';
+import type { ChoreId, FeatureId, RegionId, VerbId } from './types';
 
 export interface ChoreDef {
   id: ChoreId;
-  /** i18n key. Copy lives in `messages/es.json`, never here. */
+  /**
+   * i18n key **relative to the `mundo` namespace**, which is the convention
+   * every `labelKey` in the world uses (`accion.mojon`, `verb.swim`).
+   *
+   * It used to be fully qualified, and the action button — which already scopes
+   * itself to `mundo` — rendered "Mundo.Mundo.Chore.Dar_vuelta_compost" on the
+   * one surface a player actually reads. Copy still lives in `messages/es.json`
+   * and never here.
+   */
   nameKey: string;
   /** Where it happens; `null` means anywhere on the island. */
   region: RegionId | null;
   verb: VerbId | 'interact' | 'follow';
   /** Some chores need a prop the player has actually placed. */
   requiresProp?: string;
+  /**
+   * A chore that names a thing happens **at that thing**.
+   *
+   * "Ajustar la soga del puente" belongs at the bridge, not at a random point
+   * in El Río — whose centre is the lagoon, which is where the first version
+   * put it: two metres under water, unreachable, with nothing to explain it.
+   */
+  anchor?: FeatureId;
 }
 
 /** The pool of ten, verbatim from `14-CONTENT.md` §4. */
 export const CHORES: ChoreDef[] = [
-  { id: 'regar_canteros', nameKey: 'mundo.chore.regar_canteros', region: 'jardin', verb: 'water' },
-  { id: 'podar_seco', nameKey: 'mundo.chore.podar_seco', region: 'arboleda', verb: 'interact' },
-  { id: 'juntar_ramas', nameKey: 'mundo.chore.juntar_ramas', region: 'arboleda', verb: 'interact' },
-  { id: 'limpiar_orilla', nameKey: 'mundo.chore.limpiar_orilla', region: 'rio', verb: 'interact' },
-  { id: 'llenar_comedero', nameKey: 'mundo.chore.llenar_comedero', region: null, verb: 'interact', requiresProp: 'mundo_comedero' },
-  { id: 'guiar_bicho', nameKey: 'mundo.chore.guiar_bicho', region: null, verb: 'follow' },
-  { id: 'barrer_sendero', nameKey: 'mundo.chore.barrer_sendero', region: 'claro', verb: 'interact' },
-  { id: 'dar_vuelta_compost', nameKey: 'mundo.chore.dar_vuelta_compost', region: 'jardin', verb: 'interact' },
-  { id: 'colgar_farol', nameKey: 'mundo.chore.colgar_farol', region: null, verb: 'interact', requiresProp: 'mundo_farolitos' },
-  { id: 'ajustar_puente', nameKey: 'mundo.chore.ajustar_puente', region: 'rio', verb: 'interact' },
+  { id: 'regar_canteros', nameKey: 'chore.regar_canteros', region: 'jardin', verb: 'water' },
+  { id: 'podar_seco', nameKey: 'chore.podar_seco', region: 'arboleda', verb: 'interact' },
+  { id: 'juntar_ramas', nameKey: 'chore.juntar_ramas', region: 'arboleda', verb: 'interact' },
+  { id: 'limpiar_orilla', nameKey: 'chore.limpiar_orilla', region: 'rio', verb: 'interact', anchor: 'bridge' },
+  { id: 'llenar_comedero', nameKey: 'chore.llenar_comedero', region: null, verb: 'interact', requiresProp: 'mundo_comedero' },
+  { id: 'guiar_bicho', nameKey: 'chore.guiar_bicho', region: null, verb: 'follow' },
+  { id: 'barrer_sendero', nameKey: 'chore.barrer_sendero', region: 'claro', verb: 'interact' },
+  { id: 'dar_vuelta_compost', nameKey: 'chore.dar_vuelta_compost', region: 'jardin', verb: 'interact', anchor: 'compost' },
+  { id: 'colgar_farol', nameKey: 'chore.colgar_farol', region: null, verb: 'interact', requiresProp: 'mundo_farolitos' },
+  { id: 'ajustar_puente', nameKey: 'chore.ajustar_puente', region: 'rio', verb: 'interact', anchor: 'bridge' },
 ];
 
 export const CHORES_BY_ID: ReadonlyMap<ChoreId, ChoreDef> = new Map(CHORES.map((c) => [c.id, c]));

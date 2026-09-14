@@ -25,6 +25,13 @@ const PROPS_BY_TIER: Record<number, PropId[]> = {
   4: ['mundo_molino'],
 };
 
+/**
+ * Every placeable, flat. `PropId` is a bare `string` — the slugs are rows in
+ * `cosmetics`, not a closed set the type system knows — so anything validating
+ * a placement needs the actual list.
+ */
+export const PROP_IDS: readonly PropId[] = Object.values(PROPS_BY_TIER).flat();
+
 /** Species are keyed off their own `min_tier`, so the two can never drift. */
 function speciesForTier(tier: number): SpeciesId[] {
   return SPECIES.filter((s) => s.min_tier === tier).map((s) => s.slug);

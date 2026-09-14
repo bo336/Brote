@@ -16,6 +16,15 @@
 /** Water plane height. Land is above it, lake beds below (ported verbatim). */
 export const WATER_LEVEL = 0;
 
+/**
+ * How deep the open sea is, in metres.
+ *
+ * Not a measurement of anything — the sea has no bottom in this game. It is
+ * "past every shelf and every foam line", so the shader's depth clamp lands on
+ * the deepest colour and the surf stays where the sand is.
+ */
+export const SEA_DEPTH_M = 8;
+
 /** Island radius per rank tier, in metres (`08-WORLD-AND-PROGRESSION.md` §3). */
 export const ISLAND_RADIUS_BY_TIER = [18, 24, 30, 34, 38, 42, 48, 54, 57, 60, 60] as const;
 
@@ -97,103 +106,70 @@ export const LAYOUT = {
   steepScatter: 260, // rock-only points on ground too steep to plant (El Monte, La Cumbre)
 } as const;
 
-// ── Movement (`10-CONTROLS-AND-CAMERA.md` §2) ───────────────────────────────
-
-export const MOVE = {
-  walkSpeed: 2.4, // m/s
-  runSpeed: 4.0, // m/s, past the joystick run threshold
-  accel: 14, // m/s² toward the desired direction
-  friction: 10, // per second, ground drag once input is released
-  turnLambda: 10, // yaw damping rate; never snap
-  slopeLimitDeg: 38, // above this the up-slope component is zeroed
-  slopeWallDeg: 55, // above this it is a wall unless `scale` is unlocked
-  coastPushback: 1.2, // m/s of soft radial push at the coastline — never a wall
-  coastMarginM: 0.8, // how far inside the radius the push begins
+/**
+ * The worn paths from El Claro to every open region (`lib/world/paths.ts`).
+ * OURS, judged from screenshots: wide enough to read from the default camera,
+ * narrow enough to be a path and not a road.
+ */
+export const PATHS = {
+  widthM: 1.3, // the worn middle
+  edgeM: 0.9, // the soft edge into the grass
+  samples: 16, // segments per path; a curve at this length needs no more
+  bendFrac: 0.28, // how far sideways the S is pushed, as a fraction of the path's length
+  arriveFrac: 0.3, // stop this fraction of the region's radius short of its centre
+  minLengthM: 3, // a region closer than this to the spawn needs no path
 } as const;
 
-/** Speeds and limits owned by individual verbs (`10-CONTROLS-AND-CAMERA.md` §3). */
-export const VERB_MOTION = {
-  swimSpeed: 1.6, // m/s
-  climbSpeed: 1.2, // m/s vertical on a marked face
-  mantleMaxHeightM: 2, // ledges below this auto-mantle on contact
-  glideMinLedgeM: 4, // gliding needs a drop of at least this
-  glideFallSpeed: 1.8, // m/s, clamped
-  glideHorizontalSpeed: 3.2, // m/s of air control
-  sailSpeed: 3, // m/s in the boat
-  caveLanternRadiusM: 6, // lit radius inside the cave
+/**
+ * Guidance: the objective beacon, the arrow at Pip's feet, the saplings planting
+ * leaves behind (`components/mundo3d/scene/Guidance.tsx`). OURS, from screenshots.
+ */
+export const GUIDE = {
+  trackEveryS: 0.4, // how often the next objective is re-picked
+  beamRadiusM: 0.28,
+  beamHeightM: 14, // tall enough to see over a hill
+  beamOpacity: 0.85,
+  beamFadeNearM: 3, // gone once you are standing at it…
+  beamFadeFarM: 9, // …full strength from here out
+  arrowMinM: 5, // no arrow when the target is right there
+  arrowAheadM: 0.9, // how far in front of Pip the chevron sits
+  // Over the grass, not in it: at 6 cm the blades hid it completely.
+  arrowLiftM: 0.42,
+  arrowScale: 1.6,
+  arrowNudgeM: 0.12, // it nudges toward the target, a beckon
+  saplingGrowMs: 1600,
+  saplingScale: 0.55,
 } as const;
 
-// ── Camera (`10-CONTROLS-AND-CAMERA.md` §4) ─────────────────────────────────
+// ── Movement, camera, input, interaction ────────────────────────────────────
 
-export const CAMERA = {
-  fov: 38, // vertical degrees — NEVER varied per device; that would change the art
-  pitchDeg: -28, // looking down into the diorama
-  distanceM: 7, // default follow distance
-  posLambda: 6, // position damping rate
-  lookLambda: 12, // look-at damping — 2× the position rate is the "attentive" trick
-  targetAspect: 390 / 844, // the reference portrait phone (`18-DECISIONS.md` D5)
-  aspectDistanceMin: 1.0, // distance multiplier clamp, low end
-  aspectDistanceMax: 1.6, // distance multiplier clamp, high end
-  portraitLookLiftM: 0.35, // raise the look-at in portrait so the joystick misses Pip
-  recentreDelayS: 2.5, // auto-recentre behind Pip after this much idle camera input
-  recentreLambdaScale: 0.35, // …and eases round at a fraction of the follow rate
-  lookAheadM: 0.4, // the look-at sits this far ahead of Pip, along their facing
-  lookHeightFrac: 0.6, // …and this far up Pip's own height
-  occlusionMarginM: 0.4, // pull in to the hit point minus this
-  occlusionInLambda: 14, // fast in…
-  occlusionOutLambda: 3, // …slow out
-  occlusionSamples: 6, // height probes along the boom; 6 is enough for a hillside
-  occlusionClearanceM: 0.5, // keep the boom this far above the ground it passes over
-  occlusionMinM: 2.2, // never pull closer than this, however steep the slope
-  pinchMinM: 4, // pinch distance clamp, near
-  pinchMaxM: 11, // pinch distance clamp, far
-} as const;
-
-/** Reduced motion halves every camera damping rate and kills auto-recentring (`16` §3). */
-export const REDUCED_MOTION_DAMPING_SCALE = 0.5;
-
-// ── Input (`10-CONTROLS-AND-CAMERA.md` §1) ──────────────────────────────────
-
-export const JOYSTICK = {
-  deadZone: 0.1, // below 0.08 you get thumb tremor; above 0.15 the first mm feels dead
-  maxRadiusPx: 48, // beyond this needs wrist movement
-  runThreshold: 0.85, // fraction of max radius that switches walk to run
-  zoneWidthPct: 0.45, // activation zone: the bottom-left 45% of viewport width…
-  zoneHeightPct: 0.55, // …and the bottom 55% of its height
-  releaseDampMs: 150, // damp input to zero on release; no return animation
-  safeAreaMinPx: 16, // floor for the `env(safe-area-inset-bottom)` padding
-} as const;
-
-/** Every verb completion fires sound + motion + this haptic (`10` §6). */
-export const HAPTIC_MS = 12;
-
-// ── Interaction (`10-CONTROLS-AND-CAMERA.md` §5) ────────────────────────────
-
-export const INTERACT = {
-  scanEveryNFrames: 3, // proximity scan cadence; one active interactable at a time
-  defaultRadiusM: 2.4, // OURS — the spec says "generous" and gives no figure
-  facingWeight: 0.6, // 0 = nearest wins, 1 = facing angle wins; ties break by angle
-  buttonMinPx: 48, // touch-target floor (`16-UI-AUDIO-A11Y.md` §3)
-  cueBobAmplitudeM: 0.06, // world-space affordance bob; disabled under reduced motion
-  cueBobHz: 0.6, // and its rate
-} as const;
-
-/** Hold and timing windows per verb (`10-CONTROLS-AND-CAMERA.md` §3). */
-export const VERB_TIMING = {
-  plantHoldMs: 800, // hold to plant, then the sapling scales up
-  logHoldMs: 600, // the census framing reticle converge time
-  forageSquashMs: 400, // the node empties and starts its respawn timer
-  waterCanUses: 3, // capacity, shown as a small world-space pip on Pip
-  fishWaitMinS: 3, // cast, then wait…
-  fishWaitMaxS: 10, // …up to this long for the tug
-  fishTugWindowMs: 900, // tap inside this to land it
-  restAdvanceS: 6, // resting advances time of day one preset over this
-  poseCrossfadeMs: 250, // verb pose blend (`09-PIP.md` §3)
-} as const;
+// They live in `config.controls.ts` for the 400-line rule; this is still the door.
+export {
+  MOVE, VERB_MOTION, CAMERA, REDUCED_MOTION_DAMPING_SCALE, JOYSTICK, HAPTIC_MS, INTERACT, VERB_TIMING,
+} from './config.controls';
 
 // ── Placement and arrangement (`08-WORLD-AND-PROGRESSION.md` §8) ────────────
 
+/**
+ * Saved arrangements (`08-WORLD-AND-PROGRESSION.md` §8). The real cap is the
+ * plan's, enforced by `world_save_layout`; these are what the bar draws.
+ */
+export const LAYOUTS = {
+  /** Slots a free account gets, and therefore what everyone sees. */
+  freeSlots: 3,
+  /** The ceiling `world_save_layout` allows a paid plan. */
+  maxSlots: 10,
+  /** Stored names are `slot-1`… so saving over a slot overwrites it. */
+  slotPrefix: 'slot-',
+} as const;
+
 export const PLACEMENT = {
+  /**
+   * How much wider than its footprint a placed prop is to tap.
+   * OURS: a fingertip is about 9 mm across and a comedero's footprint is
+   * 0.35 m, so an exact test makes picking one back up a game of skill.
+   */
+  pickUpReachScale: 1.6,
   capBase: 4, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
   capPerTier: 3,
   rotationStepDeg: 15, // free rotation, snapped
@@ -233,81 +209,45 @@ export const DAILY_CAPS = {
 /** Foraging is the appointment loop: one real action, two app opens (`11` §3.5). */
 export const FORAGE_RESPAWN = { minHours: 4, maxHours: 8 } as const;
 
+/**
+ * Los mojones de proyecto (`11-GAME-LOOP.md` §5 pillar 5). A line of stones for
+ * the real projects the player went to, walked outward from the spawn.
+ */
+export const MARKERS = {
+  /** How many the island will carry. OURS: a path, never a graveyard. */
+  max: 12,
+  /** Metres from the spawn to the first one. OURS. */
+  firstM: 6,
+  /** Metres between stones. Far enough apart to be separate memories. OURS. */
+  spacingM: 3.4,
+  /** Sideways wander, so the line reads as a path and not as a fence. OURS. */
+  driftM: 1.2,
+  /** How far out the line may reach, as a fraction of the island's radius. */
+  reachFraction: 0.8,
+} as const;
+
+/**
+ * Idle maturation (`11-GAME-LOOP.md` §3.6). Trees, ponds and flowers grow on
+ * wall-clock time, independent of play, visible on return.
+ *
+ * **Supplementary, never the session.** These numbers are deliberately small:
+ * enough that a week away is visible, never enough to be a reason to open the
+ * app. "Log in, collect, log out" is a dead game.
+ */
+export const MATURATION = {
+  /** Days to full growth. OURS: a week reads as "it kept going without me". */
+  daysToFull: 7,
+  /** How much bigger a fully matured thing is drawn. A tenth. OURS. */
+  scaleGain: 0.1,
+} as const;
+
 /** Hidden traversal caches per region (`11-GAME-LOOP.md` §3.2). */
 export const TRAVERSAL_CACHES_PER_REGION = { min: 6, max: 10 } as const;
 
-// ── The impact mirror (`13-IMPACT-MIRROR.md` §2) ────────────────────────────
+// ── The impact mirror ───────────────────────────────────────────────────────
 
-/**
- * Log-curve reference and saturation points. Impact totals span orders of
- * magnitude, so a linear map would be invisible for a year and then saturate.
- * Starting points — tune against real user data and record any change here.
- */
-export const IMPACT_CURVE = {
-  water_l: { ref: 200, max: 500_000 },
-  co2_kg: { ref: 5, max: 5_000 },
-  waste_kg: { ref: 2, max: 2_000 },
-  energy_kwh: { ref: 10, max: 20_000 },
-} as const;
-
-/** Each `MirrorParams` field as `[value at zero impact, value at max impact]`. */
-export const MIRROR_RANGE = {
-  riverWidth: [0.8, 3.2], // metres of channel width
-  riverFlow: [0.2, 1.0], // shader swell speed
-  waterfallGain: [0.0, 1.0], // sheet width, particle count and audio gain together
-  pondArea: [0.3, 1.0], // scale factor
-  fogDensity: [1.0, 0.25], // inverse: more impact, less haze
-  fogFar: [45, 110], // metres — clean air is literally how far you can see
-  skySaturation: [0.7, 1.0],
-  debrisCount: [40, 0], // instances; only ever shrinks, never added to
-  compostScale: [0.2, 1.0],
-  lanternCount: [0, 14], // instances lit at night
-  fireflyCount: [0, 30],
-  auroraIntensity: [0.0, 1.0], // tier 10+
-  windmillRPM: [2, 14], // `mundo_molino` promises it turns faster when it blows
-} as const;
-
-// ── Events (`14-CONTENT.md` §5) ─────────────────────────────────────────────
-
-/** At most one per two days, never two in a row (`11-GAME-LOOP.md` §3.7). */
-export const EVENT_MIN_GAP_DAYS = 2;
-
-export const INCENDIO = {
-  durationS: 90, // the in-game clock
-  frontSpeedMs: 0.4, // m/s of burn-front advance
-  canUses: 3, // watering can, refillable at the river or the puddle
-  rakeUses: 4, // firebreak rake
-  rakeStripM: 2, // width of undergrowth it clears
-  wrongChoiceCostS: 12, // each wrong decision costs this much time…
-  wrongChoiceBurnM2: 3, // …and burns this much more ground, which regrows next day
-  payout: 40, // semillas…
-  payoutImperfect: 25, // …or this with any wrong choice. Never zero.
-} as const;
-
-export const CRECIENTE = {
-  riseM: 0.6, // the river rises this much…
-  durationS: 180, // …over three minutes
-  sandbagSpots: 4,
-  strandedAnimals: 3,
-  payout: 30,
-} as const;
-
-export const NIDO = { candidateTrees: 3, payout: 25 } as const;
-export const RESIDUOS = { items: 12, bins: 4, payout: 35 } as const;
-export const SEQUIA = { days: 3, payout: 30 } as const;
-export const VISITANTE = { payout: 20 } as const;
-
-// ── Ceremonies (`08-WORLD-AND-PROGRESSION.md` §5) ───────────────────────────
-
-export const CEREMONY = {
-  takeCameraS: 2, // beat 1 — input suspends, the camera lifts
-  featureMinS: 8, // beat 3 — the physical event, never a fade-in
-  featureMaxS: 15,
-  titleCardS: 4, // beat 4 — the rank name and the line tying it to the real cause
-  newVerbS: 4, // beat 5 — the new verb, taught in one sentence, in-world
-  shareCardS: 2, // beat 6 — no upsell, no interstitial
-  worldCompleteS: 8, // the biome cross-fade when `worldIndex` increments
-} as const;
+// It lives in `config.impact.ts` — see there for why.
+export { IMPACT_CURVE, MIRROR_RANGE, MOJON, IMPACT_PROVENANCE } from './config.impact';
 
 // ── Time of day, seasons, liveliness ────────────────────────────────────────
 
@@ -336,6 +276,8 @@ export const LIVELINESS = {
 
 // ── Learning (`12-LEARNING.md` §2) ──────────────────────────────────────────
 
+export { VISIT, GIFT, FIRST_RUN, FRIEND_STREAK } from './config.social';
+
 export const LEARNING = {
   sessionShareMax: 0.1, // ≤10% of session time
   reviewItemsPerDay: 5,
@@ -345,6 +287,8 @@ export const LEARNING = {
   microFactMaxWords: 18,
   gameplayTextMaxWords: 25, // …and no gameplay text exceeds 25
 } as const;
+
+export * from './config.events';
 
 // ── The render half of this file ────────────────────────────────────────────
 

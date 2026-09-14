@@ -36,6 +36,11 @@ export class PipRig {
   /** Milliseconds of anticipation squash left before the first hop. */
   private anticipation = 0;
   private wasMoving = false;
+  private wasAirborne = false;
+  /** Milliseconds of landing squash left. */
+  private landT = 0;
+  /** Milliseconds of celebration left: a hop and a turn when something is done. */
+  private celebrateT = 0;
   private state: PlayerState = 'idle';
 
   constructor(root: PipRoot) {
@@ -45,6 +50,11 @@ export class PipRig {
 
   setState(state: PlayerState): void {
     this.state = state;
+  }
+
+  /** Something got done. Pip hops and turns once, happily. */
+  celebrate(): void {
+    this.celebrateT = PIP_RIG.celebrateMs;
   }
 
   /**
@@ -65,11 +75,14 @@ export class PipRig {
     }
     this.wasMoving = moving;
     if (this.anticipation > 0) this.anticipation -= dt * 1000;
+    if (this.wasAirborne && !p.airborne) this.landT = PIP_RIG.landSquashMs;
+    this.wasAirborne = p.airborne;
+    if (this.landT > 0) this.landT -= dt * 1000;
 
     // ── Hop-walk. A blob that hops needs no legs and reads instantly.
     let hop = 0;
     let hopDerivative = 0;
-    if (moving) {
+    if (moving && !p.airborne) {
       const hz = Math.max(PIP_RIG.hopHzMin, p.speed * PIP_RIG.hopHzPerSpeed);
       this.hopPhase += dt * hz * Math.PI * 2;
       // `abs(sin)` gives two hops per cycle: contact, apex, contact.
@@ -97,6 +110,24 @@ export class PipRig {
       sx = 1 / Math.sqrt(sy);
     }
     if (moving) sy = 1 / (sx * sx); // preserve volume: x·y·z ≈ 1
+    // A jump stretches along the speed it is travelling at; a landing squashes.
+    if (p.airborne) {
+      sy = 1 + Math.max(-PIP_RIG.airStretchMax, Math.min(PIP_RIG.airStretchMax, p.vy * PIP_RIG.airStretchPerMps));
+      sx = 1 / Math.sqrt(sy);
+    } else if (this.landT > 0) {
+      sx = 1 + (PIP_RIG.landSquash - 1) * (this.landT / PIP_RIG.landSquashMs);
+      sy = 1 / (sx * sx);
+    }
+    let joyHop = 0;
+    let joySpin = 0;
+    if (this.celebrateT > 0) {
+      this.celebrateT -= dt * 1000;
+      const k = 1 - Math.max(0, this.celebrateT) / PIP_RIG.celebrateMs;
+      joyHop = Math.sin(k * Math.PI) * PIP_RIG.celebrateHopM;
+      joySpin = k * k * (3 - 2 * k) * Math.PI * 2;
+      sy = 1 + Math.sin(k * Math.PI) * 0.12;
+      sx = 1 / Math.sqrt(sy);
+    }
     u.body.scale.set(sx, sy, sx);
     u.pattern?.scale.set(sx, sy, sx);
     u.face.scale.set(sx, sy, sx);
@@ -109,8 +140,8 @@ export class PipRig {
 
     // ── Place the root. Position and yaw come from the controller; the hop, the
     //    lean and every scale below come from here. One owner, one transform.
-    this.root.position.set(p.x, p.y + hop, p.z);
-    this.root.rotation.set(this.lean, p.yaw + this.lookYaw, 0);
+    this.root.position.set(p.x, p.y + hop + joyHop, p.z);
+    this.root.rotation.set(this.lean, p.yaw + this.lookYaw + joySpin, 0);
 
     // ── The leaf trails the body's rotation and overshoots. Secondary motion is
     //    most of the charm, and it is nearly free.

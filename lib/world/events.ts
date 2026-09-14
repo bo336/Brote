@@ -14,7 +14,10 @@ import type { EventId, FeatureId, RegionId, VerbId } from './types';
 
 export interface EventDef {
   id: EventId;
-  /** i18n key for the title. Copy lives in `messages/es.json`. */
+  /**
+   * i18n key for the title, **relative to the `mundo` namespace** — the same
+   * convention every label in the world uses. Copy lives in `messages/es.json`.
+   */
   titleKey: string;
   region: RegionId;
   /** The tier that makes this event possible at all. */
@@ -35,7 +38,7 @@ export interface EventDef {
 export const EVENTS: EventDef[] = [
   {
     id: 'incendio',
-    titleKey: 'mundo.event.incendio',
+    titleKey: 'event.incendio.title',
     region: 'arboleda',
     minTier: 4,
     verbs: ['water', 'walk'],
@@ -46,7 +49,7 @@ export const EVENTS: EventDef[] = [
   },
   {
     id: 'creciente',
-    titleKey: 'mundo.event.creciente',
+    titleKey: 'event.creciente.title',
     region: 'rio',
     minTier: 7,
     requiresFeature: 'river',
@@ -58,7 +61,7 @@ export const EVENTS: EventDef[] = [
   },
   {
     id: 'nido',
-    titleKey: 'mundo.event.nido',
+    titleKey: 'event.nido.title',
     region: 'arboleda',
     minTier: 5,
     requiresFeature: 'nest',
@@ -70,7 +73,7 @@ export const EVENTS: EventDef[] = [
   },
   {
     id: 'residuos',
-    titleKey: 'mundo.event.residuos',
+    titleKey: 'event.residuos.title',
     region: 'islote',
     minTier: 10,
     requiresFeature: 'islet',
@@ -82,7 +85,7 @@ export const EVENTS: EventDef[] = [
   },
   {
     id: 'sequia',
-    titleKey: 'mundo.event.sequia',
+    titleKey: 'event.sequia.title',
     region: 'jardin',
     minTier: 3,
     verbs: ['water'],
@@ -93,7 +96,7 @@ export const EVENTS: EventDef[] = [
   },
   {
     id: 'visitante',
-    titleKey: 'mundo.event.visitante',
+    titleKey: 'event.visitante.title',
     region: 'claro',
     minTier: 2,
     verbs: ['walk', 'log', 'rest'],
