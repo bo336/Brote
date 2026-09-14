@@ -301,10 +301,12 @@ export const GROUND_DETAIL_FRAG = /* glsl */ `
   vec3 bhBase = diffuseColor.rgb;
   float bhSat = max(bhBase.r, max(bhBase.g, bhBase.b)) - min(bhBase.r, min(bhBase.g, bhBase.b));
   bhBase = mix(vec3(dot(bhBase, vec3(0.2126, 0.7152, 0.0722))), bhBase, 1.2);
-  vec3 bhDry = bhBase * vec3(1.24, 1.08, 0.66);
+  // Dry patches and grain, both centred near one: on pale sand a 1.24× dry tint
+  // times a 1.45× grain blew the beach out to white.
+  vec3 bhDry = bhBase * vec3(1.12, 1.02, 0.72);
   bhBase = mix(bhBase, bhDry, smoothstep(0.5, 0.78, bhMacro) * 0.6);
   bhBase *= 0.84 + 0.32 * bhMid;
-  bhBase *= 0.55 + 0.9 * bhFine;
+  bhBase *= 0.68 + 0.6 * bhFine;
   // A green floor is turf, not pastel paint: short grass, dark and olive, with
   // the grain showing through. Only where the baked colour is green.
   float bhGreen = smoothstep(1.02, 1.3, bhBase.g / max(max(bhBase.r, bhBase.b), 0.001));

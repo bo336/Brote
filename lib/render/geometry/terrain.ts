@@ -272,7 +272,7 @@ export interface WaterMesh {
  */
 const SEA_RADIUS = 380;
 /** How far under the rim the inner edge tucks, so no seam shows at the beach. */
-const SEA_UNDERLAP = 1.2;
+export const SEA_UNDERLAP = 1.2;
 /** How far out the shelf reaches full depth. The foam line lives inside this. */
 const SEA_SHELF_M = 4;
 
@@ -316,9 +316,16 @@ export function buildOpenSea(layout: IslandLayout, deepAt: number): WaterMesh {
   return { geometry: geo, maxDepth: deepAt };
 }
 
-export function buildWaterMeshes(terrain: WorldLayout, hf: Heightfield, minSegments = 40): WaterMesh[] {
+/**
+ * One grid per lake. `onlyPuddles` keeps just the small ones: every other body
+ * of water at sea level is part of the shallows (`water-grid.ts`).
+ */
+export function buildWaterMeshes(
+  terrain: WorldLayout, hf: Heightfield, minSegments = 40, onlyPuddles = false,
+): WaterMesh[] {
   const out: WaterMesh[] = [];
   for (const lake of terrain.lakes) {
+    if (onlyPuddles && lake.r > WATER.puddleRadiusM) continue;
     const extent = lake.r * LAKE_EXTENT;
     const segments = Math.min(WATER.lakeMaxSegments, Math.max(minSegments, Math.ceil((extent * 2) / WATER.lakeCellM)));
     const step = (extent * 2) / segments;

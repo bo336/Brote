@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 
 import { buildOpenSea, buildWaterMeshes } from '@/lib/render/geometry/terrain';
 import { buildRiverMeshes } from '@/lib/render/geometry/river';
+import { buildShallows } from '@/lib/render/geometry/water-grid';
 import { heightInfo, heightTextureFor } from '@/lib/render/height-texture';
 import * as THREE from 'three';
 
@@ -45,10 +46,16 @@ export function Water({
   flow: number;
 }) {
   // Basins, and the river running down its channel (`geometry/river.ts`).
-  const meshes = useMemo(
-    () => [...buildWaterMeshes(layout.terrain, heightfield), ...buildRiverMeshes(layout.terrain, heightfield)],
-    [layout, heightfield],
-  );
+  // …as the shallows: every body of water at sea level inside the coast, the
+  // lagoon included, in one surface (`geometry/water-grid.ts`).
+  const meshes = useMemo(() => {
+    const shallows = buildShallows(layout, heightfield);
+    return [
+      ...(shallows ? [shallows] : []),
+      ...buildWaterMeshes(layout.terrain, heightfield, 40, true),
+      ...buildRiverMeshes(layout.terrain, heightfield),
+    ];
+  }, [layout, heightfield]);
   /**
    * **The deepest body, not the first one.**
    *

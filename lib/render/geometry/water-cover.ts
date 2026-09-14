@@ -9,7 +9,7 @@
  *  - Inside a lake's grid, at sea level, the lake draws.
  *  - Wherever a river runs above sea level, its strip draws.
  */
-import { LAYOUT, WATER_LEVEL } from '@/lib/world/config';
+import { LAYOUT, WATER, WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield, type WorldLayout } from '@/lib/world/terrain';
 
 /** How far past its radius a lake's surface grid reaches, as a multiple of it. */
@@ -22,6 +22,16 @@ export const CARVE_HALF_WIDTH = 1.5;
 /** Whether a point is inside the square a lake's surface grid covers. */
 export function inLake(terrain: WorldLayout, x: number, z: number): boolean {
   for (const lake of terrain.lakes) {
+    const reach = lake.r * LAKE_EXTENT;
+    if (Math.abs(x - lake.x) < reach && Math.abs(z - lake.z) < reach) return true;
+  }
+  return false;
+}
+
+/** Whether a point is inside a puddle's own grid — puddles have their own material. */
+export function inPuddle(terrain: WorldLayout, x: number, z: number): boolean {
+  for (const lake of terrain.lakes) {
+    if (lake.r > WATER.puddleRadiusM) continue;
     const reach = lake.r * LAKE_EXTENT;
     if (Math.abs(x - lake.x) < reach && Math.abs(z - lake.z) < reach) return true;
   }
