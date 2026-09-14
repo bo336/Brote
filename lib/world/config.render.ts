@@ -216,6 +216,29 @@ export const GROUND = {
   pathAboveWaterM: 0.03,
 } as const;
 
+/** El puente: where it goes, how it is built, how it is walked (`crossing.ts`, `decks.ts`). */
+export const BRIDGE = {
+  samples: 60, // points along each river considered for the crossing
+  carveHalfWidth: 1.5, // `terrainHeight` carves a river this many widths either side of its line
+  bankOverlapM: 0.5, // how far each end rests on the bank past the carve
+  bankAboveWaterM: 0.05, // both banks at least this dry
+  lakeClearM: 2, // and the crossing this far from any lake's shore
+  coastClearM: 4, // and this far inside the coast
+  // A river with no dry crossing (tier 7's estuary) takes the shallowest one
+  // outside the lagoon and inside the coast, under these looser clearances.
+  wetLakeClearM: 0.3,
+  wetCoastClearM: 1.5,
+  minDeckClearM: 0.22, // however wet the banks, the deck's ends stand at least this far above the water
+  levelWeight: 8, // metres of detour that one metre of lopsided banks is worth
+  defaultSpanM: 3.8,
+  deckWidthM: 1.5,
+  deckTopM: 0.355, // the planks' centre line plus half a plank
+  camberM: 0.16,
+  sinkM: 0.08, // the ends sit this far into the higher bank, so there is no lip to step over
+  stepUpM: 0.6, // a body further below the deck than this is under it, not on it
+  railInsetM: 0.15,
+} as const;
+
 /** The water (`lib/render/materials/water.ts`). Colours are the look; the rest is feel. */
 export const WATER = {
   shallow: '#57CFC4', // turquoise over sand

@@ -272,8 +272,8 @@ export class MovementSolver extends GroundQueries {
   }
 
   private stepVertical(body: Body, magnitude: number, dt: number, result: StepResult): void {
-    const ground = sampleHeight(this.probe.heightfield, body.x, body.z);
-    const depth = waterDepth(this.probe, body.x, body.z);
+    const ground = this.groundAt(body.x, body.z, body.y);
+    const depth = ground > sampleHeight(this.probe.heightfield, body.x, body.z) ? 0 : waterDepth(this.probe, body.x, body.z);
 
     if (depth > SWIM_DEPTH_M && this.has('swim') && body.y <= WATER_LEVEL + 0.05) {
       this.mode = 'swim';
@@ -381,7 +381,7 @@ export class MovementSolver extends GroundQueries {
     if (!this.standable(s.x, s.z)) this.findFree(s);
     body.x = s.x;
     body.z = s.z;
-    body.y = sampleHeight(this.probe.heightfield, s.x, s.z);
+    body.y = this.groundAt(s.x, s.z, Infinity);
     body.vx = body.vz = body.vy = body.speed = 0;
     body.airborne = false;
     body.grounded = true;

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { choreSpotsFor, type ChoreSpot } from '@/lib/world/chore-spots';
 import { SEMILLAS, WATER_LEVEL } from '@/lib/world/config';
+import { deckTopAt, decksFor, type Deck } from '@/lib/world/decks';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { FxKind } from '@/lib/render/fx';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -46,9 +47,17 @@ const CHORE_FX: Partial<Record<ChoreId, FxKind>> = {
  * underwater. You do that chore standing on the deck, and the deck is above the
  * water like every other walkable surface over it.
  */
-function standingHeight(heightfield: Heightfield, x: number, z: number): number {
-  return Math.max(sampleHeight(heightfield, x, z), WATER_LEVEL);
+function standingHeight(heightfield: Heightfield, layout: IslandLayout | null, x: number, z: number): number {
+  let decks = layout ? deckCache.get(layout) : undefined;
+  if (layout && !decks) {
+    decks = decksFor(layout, heightfield);
+    deckCache.set(layout, decks);
+  }
+  return (decks ? deckTopAt(decks, x, z) : null) ?? Math.max(sampleHeight(heightfield, x, z), WATER_LEVEL);
 }
+
+/** The bridge's deck, per island: the same floor the movement solver stands Pip on. */
+const deckCache = new WeakMap<IslandLayout, Deck[]>();
 
 export function useChores({
   layout,
@@ -108,7 +117,7 @@ export function useChores({
         thingKey: spot.def.nameKey,
         semillas: SEMILLAS.chore,
         fx: CHORE_FX[spot.id] ?? 'sparkle',
-        at: [spot.x, heightfield ? standingHeight(heightfield, spot.x, spot.z) : 0, spot.z],
+        at: [spot.x, heightfield ? standingHeight(heightfield, layout, spot.x, spot.z) : 0, spot.z],
       });
       if (readOnly || inFlight.current) return;
       inFlight.current = true;
@@ -129,7 +138,7 @@ export function useChores({
         }
       })();
     },
-    [readOnly, setSemillas, doneIds, heightfield],
+    [readOnly, setSemillas, doneIds, heightfield, layout],
   );
 
   useEffect(() => {
@@ -137,7 +146,7 @@ export function useChores({
     const dispose = spots.map((spot) =>
       registerInteractable({
         id: `chore-${spot.id}`,
-        position: [spot.x, standingHeight(heightfield, spot.x, spot.z), spot.z],
+        position: [spot.x, standingHeight(heightfield, layout, spot.x, spot.z), spot.z],
         radius: spot.radius,
         labelKey: spot.def.nameKey,
         priority: PRIORITY.chore,
@@ -148,7 +157,7 @@ export function useChores({
       }),
     );
     return () => dispose.forEach((fn) => fn());
-  }, [spots, heightfield, complete]);
+  }, [spots, heightfield, layout, complete]);
 
   return spots;
 }

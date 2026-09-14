@@ -192,6 +192,7 @@ function Preview() {
       __evento?: (id: string) => void;
       __geometries?: () => string[];
       __interactables?: () => unknown[];
+      __anchors?: () => unknown[];
       __pip?: () => unknown;
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
     };
@@ -265,6 +266,9 @@ function Preview() {
     // Everything you could walk up to, and where. The answer to "are the
     // chores in the world?" without walking the whole island to find out.
     w.__interactables = () => listInteractables();
+    // Where the ladder's structures stand, for framing the bridge, the treehouse
+    // or the telescope without knowing today's chores.
+    w.__anchors = () => useWorldStore.getState().layout?.anchors ?? [];
     // Where Pip actually is, and what the button is currently offering.
     // …and what the controls harness needs to check a jump and a press of E.
     w.__pip = () => ({

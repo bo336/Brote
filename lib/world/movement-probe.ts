@@ -6,7 +6,8 @@
  * normal `sampleNormal` returns; everything in the solver decides what the body
  * does about it.
  */
-import { MOVE, WATER_LEVEL } from './config';
+import { BRIDGE, MOVE, WATER_LEVEL } from './config';
+import { crossesRail, deckTopAt, decksFor, type Deck } from './decks';
 import type { IslandLayout } from './layout';
 import { sampleHeight, sampleNormal, type Heightfield } from './terrain';
 import { SWIM_DEPTH_M, type TraversalMode, type TraversalProbe } from './traversal';
@@ -45,12 +46,27 @@ export class GroundQueries {
   mode: TraversalMode = 'ground';
   protected verbs: readonly VerbId[];
 
+  /** Floors above the ground: the bridge (`decks.ts`). */
+  readonly decks: readonly Deck[];
+
   constructor(heightfield: Heightfield, layout: IslandLayout, verbs: readonly VerbId[]) {
     this.probe = { heightfield, layout };
     this.verbs = verbs;
+    this.decks = decksFor(layout, heightfield);
   }
 
   has(verb: VerbId): boolean { return this.verbs.includes(verb); }
+
+  /** The floor under a point for a body at `y`: a deck when the body is up at its level, else the ground. */
+  groundAt(x: number, z: number, y: number): number {
+    const ground = sampleHeight(this.probe.heightfield, x, z);
+    // A swimmer passing under a bridge is in the river, not on the deck: at the
+    // surface they are barely a third of a metre below the planks, close enough
+    // that "up at the deck's level" handed them its floor and its rails.
+    if (this.decks.length === 0 || this.mode === 'swim') return ground;
+    const top = deckTopAt(this.decks, x, z);
+    return top !== null && top > ground && y > top - BRIDGE.stepUpM ? top : ground;
+  }
 
   /**
    * May a body at `(fx, fz)` step to `(x, z)`? **Downhill is always allowed**:
@@ -59,14 +75,18 @@ export class GroundQueries {
    */
   protected blockAt(fx: number, fz: number, x: number, z: number, y: number, airborne: boolean): Block {
     const hf = this.probe.heightfield;
-    const ground = sampleHeight(hf, x, z);
+    const ground = this.groundAt(x, z, y);
+    const from = this.groundAt(fx, fz, y);
     if (this.mode !== 'swim' && !this.has('swim')) {
       const depth = WATER_LEVEL - ground;
       // Wading back toward the shore is always allowed, however you got in.
-      if (depth > SWIM_DEPTH_M && depth >= WATER_LEVEL - sampleHeight(hf, fx, fz) - 1e-4) return DEEP;
+      if (depth > SWIM_DEPTH_M && depth >= WATER_LEVEL - from - 1e-4) return DEEP;
     }
+    if (this.decks.length > 0 && this.mode !== 'swim' && crossesRail(this.decks, fx, fz, x, z, y)) return WALL;
     if (airborne) return ground > y + MOVE.airWallM ? WALL : OPEN;
-    if (ground <= sampleHeight(hf, fx, fz)) return OPEN;
+    if (ground <= from) return OPEN;
+    // Stepping up onto a deck's end is a step, not a slope.
+    if (ground > sampleHeight(hf, x, z)) return OPEN;
     return sampleNormal(hf, x, z)[1] < SLOPE_WALL_COS ? WALL : OPEN;
   }
 
@@ -82,7 +102,7 @@ export class GroundQueries {
   /** Somewhere Pip could stand and be fine: dry enough, flat enough, clear of props. */
   protected standable(x: number, z: number): boolean {
     const hf = this.probe.heightfield;
-    if (!this.has('swim') && WATER_LEVEL - sampleHeight(hf, x, z) > SWIM_DEPTH_M) return false;
+    if (!this.has('swim') && WATER_LEVEL - this.groundAt(x, z, Infinity) > SWIM_DEPTH_M) return false;
     if (sampleNormal(hf, x, z)[1] < SLOPE_WALL_COS) return false;
     return !this.insideCollider(x, z, COLLIDER_SLACK * 2);
   }

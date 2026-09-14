@@ -8,6 +8,7 @@ import { buildProp, buildMovingPart, buildStructure, propFootprint, PROP_IDS, PR
 import { getClayMaterial } from '@/lib/render/materials';
 import { DOMAIN_COLORS } from '@/lib/render/palette';
 import { WIND } from '@/lib/world/config';
+import { bridgeDeck } from '@/lib/world/decks';
 import type { IslandLayout } from '@/lib/world/layout';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { MirrorParams, Placement, PropId, TimeOfDay } from '@/lib/world/types';
@@ -75,14 +76,19 @@ export function Props({
   const structures = useMemo(() => {
     return layout.anchors
       .map((anchor) => {
-        const geometry = buildStructure(anchor.feature);
+        const geometry = buildStructure(anchor.feature, anchor.span);
         if (!geometry) return null;
+        const walkable = anchor.feature === 'bridge';
+        // The bridge rests on its banks, not on the riverbed under its middle —
+        // the same height the movement solver stands Pip on (`decks.ts`).
+        const y = walkable ? bridgeDeck(anchor, heightfield).baseY : sampleHeight(heightfield, anchor.x, anchor.z);
         return {
           key: anchor.id,
           geometry,
-          position: [anchor.x, sampleHeight(heightfield, anchor.x, anchor.z), anchor.z] as [number, number, number],
+          position: [anchor.x, y, anchor.z] as [number, number, number],
           rotY: anchor.rotY,
           sways: anchor.feature === 'hammock',
+          walkable,
         };
       })
       .filter((s): s is NonNullable<typeof s> => s !== null);
@@ -128,6 +134,8 @@ export function Props({
     if (!shadows) return;
     const placedShadows: number[] = [];
     for (const st of structures) {
+      // A blob under a bridge would lie on the riverbed; its own planks shade it.
+      if (st.walkable) continue;
       const slot = shadows.addStatic(heightfield, st.position[0], st.position[2], STRUCTURE_SHADOW);
       if (slot >= 0) placedShadows.push(slot);
     }
@@ -144,7 +152,8 @@ export function Props({
   useEffect(() => {
     if (!onColliders) return;
     const colliders: PropCollider[] = [
-      ...structures.map((s) => ({ x: s.position[0], z: s.position[2], radius: 0.6 })),
+      // A bridge is walked over, so it is a deck, never a post in the way.
+      ...structures.filter((s) => !s.walkable).map((s) => ({ x: s.position[0], z: s.position[2], radius: 0.6 })),
       ...placed.map((p) => ({ x: p.position[0], z: p.position[2], radius: propFootprint(p.slug) })),
     ];
     onColliders(colliders);

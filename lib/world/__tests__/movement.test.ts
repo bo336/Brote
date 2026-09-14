@@ -31,7 +31,9 @@ function island(tier: number) {
   layout.scatter.forEach((p, i) => {
     if (i % 9 === 0 && !p.steep) colliders.push({ x: p.x, z: p.z, radius: 0.22 + p.roll * 0.4 });
   });
-  for (const a of layout.anchors) colliders.push({ x: a.x, z: a.z, radius: 0.6 });
+  // As `Props.tsx` does: every structure is a post in the way except the bridge,
+  // which is a deck to walk over (`decks.ts`).
+  for (const a of layout.anchors) if (a.feature !== 'bridge') colliders.push({ x: a.x, z: a.z, radius: 0.6 });
   return { config, layout, hf, colliders };
 }
 

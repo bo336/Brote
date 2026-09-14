@@ -11,6 +11,7 @@
  * `Math.random()` is banned here (`01-RULES.md` §3.11).
  */
 import { LAYOUT, SCALE_REFERENCE, TERRAIN } from './config';
+import { bridgeCrossing } from './crossing';
 import { CACHE_SPOTS, REGION_SPECS, regionCentre, regionRadius } from './regions';
 import { islandRadius, tierForRegion } from './progression';
 import { hashInt, mulberry32 } from './rng';
@@ -51,6 +52,8 @@ export interface AnchorPoint {
   z: number;
   /** Rotation in radians, so a bench faces the water rather than the bushes. */
   rotY: number;
+  /** Bank to bank, for a structure sized to where it stands. The bridge. */
+  span?: number;
 }
 
 export interface TraversalCache {
@@ -306,7 +309,12 @@ function buildAnchors(regions: RegionAnchor[], terrain: WorldLayout, features: r
   push('casa_arbol', 'treehouse', ax, az, 0);
   push('hamaca', 'hammock', ax * 0.82, az * 1.12, Math.PI / 2);
   const [rx, rz] = at('rio');
-  push('puente', 'bridge', rx * 0.7, rz * 0.7, Math.atan2(rz, rx) + Math.PI / 2);
+  // Across the river at the crossing nearest home (`crossing.ts`) — not at a
+  // fraction of El Río's centre, which is the middle of the lagoon.
+  const crossing = features.includes('bridge') ? bridgeCrossing(terrain, at('claro')) : null;
+  if (crossing) {
+    out.push({ id: 'puente', feature: 'bridge', x: crossing.x, z: crossing.z, rotY: crossing.rotY, span: crossing.span });
+  }
   push('cascada', 'waterfall', rx * 1.25, rz * 1.25, 0);
   const [mx, mz] = at('monte');
   push('cueva', 'cave', mx * 0.86, mz * 0.86, Math.atan2(-mz, -mx));

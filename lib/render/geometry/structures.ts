@@ -9,7 +9,8 @@
  */
 import * as THREE from 'three';
 
-import { SCALE_REFERENCE } from '@/lib/world/config';
+import { BRIDGE, SCALE_REFERENCE } from '@/lib/world/config';
+import { mulberry32 } from '@/lib/world/rng';
 import type { FeatureId } from '@/lib/world/types';
 import { CLAY, DOMAIN_COLORS, PIP_PARTS } from '../palette';
 import { bevelBox, mergePainted, paintFlat, paintVertical, post } from './build';
@@ -59,27 +60,67 @@ function compost(): THREE.BufferGeometry {
   return mergePainted(parts);
 }
 
-/** El puente de madera: planks and two rails across the channel. */
-function bridge(): THREE.BufferGeometry {
+/**
+ * El puente de madera, sized to its crossing (`lib/world/crossing.ts`): two
+ * stringers under the planks, planks with a little play in them — a gap between
+ * each, never quite straight, never quite one shade — and posts standing on both
+ * banks carrying a top rail and a lower one, all along a gentle camber. The
+ * deck's top is `BRIDGE.deckTopM` plus the camber, which is exactly the floor
+ * `lib/world/decks.ts` stands Pip on.
+ */
+function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  const planks = 11;
+  const rng = mulberry32(Math.round(span * 1000));
+  const half = span / 2;
+  const deckHalf = BRIDGE.deckWidthM / 2;
+  const plankY = BRIDGE.deckTopM - 0.035;
+  const lift = (t: number) => Math.sin(t * Math.PI) * BRIDGE.camberM;
+  const tilt = (t: number) => Math.atan((Math.cos(t * Math.PI) * Math.PI * BRIDGE.camberM) / span);
+  /** A beam between two points along the span, following the camber. */
+  const beam = (t0: number, t1: number, y: number, z: number, h: number, d: number, hex: string) => {
+    const x0 = -half + t0 * span;
+    const x1 = -half + t1 * span;
+    const y0 = y + lift(t0);
+    const y1 = y + lift(t1);
+    const b = bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9);
+    b.rotateZ(Math.atan2(y1 - y0, x1 - x0));
+    b.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
+    return b;
+  };
+
+  const segments = Math.max(4, Math.round(span / 0.8));
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < segments; i++) {
+      parts.push(beam(i / segments, (i + 1) / segments, plankY - 0.12, side * (deckHalf - 0.22), 0.16, 0.13, CLAY.barkDeep));
+    }
+  }
+
+  const planks = Math.max(8, Math.round(span / 0.3));
+  const pitch = span / planks;
   for (let i = 0; i < planks; i++) {
-    const t = i / (planks - 1);
-    const plank = bevelBox(0.3, 0.07, 1.5, i % 2 ? CLAY.bark : CLAY.barkRoof);
-    // A gentle camber: a flat bridge reads as a plank, an arched one as a bridge.
-    plank.translate(-1.9 + t * 3.8, 0.32 + Math.sin(t * Math.PI) * 0.16, 0);
+    const t = (i + 0.5) / planks;
+    const tone = rng();
+    const hex = tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
+    const plank = bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94);
+    plank.rotateY((rng() - 0.5) * 0.06);
+    plank.rotateZ(tilt(t));
+    plank.translate(-half + t * span, plankY + lift(t) + (rng() - 0.5) * 0.015, (rng() - 0.5) * 0.06);
     parts.push(plank);
   }
+
+  const posts = Math.max(3, Math.round(span / 1.5) + 1);
+  const railZ = deckHalf - 0.05;
+  const at = (i: number) => 0.03 + (i / (posts - 1)) * 0.94;
   for (const side of [-1, 1]) {
-    for (let i = 0; i < 5; i++) {
-      const t = i / 4;
-      const p = post(0.05, 0.6, CLAY.barkDeep);
-      p.translate(-1.8 + t * 3.6, 0.3 + Math.sin(t * Math.PI) * 0.16, side * 0.68);
+    for (let i = 0; i < posts; i++) {
+      const p = post(0.055, 1.0, CLAY.barkDeep, 7);
+      p.translate(-half + at(i) * span, plankY - 0.3 + lift(at(i)), side * railZ);
       parts.push(p);
     }
-    const rail = bevelBox(3.7, 0.06, 0.06, CLAY.bark);
-    rail.translate(0, 0.98, side * 0.68);
-    parts.push(rail);
+    for (let i = 0; i < posts - 1; i++) {
+      parts.push(beam(at(i), at(i + 1), plankY + 0.62, side * railZ, 0.07, 0.08, CLAY.bark));
+      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, CLAY.barkRoof));
+    }
   }
   return mergePainted(parts);
 }
@@ -235,20 +276,25 @@ function nest(): THREE.BufferGeometry {
   return mergePainted(parts);
 }
 
-const BUILDERS: Partial<Record<FeatureId, () => THREE.BufferGeometry>> = {
+const BUILDERS: Partial<Record<FeatureId, (size?: number) => THREE.BufferGeometry>> = {
   mojon, bench, compost, bridge, waterfall, treehouse, cave, boat, telescope, monument, hammock, nest,
 };
 
 const cache = new Map<string, THREE.BufferGeometry>();
 
-/** Built on first use and cached. A feature the tier has not granted costs nothing. */
-export function buildStructure(feature: FeatureId): THREE.BufferGeometry | null {
-  const hit = cache.get(feature);
+/**
+ * Built on first use and cached. A feature the tier has not granted costs
+ * nothing. `size` is for a structure sized to where it stands — the bridge's span.
+ */
+export function buildStructure(feature: FeatureId, size?: number): THREE.BufferGeometry | null {
+  // Centimetres, as an integer: close enough to share a cached shape.
+  const key = size === undefined ? feature : `${feature}:${Math.round(size * 100)}`;
+  const hit = cache.get(key);
   if (hit) return hit;
   const build = BUILDERS[feature];
   if (!build) return null;
-  const geo = build();
-  cache.set(feature, geo);
+  const geo = build(size);
+  cache.set(key, geo);
   return geo;
 }
 
