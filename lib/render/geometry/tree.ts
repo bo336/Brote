@@ -129,6 +129,19 @@ const SPECIES: Record<TreeSpecies, SpeciesSpec> = {
   },
 };
 
+/** How far the ombú's buttress roots reach from the stem, in trunk radii. */
+const ROOT_REACH = 3.2;
+
+/**
+ * How far from the stem a body stops, in the tree's own units. The flared foot,
+ * or for the ombú most of its root skirt: a collider at the stem's width let
+ * Pip, and the camera behind him, walk into the buttress.
+ */
+export function trunkFootprint(species: TreeSpecies): number {
+  const spec = SPECIES[species];
+  return spec.flare > 2 ? spec.trunkR * ROOT_REACH * 0.8 : spec.trunkR * spec.flare;
+}
+
 /** Detail by LOD: how much of the crown is drawn, and how round the wood is. */
 const LOD: Record<TreeLod, { clusters: number; cards: number; radial: number }> = {
   0: { clusters: 1, cards: 1, radial: 8 },
@@ -138,21 +151,33 @@ const LOD: Record<TreeLod, { clusters: number; cards: number; radial: number }> 
 
 const up = new THREE.Vector3(0, 1, 0);
 
-/** One tapered wood segment from `a` to `b`. */
-function limb(out: Piece[], a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, radial: number): void {
+/**
+ * One tapered wood segment from `a` to `b`.
+ *
+ * **Only what can be seen.** Its ends are open unless `capped`: every end starts
+ * inside the trunk or a knuckle, or ends under the ground. The knuckle is left
+ * off where nothing can see the joint — a root's foot is buried, and a twig's
+ * tip at the far silhouette is inside its leaf cluster. Caps and knuckles nobody
+ * could see were half the wood's triangles.
+ */
+function limb(
+  out: Piece[], a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, radial: number,
+  { capped = false, knot = true }: { capped?: boolean; knot?: boolean } = {},
+): void {
   const dir = b.clone().sub(a);
   const len = dir.length();
   if (len < 1e-4) return;
-  const geo = new THREE.CylinderGeometry(r1, r0, len, radial, 2, false);
+  const geo = new THREE.CylinderGeometry(r1, r0, len, radial, 2, !capped);
   const m = new THREE.Matrix4().compose(
     a.clone().addScaledVector(dir, 0.5),
     new THREE.Quaternion().setFromUnitVectors(up, dir.normalize()),
     new THREE.Vector3(1, 1, 1),
   );
   out.push({ geo, matrix: m });
+  if (!knot) return;
   // A knuckle at the joint, so a bend never shows a seam.
-  const knot = new THREE.SphereGeometry(r1 * 1.05, radial, 4);
-  out.push({ geo: knot, matrix: new THREE.Matrix4().makeTranslation(b.x, b.y, b.z) });
+  const ball = new THREE.SphereGeometry(r1 * 1.05, radial, 4);
+  out.push({ geo: ball, matrix: new THREE.Matrix4().makeTranslation(b.x, b.y, b.z) });
 }
 
 /** Where the foliage clusters sit, by crown shape. Returns cluster centres and the crown's own centre. */
@@ -209,7 +234,8 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
     );
     const r0 = spec.trunkR * (s === 1 ? spec.flare : 1 - (t - 0.25) * 0.35);
     const r1 = spec.trunkR * (1 - t * 0.35);
-    limb(wood, prev, p, r0, r1, detail.radial);
+    // The foot stays closed: on a slope its downhill edge stands clear of the ground.
+    limb(wood, prev, p, r0, r1, detail.radial, { capped: s === 1 });
     trunkPts.push(p.clone());
     prev = p;
   }
@@ -219,8 +245,8 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
   if (spec.flare > 2) {
     for (let k = 0; k < 5; k++) {
       const a = (k / 5) * Math.PI * 2 + rng() * 0.5;
-      const foot = new THREE.Vector3(Math.cos(a) * spec.trunkR * 3.2, -0.05, Math.sin(a) * spec.trunkR * 3.2);
-      limb(wood, new THREE.Vector3(0, spec.trunkH * 0.3, 0), foot, spec.trunkR * 0.7, spec.trunkR * 0.25, 5);
+      const foot = new THREE.Vector3(Math.cos(a) * spec.trunkR * ROOT_REACH, -0.05, Math.sin(a) * spec.trunkR * ROOT_REACH);
+      limb(wood, new THREE.Vector3(0, spec.trunkH * 0.3, 0), foot, spec.trunkR * 0.7, spec.trunkR * 0.25, 5, { knot: false });
     }
   }
 
@@ -233,7 +259,7 @@ export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): 
     const from = trunkPts[Math.max(2, segments - (b % 2))]!;
     const mid = from.clone().lerp(target, 0.55).add(new THREE.Vector3(0, 0.15, 0));
     limb(wood, from, mid, spec.trunkR * 0.55, spec.trunkR * 0.32, Math.max(4, detail.radial - 2));
-    limb(wood, mid, target, spec.trunkR * 0.32, spec.trunkR * 0.12, Math.max(4, detail.radial - 3));
+    limb(wood, mid, target, spec.trunkR * 0.32, spec.trunkR * 0.12, Math.max(4, detail.radial - 3), { knot: lod < 2 });
   }
 
   // ── Foliage cards.

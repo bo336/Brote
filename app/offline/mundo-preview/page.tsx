@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { updateReveal } from '@/lib/render/materials';
 import { liveGeometryKeys } from '@/lib/render/geometry';
 import { listInteractables } from '@/components/mundo3d/interaction/InteractableRegistry';
+import { useFxOverrides, type FxOverrides } from '@/components/mundo3d/dev/fxOverrides';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
 /**
@@ -193,6 +194,7 @@ function Preview() {
       __geometries?: () => string[];
       __interactables?: () => unknown[];
       __anchors?: () => unknown[];
+      __fx?: (fx: FxOverrides) => void;
       __objective?: () => unknown;
       __pip?: () => unknown;
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
@@ -270,6 +272,8 @@ function Preview() {
     // Where the ladder's structures stand, for framing the bridge, the treehouse
     // or the telescope without knowing today's chores.
     w.__anchors = () => useWorldStore.getState().layout?.anchors ?? [];
+    // The lens, pass by pass, for the perf protocol (`components/mundo3d/dev/fxOverrides.ts`).
+    w.__fx = (fx: FxOverrides) => useFxOverrides.getState().setFx(fx);
     // The one next thing to do, and what just paid out — for walking the loop
     // task by task instead of guessing at it from the card.
     w.__objective = () => ({

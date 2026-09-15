@@ -23,7 +23,7 @@ import * as THREE from 'three';
 
 import { FAUNA, PIP_PARTS } from '../palette';
 import { paintFlat, paintVertical } from './build';
-import { between } from './carpentry';
+import { between, faceAwayFrom } from './carpentry';
 
 /** Which part of the animal a vertex belongs to. The numbers are the shader's. */
 export const RIG = { body: 0, wingL: 1, wingR: 2, legFL: 3, legFR: 4, legBL: 5, legBR: 6, tail: 7, head: 8 } as const;
@@ -75,6 +75,41 @@ function blob(r: number, sx: number, sy: number, sz: number, at: Vec, w = 14, h 
   g.scale(sx, sy, sz);
   g.translate(at[0], at[1], at[2]);
   return g;
+}
+
+/**
+ * One continuous body: rings along Z from the rump to the chest, fuller at the
+ * shoulders and haunches, the belly hanging a little lower than the back is high.
+ * Joined spheres read as balls standing on sticks; a barrel reads as an animal.
+ */
+function barrel(z0: number, z1: number, r: number, sx: number, sy: number, cy: number, chest = 0.15, rump = 0.1): THREE.BufferGeometry {
+  const steps = 18;
+  const seg = 16;
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const z = z0 + (z1 - z0) * t;
+    const prof = Math.pow(Math.sin(Math.PI * Math.min(0.999, Math.max(0.001, t))), 0.55)
+      * (1 + chest * Math.exp(-(((t - 0.78) / 0.13) ** 2)) + rump * Math.exp(-(((t - 0.22) / 0.13) ** 2)));
+    const rr = r * prof;
+    for (let j = 0; j <= seg; j++) {
+      const a = (j / seg) * Math.PI * 2;
+      let y = Math.sin(a) * rr * sy;
+      if (y < 0) y *= 1 + 0.18 * Math.sin(Math.PI * t);
+      pos.push(Math.cos(a) * rr * sx, cy + y, z);
+    }
+  }
+  for (let i = 0; i < steps; i++) {
+    for (let j = 0; j < seg; j++) {
+      const a = i * (seg + 1) + j;
+      idx.push(a, a + 1, a + seg + 1, a + 1, a + seg + 2, a + seg + 1);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  return faceAwayFrom(geo, Math.floor(steps / 2) * (seg + 1), new THREE.Vector3(0, cy, (z0 + z1) / 2));
 }
 
 /** A tapered limb from `a` to `b`. */
@@ -195,11 +230,8 @@ export function deer(): THREE.BufferGeometry {
   const body = (geo: THREE.BufferGeometry) => P.push({ geo, part: RIG.body, pivot: [0, 0, 0] });
   const head: Vec = [0, 0.98, 0.32];
   const onHead = (geo: THREE.BufferGeometry) => P.push({ geo, part: RIG.head, pivot: head });
-  // One barrel, deeper at the chest, with the rump and shoulder only swelling
-  // out of it — separate spheres read as two balls standing on sticks.
-  body(paintVertical(blob(0.5, 0.36, 0.44, 0.8, [0, 0.84, 0]), FAUNA.huemulBelly, FAUNA.huemul, 0.7));
-  body(paintVertical(blob(0.19, 1, 0.95, 1.2, [0, 0.9, -0.2]), FAUNA.huemulBelly, FAUNA.huemul, 0.6));
-  body(paintVertical(blob(0.19, 1, 1.1, 1.15, [0, 0.87, 0.22]), FAUNA.huemulBelly, FAUNA.huemul, 0.6));
+  // One continuous barrel, deep at the chest and full at the haunches.
+  body(paintVertical(barrel(-0.5, 0.42, 0.2, 0.85, 1.2, 0.86, 0.22, 0.14), FAUNA.huemulBelly, FAUNA.huemul, 0.7));
   onHead(paintFlat(limb([0, 0.95, 0.3], [0, 1.28, 0.5], 0.1, 0.065), FAUNA.huemul));
   onHead(paintVertical(blob(0.1, 0.9, 1, 1.7, [0, 1.33, 0.6]), FAUNA.huemulBelly, FAUNA.huemul, 0.6));
   onHead(paintFlat(blob(0.06, 1, 0.9, 1.2, [0, 1.29, 0.74]), FAUNA.huemulDark));
@@ -227,8 +259,7 @@ export function fox(): THREE.BufferGeometry {
   const body = (geo: THREE.BufferGeometry) => P.push({ geo, part: RIG.body, pivot: [0, 0, 0] });
   const head: Vec = [0, 0.48, 0.24];
   const onHead = (geo: THREE.BufferGeometry) => P.push({ geo, part: RIG.head, pivot: head });
-  body(paintVertical(blob(0.3, 0.42, 0.44, 1, [0, 0.44, 0]), FAUNA.foxBelly, FAUNA.fox, 0.6));
-  body(paintVertical(blob(0.14, 1, 1.05, 1, [0, 0.47, 0.2]), FAUNA.foxBelly, FAUNA.foxRufous, 0.8));
+  body(paintVertical(barrel(-0.34, 0.3, 0.13, 0.9, 1.05, 0.45, 0.2, 0.12), FAUNA.foxBelly, FAUNA.fox, 0.6));
   onHead(paintVertical(blob(0.1, 0.95, 0.85, 1, [0, 0.58, 0.34]), FAUNA.foxBelly, FAUNA.fox, 0.7));
   onHead(paintVertical(spike([0, 0.55, 0.38], [0, 0.52, 0.52], 0.045, 8), FAUNA.foxBelly, FAUNA.foxRufous, 1));
   onHead(paintFlat(blob(0.014, 1.2, 1, 1, [0, 0.53, 0.52], 8, 6), EYE));
