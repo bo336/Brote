@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
-import { BlendFunction, Effect, ToneMappingMode } from 'postprocessing';
+import { BlendFunction, Effect, ToneMappingMode, type EffectComposer as ComposerImpl } from 'postprocessing';
 import * as THREE from 'three';
 
 import { POST } from '@/lib/world/config';
@@ -48,9 +48,19 @@ class GradeEffect extends Effect {
   }
 }
 
+/**
+ * The composer in use, or null at the tiers with no lens. The poster renders one
+ * frame through it on demand (`PosterShot.tsx`): a picture of the island without
+ * its tone mapping and grade would not look like the island.
+ */
+export const composerHandle: { current: ComposerImpl | null } = { current: null };
+
 export function PostFx({ tier }: { tier: QualityTier }) {
   const grade = useMemo(() => new GradeEffect(), []);
   const fx = useFxOverrides((s) => s.fx);
+  const register = useCallback((composer: ComposerImpl | null) => {
+    composerHandle.current = composer;
+  }, []);
   if (!TIERS[tier].postProcessing) return null;
   const high = tier >= 3;
   /**
@@ -67,7 +77,7 @@ export function PostFx({ tier }: { tier: QualityTier }) {
   const smaa = fx.smaa ?? high;
   const graded = fx.grade ?? true;
   return (
-    <EffectComposer multisampling={msaa} enableNormalPass={false}>
+    <EffectComposer ref={register} multisampling={msaa} enableNormalPass={false}>
       {ao ? (
         <N8AO
           halfRes={aoHalf}

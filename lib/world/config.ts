@@ -131,12 +131,17 @@ export const GUIDE = {
   beamOpacity: 0.85,
   beamFadeNearM: 3, // gone once you are standing at it…
   beamFadeFarM: 9, // …full strength from here out
-  arrowMinM: 5, // no arrow when the target is right there
-  arrowAheadM: 0.9, // how far in front of Pip the chevron sits
-  // Over the grass, not in it: at 6 cm the blades hid it completely.
-  arrowLiftM: 0.42,
-  arrowScale: 1.6,
-  arrowNudgeM: 0.12, // it nudges toward the target, a beckon
+  // The screen pin that replaced the chevron on the ground (2026-09-16: "there
+  // are circles on the floor, some things create confusion"): it says what and
+  // how far, and off screen it waits at the edge pointing the way.
+  pinHeightM: 2.2, // the pin hangs this far above the target's ground
+  pinHideNearM: 2.2, // gone only once its green ring and label have taken over (the interact radius is 2.4)
+  // Off screen it waits this far inside the edge — clear of the back button and
+  // the counter and zoom at the top, and the thumbs' buttons at the bottom.
+  pinEdgeSidePx: 56,
+  pinEdgeTopPx: 150,
+  pinEdgeBottomPx: 170,
+  promptHeightM: 0.95, // the "E · Regar" label, just over the ring and Pip's head
   saplingGrowMs: 1600,
   saplingScale: 0.55,
 } as const;
@@ -300,3 +305,4 @@ export * from './config.events';
  * is consumed by `lib/render/**`, and nothing above it is.
  */
 export * from './config.render';
+export * from './config.poster';

@@ -142,7 +142,7 @@ export function World({
   /** The ground colour of the world being left, for the palette wash. */
   previousBiome?: string;
   /** Take the poster. Handed a canvas holding a frame that was just drawn. */
-  onPoster?: (canvas: HTMLCanvasElement) => void;
+  onPoster?: Parameters<typeof PosterShot>[0]['onShoot'];
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const invalidate = useThree((s) => s.invalidate);
@@ -370,7 +370,7 @@ export function World({
         previousBiome={previousBiome}
         onCelebrated={onCelebrated}
       />
-      {onPoster && <PosterShot onShoot={onPoster} />}
+      {onPoster && heightfield && <PosterShot onShoot={onPoster} heightfield={heightfield} />}
       {/* Overdue reviews, as plants that want water. Never more than three,
           never blocking, and they come back on their own in a week. */}
       {dueReviews > 0 && (

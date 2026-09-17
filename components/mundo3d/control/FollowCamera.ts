@@ -2,32 +2,36 @@
 
 import * as THREE from 'three';
 
-import { CAMERA, PIP_HEIGHT_M, REDUCED_MOTION_DAMPING_SCALE, WATER_LEVEL } from '@/lib/world/config';
+import { CAMERA, MOVE, PIP_HEIGHT_M, REDUCED_MOTION_DAMPING_SCALE, WATER_LEVEL } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { CameraShot } from '@/lib/render/reveal';
 import type { PropCollider } from './CharacterController';
 import { playerTransform } from '../state/usePlayerStore';
 
 /**
- * The follow camera: damped, never physical, and **two axes the player owns**.
+ * The follow camera: **an orbit around a pivot that follows Pip**, with three
+ * axes the player owns.
  *
- * The 2026-09-12 playtest asked for "an adaptive angle, like the rotation", and
- * found W walking in directions that kept changing. Both came from the same rig:
- * a fixed pitch, and a recentre that swung the yaw behind Pip after 2.5 s — and
- * since W is relative to the yaw, every swing re-aimed every key.
+ * The 2026-09-16 playtest: "when I'm walking and moving the camera it feels too
+ * bad". The old rig computed where the lens should be and let it *chase* that
+ * spot in a straight line: a turn of the mouse reached the screen 27° late at
+ * p95, the lens cut 10% inside its own circle mid-turn, and walking while
+ * turning swung the world around Pip. Now:
  *
- * Now:
- *  - **Yaw** is dragged, and otherwise follows a **leash**: it turns only as far
- *    as Pip actually moves across the frame, so walking forward never rotates
- *    the world and holding A circles smoothly.
- *  - **Pitch** is dragged too, and otherwise adapts: low behind the shoulder
- *    when zoomed in, high over the region when zoomed out, and tilted up a
- *    slope Pip is walking up.
- *  - **Zoom** is the wheel or a pinch.
+ *  - **The pivot** trails Pip with a little give — across the ground and,
+ *    softer, up and down — so a run reads as speed and a jump never jolts.
+ *  - **The lens sits exactly on its orbit** around that pivot, at the yaw, tilt
+ *    and distance in force. Nothing lags the pivot, so nothing swings.
+ *  - **Yaw and tilt** go where the hand puts them, smoothed over a few
+ *    milliseconds — steady, never elastic. When nobody is steering, the tilt
+ *    follows the zoom and the slope, and a leash turns the yaw only as far as
+ *    Pip crosses the frame, so W never changes meaning under the player.
+ *  - **Zoom** is a factor — a notch is the same step near and far — and eases.
  *
- * What stays: the look-at damps faster than the body (the "attentive" trick),
- * the boom ducks under hillsides and out of the wood, and there is no head bob,
- * shake or motion blur, ever.
+ * The boom ducks under hillsides and out of the wood, a cutscene hands the lens
+ * back with an ease rather than a cut, and there is no head bob, shake or
+ * motion blur, ever. A run widens the lens by a few degrees, except under
+ * reduced motion.
  */
 export interface CameraOptions {
   camera: THREE.PerspectiveCamera;
@@ -44,14 +48,22 @@ export type { CameraShot };
 
 export class FollowCamera {
   private camera: THREE.PerspectiveCamera;
+  /** Where the lens is looking, kept for the cutscene and its hand-back. */
   private lookAt = new THREE.Vector3();
+  /** What the lens orbits: Pip, followed with a little give. */
+  private pivot = new THREE.Vector3();
+  /** The look-ahead along Pip's travel, eased. */
+  private lead = new THREE.Vector3();
+  /** Radians. `yaw` is on screen; `yawGoal` is where the hand and the leash put it. */
   private yaw = 0;
-  /** Degrees. The tilt actually in force, damped toward `pitchGoal`. */
+  private yawGoal = 0;
+  /** Degrees. The tilt actually in force. */
   private pitch: number = CAMERA.pitchDeg;
   /** Degrees the player has dragged the tilt away from the automatic one. */
   private pitchOffset = 0;
   private distance: number = CAMERA.distanceM;
   private targetDistance: number = CAMERA.distanceM;
+  private floorLift = 0;
   private sinceManualS = Infinity;
   private reducedMotion: boolean;
   private autoRecentre: boolean;
@@ -60,6 +72,10 @@ export class FollowCamera {
   private clearance = 1;
   private shot: CameraShot | null = null;
   private shotYaw = 0;
+  /** 1 just after a cutscene let go, easing to 0: how much of the shot's pose is left. */
+  private handBack = 0;
+  private handBackPos = new THREE.Vector3();
+  private handBackLook = new THREE.Vector3();
 
   constructor(opts: CameraOptions) {
     this.camera = opts.camera;
@@ -74,7 +90,7 @@ export class FollowCamera {
   setTerrain(heightfield: Heightfield | null): void { this.heightfield = heightfield; }
   setOccluders(occluders: readonly PropCollider[]): void { this.occluders = occluders; }
 
-  /** The camera's yaw, which the controller uses to rotate the input vector. */
+  /** The yaw on screen, which the controller uses to rotate the input vector: W is always "into the screen". */
   getYaw(): number { return this.yaw; }
 
   /** Degrees, for the HUD and the tests. */
@@ -82,24 +98,30 @@ export class FollowCamera {
 
   /** A drag: sideways orbits, vertically tilts. Both in radians. */
   orbit(deltaYaw: number, deltaPitch = 0): void {
-    this.yaw += deltaYaw;
+    this.yawGoal += deltaYaw;
     const goal = this.autoPitch() + this.pitchOffset + deltaPitch / DEG;
     const clamped = Math.min(CAMERA.pitchMaxDeg, Math.max(CAMERA.pitchMinDeg, goal));
     this.pitchOffset += clamped - (this.autoPitch() + this.pitchOffset);
     this.sinceManualS = 0;
   }
 
-  /** Wheel or pinch, in metres, clamped so no shot is ever too near or too far. */
-  zoom(delta: number): void {
-    this.targetDistance = Math.min(CAMERA.pinchMaxM, Math.max(CAMERA.pinchMinM, this.targetDistance + delta));
+  /** Zoom by a factor — below 1 closer, above 1 farther — clamped so no shot is ever too near or too far. */
+  zoomBy(factor: number): void {
+    if (!Number.isFinite(factor) || factor <= 0) return;
+    this.targetDistance = Math.min(CAMERA.pinchMaxM, Math.max(CAMERA.pinchMinM, this.targetDistance * factor));
   }
 
   /** Snap behind Pip, level with the automatic tilt. Used on entry and on "recentre". */
   snap(): void {
-    this.yaw = playerTransform.yaw;
+    const p = playerTransform;
+    this.yaw = this.yawGoal = p.yaw;
     this.pitchOffset = 0;
-    this.pitch = this.autoPitch();
     this.distance = this.targetDistance;
+    this.pitch = this.autoPitch();
+    this.pivot.set(p.x, p.y, p.z);
+    this.lead.set(0, 0, 0);
+    this.floorLift = 0;
+    this.handBack = 0;
     this.updateTargets();
     this.camera.position.copy(scratchDesired);
     this.lookAt.copy(scratchTarget);
@@ -117,7 +139,15 @@ export class FollowCamera {
     }
   }
 
-  release(): void { this.shot = null; }
+  release(): void {
+    if (!this.shot) return;
+    this.shot = null;
+    // Ease back from wherever the shot left the lens, rather than cutting to Pip.
+    this.handBack = 1;
+    this.handBackPos.copy(this.camera.position);
+    this.handBackLook.copy(this.lookAt);
+    this.pivot.set(playerTransform.x, playerTransform.y, playerTransform.z);
+  }
 
   get inShot(): boolean { return this.shot !== null; }
 
@@ -134,7 +164,7 @@ export class FollowCamera {
   private slopeTilt(): number {
     const hf = this.heightfield;
     if (!hf) return 0;
-    const p = playerTransform;
+    const p = this.pivot;
     const ahead = sampleHeight(hf, p.x + Math.sin(this.yaw) * CAMERA.slopeProbeM, p.z + Math.cos(this.yaw) * CAMERA.slopeProbeM);
     const deg = Math.atan2(ahead - sampleHeight(hf, p.x, p.z), CAMERA.slopeProbeM) / DEG;
     return Math.min(CAMERA.slopePitchMaxDeg, Math.max(-CAMERA.slopePitchMaxDeg, deg * CAMERA.slopePitchGain));
@@ -146,7 +176,7 @@ export class FollowCamera {
   private clearFraction(distance: number, pitchRad: number): number {
     const hf = this.heightfield;
     if (!hf) return 1;
-    const p = playerTransform;
+    const p = this.pivot;
     const cosPitch = Math.cos(pitchRad) || 1;
     const dx = -Math.sin(this.yaw) * cosPitch;
     const dz = -Math.cos(this.yaw) * cosPitch;
@@ -218,31 +248,21 @@ export class FollowCamera {
     );
   }
 
+  /** The lens on its orbit around the pivot, and what it looks at. Writes the scratch vectors. */
   private updateTargets(): void {
-    const p = playerTransform;
+    const pv = this.pivot;
     const distance = this.distance * this.aspectCompensation() * this.clearance;
     const pitch = this.pitch * DEG;
     scratchDesired.set(
-      p.x - Math.sin(this.yaw) * distance * Math.cos(pitch),
-      p.y - Math.sin(pitch) * distance,
-      p.z - Math.cos(this.yaw) * distance * Math.cos(pitch),
+      pv.x - Math.sin(this.yaw) * distance * Math.cos(pitch),
+      pv.y - Math.sin(pitch) * distance + this.floorLift,
+      pv.z - Math.cos(this.yaw) * distance * Math.cos(pitch),
     );
-    // **The lens never goes under the world** — not under a summit's falling
-    // slope, and not under the sea, which from below is a pale ceiling.
-    if (this.heightfield) {
-      const floor = Math.max(sampleHeight(this.heightfield, scratchDesired.x, scratchDesired.z), WATER_LEVEL)
-        + CAMERA.occlusionClearanceM;
-      if (scratchDesired.y < floor) scratchDesired.y = floor;
-    }
     const portraitLift = this.camera.aspect < 1 ? CAMERA.portraitLookLiftM : 0;
-    // Lead along the direction of travel rather than the facing, so a sudden
-    // turn does not whip the frame before Pip has actually gone anywhere.
-    const lead = Math.min(1, p.speed / 4) * CAMERA.lookAheadM;
-    const vlen = Math.hypot(p.vx, p.vz) || 1;
     scratchTarget.set(
-      p.x + (p.vx / vlen) * lead,
-      p.y + PIP_HEIGHT_M * CAMERA.lookHeightFrac + portraitLift,
-      p.z + (p.vz / vlen) * lead,
+      pv.x + this.lead.x,
+      pv.y + PIP_HEIGHT_M * CAMERA.lookHeightFrac + portraitLift,
+      pv.z + this.lead.z,
     );
   }
 
@@ -261,32 +281,81 @@ export class FollowCamera {
     }
 
     const scale = this.reducedMotion ? REDUCED_MOTION_DAMPING_SCALE : 1;
-    const kPos = 1 - Math.exp(-CAMERA.posLambda * scale * dt);
-    const kLook = 1 - Math.exp(-CAMERA.lookLambda * scale * dt);
-    this.distance += (this.targetDistance - this.distance) * kPos;
+    const ease = (lambda: number) => 1 - Math.exp(-lambda * dt);
+
+    // Zoom first: the automatic tilt reads the distance.
+    this.distance += (this.targetDistance - this.distance) * ease(CAMERA.zoomLambda);
 
     // The leash: turn by exactly as much as Pip crosses the frame, never more.
     if (this.autoRecentre && this.sinceManualS > CAMERA.leashDelayS && p.speed > 0.1) {
       const lateral = p.vx * -Math.cos(this.yaw) + p.vz * Math.sin(this.yaw);
       const reach = Math.max(1, this.distance * Math.cos(this.pitch * DEG));
-      this.yaw -= (lateral / reach) * CAMERA.leashGain * scale * dt;
+      this.yawGoal -= (lateral / reach) * CAMERA.leashGain * scale * dt;
     }
+    // The hand's turn is never slowed by reduced motion: it is the player's own input.
+    this.yaw += (this.yawGoal - this.yaw) * ease(CAMERA.turnLambda);
 
-    // The tilt: automatic from the zoom and the slope, plus what the player dragged.
+    // The tilt: automatic from the zoom and the slope, plus what the player
+    // dragged — answered at the turn's rate while they are dragging it.
     const goal = Math.min(
       CAMERA.pitchMaxDeg,
       Math.max(CAMERA.pitchMinDeg, this.autoPitch() + this.slopeTilt() + this.pitchOffset),
     );
-    this.pitch += (goal - this.pitch) * (1 - Math.exp(-CAMERA.pitchLambda * scale * dt));
+    const steering = this.sinceManualS < CAMERA.leashDelayS;
+    this.pitch += (goal - this.pitch) * ease(steering ? CAMERA.turnLambda : CAMERA.pitchLambda * scale);
+
+    // The pivot after Pip. A jump across the island (a respawn, a region hop) is followed at once.
+    const pv = this.pivot;
+    if (Math.hypot(p.x - pv.x, p.z - pv.z) > CAMERA.snapPivotM) pv.set(p.x, p.y, p.z);
+    const kFollow = ease(CAMERA.followLambda * scale);
+    pv.x += (p.x - pv.x) * kFollow;
+    pv.z += (p.z - pv.z) * kFollow;
+    pv.y += (p.y - pv.y) * ease(CAMERA.followYLambda * scale);
+
+    // The look-ahead along the direction of travel, eased so a sudden turn does not whip the frame.
+    const speed = Math.hypot(p.vx, p.vz);
+    const leadM = speed > 0.05 ? (Math.min(1, speed / MOVE.runSpeed) * CAMERA.lookAheadM) / speed : 0;
+    const kLead = ease(CAMERA.leadLambda * scale);
+    this.lead.x += (p.vx * leadM - this.lead.x) * kLead;
+    this.lead.z += (p.vz * leadM - this.lead.z) * kLead;
 
     const boom = this.distance * this.aspectCompensation();
     const wanted = this.clearFraction(boom, this.pitch * DEG);
     const lambda = wanted < this.clearance ? CAMERA.occlusionInLambda : CAMERA.occlusionOutLambda;
-    this.clearance += (wanted - this.clearance) * (1 - Math.exp(-lambda * dt));
+    this.clearance += (wanted - this.clearance) * ease(lambda);
 
+    // **The lens never goes under the world** — not under a summit's falling
+    // slope, and not under the sea, which from below is a pale ceiling. Lifted at
+    // once, let down slowly, so a bump the boom passes over is not a jolt.
+    const liftBefore = this.floorLift;
+    this.floorLift = 0;
     this.updateTargets();
-    this.camera.position.lerp(scratchDesired, kPos);
-    this.lookAt.lerp(scratchTarget, kLook);
+    let need = 0;
+    if (this.heightfield) {
+      const floor = Math.max(sampleHeight(this.heightfield, scratchDesired.x, scratchDesired.z), WATER_LEVEL)
+        + CAMERA.occlusionClearanceM;
+      need = Math.max(0, floor - scratchDesired.y);
+    }
+    this.floorLift = need >= liftBefore ? need : liftBefore + (need - liftBefore) * ease(CAMERA.floorLiftOutLambda);
+    scratchDesired.y += this.floorLift;
+
+    // After a cutscene, what is left of its pose fades out over a moment.
+    if (this.handBack > 0.001) {
+      this.handBack *= Math.exp(-CAMERA.releaseLambda * dt);
+      scratchDesired.lerp(this.handBackPos, this.handBack);
+      scratchTarget.lerp(this.handBackLook, this.handBack);
+    }
+
+    this.camera.position.copy(scratchDesired);
+    this.lookAt.copy(scratchTarget);
     this.camera.lookAt(this.lookAt);
+
+    // A little wider at a run.
+    const run = this.reducedMotion ? 0 : Math.min(1, Math.max(0, (speed - MOVE.walkSpeed) / (MOVE.runSpeed - MOVE.walkSpeed)));
+    const fov = this.camera.fov + (CAMERA.fov + run * CAMERA.runFovKickDeg - this.camera.fov) * ease(CAMERA.fovLambda);
+    if (Math.abs(fov - this.camera.fov) > 0.005) {
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+    }
   }
 }

@@ -40,13 +40,13 @@ export function RewardToast() {
           className="pointer-events-none absolute inset-x-0 top-[24%] mx-auto w-fit max-w-[86vw] rounded-3xl bg-brote-cream/95 px-6 py-3.5 text-center text-brote-ink shadow-soft-lg"
           role="status"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brote-leaf">{t('reward.eyebrow')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brote-green">{t('reward.eyebrow')}</p>
           <p className="font-display text-xl font-bold leading-tight">{t(reward.titleKey)}</p>
           {(reward.thingText || reward.thingKey) && (
             <p className="mt-0.5 text-small text-brote-ink/70">{reward.thingText ?? t(reward.thingKey!)}</p>
           )}
           {reward.semillas > 0 && (
-            <span className="tnum mt-2 inline-flex items-center gap-1 rounded-pill bg-brote-leaf/15 px-2.5 py-0.5 text-caption font-bold text-brote-leaf">
+            <span className="tnum mt-2 inline-flex items-center gap-1 rounded-pill bg-brote-green/15 px-2.5 py-0.5 text-caption font-bold text-brote-green">
               <Sprout className="h-3.5 w-3.5" aria-hidden />
               {t('reward.semillas', { n: reward.semillas })}
             </span>

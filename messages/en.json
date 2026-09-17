@@ -653,7 +653,13 @@
       "rest": "Find a place to {thing}",
       "free": "Wander the island at your own pace",
       "progress": "{done} of {total} chores",
-      "distance": "{m} m away"
+      "distance": "{m} m away",
+      "hintFollow": "Follow the sign with the golden dot",
+      "hintUseKey": "When you see the green ring, press E",
+      "hintUseTouch": "When you see the green ring, tap the button",
+      "hintFree": "You cared for your island today. It grows more with what you do for real in Brote.",
+      "doneToday": "Today's tasks: done · new ones tomorrow",
+      "hintApproach": "Almost there: walk to the golden sign"
     },
     "reward": {
       "eyebrow": "Nice work!",
@@ -688,7 +694,7 @@
         "jump": "Jump",
         "use": "Use",
         "look": "Look",
-        "zoom": "Zoom"
+        "zoom": "Zoom in and out"
       },
       "keys": {
         "move": "WASD",
@@ -696,7 +702,7 @@
         "jump": "Space",
         "use": "E",
         "look": "Drag",
-        "zoom": "Wheel"
+        "zoom": "Wheel or + −"
       },
       "touch": {
         "move": "Left side",
@@ -704,7 +710,7 @@
         "jump": "⌃ button",
         "use": "Button",
         "look": "Right side",
-        "zoom": "Pinch"
+        "zoom": "Pinch or + −"
       }
     },
     "controls": {
@@ -1305,6 +1311,45 @@
       "log": "Log something",
       "later": "Later",
       "skip": "Skip"
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "howto": {
+      "step": "{n} of {total}",
+      "next": "Next",
+      "back": "Back",
+      "start": "Let's play!",
+      "skip": "Skip",
+      "real": {
+        "tag": "Out there, for real",
+        "title": "Your island grows with what you really do",
+        "body": "Every real action you log in Brote (water, energy, shopping, transport) grows your island: you level up and unlock regions, animals and structures.",
+        "level": "Level {tier} of {max}",
+        "world": "World {n}: {growth} of {goal}",
+        "hint": "Those actions are logged in the app, outside this game."
+      },
+      "island": {
+        "tag": "In here, on the island",
+        "title": "Inside, you look after it",
+        "one": "Every day there are new tasks on your island: water, gather, discover.",
+        "two": "Follow the golden light. When the green ring appears, press E.",
+        "twoTouch": "Follow the golden light. When the green ring appears, tap the button.",
+        "three": "Everything you do earns seeds and makes your island livelier. What you discover stays in your Journal."
+      },
+      "legend": {
+        "tag": "Quick guide",
+        "title": "What everything means",
+        "beam": "The golden light and its sign: your next task and how far it is.",
+        "ring": "The green ring: you can do something here, now.",
+        "button": "E: does what the green sign says.",
+        "buttonTouch": "The button at the bottom right: does what the sign says.",
+        "seeds": "Your seeds. Tap them to see your Journal and your level path.",
+        "daily": "Tasks come back every day. New regions arrive with your real actions."
+      },
+      "controls": {
+        "tag": "Controls",
+        "title": "How to move"
+      }
     }
   }
 }

@@ -25,36 +25,80 @@ import { SNAPSHOT } from '@/lib/world/config';
  *     bootstrap failed and the island on screen is a default; publishing a
  *     picture of it as somebody's own island would be a lie with a URL.
  */
+/** A band of the canvas, in drawing-buffer pixels, when the poster was drawn into one. */
+export interface PosterCrop {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export function useSnapshot({
   userId,
   readOnly,
 }: {
   userId: string;
   readOnly: boolean;
-}): (canvas: HTMLCanvasElement | null) => void {
+}): (canvas: HTMLCanvasElement | null, crop?: PosterCrop) => boolean {
   /** How many this visit has uploaded. A poster is a souvenir, not a stream. */
   const taken = useRef(0);
 
   return useCallback(
-    (canvas: HTMLCanvasElement | null) => {
-      if (!canvas || readOnly || taken.current >= SNAPSHOT.maxPerVisit) return;
-      taken.current += 1;
+    (canvas: HTMLCanvasElement | null, crop?: PosterCrop) => {
+      // Nothing to take is not a blank frame: report success so nobody retries.
+      if (!canvas || taken.current >= SNAPSHOT.maxPerVisit) return true;
+      // A world that is not theirs is never published. A test harness may still
+      // ask to see the frame (`window.__posterSink`), which is how the black
+      // posters were caught and how their fix is checked.
+      const sink = readOnly ? (window as { __posterSink?: string[] }).__posterSink : undefined;
+      if (readOnly && !sink) return true;
 
-      // Read the buffer **synchronously**, in the same tick the caller was
-      // handed a freshly drawn frame. There is no `preserveDrawingBuffer`, so
-      // waiting even one microtask leaves nothing to read
-      // (`07-RENDER-ARCHITECTURE.md` §5).
+      // Read the buffer **synchronously**, in the same tick the caller drew a
+      // frame into it. There is no `preserveDrawingBuffer`, so waiting even one
+      // microtask leaves nothing to read (`07-RENDER-ARCHITECTURE.md` §5).
       let dataUrl: string;
       try {
-        dataUrl = canvas.toDataURL('image/jpeg', SNAPSHOT.quality);
+        const source = crop ? cut(canvas, crop) : canvas;
+        if (looksBlank(source)) return false;
+        dataUrl = source.toDataURL('image/jpeg', SNAPSHOT.quality);
       } catch {
-        return;
+        return true;
       }
 
-      void upload(userId, dataUrl);
+      taken.current += 1;
+      if (sink) sink.push(dataUrl);
+      else void upload(userId, dataUrl);
+      return true;
     },
     [userId, readOnly],
   );
+}
+
+/** The band the poster was drawn into, as its own canvas. */
+function cut(canvas: HTMLCanvasElement, crop: PosterCrop): HTMLCanvasElement {
+  const band = document.createElement('canvas');
+  band.width = crop.w;
+  band.height = crop.h;
+  band.getContext('2d')?.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h);
+  return band;
+}
+
+/**
+ * Is this frame a picture of anything? Every poster was once black, read from a
+ * cleared buffer, and a black card is worse than the drawn fallback. A 16×16
+ * copy is enough to know, and costs nothing next to the JPEG encode.
+ */
+function looksBlank(canvas: HTMLCanvasElement): boolean {
+  const probe = document.createElement('canvas');
+  probe.width = 16;
+  probe.height = 16;
+  const ctx = probe.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return false;
+  ctx.drawImage(canvas, 0, 0, 16, 16);
+  const px = ctx.getImageData(0, 0, 16, 16).data;
+  let luma = 0;
+  for (let i = 0; i < px.length; i += 4) luma += px[i]! * 0.2126 + px[i + 1]! * 0.7152 + px[i + 2]! * 0.0722;
+  return luma / 256 < SNAPSHOT.minLuma;
 }
 
 /**

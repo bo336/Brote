@@ -32,7 +32,7 @@ export function FirstRunBar({ run }: { run: FirstRunSummary }) {
               key={chip}
               type="button"
               onClick={() => run.choose(chip)}
-              className="rounded-pill bg-brote-leaf px-5 py-2.5 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
+              className="rounded-pill bg-brote-green px-5 py-2.5 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
             >
               {t(`chip.${chip}`)}
             </button>
@@ -44,7 +44,7 @@ export function FirstRunBar({ run }: { run: FirstRunSummary }) {
         <button
           type="button"
           onClick={run.advance}
-          className="pointer-events-auto rounded-pill bg-brote-leaf px-6 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
+          className="pointer-events-auto rounded-pill bg-brote-green px-6 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
         >
           {t('continue')}
         </button>
@@ -57,7 +57,7 @@ export function FirstRunBar({ run }: { run: FirstRunSummary }) {
         <div className="pointer-events-auto flex flex-col items-center gap-2">
           <Link
             href="/acciones"
-            className="rounded-pill bg-brote-leaf px-6 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
+            className="rounded-pill bg-brote-green px-6 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95"
           >
             {t('log')}
           </Link>

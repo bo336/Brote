@@ -4,20 +4,25 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { getFlatMaterial } from '@/lib/render/materials';
 import { BRAND } from '@/lib/render/palette';
 import { GUIDE } from '@/lib/world/config';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import { playerTransform } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
+import { labelSlots } from '../hud/labelSlots';
+import { hidePin, pinToScreen } from './screenPin';
 
 /**
  * Where the objective is, seen from anywhere.
  *
  * Two marks. A soft column of warm light standing on the target — the kind of
  * thing you notice across a field and walk toward — which fades as you arrive.
- * And a small chevron on the ground at Pip's feet, turning to point the way,
- * for when the target is behind a hill or behind the camera.
+ * And a label pinned over it (`hud/WorldLabels.tsx`) that names the task and says
+ * how far; off screen it waits at the edge and points the way.
+ *
+ * The label replaced a chevron on the ground at Pip's feet. The 2026-09-16
+ * playtest found the floor full of shapes nobody had explained, and an orange
+ * arrowhead in the grass was the least explained of them.
  */
 const beamVertex = /* glsl */ `
   varying float vH;
@@ -54,7 +59,6 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
   const objective = useSessionStore((s) => s.objective);
   const reducedMotion = useSessionStore((s) => s.reducedMotion);
   const beam = useRef<THREE.Mesh>(null);
-  const arrow = useRef<THREE.Mesh>(null);
 
   const beamGeo = useMemo(() => {
     const g = new THREE.CylinderGeometry(GUIDE.beamRadiusM, GUIDE.beamRadiusM * 1.6, GUIDE.beamHeightM, 24, 1, true);
@@ -79,74 +83,53 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
     [],
   );
 
-  const arrowGeo = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0.26);
-    shape.lineTo(0.2, -0.06);
-    shape.lineTo(0.07, -0.01);
-    shape.lineTo(0, 0.1);
-    shape.lineTo(-0.07, -0.01);
-    shape.lineTo(-0.2, -0.06);
-    shape.closePath();
-    const g = new THREE.ShapeGeometry(shape);
-    g.rotateX(Math.PI / 2);
-    const c = new THREE.Color(BRAND.sun);
-    const n = (g.attributes.position as THREE.BufferAttribute).count;
-    const colors = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) colors.set([c.r, c.g, c.b, 0.9], i * 4);
-    g.setAttribute('color', new THREE.BufferAttribute(colors, 4));
-    return g;
-  }, []);
-  const arrowMat = useMemo(
-    () => getFlatMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide }),
-    [],
-  );
-
   useEffect(() => () => {
     beamGeo.dispose();
     beamMat.dispose();
-    arrowGeo.dispose();
-  }, [beamGeo, beamMat, arrowGeo]);
+    hidePin(labelSlots.pin, labelSlots.pinArrow);
+  }, [beamGeo, beamMat]);
+  /** The metres last written into the pin, so the text changes only when the number does. */
+  const shownM = useRef(-1);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera, size }) => {
     const target = objective?.target;
     const b = beam.current;
-    const a = arrow.current;
-    if (!b || !a) return;
+    if (!b) return;
     if (!target) {
       b.visible = false;
-      a.visible = false;
+      hidePin(labelSlots.pin, labelSlots.pinArrow);
       return;
     }
     const p = playerTransform;
-    const dx = target.x - p.x;
-    const dz = target.z - p.z;
-    const dist = Math.hypot(dx, dz);
+    const dist = Math.hypot(target.x - p.x, target.z - p.z);
+    const ground = sampleHeight(heightfield, target.x, target.z);
 
     b.visible = true;
-    b.position.set(target.x, sampleHeight(heightfield, target.x, target.z), target.z);
+    b.position.set(target.x, ground, target.z);
     const near = THREE.MathUtils.smoothstep(dist, GUIDE.beamFadeNearM, GUIDE.beamFadeFarM);
     beamMat.uniforms.uOpacity!.value = near * GUIDE.beamOpacity;
     beamMat.uniforms.uTime!.value = reducedMotion ? 0 : clock.elapsedTime;
 
-    a.visible = dist > GUIDE.arrowMinM;
-    if (a.visible) {
-      const ux = dx / dist;
-      const uz = dz / dist;
-      const ax = p.x + ux * GUIDE.arrowAheadM;
-      const az = p.z + uz * GUIDE.arrowAheadM;
-      const bob = reducedMotion ? 0 : (Math.sin(clock.elapsedTime * 3) * 0.5 + 0.5) * GUIDE.arrowNudgeM;
-      a.position.set(ax + ux * bob, sampleHeight(heightfield, ax, az) + GUIDE.arrowLiftM, az + uz * bob);
-      a.rotation.set(0, Math.atan2(ux, uz), 0);
+    const pin = labelSlots.pin;
+    if (!pin) return;
+    if (dist < GUIDE.pinHideNearM) {
+      hidePin(pin, labelSlots.pinArrow);
+      return;
+    }
+    pinToScreen(pin, camera, size, target.x, ground + GUIDE.pinHeightM, target.z, labelSlots.pinArrow);
+    const m = Math.round(dist);
+    if (m !== shownM.current && labelSlots.pinDistance) {
+      shownM.current = m;
+      labelSlots.pinDistance.textContent = `${m} m`;
     }
   });
 
   // Visibility is the frame loop's alone. As a JSX prop, every objective change
-  // re-rendered the component and switched both marks back off.
+  // re-rendered the component and switched the mark back off.
   return (
     <>
-      <mesh ref={beam} geometry={beamGeo} material={beamMat} renderOrder={6} frustumCulled={false} />
-      <mesh ref={arrow} geometry={arrowGeo} material={arrowMat} renderOrder={6} scale={GUIDE.arrowScale} />
+      {/* Guidance, not scenery: left out of the poster (`PosterShot.tsx`). */}
+      <mesh ref={beam} geometry={beamGeo} material={beamMat} renderOrder={6} frustumCulled={false} userData={{ posterHidden: true }} />
     </>
   );
 }
