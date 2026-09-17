@@ -1338,7 +1338,8 @@
     "nav": {
       "aria": "Secciones del negocio",
       "resumen": "Resumen",
-      "verificacion": "Verificación"
+      "verificacion": "Verificación",
+      "mejora": "Mejora"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -1389,6 +1390,7 @@
       "metodo_no_disponible": "Ese método todavía no está disponible.",
       "falta_sitio": "Para este método necesitás el sitio web del negocio.",
       "falta_instagram": "Para este método necesitás el Instagram del negocio.",
+      "falta_captura": "Todavía no subiste la captura.",
       "ruta_invalida": "No pudimos guardar la captura. Probá subirla de nuevo.",
       "archivo_grande": "La captura pesa demasiado. Probá con una de menos de 5 MB.",
       "error": "Algo no salió como esperábamos. Probá de nuevo en un momento."
@@ -1601,7 +1603,7 @@
         },
         "social_token": {
           "nombre": "Código en la bio de Instagram",
-          "como": "Pegá este código en la bio de @{handle}, sacá una captura donde se vean tu usuario y el código, y subila. La revisamos a mano, así que es un método de fuerza media.",
+          "como": "Pegá este código en la bio de @{handle}, sacá una captura donde se vean tu usuario y el código, y subila. Si se lee clara la damos por buena en el momento; si no, la miramos a mano. En los dos casos es un método de fuerza media.",
           "boton": "Subir captura",
           "cambiar": "Cambiar la captura",
           "subida": "Captura recibida. La revisamos junto con la solicitud."
@@ -1706,6 +1708,285 @@
         "noPendiente": "Esta solicitud ya no está pendiente.",
         "error": "No se pudo",
         "noExiste": "Esa solicitud no existe."
+      }
+    },
+    "mejora": {
+      "nav": "Mejora",
+      "eyebrow": "Mejora · programa",
+      "titulo": "Tus objetivos",
+      "verDossier": "Ver dossier",
+      "generar": "Proponer objetivos",
+      "generando": "Buscando objetivos para tu negocio…",
+      "generado": "{n, plural, one {Listo: 1 objetivo para revisar} other {Listo: # objetivos para revisar}}",
+      "otroMas": "Proponer otro",
+      "sinDossier": {
+        "eyebrow": "Mejora",
+        "titulo": "Empezá por el dossier",
+        "cuerpo": "Son ocho bloques cortos sobre cómo funciona tu negocio. Con eso armamos objetivos que tengan que ver con lo que hacés, en lugar de consejos genéricos.",
+        "boton": "Completar el dossier"
+      },
+      "dossierParcial": "Tu dossier está al {n}%. Cuanto más completo, mejores los objetivos.",
+      "progreso": {
+        "eyebrow": "Progreso de Mejora",
+        "valor": "{n} / 100",
+        "ciclos": "{n, plural, =0 {Todavía no cerraste ningún ciclo con evidencia} one {1 ciclo cerrado con evidencia} other {# ciclos cerrados con evidencia}}.",
+        "escalera": "Con una certificación de tercero vigente llegás a Nivel 4.",
+        "faltanCiclos": "{n, plural, one {Falta 1 ciclo cerrado} other {Faltan # ciclos cerrados}} para el requisito de Nivel 4."
+      },
+      "secciones": {
+        "propuestos": "Propuestas",
+        "activos": "Activos · {n} de 3",
+        "cerrados": "Cerrados",
+        "descartados": "Descartados"
+      },
+      "vacio": {
+        "titulo": "Todavía no hay objetivos",
+        "cuerpo": "Cuando pidas propuestas, vas a ver de tres a cinco para elegir. Aceptás las que te sirven y descartás el resto."
+      },
+      "estado": {
+        "propuesto": "Propuesto",
+        "activo": "Activo",
+        "en_riesgo": "En riesgo",
+        "en_revision": "En revisión",
+        "logrado": "Logrado",
+        "logrado_parcial": "Parcial",
+        "incumplido": "Vencido",
+        "descartado": "Descartado"
+      },
+      "ambicion": {
+        "basico": "Básico",
+        "intermedio": "Intermedio",
+        "avanzado": "Avanzado"
+      },
+      "esfuerzo": "{n} h/mes",
+      "horizonte": {
+        "trimestral": "Trimestral",
+        "semestral": "Semestral",
+        "anual": "Anual"
+      },
+      "vence": {
+        "dias": "{n, plural, one {Vence en 1 día} other {Vence en # días}}",
+        "hoy": "Vence hoy",
+        "vencido": "{n, plural, one {Venció hace 1 día} other {Venció hace # días}}"
+      },
+      "medicion": "Este ciclo es medir: sin línea de base no hay meta seria.",
+      "deA": "{base} → {meta} {unidad}",
+      "valorFinal": "Cerrado en {valor} {unidad}",
+      "porReglas": "Del catálogo de palancas",
+      "porIa": "Ajustado a tu dossier",
+      "aceptar": "Aceptar",
+      "descartar": "Descartar",
+      "descartarTitulo": "¿Por qué no te sirve?",
+      "descartarPh": "Una línea alcanza. Nos sirve para las próximas propuestas.",
+      "topeActivos": "Ya tenés 3 objetivos activos. Cerrá uno para aceptar otro.",
+      "topeCarga": "Con este objetivo pasarías de 12 h/mes entre todos. Cerrá o ajustá alguno primero.",
+      "detalle": {
+        "volver": "Mejora",
+        "porque": "Por qué esto",
+        "comoMedir": "Cómo se mide",
+        "pasos": "Pasos",
+        "pasosAyuda": "Se guardan a medida que los tildás.",
+        "pasosHechos": "{n} de {total}",
+        "evidencia": "Qué evidencia hace falta",
+        "siNoLlegas": "Si no llegás",
+        "metrica": "La métrica",
+        "base": "Punto de partida",
+        "ahora": "Ahora",
+        "meta": "Meta",
+        "final": "Valor final",
+        "version": "Versión {n}",
+        "ajustar": "Ajustar",
+        "invitacion": "¿Algo no cierra? Contame y lo ajustamos.",
+        "atajos": {
+          "no_llego": "No llego a ese número",
+          "ya_hecho": "Esto ya lo hacemos",
+          "no_aplica": "No aplica a mi negocio",
+          "mas_tiempo": "Necesito más tiempo"
+        },
+        "plantilla": {
+          "no_llego": "No llego a ese número. ",
+          "ya_hecho": "Esto ya lo hacemos. ",
+          "no_aplica": "Esto no aplica a mi negocio. ",
+          "mas_tiempo": "Necesito más tiempo para esto. "
+        },
+        "cuantoSi": "¿A cuánto sí llegás?",
+        "desdeCuando": "¿Desde cuándo? ¿Con qué lo podés mostrar?",
+        "tengoEvidencia": "Tengo con qué mostrarlo",
+        "mensajePh": "Contame qué pasa con este objetivo.",
+        "enviar": "Enviar",
+        "enviando": "Ajustando…",
+        "historial": "Historial",
+        "dijiste": "Dijiste:",
+        "ajuste": "Ajuste:",
+        "sinHistorial": "Todavía no hay ajustes. Lo que escribas acá queda registrado.",
+        "verVersion": "Ver versión {n}",
+        "cerrar": "Cerrar el objetivo",
+        "cerrarAyuda": "Subí la evidencia y el valor al que llegaste. Lo revisamos y te avisamos.",
+        "valorFinalLabel": "Valor final de {metrica} ({unidad})",
+        "subir": "Subir evidencia",
+        "archivos": "{n, plural, one {1 archivo listo} other {# archivos listos}}",
+        "confirmarCierre": "Enviar el cierre",
+        "enRevision": "Cierre enviado. Lo estamos revisando.",
+        "observacion": "Nos falta algo del cierre",
+        "cerradoEl": "Cerrado el {fecha}",
+        "aprobadoParcial": "No llegaste al número pero avanzaste. Cuenta como medio ciclo."
+      },
+      "dossier": {
+        "eyebrow": "Mejora · dossier",
+        "titulo": "Cómo funciona tu negocio",
+        "intro": "Ocho bloques cortos. Cuanto más completo, mejores los objetivos. Se guarda bloque por bloque y lo podés editar cuando quieras.",
+        "completitud": "Dossier al {n}%",
+        "bloque": "Bloque {n} de 8",
+        "guardado": "Guardado",
+        "siguiente": "Siguiente",
+        "atras": "Atrás",
+        "terminar": "Terminar",
+        "noSe": "No sé",
+        "si": "Sí",
+        "no": "No",
+        "elegir": "Elegí",
+        "soloLectura": "Solo quien es dueño o administrador del negocio puede editar el dossier.",
+        "replanificar": {
+          "titulo": "Cambió el dossier",
+          "cuerpo": "¿Querés que revisemos los objetivos con estos datos nuevos?",
+          "boton": "Proponer objetivos con esto",
+          "ahoraNo": "Ahora no"
+        },
+        "operacion": {
+          "titulo": "Operación",
+          "subtitulo": "Qué hacen y en qué volumen.",
+          "que_produce": "Qué producen o venden",
+          "que_producePh": "Pan de masa madre, facturas y sándwiches para llevar",
+          "volumen": "Volumen aproximado",
+          "volumenPh": "200 kg de harina por semana",
+          "estacionalidad": "Estacionalidad",
+          "estacionalidadPh": "Baja en enero, sube en invierno"
+        },
+        "energia": {
+          "titulo": "Energía",
+          "subtitulo": "Lo que se puede medir con una factura.",
+          "suministro": "Tipo de suministro",
+          "electrico": "Solo eléctrico",
+          "electrico_gas": "Eléctrico y gas",
+          "otro": "Otro",
+          "tiene_factura": "¿Tenés las facturas a mano?",
+          "consumo_mensual": "Consumo mensual (kWh)",
+          "equipos": "Equipos grandes",
+          "equiposPh": "Horno, dos heladeras, aire acondicionado"
+        },
+        "residuos": {
+          "titulo": "Residuos",
+          "subtitulo": "Qué sale por la puerta cada semana.",
+          "que_tiran": "Qué tiran",
+          "que_tiranPh": "Bolsas de harina, cartón, restos de cocina",
+          "bolsas_semana": "Bolsas de residuo mixto por semana",
+          "separa": "¿Separan alguna corriente?",
+          "retiro_reciclables": "¿Tienen quién retire los reciclables?"
+        },
+        "agua": {
+          "titulo": "Agua",
+          "subtitulo": "Solo si es un insumo que pesa en tu operación.",
+          "es_relevante": "¿El agua es un insumo relevante?",
+          "medicion": "¿Cómo se mide?",
+          "medidor": "Con medidor",
+          "canilla_libre": "Canilla libre",
+          "consumo_mensual": "Consumo mensual (litros)"
+        },
+        "insumos": {
+          "titulo": "Insumos y proveedores",
+          "subtitulo": "De dónde viene lo que usás.",
+          "principales": "Insumos principales",
+          "principalesPh": "Harina, levadura, manteca",
+          "proveedores_clave": "Cuántos proveedores clave",
+          "puede_cambiar_proveedores": "¿Podés cambiar de proveedor si aparece uno mejor?"
+        },
+        "logistica": {
+          "titulo": "Logística",
+          "subtitulo": "Cómo llega lo que vendés a quien lo compra.",
+          "como_llega": "Cómo llega el producto al cliente",
+          "como_llegaPh": "Retiran en el local; dos repartos por semana",
+          "flota": "Flota",
+          "propia": "Propia",
+          "tercerizada": "Tercerizada",
+          "retiran": "Retiran en el local",
+          "no_aplica": "No aplica",
+          "viajes_mes": "Viajes por mes"
+        },
+        "ya_hecho": {
+          "titulo": "Ya hecho",
+          "subtitulo": "Lo más importante del dossier.",
+          "ayuda": "Contanos qué cambiaste en los últimos 2 años, para no proponerte algo que ya hacés.",
+          "placeholder": "Cambiamos las luces a LED, empezamos a separar cartón, dejamos los sorbetes de plástico…",
+          "sugerencias": "Si no sabés qué contar",
+          "chips": {
+            "energia": "Algo de energía o iluminación",
+            "residuos": "Algo de residuos o reciclaje",
+            "envases": "Algo de envases o packaging",
+            "proveedores": "Algún cambio de proveedor"
+          }
+        },
+        "restricciones": {
+          "titulo": "Restricciones",
+          "subtitulo": "Con qué contás de verdad. Nada de lo que propongamos va a pasarse de esto.",
+          "presupuesto": "Presupuesto para invertir",
+          "ninguno": "Ninguno por ahora",
+          "hasta_x": "Hasta un monto",
+          "caso_por_caso": "Lo evaluamos caso por caso",
+          "presupuesto_monto": "Monto tope (pesos)",
+          "horas_mes_disponibles": "Horas por mes que podés dedicarle",
+          "horasAyuda": "Ningún objetivo va a pedirte más de 6 h/mes, y entre todos nunca más de 12.",
+          "local": "El local es",
+          "alquilado": "Alquilado",
+          "propio": "Propio",
+          "localAyuda": "Define si tiene sentido proponerte cambios en la instalación."
+        }
+      },
+      "errores": {
+        "sin_dossier": "Primero completá el dossier.",
+        "negocio_no_aprobado": "Vas a poder usar Mejora cuando aprobemos el alta.",
+        "sin_objetivos": "Por ahora no tenemos una propuesta nueva que encaje con tu dossier. Completá más bloques y probá de nuevo.",
+        "ya_hay_propuestas": "Ya tenés propuestas sin responder. Aceptá o descartá esas primero.",
+        "demasiados_activos": "Ya tenés 3 objetivos activos. Cerrá uno para aceptar otro.",
+        "carga_total_excede_12h": "Con este objetivo pasarías de 12 h/mes entre todos.",
+        "no_es_propuesta": "Ese objetivo ya no es una propuesta.",
+        "no_descartable": "Ese objetivo ya no se puede descartar.",
+        "no_cerrable": "Ese objetivo no está activo.",
+        "falta_valor": "Poné el valor al que llegaste.",
+        "falta_evidencia": "Subí al menos un archivo de evidencia.",
+        "ruta_invalida": "No pudimos guardar ese archivo. Probá de nuevo.",
+        "archivo_grande": "El archivo pesa demasiado. Probá con uno de menos de 5 MB.",
+        "archivo_rechazado": "No pudimos subir el archivo. Probá con una foto o un PDF.",
+        "version_vieja": "Esa versión ya fue reemplazada. Recargá la página.",
+        "mensaje_vacio": "Escribí qué pasa con el objetivo.",
+        "tipo_invalido": "No reconocimos ese tipo de ajuste.",
+        "bloque_invalido": "Ese bloque no existe.",
+        "esfuerzo_excede_6h": "Ese ajuste pediría más de 6 h/mes."
+      },
+      "panel": {
+        "resumenTitulo": "Cierres de objetivos",
+        "pendientes": "{n, plural, =0 {Nada pendiente} one {pendiente} other {pendientes}}",
+        "eyebrow": "Panel · Mejora",
+        "titulo": "Cierres para revisar",
+        "vacia": "No hay cierres esperando revisión.",
+        "deQuien": "{negocio} · {rubro}",
+        "cerradoHace": "Cerrado {hace}",
+        "antesDespues": "Antes → después",
+        "meta": "Meta",
+        "final": "Final",
+        "comoMedir": "Cómo se mide",
+        "evidenciaPedida": "Evidencia pedida",
+        "verEvidencia": "Ver evidencia",
+        "aprobar": "Aprobar",
+        "parcial": "Parcial",
+        "corregir": "Pedir corrección",
+        "nota": "Nota para el negocio",
+        "notaPh": "Qué falta para poder aprobarlo.",
+        "notaFalta": "Escribí qué hay que corregir",
+        "aprobado": "Cierre aprobado",
+        "marcadoParcial": "Cerrado como parcial",
+        "pedido": "Corrección pedida",
+        "parcialAyuda": "No llegó al número pero hubo avance real: cuenta como medio ciclo.",
+        "error": "No se pudo"
       }
     }
   }

@@ -18,21 +18,38 @@ export function parseJson<T>(text: string): T {
   return JSON.parse(t) as T;
 }
 
-/** Call Gemini expecting a JSON object back. Throws GeminiUnavailable on failure. */
-export async function geminiJSON<T>(parts: GeminiPart[], opts?: { timeoutMs?: number; temperature?: number }): Promise<T> {
+/**
+ * Call Gemini expecting a JSON object back. Throws GeminiUnavailable on failure.
+ *
+ * `model` y `responseSchema` son opcionales y no cambian nada para quien no los
+ * pasa: las funciones viejas siguen usando el modelo de siempre. Negocios pide
+ * `gemini-2.5-flash` con esquema declarado (06_PROMPTS_IA §1.1 y §2), que es
+ * lo que hace que la salida sea JSON estricto y no texto con forma de JSON.
+ */
+export async function geminiJSON<T>(
+  parts: GeminiPart[],
+  opts?: { timeoutMs?: number; temperature?: number; model?: string; responseSchema?: unknown },
+): Promise<T> {
   const key = Deno.env.get('GEMINI_API_KEY');
   if (!key) throw new GeminiUnavailable('no_api_key');
+  const endpoint = opts?.model
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${opts.model}:generateContent`
+    : ENDPOINT;
 
   const attempt = async (): Promise<T> => {
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), opts?.timeoutMs ?? 20000);
     try {
-      const res = await fetch(`${ENDPOINT}?key=${key}`, {
+      const res = await fetch(`${endpoint}?key=${key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts }],
-          generationConfig: { temperature: opts?.temperature ?? 0.4, responseMimeType: 'application/json' },
+          generationConfig: {
+            temperature: opts?.temperature ?? 0.4,
+            responseMimeType: 'application/json',
+            ...(opts?.responseSchema ? { responseSchema: opts.responseSchema } : {}),
+          },
         }),
         signal: controller.signal,
       });

@@ -20,7 +20,7 @@ export interface ResultadoVerificacion {
   ok: boolean;
   /** Código de negocio (`sin_permiso`, `falta_sitio`…) cuando `ok` es false. */
   error?: string;
-  status?: 'verificado' | 'fallido' | 'esperar' | 'limite';
+  status?: 'verificado' | 'fallido' | 'esperar' | 'limite' | 'revision';
   /** Mensaje humano y accionable (fase 1 §6.2). Nunca un código HTTP. */
   mensaje?: string;
   reintentar_en_min?: number;

@@ -7,7 +7,9 @@ import { CTX_COOKIE } from '@/lib/negocio/catalogo';
 import type {
   BusinessRole,
   BusinessStatus,
+  DetalleObjetivo,
   EvidenceTier,
+  MejoraEstado,
   MiNegocio,
   NegocioDetalle,
 } from '@/lib/supabase/rows-negocio';
@@ -95,4 +97,18 @@ export const getNegocioDetalle = cache(async (id: string): Promise<NegocioDetall
   const { data, error } = await createClient().rpc('negocio_detalle', { p_business: id });
   if (error) throw new Error(`Failed to load business: ${error.message}`);
   return (data ?? null) as NegocioDetalle | null;
+});
+
+/** El estado de Mejora del negocio activo (`mejora_estado`), o null. */
+export const getMejoraEstado = cache(async (id: string): Promise<MejoraEstado | null> => {
+  const { data, error } = await createClient().rpc('mejora_estado', { p_business: id });
+  if (error) throw new Error(`Failed to load improvement state: ${error.message}`);
+  return (data ?? null) as MejoraEstado | null;
+});
+
+/** Un objetivo con su historial (`objetivo_detalle`), o null si no es suyo. */
+export const getObjetivoDetalle = cache(async (goalId: string): Promise<DetalleObjetivo | null> => {
+  const { data, error } = await createClient().rpc('objetivo_detalle', { p_goal: goalId });
+  if (error) throw new Error(`Failed to load goal: ${error.message}`);
+  return (data ?? null) as DetalleObjetivo | null;
 });

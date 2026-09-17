@@ -6,6 +6,19 @@
  * (03_ARQUITECTURA §8). Si cambia el enum, cambia esto en el mismo commit.
  */
 
+import type {
+  Ambicion,
+  Confianza,
+  Dossier,
+  EstadoObjetivo,
+  Horizonte,
+  Inversion,
+  MetodoTipo,
+  MetricaTipo,
+  OrigenBase,
+  TipoCheckin,
+} from '@/lib/mejora/tipos';
+
 /** `business_status` — 0105_negocios_fundaciones. */
 export type BusinessStatus =
   | 'draft'
@@ -173,4 +186,134 @@ export interface RevisionNegocio {
   riesgos: RiesgoNegocio[];
   anterior: string | null;
   siguiente: string | null;
+}
+
+// ── Mejora (fase 2) ─────────────────────────────────────────────────────────
+// Los tipos de dominio (Horizonte, Ambicion, ObjetivoPropuesto…) viven en
+// `lib/mejora/tipos.ts`, que compila también el runner de tests. Acá van las
+// formas que devuelven las RPC.
+
+/** Una fila de `mejora_estado().objetivos`. */
+export interface ObjetivoFila {
+  id: string;
+  version: number;
+  parent_id: string | null;
+  titulo: string;
+  porque: string;
+  dominio: string | null;
+  palanca_slug: string | null;
+  metrica: string;
+  unidad: string;
+  linea_base: number | null;
+  origen_base: OrigenBase;
+  objetivo: number | null;
+  valor_final: number | null;
+  horizonte: Horizonte;
+  ambicion: Ambicion;
+  esfuerzo_horas_mes: number;
+  inversion: Inversion;
+  como_medir: string;
+  pasos: string[];
+  pasos_hechos: number[];
+  evidencia_requerida: string;
+  si_no_llegas: string | null;
+  confianza: Confianza;
+  metrica_tipo: MetricaTipo;
+  metodo_tipo: MetodoTipo;
+  alcance: 1 | 2 | 3;
+  es_evento_unico: boolean;
+  status: EstadoObjetivo;
+  generated_by: 'ia' | 'reglas' | 'manual';
+  observacion: string | null;
+  motivo_descarte: string | null;
+  inicia_at: string | null;
+  vence_at: string | null;
+  cerrado_at: string | null;
+  created_at: string;
+  checkins: number;
+  evidencias: number;
+  /** Último valor informado en un check-in, o null. Nunca un valor inventado. */
+  ultimo_valor: number | null;
+}
+
+/** `mejora_estado(p_business)`. */
+export interface MejoraEstado {
+  negocio: {
+    id: string;
+    nombre_comercial: string;
+    rubro: string;
+    tamano: BusinessSize;
+    ciudad: string | null;
+    provincia: string | null;
+    descripcion: string | null;
+    status: BusinessStatus;
+    tier: EvidenceTier;
+    progreso_mejora: number;
+  };
+  rol: BusinessRole;
+  dossier: Dossier | null;
+  progreso: number;
+  ciclos_cerrados: number;
+  objetivos: ObjetivoFila[];
+}
+
+export interface CheckinFila {
+  id: string;
+  tipo: TipoCheckin;
+  mensaje: string;
+  valor_reportado: number | null;
+  tiene_evidencia: boolean;
+  respuesta_ia: { respuesta?: string; accion?: string; por?: 'ia' | 'reglas' } | null;
+  genero_version: number | null;
+  version: number | null;
+  created_at: string;
+  autor: string | null;
+}
+
+/** `objetivo_detalle(p_goal)`. */
+export interface DetalleObjetivo {
+  objetivo: ObjetivoFila & { reemplazado_at: string | null };
+  negocio_id: string;
+  rol: BusinessRole;
+  checkins: CheckinFila[];
+  evidencias: { id: string; nota: string | null; created_at: string }[];
+  historial: {
+    id: string;
+    version: number;
+    titulo: string;
+    objetivo: number | null;
+    unidad: string;
+    horizonte: Horizonte;
+    ambicion: Ambicion;
+    reemplazado_at: string | null;
+    origen_checkin: string | null;
+  }[];
+}
+
+/** `admin_objetivos_cola(p_pass)`. */
+export interface ColaObjetivos {
+  ok: boolean;
+  error?: string;
+  pendientes: number;
+  items: {
+    id: string;
+    negocio_id: string;
+    negocio: string;
+    rubro: string;
+    titulo: string;
+    porque: string;
+    metrica: string;
+    unidad: string;
+    linea_base: number | null;
+    objetivo: number | null;
+    valor_final: number | null;
+    horizonte: Horizonte;
+    ambicion: Ambicion;
+    como_medir: string;
+    evidencia_requerida: string;
+    cerrado_at: string | null;
+    version: number;
+    generated_by: string;
+    evidencias: { id: string; path: string }[];
+  }[];
 }

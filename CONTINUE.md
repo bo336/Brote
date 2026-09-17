@@ -118,11 +118,7 @@ clean build).
 
 ## ▶ NEXT EXACT TASK (Negocios)
 
-> **Fase 2 · Mejora.** Leer `00_LEEME.md`, 02, 03, 04, `05_ALGORITMOS.md`,
-> `06_PROMPTS_IA.md`, `referencia/CATALOGO_PALANCAS.md` y
-> `fases/FASE_2_MEJORA.md`. Antes: que el dueño haga el recorrido real de la
-> fase 1 con una cuenta adulta (ver "Owner action items" abajo), porque ese
-> recorrido con sesión no se pudo hacer desde la sesión de desarrollo.
+> **Hecha.** El próximo paso está en la sección de la fase 2, más abajo.
 
 ## Qué quedó
 
@@ -263,6 +259,182 @@ Todo en un bloque que al final levanta una excepción: nada quedó escrito.
    inyectarlos igual. Revisar antes de encenderlos.
 4. Opcional: `app_settings.negocios_max_por_dueno` (número) cambia el tope de 3
    negocios por dueño; sin la fila vale 3.
+
+---
+
+# NEGOCIOS — FASE 2 (Mejora) · ENTREGADA · F17.2
+
+> El pedido: `fases/FASE_2_MEJORA.md` con `05_ALGORITMOS.md`,
+> `06_PROMPTS_IA.md` y `referencia/CATALOGO_PALANCAS.md`. Una empresa aprobada
+> cuenta cómo funciona (dossier de 8 bloques), recibe de 3 a 5 objetivos de
+> mediano plazo con número, método y evidencia, acepta los que le sirven, dice
+> cuando algo no cierra —y el objetivo se replanifica dejando el historial a la
+> vista— y cierra con evidencia que un revisor aprueba. Sin puntos, sin
+> insignias, sin confeti: esto no es la app de personas.
+
+## ▶ NEXT EXACT TASK (Negocios)
+
+> **Fase 3 · Mercado.** Leer `00_LEEME.md`, 02, 03, 04, `07_DISENO_UI.md` §4.6
+> y §4.7, y `fases/FASE_3_MERCADO.md`: listados, las 16 afirmaciones
+> tipificadas con su nivel de evidencia, el catálogo `/mercado` y la salida
+> pública. Antes conviene que el dueño haga el recorrido real de las fases 1 y 2
+> con una cuenta adulta (abajo), que es lo único que no se pudo probar acá.
+
+## Qué quedó
+
+**El dominio, en TypeScript y sin red** — `lib/mejora/`. Es donde viven las
+decisiones, y por eso es lo único del proyecto con tests obligatorios.
+- `tipos.ts` — el dossier y el objetivo. `NumeroODesconocido` y
+  `BooleanODesconocido` distinguen `null` ("todavía no contestó") de `'no_se'`
+  ("contestó que no sabe"), que no son lo mismo: el segundo dispara objetivos de
+  MEDICIÓN en lugar de reducción.
+- `palancas.ts` — 55 palancas del catálogo, cada una con su porqué, pasos,
+  método de medición, evidencia, "si no llegás", claves de solapamiento y
+  escalón siguiente. `palancasPara(rubro, tamaño)`, `cumpleRequisitos`.
+- `realismo.ts` — las 10 reglas de `05_ALGORITMOS.md` §5.2 con las bandas
+  ancladas en la ruta SBTi para PyMEs (4,2%/año): trimestral 1–2%, semestral
+  2–4%, anual 4–8%, sustitución 10–25%.
+- `generador.ts` — el camino determinista completo: puntúa palancas contra el
+  dossier, arma una escalera (básico, intermedio, uno más) y rellena plantillas.
+  Sin línea de base no inventa un número: convierte la palanca en su objetivo de
+  medición previo.
+- `replanificar.ts` — los cuatro tipos de feedback, con la preferencia del
+  documento: bajar la meta enseña que las metas se negocian, así que primero se
+  estira el plazo.
+- `progreso.ts` — espejo del cálculo de Progreso de Mejora (media vida 540 días).
+- `dossier.ts` — el dossier vacío y su normalización, compartidos por el
+  formulario, las acciones y los tests.
+
+**Base de datos** — `supabase/migrations/0106_mejora.sql`, aplicada en vivo como
+`0106` más una corrección de QA (`0106b`, ya incorporada al archivo).
+- Tablas `improvement_dossiers`, `improvement_goals`, `goal_checkins`,
+  `goal_evidence`, con RLS y sin INSERT/UPDATE/DELETE para `authenticated`:
+  todo pasa por RPC. **El dossier no se puede leer de afuera** —ni siquiera el
+  dueño lo lee con un `select`—, solo sale por `mejora_estado`.
+- RPCs de negocio: `dossier_guardar`, `objetivos_proponer`, `objetivo_aceptar`,
+  `objetivo_descartar`, `objetivo_pasos`, `objetivo_checkin`,
+  `objetivo_replanificar`, `objetivo_cerrar`, `mejora_estado`,
+  `objetivo_detalle`.
+- RPCs del revisor: `admin_objetivos_cola`, `admin_objetivo_revisar`.
+- Cálculo: `brote_progreso_mejora`, `brote_recalcular_mejora` (progreso y nivel
+  se recalculan al aprobar un cierre).
+- Versionado: replanificar NUNCA pisa ni borra. Inserta una fila nueva con
+  `parent_id` a la anterior y marca la vieja con `reemplazado_at`.
+
+**Edge functions**
+- `business-goals` (desplegada, v1): modos `generar` y `replanificar`, con los
+  prompts de `06_PROMPTS_IA.md` §2 y §3 literales, `gemini-2.5-flash` con
+  esquema declarado, caché por hash de la entrada en `ai_jobs`, límite semanal
+  por empresa (4 generaciones, 8 replanificaciones). **No valida ni guarda
+  nada**: devuelve el JSON crudo y el server action lo pasa por
+  `validarObjetivo` antes de que exista en la base. Nunca devuelve un error:
+  sin clave, caída o JSON roto responde `fallback` y el camino determinista da
+  el mismo resultado.
+- `verify-business` (v3): suma la lectura de la captura de Instagram con visión
+  (fase 2 §9). Aprueba sola solo si los cuatro chequeos dan bien; cualquier otro
+  caso sigue yendo a revisión manual, y aun aprobada el método queda de fuerza
+  media.
+
+**App**
+- `/negocio/mejora` — el programa: Progreso de Mejora, propuestas con aceptar /
+  descartar (tope de 3 activos y 12 h/mes, con copy claro cuando no se puede),
+  activos con antes→después y barra, cerrados con un tilde y una fecha.
+- `/negocio/mejora/dossier` — los 8 bloques, uno por pantalla, con "No sé" en
+  cada campo. Guarda bloque por bloque y al terminar OFRECE replanificar.
+  `?b=N` abre un bloque puntual.
+- `/negocio/mejora/[goalId]` — la ficha: a la izquierda el objetivo con los
+  pasos como checklist real que se guarda, a la derecha el cuadro de ajuste con
+  los 4 atajos y el historial de versiones ("Dijiste" / "Ajuste").
+- `/panel/objetivos` — la cola de cierres, con la evidencia por URL firmada de
+  60 s, y aprobar / parcial / pedir corrección. Contador en `/panel`.
+- Mejora entró en la navegación del negocio y en la fila del resumen.
+
+## Verificado contra la base viva (transacciones que terminan en rollback)
+
+Todo en un bloque que al final levanta una excepción: nada quedó escrito.
+- Un miembro NO puede leer `improvement_dossiers` con un `select` (permiso
+  denegado) ni escribir ninguna de las cuatro tablas: el dossier solo sale por
+  `mejora_estado`, que es lo que pide la fase 2 §2.
+- Recorrido completo: guardar bloques del dossier → proponer → aceptar (con el
+  tope de 3 activos y el de 12 h/mes rechazando el cuarto) → check-in
+  `no_llego` → versión nueva con `parent_id`, la vieja con `reemplazado_at` y
+  nada borrado → cerrar con evidencia (`en_revision`) → aprobar desde la cola →
+  progreso y nivel recalculados.
+- **Un bug real que encontró esta QA:** después de una replanificación, la ficha
+  de la versión nueva mostraba 0 check-ins, porque los check-ins cuelgan de la
+  versión donde se escribieron. `objetivo_detalle` ahora recorre la cadena de
+  antepasados y junta todo el historial (`0106b`).
+
+## Verificado de otra forma
+
+- **376 tests** (`npm test`), todos en verde: los 330 previos, 39 del validador
+  de realismo —las 10 reglas, la tabla de casos de `05_ALGORITMOS.md` §7 y los
+  criterios de aceptación de la fase 2 §10— y 7 del **set de evaluación de
+  §10.1**: diez dossiers ficticios escritos a mano, cinco incompletos a
+  propósito. Resultado: 100% de los objetivos pasan el validador sin arreglos
+  (el documento pide 80%), cero números inventados, cero objetivos que repitan
+  algo de "ya hecho", ninguno por encima de las horas declaradas y ninguno con
+  inversión cuando el presupuesto es "ninguno".
+- Pantallas: una ruta de previsualización temporal (borrada, no commiteada) con
+  los componentes reales y datos de ejemplo, capturada con Chrome headless: el
+  programa, la ficha y dos bloques del dossier. En 375 px no hay scroll
+  horizontal (`scrollWidth === clientWidth`, medido, no a ojo) y la ficha de dos
+  columnas se apila.
+- `verify-business` v3 desplegada responde `no_autenticado` a la clave anon.
+- `npm run typecheck`, `npm run build` y `next lint` limpios.
+
+## Desviaciones — qué se hizo distinto de la carpeta, y por qué
+
+1. **R1 y R2 se chequean al ACEPTAR, no al proponer.** El tope de 3 objetivos
+   activos y el de 12 h/mes entre todos dependen de lo que la empresa ya
+   aceptó. Aplicarlos a la propuesta dejaría a alguien con 3 activos sin ver
+   ninguna propuesta nueva, que no es lo que el documento busca: `validarObjetivo`
+   toma `momento: 'propuesta' | 'aceptacion'`.
+2. **25 palancas marcadas `es_evento_unico`.** El propio ejemplo del brief
+   (6 → 5 bolsas, 16,7%) está muy por encima de la banda trimestral. La banda
+   aplica a mejoras continuas; un cambio de una vez —cambiar proveedor,
+   reemplazar luminaria, cambiar el envase— usa el máximo absoluto, que es la
+   excepción que el documento ya contempla.
+3. **`'no_se'` también para los sí/no del dossier**, y los campos en blanco NO
+   se guardan. La completitud cuenta claves presentes: mandar `null` por cada
+   campo vacío daría un dossier "completo" que no dice nada, y objetivos
+   armados sobre eso.
+4. **El dossier lo editan owner y admin.** `dossier_guardar` pide `admin`
+   (`brote_can_write`), así que el rol `editor` —que sí puede gestionar
+   objetivos— lo ve en solo lectura, con el aviso correspondiente.
+5. **El validador vive en un solo lugar.** La edge function no valida: si la
+   regla de ambición viviera también en Deno, tarde o temprano una de las dos
+   copias quedaría vieja y un objetivo malo llegaría a una empresa que paga.
+6. **La nota del modelo sobre la captura de Instagram nunca se le muestra a la
+   empresa.** Se traduce a uno de cuatro mensajes fijos según qué chequeo falló,
+   y el estado sigue `pendiente` (no `fallido`): la captura queda igual en la
+   cola del revisor, pero la empresa ya sabe qué corregir. Tope de 5 lecturas
+   por día y por negocio, porque la visión cuesta plata.
+7. **`_shared/gemini.ts`** ganó `model` y `responseSchema` opcionales. Las
+   funciones viejas siguen usando el modelo de siempre.
+
+## Lo que NO se pudo verificar
+
+- **Si hay `GEMINI_API_KEY` configurada.** Los secretos de las funciones no se
+  pueden listar desde acá. Todo el flujo está probado por el camino
+  determinista, que es el que existe hoy; cuando la clave esté, la vía con IA
+  pasa por el mismo validador. Se sabrá mirando `ai_jobs.status` después de la
+  primera generación real: `ok` es que la clave anda, `fallback` es que no.
+- **La lectura de una captura de Instagram real**: hace falta una sesión con un
+  archivo en el bucket privado.
+- **El recorrido con sesión real** (igual que en la fase 1): las pantallas se
+  revisaron con datos de ejemplo y las RPC con SQL, no de punta a punta en el
+  navegador.
+
+## Owner action items (Negocios, fase 2)
+
+1. **Hacer el recorrido de Mejora** con el negocio aprobado de la fase 1:
+   `/negocio` → Mejora → completar el dossier → "Proponer objetivos" → aceptar
+   uno → tildar pasos → escribir "No llego a ese número" con un valor → ver la
+   versión 2 y el historial → cerrar con una foto → `/panel/objetivos` →
+   aprobar.
+2. **`GEMINI_API_KEY`** en los secretos de las edge functions, si se quiere la
+   vía con IA. Sin ella no falta nada: cambia la adaptación fina al caso.
 
 ---
 

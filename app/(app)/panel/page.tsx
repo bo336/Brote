@@ -19,6 +19,7 @@ import { ModerationQueue } from '@/components/panel/ModerationQueue';
 import { ColaAcademia } from '@/components/panel/ColaAcademia';
 import { MetricasAcademia } from '@/components/panel/MetricasAcademia';
 import { NegociosResumen } from '@/components/panel/NegociosResumen';
+import { ObjetivosResumen } from '@/components/panel/ObjetivosResumen';
 import { usePanelPass } from '@/components/panel/PanelPass';
 import { toast } from '@/stores/toast';
 
@@ -253,8 +254,10 @@ export default function PanelPage() {
           of the panel where somebody is waiting on the other side. */}
       <ModerationQueue pass={pass} />
 
-      {/* Negocios: igual que la moderación, del otro lado hay alguien esperando. */}
+      {/* Negocios y cierres de objetivos: igual que la moderación, del otro
+          lado hay alguien esperando una respuesta. */}
       <NegociosResumen pass={pass} />
+      <ObjetivosResumen pass={pass} />
 
       {/* La Academia. La cola va antes que los números por el mismo motivo que
           la moderación: es lo único de acá que bloquea contenido. Nada generado

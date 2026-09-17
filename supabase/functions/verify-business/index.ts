@@ -1,9 +1,12 @@
 // verify-business (brote-negocios fase 1 §6.1)
 //
 // Chequea que quien dio de alta un negocio controla su sitio: etiqueta meta en
-// la home, registro TXT (por DNS-over-HTTPS) o archivo en `.well-known`. El
-// método de Instagram NO pasa por acá: la captura queda en revisión manual
-// hasta la fase 2.
+// la home, registro TXT (por DNS-over-HTTPS) o archivo en `.well-known`.
+//
+// Desde la fase 2 también lee la captura de Instagram con visión (§9): aprueba
+// sola SOLO si los cuatro chequeos dan bien, y cualquier otro caso sigue yendo
+// a revisión manual. Aun aprobada, el método queda de fuerza media — una
+// captura es una captura, y eso no cambia porque la haya leído un modelo.
 //
 // También atiende dos pedidos del revisor desde `/panel/negocios/[id]`, con la
 // contraseña del panel verificada en `admin_check`: probar si el sitio responde
@@ -13,6 +16,7 @@
 // (fase 1 §6.2): la empresa jamás ve "fetch failed" ni un código HTTP.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.46.1';
 import { corsHeaders, json } from '../_shared/cors.ts';
+import { geminiJSON } from '../_shared/gemini.ts';
 
 const UA = 'BroteVerify/1.0 (+https://brote-ft7m.vercel.app)';
 const TIMEOUT_MS = 8000;
@@ -21,6 +25,7 @@ const MAX_BYTES = 512_000;
 const REINTENTO_MIN = 10;
 const REINTENTOS_DIA = 20;
 const AVISO_FALLIDOS = 3;
+const LECTURAS_DIA = 5;
 
 const METODOS = new Set(['dominio_meta', 'dominio_dns', 'dominio_archivo']);
 
@@ -36,6 +41,15 @@ const MENSAJE = {
     'Encontramos el archivo, pero no tiene el código. Tiene que contener solo el código, sin nada más.',
   error_sitio: 'Tu sitio respondió con un error. Probá de nuevo en un rato, o usá el método de DNS.',
   limite: 'Llegaste al máximo de intentos de hoy. Mañana podés seguir.',
+  // Instagram (fase 2 §9). Nunca acusan de nada: dicen qué falta para que la
+  // próxima captura sirva.
+  captura_en_revision: 'Recibimos la captura. La estamos mirando.',
+  captura_sin_perfil:
+    'La imagen no parece un perfil de Instagram. Subí una captura de tu perfil, con el usuario y la bio a la vista.',
+  captura_sin_handle: 'En la captura no llegamos a leer tu usuario. Fijate que se vea completo, arriba de todo.',
+  captura_sin_token:
+    'No encontramos el código en la bio. Tiene que estar escrito tal cual, sin espacios ni caracteres de más.',
+  captura_dudosa: 'No pudimos darla por válida automáticamente. La estamos mirando a mano.',
 };
 
 type Clave = keyof typeof MENSAJE;
@@ -226,6 +240,93 @@ function hoyAR(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date());
 }
 
+// ── Instagram: la captura, leída con visión (fase 2 §9) ──────────────────────
+
+interface LecturaCaptura {
+  handle_visible: string | null;
+  token_presente: boolean;
+  es_perfil_instagram: boolean;
+  parece_editada: boolean;
+  nota: string;
+}
+
+const ESQUEMA_CAPTURA = {
+  type: 'OBJECT',
+  properties: {
+    handle_visible: { type: 'STRING', nullable: true },
+    token_presente: { type: 'BOOLEAN' },
+    es_perfil_instagram: { type: 'BOOLEAN' },
+    parece_editada: { type: 'BOOLEAN' },
+    nota: { type: 'STRING' },
+  },
+  required: ['handle_visible', 'token_presente', 'es_perfil_instagram', 'parece_editada', 'nota'],
+};
+
+/** `@Panaderia_Del_Sur`, `instagram.com/panaderia_del_sur/` → `panaderia_del_sur`. */
+function normalizarHandle(h: string | null | undefined): string {
+  return String(h ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^(www\.)?instagram\.com\//, '')
+    .replace(/^@/, '')
+    .replace(/[/?#].*$/, '')
+    .trim();
+}
+
+function aBase64(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+
+/**
+ * Lee la captura. Devuelve `null` cuando no se pudo mirar (sin clave, archivo
+ * ilegible, Gemini caído): eso NO es un rechazo, es "que lo mire una persona".
+ *
+ * El prompt es el de 06_PROMPTS_IA §6, literal. La instrucción de no adivinar
+ * es la parte que importa: un modelo servicial que "completa" lo que falta
+ * verificaría cuentas ajenas.
+ */
+async function leerCaptura(
+  admin: ReturnType<typeof createClient>,
+  ruta: string,
+  token: string,
+): Promise<LecturaCaptura | null> {
+  try {
+    const { data: blob } = await admin.storage.from('business-evidence').download(ruta);
+    if (!blob) return null;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (bytes.length === 0 || bytes.length > 6_000_000) return null;
+    const mimeType = /\.png$/i.test(ruta) ? 'image/png' : 'image/jpeg';
+
+    return await geminiJSON<LecturaCaptura>(
+      [
+        {
+          text:
+            'Mirá esta captura de un perfil de Instagram.\n\n' +
+            'Respondé SOLO con este JSON:\n' +
+            '{\n' +
+            '  "handle_visible": "el @usuario que se ve en la imagen, o null",\n' +
+            `  "token_presente": true si en la biografía aparece exactamente el texto "${token}",\n` +
+            '  "es_perfil_instagram": true si la imagen es efectivamente un perfil de Instagram,\n' +
+            '  "parece_editada": true si hay señales de manipulación en la imagen,\n' +
+            '  "nota": "una frase con lo que ves"\n' +
+            '}\n\n' +
+            'No interpretes, no completes lo que falta, no adivines. Si el token no está escrito\n' +
+            'tal cual, token_presente es false.',
+        },
+        { inlineData: { mimeType, data: aBase64(bytes) } },
+      ],
+      { model: 'gemini-2.5-flash', temperature: 0, responseSchema: ESQUEMA_CAPTURA, timeoutMs: 25000 },
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ── Handler ──────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -280,11 +381,92 @@ Deno.serve(async (req) => {
 
     // ── Verificación pedida por el negocio ──────────────────────────────────
     const metodo = String(body.method ?? '');
-    if (!METODOS.has(metodo)) return json({ ok: false, error: 'metodo_no_disponible' });
+    if (metodo !== 'social_token' && !METODOS.has(metodo)) {
+      return json({ ok: false, error: 'metodo_no_disponible' });
+    }
 
     // Con el JWT de la persona: `negocio_verificacion_preparar` chequea en
     // Postgres que sea owner o admin del negocio, y crea la fila si no existe.
     const comoPersona = createClient(url, anonKey, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
+
+    // ── Instagram: leer la captura y, solo si los cuatro chequeos dan bien,
+    //    aprobar sola (fase 2 §9). Aun aprobada queda de fuerza MEDIA: una
+    //    captura es una captura, y eso no cambia porque la haya leído un modelo.
+    if (metodo === 'social_token') {
+      const { data: prepIg } = await comoPersona.rpc('negocio_verificacion_preparar', {
+        p_business: negocioId,
+        p_method: 'social_token',
+      });
+      const pIg = prepIg as { ok: boolean; error?: string; token?: string; target?: string } | null;
+      if (!pIg?.ok || !pIg.token || !pIg.target) return json({ ok: false, error: pIg?.error ?? 'error' });
+
+      const { data: filaIg } = await admin
+        .from('business_verifications')
+        .select('id, status, evidencia_url, intentos_dia, dia_intentos')
+        .eq('business_id', negocioId)
+        .eq('method', 'social_token')
+        .single();
+      if (!filaIg) return json({ ok: false, error: 'error' });
+      if (filaIg.status === 'verificado') return json({ ok: true, status: 'verificado' });
+      if (!filaIg.evidencia_url) return json({ ok: false, error: 'falta_captura' });
+
+      // La visión cuesta plata: pocas lecturas por día y por negocio. Pasado el
+      // tope no se rechaza nada, se pasa a la cola de siempre.
+      const hoyIg = hoyAR();
+      const leidasHoy = filaIg.dia_intentos === hoyIg ? filaIg.intentos_dia : 0;
+      if (leidasHoy >= LECTURAS_DIA) {
+        return json({ ok: true, status: 'revision', mensaje: MENSAJE.captura_en_revision });
+      }
+
+      const lectura = await leerCaptura(admin, filaIg.evidencia_url, pIg.token);
+      const ahoraIg = new Date().toISOString();
+      await admin
+        .from('business_verifications')
+        .update({ intentos_dia: leidasHoy + 1, dia_intentos: hoyIg, ultimo_intento_at: ahoraIg })
+        .eq('id', filaIg.id);
+
+      // Sin clave de Gemini, con la imagen ilegible o con el modelo caído: la
+      // mira una persona. El camino manual de la fase 1 sigue entero.
+      if (!lectura) return json({ ok: true, status: 'revision', mensaje: MENSAJE.captura_en_revision });
+
+      const handleOk =
+        !!lectura.handle_visible && normalizarHandle(lectura.handle_visible) === normalizarHandle(pIg.target);
+      const aprobada =
+        handleOk && lectura.token_presente === true && lectura.es_perfil_instagram === true && lectura.parece_editada !== true;
+
+      if (!aprobada) {
+        const clave: Clave = !lectura.es_perfil_instagram
+          ? 'captura_sin_perfil'
+          : lectura.parece_editada
+            ? 'captura_dudosa'
+            : !handleOk
+              ? 'captura_sin_handle'
+              : 'captura_sin_token';
+        // Sigue `pendiente`, no `fallido`: la captura queda en la cola del
+        // revisor igual. Lo que cambia es que la empresa ya sabe qué arreglar.
+        await admin.from('business_verifications').update({ ultimo_error: MENSAJE[clave] }).eq('id', filaIg.id);
+        return json({ ok: true, status: 'revision', mensaje: MENSAJE[clave] });
+      }
+
+      await admin
+        .from('business_verifications')
+        .update({ status: 'verificado', verified_at: ahoraIg, ultimo_error: null })
+        .eq('id', filaIg.id);
+
+      const { data: negIg } = await admin
+        .from('businesses')
+        .select('nombre_comercial')
+        .eq('id', negocioId)
+        .single();
+      await admin.rpc('brote_negocio_notificar', {
+        p_business: negocioId,
+        p_titulo: `Verificamos ${negIg?.nombre_comercial ?? 'tu negocio'}`,
+        p_cuerpo: `Confirmamos que manejás @${normalizarHandle(pIg.target)}.`,
+        p_url: '/negocio/verificacion',
+      });
+      return json({ ok: true, status: 'verificado' });
+    }
+
     const { data: prep, error: prepError } = await comoPersona.rpc('negocio_verificacion_preparar', {
       p_business: negocioId,
       p_method: metodo,

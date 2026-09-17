@@ -16,6 +16,7 @@
   },
   "include": [
     "lib/world/**/*.ts",
+    "lib/mejora/**/*.ts",
     "lib/mundo.ts",
     "lib/ranks.ts",
     "lib/domains.ts",

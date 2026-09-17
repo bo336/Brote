@@ -6,11 +6,11 @@
 
 ## CURRENT STATE
 
-### F17 · NEGOCIOS — FASE 1 (Fundaciones) ENTREGADA (2026-09-17)
+### F17 · NEGOCIOS — FASE 2 (Mejora) ENTREGADA (2026-09-17)
 
 La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
 `F17`. Detalle completo, verificación y desviaciones en `CONTINUE.md`
-("NEGOCIOS — FASE 1").
+("NEGOCIOS — FASE 1" y "NEGOCIOS — FASE 2").
 
 - [x] F17.1 Fundaciones — empresa como entidad, membresías, contexto persona ↔
   negocio (cookie `brote_ctx`, validada contra la base), shell propio sin
@@ -18,15 +18,21 @@ La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
   etiqueta / DNS / archivo (`verify-business`) y captura de Instagram en
   revisión manual, cola de revisión en `/panel/negocios` con atajos.
   Migración `0105` (+ `0105b`, `0105c` en vivo).
-- [ ] F17.2 Mejora — dossier, objetivos con IA y camino determinista, feedback y
-  replanificación, cierre con evidencia (`fases/FASE_2_MEJORA.md`).
+- [x] F17.2 Mejora — dossier de 8 bloques donde "No sé" es una respuesta, 55
+  palancas, validador de realismo con bandas SBTi, generación con y sin Gemini
+  (la IA propone, el validador de TypeScript decide), los 4 tipos de feedback
+  con versionado que no pisa nada, cierre con evidencia y cola de revisión en
+  `/panel/objetivos`, Progreso de Mejora y recálculo de nivel. Migración `0106`
+  (+ `0106b` en vivo), edge function `business-goals`, `verify-business` v3 con
+  la lectura de la captura de Instagram.
 - [ ] F17.3 Mercado — listados, afirmaciones tipificadas, niveles, catálogo, salida.
 - [ ] F17.4 Integración y cobro — puente con acciones, analítica, MercadoPago.
 - [ ] F17.5 Endurecimiento y lanzamiento.
 
-**Pendiente del dueño antes de la F17.2:** recorrer la fase 1 con una cuenta
-real, y decidir sobre `profiles.account_type` editable desde el cliente (ver
-`CONTINUE.md`).
+**Pendiente del dueño antes de la F17.3:** recorrer las fases 1 y 2 con una
+cuenta real, decidir sobre `profiles.account_type` editable desde el cliente, y
+—opcional— cargar `GEMINI_API_KEY`: sin ella Mejora funciona entera por el
+camino determinista (ver `CONTINUE.md`).
 
 ### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
 

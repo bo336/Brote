@@ -135,7 +135,9 @@ function FilaMetodo({
   const limite = (estado?.intentos_hoy ?? 0) >= REINTENTOS_POR_DIA;
   const bloqueado = !verificado && (esperaMin > 0 || limite);
 
-  const error = mensaje ?? (estado && !verificado && metodo !== 'social_token' ? estado.ultimo_error : null);
+  // Desde la fase 2, `social_token` también tiene `ultimo_error`: lo que la
+  // lectura de la captura encontró que falta.
+  const error = mensaje ?? (estado && !verificado ? estado.ultimo_error : null);
 
   async function verificar() {
     setOcupado(true);
@@ -165,12 +167,26 @@ function FilaMetodo({
       return;
     }
     const r = await registrarCaptura(negocio.id, up.ruta);
-    setOcupado(false);
     if (!r.ok) {
+      setOcupado(false);
       setMensaje(te.has(r.error) ? te(r.error) : te('error'));
       return;
     }
-    useToastStore.getState().push({ variant: 'success', title: t('metodos.social_token.subida') });
+
+    // La captura se lee en el momento (fase 2 §9). Si los cuatro chequeos dan
+    // bien queda verificada sola; si no, sigue el camino de siempre —revisión
+    // manual— y además se dice qué arreglar para la próxima.
+    const lectura = await verificarNegocio(negocio.id, 'social_token');
+    setOcupado(false);
+    if (lectura.ok && lectura.status === 'verificado') {
+      useToastStore.getState().push({
+        variant: 'success',
+        title: t('exito', { destino: `@${negocio.instagram ?? ''}` }),
+      });
+    } else {
+      useToastStore.getState().push({ variant: 'success', title: t('metodos.social_token.subida') });
+      if (lectura.mensaje) setMensaje(lectura.mensaje);
+    }
     router.refresh();
   }
 

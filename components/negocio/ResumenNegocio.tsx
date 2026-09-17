@@ -125,7 +125,7 @@ export function ResumenNegocio({ negocio: n }: { negocio: NegocioDetalle }) {
                   icono={Target}
                   titulo={t('resumen.approved.mejoraTitulo')}
                   cuerpo={t('resumen.approved.mejoraCuerpo')}
-                  etiqueta={t('resumen.approved.pronto')}
+                  href="/negocio/mejora"
                 />
               ) : (
                 <Fila
