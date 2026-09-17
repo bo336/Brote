@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -11,6 +12,8 @@ import { StreakFlame } from '@/components/brand/StreakFlame';
 import { Logo } from '@/components/brand/Logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { isStreakAtRisk } from '@/lib/streak';
+import { ContextSwitcher } from '@/components/negocio/ContextSwitcher';
+import { AvisoNegocioMenor } from '@/components/negocio/AvisoNegocioMenor';
 
 /**
  * Contextual top bar (BUILD_SPEC §3.3). Always shows the user's rank badge +
@@ -74,6 +77,8 @@ export function TopBar() {
           <Link href="/perfil" prefetch={false} aria-label="Rango" className="ml-0.5">
             <RankBadge totalXp={totalXp} size={36} />
           </Link>
+          {/* Tu cuenta o tus negocios. A un menor ni se le ofrece la puerta (D7). */}
+          {profile?.accountType === 'adult' && <ContextSwitcher variante="persona" userId={profile.id} />}
           <Link
             href="/notificaciones"
             prefetch={false}
@@ -91,6 +96,9 @@ export function TopBar() {
           </Link>
           <ThemeToggle className="hidden sm:inline-flex" />
         </div>
+        <Suspense fallback={null}>
+          <AvisoNegocioMenor />
+        </Suspense>
       </div>
     </header>
   );

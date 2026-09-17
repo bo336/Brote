@@ -218,6 +218,9 @@ function NotificationItem({ n, actor }: { n: NotificationRow; actor: PipIdentity
   const isSocial = SOCIAL.has(n.type);
   const count = Number(n.data?.count ?? 1);
   const postId = (n.data?.post_id as string | undefined) ?? null;
+  // Los avisos de negocio (y los de sistema que traen destino) llevan `data.url`,
+  // el mismo campo que abre el push. Solo rutas internas.
+  const destino = typeof n.data?.url === 'string' && /^\/(?!\/)/.test(n.data.url) ? n.data.url : null;
   const actorId = (n.data?.user_id as string | undefined) ?? null;
   const actorHref = actor?.username ? `/perfil/${actor.username}` : undefined;
 
@@ -263,6 +266,10 @@ function NotificationItem({ n, actor }: { n: NotificationRow; actor: PipIdentity
             point of the permalink existing. */}
         {postId ? (
           <Link href={`/feed/p/${postId}`} className="block transition-opacity hover:opacity-80">
+            {body}
+          </Link>
+        ) : destino ? (
+          <Link href={destino} className="block transition-opacity hover:opacity-80">
             {body}
           </Link>
         ) : (

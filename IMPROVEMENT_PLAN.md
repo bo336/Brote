@@ -6,6 +6,28 @@
 
 ## CURRENT STATE
 
+### F17 · NEGOCIOS — FASE 1 (Fundaciones) ENTREGADA (2026-09-17)
+
+La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
+`F17`. Detalle completo, verificación y desviaciones en `CONTINUE.md`
+("NEGOCIOS — FASE 1").
+
+- [x] F17.1 Fundaciones — empresa como entidad, membresías, contexto persona ↔
+  negocio (cookie `brote_ctx`, validada contra la base), shell propio sin
+  juego ni anuncios, alta en 5 pasos con autoguardado, verificación por
+  etiqueta / DNS / archivo (`verify-business`) y captura de Instagram en
+  revisión manual, cola de revisión en `/panel/negocios` con atajos.
+  Migración `0105` (+ `0105b`, `0105c` en vivo).
+- [ ] F17.2 Mejora — dossier, objetivos con IA y camino determinista, feedback y
+  replanificación, cierre con evidencia (`fases/FASE_2_MEJORA.md`).
+- [ ] F17.3 Mercado — listados, afirmaciones tipificadas, niveles, catálogo, salida.
+- [ ] F17.4 Integración y cobro — puente con acciones, analítica, MercadoPago.
+- [ ] F17.5 Endurecimiento y lanzamiento.
+
+**Pendiente del dueño antes de la F17.2:** recorrer la fase 1 con una cuenta
+real, y decidir sobre `profiles.account_type` editable desde el cliente (ver
+`CONTINUE.md`).
+
 ### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
 
 Calidad, seguridad y cierre. El feed dejó de terminarse, el ranking se ajustó

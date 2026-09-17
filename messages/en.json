@@ -1306,5 +1306,407 @@
       "later": "Later",
       "skip": "Skip"
     }
+  },
+  "negocio": {
+    "marca": "Negocios",
+    "contexto": {
+      "estasViendo": "Estás viendo",
+      "personal": "Tu cuenta personal",
+      "crear": "Crear un negocio",
+      "abrir": "Cambiar entre tu cuenta y tus negocios",
+      "cambiando": "Cambiando…",
+      "error": "No pudimos cambiar de cuenta. Probá de nuevo."
+    },
+    "estado": {
+      "draft": "Borrador",
+      "submitted": "Enviada",
+      "in_review": "En revisión",
+      "approved": "Aprobado",
+      "suspended": "Suspendido",
+      "rejected": "Rechazada",
+      "closed": "Cerrado",
+      "observada": "Falta un dato"
+    },
+    "nivel": {
+      "etiqueta": "Nivel {n}",
+      "e0": "Sin publicar",
+      "e1": "Declarado",
+      "e2": "Documentado",
+      "e3": "Certificado",
+      "e4": "Referente"
+    },
+    "nav": {
+      "aria": "Secciones del negocio",
+      "resumen": "Resumen",
+      "verificacion": "Verificación"
+    },
+    "rubros": {
+      "gastronomia": "Gastronomía",
+      "comercio-minorista": "Comercio minorista",
+      "produccion-alimentos": "Producción de alimentos y bebidas",
+      "indumentaria-textil": "Indumentaria y textil",
+      "belleza-cuidado-personal": "Belleza y cuidado personal",
+      "servicios-profesionales": "Servicios profesionales y oficina",
+      "logistica-transporte": "Logística y transporte",
+      "hoteleria-turismo": "Hotelería y turismo",
+      "agro-vivero-huerta": "Agro, vivero y huerta",
+      "limpieza-higiene": "Limpieza e higiene",
+      "hogar-construccion": "Hogar, muebles y construcción",
+      "reparacion-reuso": "Reparación, reuso y reciclaje"
+    },
+    "tamanos": {
+      "t1": "Solo yo",
+      "t2": "2 a 10 personas",
+      "t3": "11 a 50 personas",
+      "t4": "51 a 200 personas",
+      "t5": "Más de 200 personas"
+    },
+    "tamanosCorto": {
+      "t1": "Solo yo",
+      "t2": "2 a 10",
+      "t3": "11 a 50",
+      "t4": "51 a 200",
+      "t5": "Más de 200"
+    },
+    "avisoMenores": {
+      "titulo": "Negocios es para cuentas de adultos",
+      "cuerpo": "Desde esta cuenta no se pueden crear ni administrar negocios."
+    },
+    "errores": {
+      "no_autenticado": "Tu sesión venció. Volvé a entrar para seguir.",
+      "solo_adultos": "Solo una cuenta de adulto puede crear un negocio.",
+      "onboarding_pendiente": "Terminá de configurar tu cuenta antes de crear un negocio.",
+      "email_sin_confirmar": "Confirmá tu email antes de crear un negocio. Te mandamos el enlace cuando te registraste.",
+      "cuenta_nueva": "Tu cuenta es muy nueva. Vas a poder crear un negocio a partir de mañana.",
+      "limite_negocios": "Ya tenés el máximo de negocios a tu nombre.",
+      "datos_invalidos": "Revisá los datos marcados.",
+      "campo_invalido": "Hay un dato que no se pudo guardar. Revisalo.",
+      "sin_permiso": "Tu rol en este negocio no permite hacer eso.",
+      "no_editable": "La solicitud está en revisión: por ahora no se puede cambiar.",
+      "ya_enviada": "La solicitud ya está enviada. Te avisamos cuando la revisemos.",
+      "rechazo_reciente": "Todavía no pasaron 30 días desde la revisión. Vas a poder volver a enviarla más adelante.",
+      "incompleta": "Falta completar: {campos}.",
+      "metodo_no_disponible": "Ese método todavía no está disponible.",
+      "falta_sitio": "Para este método necesitás el sitio web del negocio.",
+      "falta_instagram": "Para este método necesitás el Instagram del negocio.",
+      "ruta_invalida": "No pudimos guardar la captura. Probá subirla de nuevo.",
+      "archivo_grande": "La captura pesa demasiado. Probá con una de menos de 5 MB.",
+      "error": "Algo no salió como esperábamos. Probá de nuevo en un momento."
+    },
+    "faltan": {
+      "sitio_o_instagram": "el sitio web o el Instagram",
+      "email_contacto": "el email de contacto",
+      "provincia": "la provincia",
+      "descripcion": "qué hace el negocio",
+      "intereses": "qué querés hacer en Brote"
+    },
+    "resumen": {
+      "eyebrow": "Negocio · {rubro}",
+      "verificacion": "Verificación",
+      "verificado": "{metodo} · verificado el {fecha}",
+      "capturaEnRevision": "Captura de Instagram en revisión",
+      "sinVerificar": "Sin verificar todavía",
+      "verificarAhora": "Verificar ahora",
+      "draft": {
+        "eyebrow": "Solicitud · borrador",
+        "titulo": "Te falta terminar el alta",
+        "cuerpo": "Guardamos lo que cargaste hasta ahora. Retomá donde lo dejaste.",
+        "boton": "Seguir con el alta"
+      },
+      "revision": {
+        "eyebrow": "Solicitud · {estado}",
+        "titulo": "Lo estamos revisando",
+        "cuerpo": "Vamos a mirar tu solicitud y te avisamos acá mismo. Suele tardar menos de 48 horas.",
+        "enviada": "Enviada el {fecha}",
+        "mientras": "Mientras tanto",
+        "verificarTitulo": "Verificá tu sitio o tu Instagram",
+        "verificarCuerpo": "Eso acelera la revisión, y sin verificación no se pueden publicar productos.",
+        "verificadaTitulo": "La verificación ya está hecha",
+        "verificadaCuerpo": "No hace falta nada más de tu parte. Te avisamos cuando terminemos."
+      },
+      "observada": {
+        "eyebrow": "Solicitud · falta un dato",
+        "titulo": "Nos falta un dato",
+        "cuerpo": "Revisamos tu solicitud y necesitamos que completes esto antes de aprobarla:",
+        "boton": "Completar y reenviar",
+        "conservado": "Todo lo que cargaste sigue guardado."
+      },
+      "approved": {
+        "eyebrow": "Negocio · aprobado",
+        "titulo": "{nombre} ya está en Brote",
+        "cuerpo": "Desde este espacio vas a manejar el programa de mejora y la vidriera de tu negocio.",
+        "nota": "Nota de la revisión",
+        "proximo": "Lo próximo",
+        "verificarTitulo": "Verificá la identidad del negocio",
+        "verificarCuerpo": "Sin verificación no se pueden publicar productos. Lleva unos minutos.",
+        "mejoraTitulo": "Mejora · tu programa de objetivos",
+        "mejoraCuerpo": "Objetivos trimestrales con números concretos, pensados para no comerte el día.",
+        "mercadoTitulo": "Mercado · tu vidriera",
+        "mercadoCuerpo": "Tus productos y servicios, con cada afirmación ambiental y su nivel de evidencia.",
+        "pronto": "Se habilita próximamente"
+      },
+      "rejected": {
+        "eyebrow": "Solicitud · rechazada",
+        "titulo": "No pudimos aprobar la solicitud",
+        "motivo": "Motivo",
+        "cuando": "Vas a poder volver a enviarla a partir del {fecha}.",
+        "ya": "Ya podés revisar los datos y volver a enviarla.",
+        "boton": "Revisar y volver a enviar"
+      },
+      "suspended": {
+        "eyebrow": "Negocio · suspendido",
+        "titulo": "El negocio está suspendido",
+        "motivo": "Motivo",
+        "contacto": "Si creés que es un error, escribinos a {email}."
+      },
+      "closed": {
+        "eyebrow": "Negocio · cerrado",
+        "titulo": "Este negocio está cerrado",
+        "cuerpo": "Sus datos se conservan 90 días por si vuelve."
+      }
+    },
+    "alta": {
+      "eyebrowNuevo": "Negocios en Brote",
+      "tituloNuevo": "Sumá tu negocio",
+      "introNuevo": "Un programa de objetivos para mejorar tu impacto y una vidriera para lo que vendés. Lleva menos de 6 minutos, y se guarda en cada paso.",
+      "progreso": "Paso {n} de 5",
+      "guardando": "Guardando…",
+      "guardado": "Guardado",
+      "atras": "Atrás",
+      "siguiente": "Siguiente",
+      "enviar": "Enviar solicitud",
+      "elegir": {
+        "eyebrow": "Negocios",
+        "titulo": "Elegí con qué negocio trabajar",
+        "nuevo": "Crear otro negocio",
+        "limite": "Ya tenés el máximo de negocios a tu nombre."
+      },
+      "paso1": {
+        "titulo": "Quiénes son",
+        "subtitulo": "Lo básico del negocio.",
+        "nombre": "Nombre del negocio",
+        "nombrePh": "Panadería del Sur",
+        "razonSocial": "Razón social",
+        "razonSocialPh": "Opcional",
+        "cuit": "CUIT",
+        "cuitPh": "30-71234567-1",
+        "cuitAyuda": "Opcional. Se muestra como declarado por el comercio.",
+        "rubro": "Rubro",
+        "tamano": "Personas",
+        "provincia": "Provincia",
+        "ciudad": "Ciudad o localidad",
+        "ciudadPh": "Opcional",
+        "elegir": "Elegí"
+      },
+      "paso2": {
+        "titulo": "Dónde encontrarlos",
+        "subtitulo": "Cargá el sitio web o el Instagram: con uno alcanza, y es lo que después verificamos.",
+        "sitio": "Sitio web",
+        "sitioPh": "tunegocio.com.ar",
+        "instagram": "Instagram",
+        "instagramPh": "@tunegocio",
+        "whatsapp": "WhatsApp comercial",
+        "whatsappPh": "Opcional · +54 9 11 5555 1234",
+        "email": "Email de contacto",
+        "emailPh": "hola@tunegocio.com.ar"
+      },
+      "paso3": {
+        "titulo": "Qué hacen",
+        "subtitulo": "En tus palabras. Es la base de los objetivos que te vamos a proponer.",
+        "placeholder": "Contanos en tus palabras qué hace tu negocio, qué vendés o qué servicio das, y qué cosas ya hacés hoy que cuidan el ambiente. No hace falta que suene lindo — cuanto más concreto, mejores van a ser los objetivos que te propongamos.",
+        "contadorFalta": "{n} caracteres · faltan {faltan} para el mínimo",
+        "contador": "{n} caracteres",
+        "sugerencias": "Si no sabés qué más contar",
+        "pregInsumos": "¿De dónde vienen tus insumos?",
+        "pregResiduos": "¿Qué hacés con los residuos?",
+        "pregLogistica": "¿Cómo llegan tus productos al cliente?"
+      },
+      "paso4": {
+        "titulo": "Qué querés hacer acá",
+        "subtitulo": "Define qué te mostramos primero. Lo podés cambiar después.",
+        "mejora": "Quiero mejorar mi impacto con objetivos",
+        "mejoraAyuda": "Objetivos de mediano plazo, con números y método de medición.",
+        "mercado": "Quiero mostrar mis productos",
+        "mercadoAyuda": "Una vidriera donde la gente que busca alternativas te encuentra.",
+        "ambas": "Las dos"
+      },
+      "paso5": {
+        "titulo": "Verificación",
+        "subtitulo": "Probá que el negocio es tuyo. Alcanza con un método, y lo podés hacer ahora o después: sin verificar no se pueden publicar productos.",
+        "despues": "Lo hago después",
+        "despuesNota": "Vas a poder verificar desde la sección Verificación, cuando quieras.",
+        "verAhora": "Verificar ahora"
+      },
+      "enviado": {
+        "titulo": "Listo. Lo estamos revisando.",
+        "cuerpo": "Vamos a mirar tu solicitud y te avisamos acá mismo. Suele tardar menos de 48 horas. Mientras tanto podés ir completando la verificación de tu sitio — eso acelera todo.",
+        "irNegocio": "Ir a mi negocio",
+        "verificar": "Completar la verificación"
+      },
+      "errores": {
+        "nombre": "Poné el nombre con el que te conocen.",
+        "largo": "Es demasiado largo.",
+        "cuit": "Ese CUIT no parece válido, ¿lo revisás? También podés dejarlo vacío.",
+        "rubro": "Elegí el rubro.",
+        "tamano": "Elegí el tamaño.",
+        "provincia": "Elegí la provincia.",
+        "sitio": "Esa dirección no parece un sitio web. Probá con algo como tunegocio.com.ar",
+        "instagram": "Ese usuario de Instagram no parece válido.",
+        "whatsapp": "Ese número no parece válido. Incluí la característica.",
+        "email": "Ese email no parece válido.",
+        "sitio_o_instagram": "Cargá el sitio web o el Instagram: con uno alcanza.",
+        "descripcion": "Contanos un poco más: 120 caracteres como mínimo.",
+        "intereses": "Elegí al menos una opción."
+      }
+    },
+    "verificacion": {
+      "eyebrow": "Verificación",
+      "titulo": "Probá que el negocio es tuyo",
+      "subtitulo": "Alcanza con un método. No pedimos papeles: solo que muestres que controlás tu sitio o tu cuenta.",
+      "listo": "Verificado",
+      "listoDetalle": "{metodo} · {fecha}",
+      "recomendado": "Método recomendado",
+      "otros": "Otros métodos",
+      "fuerte": "Fuerte",
+      "media": "Media",
+      "copiar": "Copiar",
+      "copiado": "Copiado",
+      "ultimoIntento": "Último intento: {hace}",
+      "esperar": "Podés volver a intentar en {min} min.",
+      "limiteDia": "Llegaste al máximo de intentos de hoy. Mañana podés seguir.",
+      "requiereSitio": "Para este método hace falta el sitio web del negocio.",
+      "requiereInstagram": "Para este método hace falta el Instagram del negocio.",
+      "verificando": "Verificando…",
+      "exito": "Listo: verificamos {destino}.",
+      "estado": {
+        "verificado": "Verificado",
+        "enRevision": "Captura en revisión",
+        "fallido": "No se pudo verificar"
+      },
+      "metodos": {
+        "dominio_meta": {
+          "nombre": "Etiqueta en tu sitio",
+          "como": "Pegá esta línea dentro del <code>head</code> de tu página principal y publicá los cambios.",
+          "boton": "Ya la pegué, verificá"
+        },
+        "dominio_dns": {
+          "nombre": "Registro DNS",
+          "como": "Agregá un registro TXT en {dominio} con este valor. Se configura donde compraste el dominio, y a veces tarda en verse.",
+          "boton": "Ya lo agregué, verificá"
+        },
+        "dominio_archivo": {
+          "nombre": "Archivo en tu sitio",
+          "como": "Subí un archivo de texto que se abra en esta dirección y que tenga solo este contenido:",
+          "boton": "Ya lo subí, verificá"
+        },
+        "social_token": {
+          "nombre": "Código en la bio de Instagram",
+          "como": "Pegá este código en la bio de @{handle}, sacá una captura donde se vean tu usuario y el código, y subila. La revisamos a mano, así que es un método de fuerza media.",
+          "boton": "Subir captura",
+          "cambiar": "Cambiar la captura",
+          "subida": "Captura recibida. La revisamos junto con la solicitud."
+        }
+      },
+      "hace": {
+        "recien": "recién",
+        "min": "hace {n} min",
+        "h": "hace {n} h",
+        "d": "hace {n} d"
+      }
+    },
+    "panel": {
+      "resumenEyebrow": "Negocios",
+      "resumenTitulo": "Solicitudes de negocios",
+      "pendientes": "{n, plural, =0 {Nada pendiente} one {pendiente} other {pendientes}}",
+      "abrir": "Abrir la cola",
+      "volverPanel": "Panel",
+      "candado": {
+        "titulo": "Panel",
+        "pass": "Contraseña",
+        "entrar": "Entrar",
+        "error": "Contraseña incorrecta"
+      },
+      "cola": {
+        "eyebrow": "Panel · Negocios",
+        "titulo": "Cola de revisión",
+        "caption": "Solicitudes de negocios ordenadas por antigüedad",
+        "filtros": {
+          "pendientes": "Pendientes",
+          "observadas": "Observadas",
+          "rechazadas": "Rechazadas",
+          "todas": "Todas"
+        },
+        "col": {
+          "negocio": "Negocio",
+          "antiguedad": "Antigüedad",
+          "verificacion": "Verificación",
+          "riesgos": "Riesgos"
+        },
+        "vacia": "No hay solicitudes en esta lista.",
+        "actualizar": "Actualizar",
+        "error": "No se pudo leer la cola"
+      },
+      "riesgos": {
+        "sin_verificar": "sin verificar",
+        "sin_descripcion": "sin descripción de actividad",
+        "afirmaciones_vagas": "afirmaciones vagas",
+        "sitio_caido": "sitio caído",
+        "posible_duplicado": "posible duplicado"
+      },
+      "verif": {
+        "ninguna": "Sin verificar",
+        "verificado": "{metodo} · {fuerza}",
+        "enRevision": "Captura en revisión",
+        "fallido": "{metodo} · falló",
+        "pendiente": "{metodo} · sin completar"
+      },
+      "detalle": {
+        "volver": "Volver a la cola",
+        "anterior": "Anterior",
+        "siguiente": "Siguiente",
+        "hace": "Solicitud de {hace}",
+        "noEnviada": "Todavía no se envió",
+        "ia": "Informe de IA",
+        "iaVacia": "Todavía no hay informe de IA para las solicitudes: los chequeos de abajo son por reglas.",
+        "chequeos": "Chequeos",
+        "verificacion": "Verificación",
+        "sitio": "Sitio",
+        "sitioOk": "responde",
+        "sitioCaido": "no responde",
+        "sitioSinChequear": "sin chequear",
+        "sitioNinguno": "no cargó sitio",
+        "probarSitio": "Probar ahora",
+        "cuit": "CUIT",
+        "cuitValido": "dígito verificador válido · declarado",
+        "cuitInvalido": "dígito verificador inválido · declarado",
+        "cuitNinguno": "no lo cargó",
+        "duplicado": "Duplicado",
+        "duplicadoNo": "no",
+        "motivos": {
+          "dominio": "mismo dominio",
+          "cuit": "mismo CUIT",
+          "nombre": "mismo nombre en la provincia"
+        },
+        "verCaptura": "Ver captura",
+        "suspalabras": "Qué hacen, en sus palabras",
+        "contacto": "Contacto",
+        "intereses": "Quiere",
+        "quien": "Enviada por {nombre} · cuenta desde {fecha}",
+        "notaPrevia": "Última nota al negocio",
+        "aprobar": "Aprobar",
+        "pedir": "Pedir más datos",
+        "rechazar": "Rechazar",
+        "nota": "Nota para el negocio",
+        "notaPh": "Qué falta o por qué. Es lo que va a leer el negocio.",
+        "notaFalta": "Escribí en la nota qué falta o por qué",
+        "atajos": "Atajos: A aprobar · P pedir datos · R rechazar · J / K navegar",
+        "aprobado": "Aprobado",
+        "pedido": "Pedido enviado",
+        "rechazado": "Rechazado",
+        "noPendiente": "Esta solicitud ya no está pendiente.",
+        "error": "No se pudo",
+        "noExiste": "Esa solicitud no existe."
+      }
+    }
   }
 }

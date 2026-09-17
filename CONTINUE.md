@@ -108,6 +108,164 @@ clean build).
 
 ---
 
+# NEGOCIOS — FASE 1 (Fundaciones) · ENTREGADA · F17.1
+
+> El pedido: la carpeta `brote-negocios/` (00_LEEME, 02, 03, 04, 07 y
+> `fases/FASE_1_FUNDACIONES.md`). Una empresa puede existir en Brote: se da de
+> alta en 5 pasos, verifica que controla su sitio, el dueño la revisa en
+> `/panel/negocios` y entra a un espacio de trabajo propio, vacío pero real.
+> Sin IA, sin listados, sin objetivos: eso es de las fases 2 a 5.
+
+## ▶ NEXT EXACT TASK (Negocios)
+
+> **Fase 2 · Mejora.** Leer `00_LEEME.md`, 02, 03, 04, `05_ALGORITMOS.md`,
+> `06_PROMPTS_IA.md`, `referencia/CATALOGO_PALANCAS.md` y
+> `fases/FASE_2_MEJORA.md`. Antes: que el dueño haga el recorrido real de la
+> fase 1 con una cuenta adulta (ver "Owner action items" abajo), porque ese
+> recorrido con sesión no se pudo hacer desde la sesión de desarrollo.
+
+## Qué quedó
+
+**Base de datos** — `supabase/migrations/0105_negocios_fundaciones.sql`, aplicada
+en vivo como `0105` más dos correcciones encontradas en QA (`0105b` y `0105c`,
+ya incorporadas al archivo del repo). Verificado: los 26 cuerpos de función
+vivos coinciden con el archivo (20 idénticos byte a byte; los otros 6 difieren
+solo en comentarios).
+- Tablas `businesses`, `business_members`, `business_verifications`, `ai_jobs`,
+  con RLS, 6 enums, índices de cobertura y trigger de `updated_at`.
+- RPCs de negocio: `create_business`, `my_businesses`, `negocio_detalle`,
+  `negocio_guardar_alta`, `negocio_enviar`, `negocio_verificacion_preparar`,
+  `negocio_verificacion_captura`.
+- RPCs del revisor (contraseña del panel): `admin_negocios_cola`,
+  `admin_negocio_detalle`, `admin_negocio_revisar`.
+- Buckets `business-logos` (público, 1 MB) y `business-evidence` (privado, 5 MB).
+
+**Edge function** — `verify-business` (desplegada, v2): etiqueta meta, TXT por
+DNS-over-HTTPS y archivo en `.well-known`; reintentos 1 cada 10 min y 20 por
+día; el mapa de errores humanos de la fase 1 §6.2; y para el revisor, probar el
+sitio y firmar capturas por 60 s.
+
+**App**
+- `app/(business)/` — shell propio (`components/negocio/ShellNegocio.tsx`):
+  `/negocio` (resumen por estado), `/negocio/alta` (5 pasos; el paso vive en la
+  URL y los valores vienen del servidor), `/negocio/verificacion`,
+  `/negocio/contexto` (limpia una cookie que apunta a un negocio ajeno).
+- `lib/negocio/` — `context.ts` (servidor), `acciones.ts` (server actions),
+  `esquemas.ts` (Zod por paso, compartido cliente/servidor), `normalizar.ts`,
+  `roles.ts`, `catalogo.ts`. Tipos en `lib/supabase/rows-negocio.ts`.
+- `/panel/negocios` y `/panel/negocios/[id]` — cola y ficha de revisión
+  (`components/panel/negocios/`), atajos A/P/R/J/K; contador en `/panel`.
+- Selector de contexto en la `TopBar` (solo adultos) y en el shell de negocio.
+- `messages/*.json` — namespace `negocio.*` completo.
+
+## Verificado contra la base viva (transacciones que terminan en rollback)
+
+Todo en un bloque que al final levanta una excepción: nada quedó escrito.
+- `set role anon; select count(*) from businesses` → 0, sin colgarse.
+- `create_business` rechaza `kid` y `teen` (`solo_adultos`), cuenta de menos de
+  un día (`cuenta_nueva`), email sin confirmar (`email_sin_confirmar`) y el
+  cuarto negocio (`limite_negocios`) — llamando a la RPC, no por la interfaz.
+- Un owner NO puede `update businesses set status='approved'` ni insertar en
+  `businesses` o `business_members` directo: permiso denegado.
+- Un no miembro ve 0 filas, `negocio_detalle` null, 0 verificaciones, 0
+  miembros; `ai_jobs` denegado para `authenticated`.
+- `anon` ve un negocio aprobado solo en columnas públicas (`created_by` denegado).
+- Revisión de punta a punta: enviar incompleta (lista de faltantes) → completar
+  → enviar → abrir en el panel (pasa a `in_review`) → rechazar sin nota
+  (rechazado) → pedir datos → reenviar → aprobar → `approved/e1`,
+  `revisado_por` guardado, 4 avisos al negocio y 1 al revisor.
+- Ninguna función nueva ejecutable por `anon`; los asesores de seguridad no
+  muestran hallazgos nuevos salvo los esperados (`ai_jobs` sin policies a
+  propósito).
+
+## Verificado de otra forma
+
+- `verify-business`: la lógica de red se probó en Node transpilando el mismo
+  archivo — 34 casos: regex tolerante (comillas, orden, mayúsculas), hosts e IPs
+  internos bloqueados, sitios reales (example.com sin etiqueta, dominio
+  inexistente, redirect de google.com, 404 de archivo, TXT de google.com,
+  NXDOMAIN) y un positivo completo contra un servidor local con etiqueta,
+  archivo con BOM y 403. La función desplegada responde `no_autenticado` a la
+  clave anon.
+- Pantallas: una ruta de previsualización temporal (borrada, no commiteada) con
+  los componentes reales y datos de ejemplo, capturada con Chrome headless a
+  1280 y 360 px, claro y oscuro: resumen en todos los estados, los 5 pasos del
+  alta, enviado, elegir negocio, verificación, cola y ficha del panel, selector
+  abierto. Los pasos 1 a 4 entran sin scroll en 360×740; el 5 deja "Enviar
+  solicitud" fijo abajo. Sin scroll horizontal en ninguna.
+- Los chunks de `(business)` y `/panel/negocios*` no incluyen three.js,
+  AdSense, Pip, BottomTabBar ni Leaflet.
+- `npm run typecheck`, `npm run build` y `next lint` limpios.
+
+## Desviaciones — qué se hizo distinto de la carpeta, y por qué
+
+1. **Numeración.** La carpeta asumía migración `0038` y bitácora `F16`. El repo
+   iba por `0103` (y la base viva tiene una `0104_mundo_flag_allowlist` sin
+   archivo), y `F16` ya es La Plaza: quedó `0105` y `F17`.
+2. **Escritura de `businesses` solo por RPC.** Con las policies de 04 §2.7 un
+   owner podía autoaprobarse (`status='approved'`) y crear negocios salteando el
+   tope. `authenticated` no tiene INSERT/UPDATE/DELETE; las policies quedan
+   como matriz de acceso.
+3. **Lectura pública por columnas.** RLS filtra filas, no columnas: sin grants
+   por columna, un negocio aprobado exponía CUIT, contacto, nota del revisor y
+   quién lo creó.
+4. **CUIT no único.** El índice único contradecía 02 §8 y fase 1 §7.3 ("avisa,
+   no bloquea") y permitía bloquear a un competidor cargando su CUIT.
+5. **El revisor es la contraseña del panel**, no un flag de admin (no existe).
+   La contraseña se comparte entre `/panel` y sus colas desde un layout, sin
+   storage ni URL. "Notificar al revisor" avisa a las cuentas que ya revisaron
+   negocios; hasta la primera revisión, el aviso es el contador de `/panel`.
+6. **Menores frenados en el layout, no en el middleware.** El middleware del
+   repo no toca la red a propósito (ver su comentario sobre la rotación de
+   tokens); solo hace el redirect barato por cookie. El layout de `(business)`
+   valida sesión, cuenta adulta, onboarding y membresía contra la base en
+   **toda** ruta de negocio, y `create_business` lo vuelve a validar. Además
+   exige onboarding terminado: antes de eso `account_type` vale `adult` por
+   defecto.
+7. **Los 12 rubros** no están en ningún documento: salen de los 8 del catálogo
+   de palancas más 4 alineados con las categorías del Mercado. Mismo listado en
+   `lib/negocio/catalogo.ts` y en `brote_rubros()`.
+8. **`email_dominio` no se ofrece**: no hay remitente configurado (fase 1 §6.1
+   manda ocultarlo). `cuit_declarado` tampoco es un flujo.
+9. **Dos archivos existentes fuera de la lista de 03 §10**, con cambio mínimo:
+   `app/(app)/notificaciones/page.tsx` (las filas con `data.url` ahora son
+   enlace; sin eso "Ya está en Brote" no llevaba a ningún lado) y el nuevo
+   `app/(app)/panel/layout.tsx` (compartir la contraseña del panel).
+10. **SSRF en `verify-business`.** Además de bloquear IPs y nombres internos,
+    cada salto resuelve el host por DNS-over-HTTPS y rechaza respuestas
+    privadas (un dominio público que apunta a 127.0.0.1 pasaba el filtro por
+    nombre). No cierra un rebinding entre la consulta y el fetch.
+11. **`unaccent` no está instalada**: `unaccent_safe()` con `translate()`.
+
+## Lo que NO se pudo verificar
+
+- **El recorrido con sesión real.** La sesión de desarrollo no crea cuentas ni
+  inicia sesión, así que crear un negocio desde la interfaz, cambiar de
+  contexto, editar la cookie a mano y aprobar desde `/panel/negocios` con la
+  contraseña real están probados por partes (RPCs en SQL, pantallas con datos de
+  ejemplo), no de punta a punta en el navegador.
+- **Un positivo de verificación contra un dominio real**: no hay un sitio de
+  prueba con la etiqueta. El positivo se probó contra un servidor local.
+
+## Owner action items (Negocios)
+
+1. **Hacer el recorrido de la fase 1** con una cuenta adulta de más de un día:
+   ícono de negocio en la barra de arriba → "Crear un negocio" → 5 pasos →
+   enviar → `/panel` → "Solicitudes de negocios" → aprobar. Si tenés un sitio
+   propio, probá la etiqueta meta en el paso 5.
+2. **Agujero previo, no de esta fase:** cualquier cuenta puede cambiar su propio
+   `profiles.account_type` desde el cliente (la policy de UPDATE de `profiles`
+   no restringe columnas). Un menor puede pasarse a `adult` y saltear todo lo que
+   depende de eso — negocios incluidos. Conviene cerrarlo antes de lanzar.
+3. **AdSense**: `AdsProvider` carga el script según la cuenta, no según la ruta.
+   El shell de negocio no renderiza espacios de anuncio, pero si alguna vez se
+   activan los anuncios automáticos en la cuenta de AdSense, Google podría
+   inyectarlos igual. Revisar antes de encenderlos.
+4. Opcional: `app_settings.negocios_max_por_dueno` (número) cambia el tope de 3
+   negocios por dueño; sin la fila vale 3.
+
+---
+
 # LA ACADEMIA — FASE 3 (El motor infinito) · ENTREGADA · SECCIÓN CERRADA
 
 > Las tres fases están hechas. `docs/ACADEMIA.md` es el mapa completo para quien

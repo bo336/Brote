@@ -18,6 +18,8 @@ import {
 import { ModerationQueue } from '@/components/panel/ModerationQueue';
 import { ColaAcademia } from '@/components/panel/ColaAcademia';
 import { MetricasAcademia } from '@/components/panel/MetricasAcademia';
+import { NegociosResumen } from '@/components/panel/NegociosResumen';
+import { usePanelPass } from '@/components/panel/PanelPass';
 import { toast } from '@/stores/toast';
 
 /**
@@ -49,7 +51,10 @@ const STAT_LABELS: Record<string, string> = {
 
 export default function PanelPage() {
   const [configured, setConfigured] = useState<boolean | null>(null);
-  const [pass, setPass] = useState('');
+  // La contraseña ya verificada vive en el layout de /panel, para no pedirla
+  // de nuevo al volver de la cola de negocios. Lo que se tipea queda acá.
+  const panel = usePanelPass();
+  const [pass, setPass] = useState(panel.pass);
   const [data, setData] = useState<AdminDashboard | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -62,6 +67,8 @@ export default function PanelPage() {
 
   useEffect(() => {
     adminIsConfigured().then(setConfigured);
+    if (panel.pass) void enter(panel.pass);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function enter(p = pass) {
@@ -73,6 +80,7 @@ export default function PanelPage() {
       toast.error('No se pudo entrar', res.error ?? 'Contraseña incorrecta');
       return;
     }
+    panel.setPass(p);
     setData(res);
     setSimCount(String(res.stats.simulated_players ?? 0));
   }
@@ -245,6 +253,9 @@ export default function PanelPage() {
           of the panel where somebody is waiting on the other side. */}
       <ModerationQueue pass={pass} />
 
+      {/* Negocios: igual que la moderación, del otro lado hay alguien esperando. */}
+      <NegociosResumen pass={pass} />
+
       {/* La Academia. La cola va antes que los números por el mismo motivo que
           la moderación: es lo único de acá que bloquea contenido. Nada generado
           llega a nadie hasta que alguien lo mira. */}
@@ -304,6 +315,7 @@ export default function PanelPage() {
               if (!res.ok) return toast.error('No se pudo cambiar', res.error);
               toast.success('Contraseña actualizada');
               setPass(changeTo);
+              panel.setPass(changeTo);
               setChangeTo('');
             }}
           >
