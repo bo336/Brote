@@ -10,7 +10,7 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import { playerTransform } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 import { labelSlots } from '../hud/labelSlots';
-import { hidePin, pinToScreen } from './screenPin';
+import { avoidPrompt, hidePin, pinToScreen } from './screenPin';
 
 /**
  * Where the objective is, seen from anywhere.
@@ -86,7 +86,7 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
   useEffect(() => () => {
     beamGeo.dispose();
     beamMat.dispose();
-    hidePin(labelSlots.pin, labelSlots.pinArrow);
+    hidePin(labelSlots.pin, labelSlots.pinArrow, labelSlots.pinAt);
   }, [beamGeo, beamMat]);
   /** The metres last written into the pin, so the text changes only when the number does. */
   const shownM = useRef(-1);
@@ -97,7 +97,7 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
     if (!b) return;
     if (!target) {
       b.visible = false;
-      hidePin(labelSlots.pin, labelSlots.pinArrow);
+      hidePin(labelSlots.pin, labelSlots.pinArrow, labelSlots.pinAt);
       return;
     }
     const p = playerTransform;
@@ -113,10 +113,11 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
     const pin = labelSlots.pin;
     if (!pin) return;
     if (dist < GUIDE.pinHideNearM) {
-      hidePin(pin, labelSlots.pinArrow);
+      hidePin(pin, labelSlots.pinArrow, labelSlots.pinAt);
       return;
     }
-    pinToScreen(pin, camera, size, target.x, ground + GUIDE.pinHeightM, target.z, labelSlots.pinArrow);
+    pinToScreen(pin, camera, size, target.x, ground + GUIDE.pinHeightM, target.z, labelSlots.pinArrow, labelSlots.pinSize, labelSlots.pinAt);
+    avoidPrompt(pin, labelSlots.pinAt, labelSlots.pinSize, labelSlots.promptAt, labelSlots.promptSize);
     const m = Math.round(dist);
     if (m !== shownM.current && labelSlots.pinDistance) {
       shownM.current = m;

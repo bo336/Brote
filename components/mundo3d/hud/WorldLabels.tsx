@@ -30,6 +30,25 @@ export function WorldLabels() {
   const [touch, setTouch] = useState(false);
   useEffect(() => setTouch(window.matchMedia?.('(pointer: coarse)')?.matches ?? false), []);
 
+  // Both labels' sizes, for the loop's edge clamp and overlap — measured when
+  // they change, never per frame.
+  useEffect(() => {
+    const pin = labelSlots.pin;
+    const prompt = labelSlots.prompt;
+    if (!pin || !prompt || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      labelSlots.pinSize.w = pin.offsetWidth;
+      labelSlots.pinSize.h = pin.offsetHeight;
+      pin.style.setProperty('--pin-half', `${Math.round(pin.offsetWidth / 2)}px`);
+      const chip = prompt.firstElementChild as HTMLElement | null;
+      labelSlots.promptSize.w = chip?.offsetWidth ?? 0;
+      labelSlots.promptSize.h = chip?.offsetHeight ?? 0;
+    });
+    ro.observe(pin);
+    ro.observe(prompt);
+    return () => ro.disconnect();
+  }, []);
+
   const thing = objective?.thingKey ? t(objective.thingKey) : '';
   const verb = active ? (active.verb ? t(`verb.${active.verb}`) : t(active.labelKey)) : '';
 
@@ -50,7 +69,7 @@ export function WorldLabels() {
             ref={(el) => { labelSlots.pinArrow = el; }}
             className="absolute left-1/2 top-1/2 -ml-3 -mt-3 flex h-6 w-6 items-center justify-center opacity-0"
           >
-            <ChevronRight className="h-5 w-5 translate-x-12 text-brote-sun drop-shadow" strokeWidth={3} />
+            <ChevronRight className="h-5 w-5 translate-x-[calc(var(--pin-half,48px)+8px)] text-brote-sun drop-shadow" strokeWidth={3} />
           </div>
         </div>
       </div>

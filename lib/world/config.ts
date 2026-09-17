@@ -136,11 +136,12 @@ export const GUIDE = {
   // how far, and off screen it waits at the edge pointing the way.
   pinHeightM: 2.2, // the pin hangs this far above the target's ground
   pinHideNearM: 2.2, // gone only once its green ring and label have taken over (the interact radius is 2.4)
-  // Off screen it waits this far inside the edge — clear of the back button and
-  // the counter and zoom at the top, and the thumbs' buttons at the bottom.
-  pinEdgeSidePx: 56,
-  pinEdgeTopPx: 150,
+  // Off screen, the whole label waits this far inside the edge — below the goal
+  // card and the zoom buttons at the top, above the thumbs' buttons at the bottom.
+  pinEdgeSidePx: 12,
+  pinEdgeTopPx: 190,
   pinEdgeBottomPx: 170,
+  labelGapPx: 8, // the least space between the pin and the prompt
   promptHeightM: 0.95, // the "E · Regar" label, just over the ring and Pip's head
   saplingGrowMs: 1600,
   saplingScale: 0.55,

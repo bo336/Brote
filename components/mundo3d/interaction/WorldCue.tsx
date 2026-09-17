@@ -49,11 +49,11 @@ export function WorldCue() {
     g.rotateX(-Math.PI / 2);
     return paint(g, BRAND.green, RING_ALPHA);
   }, []);
-  useEffect(() => () => { ringGeo.dispose(); hidePin(labelSlots.prompt); }, [ringGeo]);
+  useEffect(() => () => { ringGeo.dispose(); hidePin(labelSlots.prompt, null, labelSlots.promptAt); }, [ringGeo]);
 
   useFrame(({ clock, camera, size }) => {
     if (!active || !group.current) {
-      hidePin(labelSlots.prompt);
+      hidePin(labelSlots.prompt, null, labelSlots.promptAt);
       return;
     }
     const t = clock.elapsedTime;
@@ -63,7 +63,9 @@ export function WorldCue() {
       const pulse = 1 + (Math.sin(t * 2.4) * 0.5 + 0.5) * RING_PULSE;
       ring.current.scale.set(pulse, 1, pulse);
     }
-    if (labelSlots.prompt) pinToScreen(labelSlots.prompt, camera, size, x, y + GUIDE.promptHeightM, z, null);
+    if (labelSlots.prompt) {
+      pinToScreen(labelSlots.prompt, camera, size, x, y + GUIDE.promptHeightM, z, null, labelSlots.promptSize, labelSlots.promptAt);
+    }
   });
 
   if (!active) return null;
