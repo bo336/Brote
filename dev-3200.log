@@ -1,0 +1,185 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+  - Environments: .env.local
+
+ ✓ Starting...
+ ○ (serwist) Serwist is disabled.
+ ○ (serwist) Serwist is disabled.
+ ✓ Ready in 6.9s
+ ✓ Compiled /middleware in 264ms (126 modules)
+ ○ Compiling /offline/mundo-preview ...
+ ✓ Compiled /offline/mundo-preview in 4s (3449 modules)
+ GET /offline/mundo-preview 200 in 4597ms
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.22,1,0.36,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.22,1,0.36,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 11.2s (1711 modules)
+ ✓ Compiled in 504ms (1711 modules)
+ ✓ Compiled in 594ms (1711 modules)
+ ✓ Compiled in 870ms (1711 modules)
+ ✓ Compiled in 513ms (1711 modules)
+ ✓ Compiled in 420ms (1711 modules)
+ ✓ Compiled in 499ms (1711 modules)
+ ✓ Compiled in 375ms (1711 modules)
+ ✓ Compiled in 304ms (1711 modules)
+ ✓ Compiled in 391ms (1712 modules)
+ ✓ Compiled in 329ms (1712 modules)
+ ✓ Compiled in 319ms (1712 modules)
+ ✓ Compiled in 332ms (1712 modules)
+ ✓ Compiled in 686ms (1712 modules)
+ ✓ Compiled in 305ms (1712 modules)
+ ✓ Compiled in 306ms (1713 modules)
+ ✓ Compiled in 432ms (1713 modules)
+ ✓ Compiled in 691ms (1713 modules)
+ ✓ Compiled in 339ms (1713 modules)
+ ✓ Compiled in 313ms (1713 modules)
+ ✓ Compiled in 924ms (1713 modules)
+ ✓ Compiled in 588ms (1713 modules)
+ ✓ Compiled /offline/mundo-preview in 488ms (1754 modules)
+ GET /offline/mundo-preview?tier=11&q=3&impact=2 200 in 972ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&at=pradera 200 in 62ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&at=pradera 200 in 57ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&at=arboleda 200 in 45ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&at=pradera 200 in 36ms
+ ✓ Compiled in 842ms (3467 modules)
+ ✓ Compiled in 861ms (3467 modules)
+ ✓ Compiled in 765ms (3467 modules)
+ ✓ Compiled in 1906ms (3467 modules)
+ ✓ Compiled in 1008ms (3467 modules)
+ ✓ Compiled in 696ms (3467 modules)
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 321ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 54ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 64ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 69ms
+ ✓ Compiled in 1105ms (3467 modules)
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 266ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 69ms
+ ✓ Compiled in 857ms (3467 modules)
+ ✓ Compiled in 912ms (3467 modules)
+ ✓ Compiled in 1638ms (3467 modules)
+ ✓ Compiled in 522ms (3467 modules)
+ ✓ Compiled in 763ms (3467 modules)
+ ✓ Compiled in 513ms (3467 modules)
+ ✓ Compiled in 726ms (3467 modules)
+ ✓ Compiled in 720ms (3467 modules)
+ ✓ Compiled in 1153ms (3467 modules)
+ GET /offline/mundo-preview 200 in 293ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 77ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 90ms
+ GET /offline/mundo-preview?tier=11&q=3&impact=2&props=1 200 in 77ms
+ ✓ Compiled in 1312ms (3467 modules)
+ ✓ Compiled in 759ms (3467 modules)
+ ✓ Compiled in 1675ms (3467 modules)
+ ✓ Compiled in 315ms (1713 modules)
+ ✓ Compiled in 973ms (3467 modules)
+ ✓ Compiled in 788ms (3467 modules)
+ ✓ Compiled in 1407ms (3467 modules)
+ ✓ Compiled in 783ms (3467 modules)
+ ✓ Compiled in 784ms (3467 modules)
+ ✓ Compiled in 522ms (3467 modules)
+ ✓ Compiled in 604ms (3469 modules)
+ ✓ Compiled in 767ms (3469 modules)
+ ✓ Compiled in 851ms (3469 modules)
+ ✓ Compiled in 777ms (3469 modules)
+ GET /offline/mundo-preview?tier=11&q=2&tod=dia&impact=2 200 in 332ms
+ ✓ Compiled in 1379ms (3469 modules)
+ ✓ Compiled in 321ms (1714 modules)
+ ✓ Compiled in 2.3s (3469 modules)
+ ✓ Compiled in 500ms (3469 modules)
+ ✓ Compiled in 734ms (3469 modules)
+ ✓ Compiled in 783ms (3469 modules)
+ ✓ Compiled in 1537ms (3471 modules)
+ GET /offline/mundo-preview?tier=11&q=3&tod=dia&impact=2&props=1&perf=1 200 in 354ms
+ ✓ Compiled in 1190ms (3471 modules)
+ ✓ Compiled in 822ms (3471 modules)
+ ✓ Compiled in 872ms (3471 modules)
+ ✓ Compiled in 961ms (3471 modules)
+ ✓ Compiled in 776ms (3471 modules)
+ ✓ Compiled in 770ms (3471 modules)
+ GET /offline/mundo-preview?tier=11&q=3&tod=dia&impact=2&perf=1 200 in 330ms
+ ✓ Compiled in 1278ms (3471 modules)
+ ✓ Compiled in 951ms (3471 modules)
+ ✓ Compiled in 796ms (3471 modules)
+ ✓ Compiled in 912ms (3471 modules)
+ ✓ Compiled in 792ms (3471 modules)
+ ✓ Compiled in 1527ms (3471 modules)
+ ✓ Compiled in 711ms (3471 modules)
+ ✓ Compiled in 799ms (3471 modules)
+ ✓ Compiled in 745ms (3471 modules)
+ ✓ Compiled in 750ms (3471 modules)
+ ✓ Compiled in 1061ms (3471 modules)
+ ✓ Compiled in 769ms (3471 modules)
+ ✓ Compiled in 972ms (3471 modules)
+ ✓ Compiled in 905ms (3471 modules)
+ ✓ Compiled in 749ms (3471 modules)
+ ✓ Compiled in 500ms (3471 modules)
+ ⨯ ./lib/render/geometry/tree.ts
+Error: 
+  [31mx[0m cannot reassign to a variable declared with `const`
+     ,-[[36;1;4mC:\Users\Usuario\Documents\GitHub\Brote\.claude\worktrees\intelligent-sanderson-9e1a0b\lib\render\geometry\tree.ts[0m:162:1]
+ [2m162[0m |  */
+ [2m163[0m | function limb(
+ [2m164[0m |   out: Piece[], a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, radial: number,
+ [2m165[0m |   { capped = false, knot = true }: { capped?: boolean; knot?: boolean } = {},
+     : [31;1m                    ^^|^[0m
+     :                       [31;1m`-- [31;1mcannot reassign[0m[0m
+ [2m166[0m | ): void {
+ [2m167[0m |   const dir = b.clone().sub(a);
+ [2m168[0m |   const len = dir.length();
+ [2m169[0m |   if (len < 1e-4) return;
+ [2m170[0m |   const geo = new THREE.CylinderGeometry(r1, r0, len, radial, 2, !capped);
+ [2m171[0m |   const m = new THREE.Matrix4().compose(
+ [2m172[0m |     a.clone().addScaledVector(dir, 0.5),
+ [2m173[0m |     new THREE.Quaternion().setFromUnitVectors(up, dir.normalize()),
+ [2m174[0m |     new THREE.Vector3(1, 1, 1),
+ [2m175[0m |   );
+ [2m176[0m |   out.push({ geo, matrix: m });
+ [2m177[0m |   // A knuckle at the joint, so a bend never shows a seam.
+ [2m178[0m |   const knot = new THREE.SphereGeometry(r1 * 1.05, radial, 4);
+     : [33;1m        ^^|^[0m
+     :           [33;1m`-- [33;1mconst variable was declared here[0m[0m
+ [2m179[0m |   out.push({ geo: knot, matrix: new THREE.Matrix4().makeTranslation(b.x, b.y, b.z) });
+ [2m180[0m | }
+     `----
+
+  [31mx[0m the name `knot` is defined multiple times
+     ,-[[36;1;4mC:\Users\Usuario\Documents\GitHub\Brote\.claude\worktrees\intelligent-sanderson-9e1a0b\lib\render\geometry\tree.ts[0m:162:1]
+ [2m162[0m |  */
+ [2m163[0m | function limb(
+ [2m164[0m |   out: Piece[], a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, radial: number,
+ [2m165[0m |   { capped = false, knot = true }: { capped?: boolean; knot?: boolean } = {},
+     : [31;1m                    ^^|^[0m
+     :                       [31;1m`-- [31;1mprevious definition of `knot` here[0m[0m
+ [2m166[0m | ): void {
+ [2m167[0m |   const dir = b.clone().sub(a);
+ [2m168[0m |   const len = dir.length();
+ [2m169[0m |   if (len < 1e-4) return;
+ [2m170[0m |   const geo = new THREE.CylinderGeometry(r1, r0, len, radial, 2, !capped);
+ [2m171[0m |   const m = new THREE.Matrix4().compose(
+ [2m172[0m |     a.clone().addScaledVector(dir, 0.5),
+ [2m173[0m |     new THREE.Quaternion().setFromUnitVectors(up, dir.normalize()),
+ [2m174[0m |     new THREE.Vector3(1, 1, 1),
+ [2m175[0m |   );
+ [2m176[0m |   out.push({ geo, matrix: m });
+ [2m177[0m |   // A knuckle at the joint, so a bend never shows a seam.
+ [2m178[0m |   const knot = new THREE.SphereGeometry(r1 * 1.05, radial, 4);
+     : [33;1m        ^^|^[0m
+     :           [33;1m`-- [33;1m`knot` redefined here[0m[0m
+ [2m179[0m |   out.push({ geo: knot, matrix: new THREE.Matrix4().makeTranslation(b.x, b.y, b.z) });
+ [2m180[0m | }
+     `----
+
+Import trace for requested module:
+./lib/render/geometry/tree.ts
+./lib/render/geometry/index.ts
+./app/offline/mundo-preview/page.tsx
+ ✓ Compiled in 855ms (3471 modules)
+ ✓ Compiled in 436ms (3471 modules)
+ ✓ Compiled in 812ms (3471 modules)
+ ✓ Compiled in 739ms (3471 modules)
+ GET /offline/mundo-preview?tier=11&q=3&tod=dia&at=pradera&impact=2 200 in 343ms
+ GET /offline/mundo-preview?tier=11&q=3&tod=dia&at=claro&impact=2 200 in 84ms
+ GET /offline/mundo-preview?tier=11&q=1&tod=dia&at=pradera&impact=2 200 in 82ms
+ GET /offline/mundo-preview?tier=11&q=3&tod=dia&impact=2 200 in 62ms
