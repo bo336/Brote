@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "incremental": false,
+    "composite": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": ".test-out",
+    "types": [
+      "node"
+    ],
+    "jsx": "react-jsx",
+    "plugins": []
+  },
+  "include": [
+    "lib/world/**/*.ts",
+    "lib/mundo.ts",
+    "lib/ranks.ts",
+    "lib/domains.ts",
+    "lib/impact.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Términos y Condiciones de uso de ${BRAND.name}.`,
 };
 
-const UPDATED = '12 de agosto de 2026';
+const UPDATED = '27 de agosto de 2026';
 
 export default function TerminosPage() {
   return (
@@ -97,7 +97,49 @@ export default function TerminosPage() {
         />
       </Section>
 
-      <Section n="6" title="Seguridad en la realización de actividades">
+      <Section n="6" title="Contenido que publicás (La Plaza)">
+        <p>
+          La Plaza es la parte social del Servicio: podés publicar textos e imágenes, responder, reaccionar y seguir
+          a otras personas. Las reglas concretas de convivencia están en las{' '}
+          <Link href="/legal/normas">Normas de la comunidad</Link>, que forman parte de estos Términos.
+        </p>
+        <p>
+          <strong>Tu contenido es público.</strong> Lo que publicás aparece con tu nombre visible y tu {BRAND.mascot},
+          es accesible mediante un enlace permanente y puede ser visto por cualquier persona con ese enlace, tenga o
+          no cuenta. No publiques nada que no quieras que sea público.
+        </p>
+        <p>
+          <strong>Licencia.</strong> Conservás la titularidad de todo lo que publicás. Nos otorgás una licencia
+          gratuita, no exclusiva, mundial y revocable para alojar, reproducir y mostrar ese contenido dentro del
+          Servicio, con la única finalidad de operarlo. La licencia termina cuando borrás el contenido o tu cuenta,
+          salvo respecto de copias que debamos conservar por obligación legal o de material ya compartido por
+          terceros fuera del Servicio.
+        </p>
+        <p>
+          <strong>Retiro de contenido.</strong> Podemos ocultar o eliminar contenido que incumpla las Normas de la
+          comunidad, y suspender temporalmente la posibilidad de publicar cuando se sostengan tres denuncias en un
+          plazo de 30 días. Toda decisión de moderación queda registrada y se notifica a quien publicó.
+        </p>
+        <p>
+          <strong>Denuncias y apelación.</strong> Cualquier persona usuaria puede denunciar contenido desde el propio
+          Servicio. Si considerás que una decisión fue equivocada, podés escribirnos a{' '}
+          <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a> indicando el enlace de la publicación.
+        </p>
+        <p>
+          <strong>Personas menores de edad.</strong> Las cuentas infantiles no tienen acceso a ninguna función social:
+          no publican, no comentan, no reaccionan, no siguen ni son seguidas, no aparecen en búsquedas ni en
+          sugerencias y no pueden ser mencionadas. Las cuentas adolescentes publican únicamente texto y su perfil es
+          visible por defecto solo para quienes las siguen. Estas restricciones se aplican en el servidor.
+        </p>
+        <p>
+          <strong>Contenido de terceros y retirada por derechos de autor.</strong> Las novedades provienen de medios
+          de comunicación y se muestran con título, resumen breve, atribución de la fuente y enlace a la nota
+          original. Si sos titular de derechos y entendés que un contenido no debe mostrarse, escribinos a{' '}
+          <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a> con el enlace correspondiente.
+        </p>
+      </Section>
+
+      <Section n="7" title="Seguridad en la realización de actividades">
         <p>
           Las acciones propuestas por {BRAND.name} son sugerencias de carácter general. La decisión de realizarlas es
           exclusivamente tuya y bajo tu propia responsabilidad.
@@ -114,7 +156,7 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="7" title="Contenido de terceros y novedades">
+      <Section n="8" title="Contenido de terceros y novedades">
         <p>
           La Aplicación muestra titulares, resúmenes y enlaces a contenidos periodísticos y de divulgación producidos
           por terceros. Dichos contenidos pertenecen a sus respectivos titulares; {BRAND.name} no los produce, no
@@ -127,7 +169,7 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="8" title="Suscripciones y pagos">
+      <Section n="9" title="Suscripciones y pagos">
         <p>
           El Servicio ofrece una modalidad gratuita y una suscripción paga opcional («{BRAND.name}+»), que habilita
           funcionalidades adicionales y elimina la publicidad.
@@ -143,7 +185,7 @@ export default function TerminosPage() {
         />
       </Section>
 
-      <Section n="9" title="Publicidad">
+      <Section n="10" title="Publicidad">
         <p>
           La modalidad gratuita puede incluir espacios publicitarios provistos por redes de terceros. La publicidad se
           identifica como tal y no se muestra a cuentas infantiles ni a personas suscriptas a {BRAND.name}+. Podés
@@ -152,7 +194,7 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="10" title="Propiedad intelectual">
+      <Section n="11" title="Propiedad intelectual">
         <p>
           El software, la marca, el diseño, los textos, las ilustraciones y el personaje {BRAND.mascot} son titularidad
           de {BRAND.name} o de sus licenciantes, y se encuentran protegidos por la normativa de propiedad intelectual
@@ -160,12 +202,12 @@ export default function TerminosPage() {
           y no transferible necesaria para utilizar el Servicio.
         </p>
         <p>
-          Conservás la titularidad de los contenidos que publiques, otorgando a {BRAND.name} una licencia gratuita y no
-          exclusiva para alojarlos y mostrarlos dentro del Servicio con la finalidad de operarlo.
+          Conservás la titularidad de los contenidos que publiques. El alcance exacto de la licencia que nos otorgás
+          está detallado en la cláusula 6.
         </p>
       </Section>
 
-      <Section n="11" title="Disponibilidad y limitación de responsabilidad">
+      <Section n="12" title="Disponibilidad y limitación de responsabilidad">
         <p>
           El Servicio se presta sin garantía de disponibilidad ininterrumpida ni de ausencia de errores. Pueden
           producirse interrupciones por mantenimiento, fallas técnicas o causas ajenas a nuestro control.
@@ -178,16 +220,18 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="12" title="Baja de la cuenta">
+      <Section n="13" title="Baja de la cuenta">
         <p>
-          Podés eliminar tu cuenta en cualquier momento desde los ajustes de la Aplicación. La eliminación implica la
-          supresión de tu perfil y de los datos asociados, conforme a lo previsto en la{' '}
-          <Link href="/legal/privacidad">Política de Privacidad</Link>, sin perjuicio de la conservación de aquella
-          información que debamos mantener por obligación legal.
+          Podés eliminar tu cuenta en cualquier momento desde los ajustes de la Aplicación. La eliminación suprime tu
+          perfil, tus publicaciones y respuestas, tus reacciones, tus guardados, a quién seguís y quién te sigue, tus
+          bloqueos y silencios, y los archivos que hayas subido. Se conservan, sin poder vincularse a vos, las
+          denuncias que hayas presentado y las decisiones de moderación asociadas, porque son el registro que hace
+          posible revisar una decisión. Ver la{' '}
+          <Link href="/legal/privacidad">Política de Privacidad</Link>.
         </p>
       </Section>
 
-      <Section n="13" title="Modificaciones de los Términos">
+      <Section n="14" title="Modificaciones de los Términos">
         <p>
           Podemos actualizar estos Términos para reflejar cambios en el Servicio o en la normativa aplicable. Los
           cambios sustanciales se notificarán dentro de la Aplicación con antelación razonable. El uso continuado del
@@ -195,7 +239,7 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="14" title="Ley aplicable y jurisdicción">
+      <Section n="15" title="Ley aplicable y jurisdicción">
         <p>
           Estos Términos se rigen por las leyes de la República Argentina. Para toda controversia serán competentes los
           tribunales ordinarios de la Ciudad Autónoma de Buenos Aires, sin perjuicio del fuero que corresponda de modo
@@ -203,7 +247,7 @@ export default function TerminosPage() {
         </p>
       </Section>
 
-      <Section n="15" title="Contacto">
+      <Section n="16" title="Contacto">
         <p>
           Ante cualquier consulta sobre estos Términos podés escribirnos a{' '}
           <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a>.

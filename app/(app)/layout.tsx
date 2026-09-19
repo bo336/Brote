@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/nav/Sidebar';
 import { TopBar } from '@/components/nav/TopBar';
@@ -18,6 +19,12 @@ import { getSessionData } from '@/lib/supabase/queries';
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const { profile, unread } = await getSessionData();
+
+  // `/feed/p/[id]` is shareable, so it can be opened by somebody with no
+  // account at all. That page renders its own public preview; the app shell
+  // (sidebar, tab bar, Pip) would be furniture around a door they cannot open.
+  const pathname = headers().get('x-pathname') ?? '';
+  if (!profile && pathname.startsWith('/feed/p/')) return <>{children}</>;
 
   if (!profile) redirect('/auth/login');
   if (!profile.onboardingCompleted) redirect('/onboarding');

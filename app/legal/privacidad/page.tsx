@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Cómo ${BRAND.name} trata tus datos personales.`,
 };
 
-const UPDATED = '12 de agosto de 2026';
+const UPDATED = '27 de agosto de 2026';
 
 export default function PrivacidadPage() {
   return (
@@ -64,6 +64,27 @@ export default function PrivacidadPage() {
         <p>
           <strong>No recopilamos</strong> datos de geolocalización precisa, ni datos sensibles en el sentido del
           artículo 2 de la Ley 25.326, ni datos de tarjetas o cuentas bancarias.
+        </p>
+      </Section>
+
+      <Section n="2.b" title="Datos que genera tu actividad en La Plaza">
+        <p>
+          Al usar la parte social del Servicio se generan, además, estos datos, cada uno en su propia tabla:
+        </p>
+        <Bullets
+          items={[
+            'Publicaciones, respuestas y replantes (`feed_posts`): el texto, las imágenes, la fecha y los temas detectados.',
+            'A quién seguís y quién te sigue (`follows`).',
+            'Tus reacciones (`feed_reactions`) y tus guardados (`feed_saves`). Los guardados son privados y no tienen contador visible.',
+            'Qué publicaciones viste (`feed_seen`), únicamente para no repetirte contenido. Se borran a los 7 días.',
+            'A quién bloqueaste o silenciaste (`user_blocks`, `user_mutes`). Nunca se le informa a la otra persona.',
+            'Las denuncias que presentaste (`content_reports`) y las decisiones de moderación (`moderation_actions`).',
+          ]}
+        />
+        <p>
+          Las imágenes que subís se procesan en tu propio dispositivo antes de enviarse: al recomprimirlas se
+          eliminan los metadatos EXIF, incluida la ubicación GPS. Esa foto no viaja con las coordenadas de dónde la
+          sacaste.
         </p>
       </Section>
 
@@ -141,17 +162,46 @@ export default function PrivacidadPage() {
           usuarias en tablas de posiciones, competencias y proyectos comunitarios en los que participes. Tu dirección
           de correo electrónico nunca se muestra públicamente.
         </p>
-      </Section>
-
-      <Section n="8" title="Conservación">
         <p>
-          Conservamos tus datos mientras tu cuenta permanezca activa. Si la eliminás, se suprimen tu perfil y los datos
-          asociados, salvo aquella información que debamos conservar por obligación legal o para acreditar el
-          cumplimiento de obligaciones fiscales derivadas de una suscripción.
+          <strong>Tu perfil público</strong> (en <code>/perfil/tu-usuario</code>) muestra: nombre visible, usuario,{' '}
+          {BRAND.mascot}, rango, provincia, biografía, cantidad de seguidores y seguidos, racha, puesto global,
+          puntos por tema, títulos e insignias, y tus publicaciones. <strong>Nunca muestra tu barrio</strong> ni tu
+          correo, aunque los tengamos cargados.
         </p>
         <p>
-          Las novedades y contenidos de terceros se depuran periódicamente y no se vinculan a personas usuarias
+          <strong>Tus publicaciones son públicas.</strong> Cada una tiene un enlace permanente que funciona para
+          cualquier persona, incluso sin cuenta. La vista previa que se genera al compartir ese enlace incluye tu
+          nombre visible y el texto; no se genera para cuentas adolescentes ni para perfiles privados.
+        </p>
+        <p>
+          <strong>Podés cerrar tu perfil.</strong> Las cuentas adolescentes arrancan visibles solo para quienes las
+          siguen. Las cuentas infantiles no tienen perfil público en absoluto y no aparecen en búsquedas ni en
+          sugerencias.
+        </p>
+        <p>
+          <strong>Lo que nunca es público:</strong> tus guardados, qué publicaciones viste, a quién silenciaste o
+          bloqueaste, y las denuncias que hayas presentado. No hay contador visible de ninguna de esas cosas.
+        </p>
+      </Section>
+
+      <Section n="8" title="Conservación y borrado">
+        <p>
+          Conservamos tus datos mientras tu cuenta permanezca activa. Las publicaciones que viste
+          (<code>feed_seen</code>, usado para no repetirte contenido) se borran automáticamente a los 7 días. Las
+          novedades y contenidos de terceros se depuran periódicamente y no se vinculan a personas usuarias
           individuales.
+        </p>
+        <p>
+          <strong>Al eliminar tu cuenta</strong> desde Ajustes se suprimen, de forma inmediata y verificada: tu
+          perfil, tus publicaciones y respuestas, tus reacciones, tus guardados, tus impresiones, a quién seguís y
+          quién te sigue, tus bloqueos y silencios, y los archivos que hayas subido (fotos de publicaciones, de
+          perfil, de proyectos y de verificación).
+        </p>
+        <p>
+          <strong>Qué sobrevive y por qué:</strong> las denuncias que hayas presentado y las decisiones de moderación
+          asociadas se conservan <em>sin tu identificador</em>, es decir sin poder vincularse a vos. Es el registro
+          que permite revisar una decisión y responder ante una autoridad; conservarlo anonimizado es el equilibrio
+          entre tu derecho de supresión y el derecho de otra persona a apelar.
         </p>
       </Section>
 

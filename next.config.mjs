@@ -15,6 +15,9 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // A second build directory for a dev server running beside a production one,
+  // so iterating on the world never overwrites the build somebody is testing.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // The 3D world and image-heavy surfaces benefit from modern formats.
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -27,6 +30,20 @@ const nextConfig = {
   // packages optimized for the App Router.
   experimental: {
     optimizePackageImports: ['lucide-react', '@react-three/drei', 'recharts'],
+  },
+  /**
+   * /explorar split into /feed (the Plaza) and /proyectos. These are permanent
+   * because the old paths are already out in the world — in the PWA's cached
+   * shell, in shared news links, and in push notifications sent before the
+   * move. A 404 for someone tapping an old notification is a lost session.
+   */
+  async redirects() {
+    return [
+      { source: '/explorar', destination: '/feed', permanent: true },
+      { source: '/explorar/novedades/:id', destination: '/feed/n/:id', permanent: true },
+      { source: '/explorar/proyectos', destination: '/acciones?tab=proyectos', permanent: true },
+      { source: '/explorar/proyectos/:path*', destination: '/proyectos/:path*', permanent: true },
+    ];
   },
 };
 

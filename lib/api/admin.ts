@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import type { FeedItem } from '@/lib/api/feed';
 
 export interface AdminSetting {
   value: boolean | number | string;
@@ -60,4 +61,57 @@ export async function adminSetSimulatedCount(
   });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string; count?: number };
+}
+
+export interface ModerationQueueItem {
+  id: string;
+  reason: string;
+  note: string | null;
+  status: 'open' | 'upheld' | 'dismissed';
+  created_at: string;
+  resolved_at: string | null;
+  resolution: string | null;
+  reports: number;
+  post: FeedItem | null;
+  post_hidden: boolean | null;
+  author: {
+    id: string;
+    username: string | null;
+    display_name: string | null;
+    trust_score: number | null;
+    suspended_until: string | null;
+    upheld_30d: number;
+  } | null;
+}
+
+/**
+ * The report queue. The passphrase goes with every call, not just the first —
+ * a tab left open on a shared screen should not be a standing key.
+ */
+export async function adminModerationQueue(
+  pass: string,
+  status: 'open' | 'upheld' | 'dismissed' = 'open',
+): Promise<ModerationQueueItem[]> {
+  const { data, error } = await createClient().rpc('admin_moderation_queue', {
+    p_pass: pass,
+    p_status: status,
+  });
+  if (error) throw error;
+  return (data ?? []) as ModerationQueueItem[];
+}
+
+export async function adminModerate(
+  pass: string,
+  reportId: string,
+  action: 'hide' | 'restore' | 'dismiss',
+  note?: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_moderate', {
+    p_pass: pass,
+    p_report_id: reportId,
+    p_action: action,
+    p_note: note ?? null,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
 }

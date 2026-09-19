@@ -1,0 +1,308 @@
+/**
+ * The palette. **The only place a hex literal exists** (`06-ART-DIRECTION.md` §3).
+ *
+ * Clay is pigment in a matte binder: every colour is desaturated toward the
+ * cream by 8-15%, and nothing is a fully saturated primary. Warm light, cool
+ * shadow. That single relationship does 80% of the work the old world's five
+ * post-processing passes were attempting.
+ *
+ * The chalk function itself lives in `lib/world/biome.ts` — chalking is colour
+ * maths, not rendering, and the pure layer needs it to build biome ramps. It is
+ * re-exported here so the render layer has one obvious door and one implementation.
+ */
+import { biomeConfig, chalk, mixColors, type BiomeConfig } from '@/lib/world/biome';
+import type { TimeOfDay } from '@/lib/world/types';
+
+export { chalk };
+export type { BiomeConfig };
+
+/** Brand anchors, verbatim from `tailwind.config.ts`. Do not re-pick these. */
+export const BRAND = {
+  green: '#1FB57A',
+  greenDeep: '#0E7A52',
+  ink: '#0C1A13',
+  inkSoft: '#16261D',
+  cream: '#F7F5EF',
+  creamSoft: '#FFFFFF',
+  sun: '#FFB23E',
+  coral: '#FF6B5E',
+  aqua: '#2DB4D4',
+} as const;
+
+/** The 13 canonical domain colours. Accents only — never terrain. */
+export const DOMAIN_COLORS = {
+  residuos: '#C2703D',
+  agua: '#2DB4D4',
+  energia: '#F4A62A',
+  movilidad: '#5B6CF0',
+  plantas: '#3CB371',
+  animales: '#E8638C',
+  alimentacion: '#9CC93B',
+  consumo: '#B07CD6',
+  digital: '#3DC1C1',
+  comunidad: '#FF8A3D',
+  agua_azul: '#1E88A8',
+  aire_suelo: '#A38B6D',
+  ciencia: '#6FBF73',
+} as const;
+
+/** The world ramp. Every surface in the game takes its colour from here. */
+export const CLAY = {
+  soil: '#B08A63', // bare earth, paths, cliff faces
+  soilDeep: '#8A6A49', // soil in shadow, undercuts
+  sand: '#D9C9A8', // beach, shoreline
+  grass: '#6FBF73', // ground cover
+  grassDeep: '#3E8C5C', // grass in shadow, dense patches
+  leaf: '#3CB371', // canopy
+  leafDeep: '#0E7A52', // canopy underside
+  bark: '#8C6E52', // trunks, wood props
+  barkDeep: '#6B5340', // wood in shadow, legs, undersides
+  barkRoof: '#A8784E', // the warmer wood of a roof or a lid
+  stone: '#A8A296', // rock, mountain
+  stoneDeep: '#7A756B', // cliff shadow, cave
+  snow: '#F2EFE6', // snow, tier 9+
+  water: '#2DB4D4', // water surface
+  waterDeep: '#1E88A8', // water depth
+  foam: '#EAF7FA', // shoreline foam line
+  path: '#A85A34', // tierra colorada, where the paths wear through
+  pathWorn: '#C98A5C', // …and paler down the middle, where most feet go
+} as const;
+
+/**
+ * Native flora, for the v2 trees (`23-ART-DIRECTION-V2.md` §3). Leaf colours
+ * come in threes — underside, body, sunlit top — so a crown has value structure.
+ */
+export const NATIVE = {
+  ombuDeep: '#1F4A2A',
+  ombu: '#2F6B37',
+  ombuLight: '#5E9A45',
+  araucariaDeep: '#1D3F2B',
+  araucaria: '#2E5B3A',
+  araucariaLight: '#4F7F48',
+  jacarandaLeafDeep: '#2C5A32',
+  jacarandaLeaf: '#4C8A3E',
+  jacarandaLeafLight: '#7FB356',
+  jacaranda: '#8E6CC8',
+  ceiboLeafDeep: '#2A5530',
+  ceiboLeaf: '#467F3B',
+  ceiboLeafLight: '#72A650',
+  ceibo: '#D7263D',
+  bark: '#7A5A40',
+  barkDark: '#4A3526',
+  barkGrey: '#6B625A',
+  barkGreyLight: '#958A7E',
+  moss: '#5E7F3E',
+  stone: '#8E887D',
+  stoneDeep: '#5F5A52',
+  // El calafate: small hard leaves, and the blue-black berry of the south.
+  calafateLeafDeep: '#23422B',
+  calafateLeaf: '#3A6538',
+  calafateLeafLight: '#6A944B',
+  calafateBerry: '#3C3170',
+  calafateBerryBloom: '#8E82C4',
+} as const;
+
+/** Native fauna (`lib/render/geometry/fauna.ts`): the real colours of the animals, not accents. */
+export const FAUNA = {
+  hornero: '#A8653A',
+  horneroDark: '#6E4128',
+  horneroBelly: '#E6D0AB',
+  beak: '#5A4636',
+  butterflyWing: '#E68A2E',
+  butterflyEdge: '#1F1B18',
+  condor: '#1D1C20',
+  condorWhite: '#ECE8DF',
+  condorHead: '#B98E86',
+  condorBeak: '#E4D9C0',
+  fishBack: '#4E6B67',
+  fishBelly: '#C9D6D2',
+  huemul: '#8B6B4A',
+  huemulDark: '#5A4431',
+  huemulBelly: '#D7C4A2',
+  antler: '#D8CDB8',
+  fox: '#8E877D',
+  foxRufous: '#B77544',
+  foxBelly: '#E6DDCF',
+  foxDark: '#2B2724',
+} as const;
+
+/** The four lights. Warm key, cool fill — the whole lighting model (`06` §6). */
+export const LIGHT = {
+  key: '#FFE2AE', // sun, warm
+  fill: '#AFCBE0', // sky bounce, cool
+  rim: '#FFD9A0', // rim / back light
+  nightKey: '#8FA8D8', // moon
+  nightFill: '#2A3A54', // night sky bounce
+} as const;
+
+/**
+ * Pip's body palettes, as `[body, bodyDeep, leaf, leafDeep]`.
+ *
+ * The first six are the **free set, verbatim from `components/pip/Pip.tsx`** —
+ * do not re-pick them, and do not let them drift: `pip.test.ts` reads both files
+ * and fails if they disagree. They are duplicated here rather than imported
+ * because `lib/render` may not import `components/**` (`07-RENDER` §2), and
+ * because a 32 px avatar must never pull in the renderer.
+ *
+ * The last five are the paid set from the live `cosmetics` table
+ * (`09-PIP.md` §4), derived in the same shape and chalked to the world ramp.
+ * **Both sets must render** — the old 3D Pip was a green blob that ignored
+ * customisation entirely (`02-AUDIT.md` §5).
+ */
+export const PIP_PALETTES: Record<string, readonly [string, string, string, string]> = {
+  clasico: ['#9CC93B', '#6FBF73', '#1FB57A', '#0E7A52'],
+  cielo: ['#7EC8E3', '#4FA3C7', '#2DB4D4', '#1E88A8'],
+  coral: ['#FF8A76', '#E86A5A', '#FF6B5E', '#C74A3E'],
+  lavanda: ['#B99AE8', '#9A7BD0', '#B07CD6', '#8A5CB8'],
+  sol: ['#FFD27A', '#F4A62A', '#FFB23E', '#E8950E'],
+  noche: ['#7B8AF5', '#5B6CF0', '#6FBF73', '#0E7A52'],
+  aurora: ['#8FE3C2', '#5FC79E', '#B08CE8', '#6E4FA8'],
+  bosque: ['#3E8C5C', '#2C6B45', '#1FB57A', '#0E7A52'],
+  atardecer: ['#FFB07A', '#E8875A', '#FF8A3D', '#C75E28'],
+  glaciar: ['#BFE4F0', '#8CC4D8', '#7EC8E3', '#3D7E96'],
+  cosmos: ['#6B5AA8', '#4A3D7A', '#9A7BD0', '#3A2E5E'],
+};
+
+/** Tier 11 hard-overrides to the `sol` set with a slow shimmer (`09-PIP.md` §4). */
+export const PIP_GOLDEN = PIP_PALETTES.sol!;
+
+/** Pip's non-palette colours: eyes, mouth, cheeks, the aura. */
+export const PIP_PARTS = {
+  eye: '#0C1A13', // ink, so the face reads at 32 px and at 3 m
+  shine: '#FFFFFF',
+  mouth: '#0C1A13',
+  cheek: '#FF8A76',
+  aura: '#1FB57A',
+  auraGolden: '#FFB23E',
+  metal: '#A8A296',
+  cloth: '#F7F5EF',
+} as const;
+
+/** The one allowed gradient, for the tier-up title card and nothing else in-world. */
+export const HERO_GRADIENT = 'linear-gradient(115deg, #0E7A52 0%, #1FB57A 45%, #FFB23E 100%)';
+
+export interface LightPreset {
+  keyColor: string;
+  keyIntensity: number;
+  fillSky: string;
+  fillGround: string;
+  fillIntensity: number;
+  rimColor: string;
+  rimIntensity: number;
+  ambientColor: string;
+  ambientIntensity: number;
+  /** Sun elevation in degrees, for the key light's direction. */
+  keyElevationDeg: number;
+}
+
+/**
+ * Four authored presets, cross-faded over ~2 s — not a continuous sun
+ * simulation. Intensities follow `06-ART-DIRECTION.md` §6.
+ */
+/**
+ * Authored for `MeshStandardMaterial` under AgX at exposure 1 (`23-ART-DIRECTION-V2.md`).
+ * The sun does the work and casts the shadow; the sky fills the shade blue; the
+ * ground bounces warm. Midday is not noon — a player sees the island at a
+ * flattering four o'clock, the sun high enough to light it and low enough to model it.
+ */
+export const PRESETS: Record<TimeOfDay, LightPreset> = {
+  amanecer: {
+    keyColor: '#FFD2A6', keyIntensity: 2.4, fillSky: '#B7C6E6', fillGround: '#7A5E48',
+    fillIntensity: 0.9, rimColor: LIGHT.rim, rimIntensity: 0.3,
+    ambientColor: '#F6C89A', ambientIntensity: 0.12, keyElevationDeg: 16,
+  },
+  dia: {
+    keyColor: '#FFEBC8', keyIntensity: 3.1, fillSky: '#BFD9F2', fillGround: '#8A7452',
+    fillIntensity: 1.05, rimColor: LIGHT.rim, rimIntensity: 0.25,
+    ambientColor: LIGHT.key, ambientIntensity: 0.1, keyElevationDeg: 42,
+  },
+  atardecer: {
+    keyColor: '#FFB066', keyIntensity: 2.6, fillSky: '#C9A9C9', fillGround: '#7A4E36',
+    fillIntensity: 0.75, rimColor: '#FFC48A', rimIntensity: 0.35,
+    ambientColor: '#F79A5B', ambientIntensity: 0.12, keyElevationDeg: 11,
+  },
+  noche: {
+    keyColor: LIGHT.nightKey, keyIntensity: 0.7, fillSky: '#3A4E78', fillGround: BRAND.ink,
+    fillIntensity: 0.55, rimColor: LIGHT.nightKey, rimIntensity: 0.25,
+    ambientColor: LIGHT.nightFill, ambientIntensity: 0.18, keyElevationDeg: 50,
+  },
+};
+
+/**
+ * **Sky and fog per time of day.** A preset is "a set of light colours and
+ * intensities *plus fog and sky colours*" (`06-ART-DIRECTION.md` §6) — an
+ * earlier version authored only the light rig and branched the sky on `noche`
+ * alone, which made dawn, midday and dusk the same picture under a slightly
+ * different lamp.
+ *
+ * Each entry carries the biome's own sky **toward** a tint rather than
+ * replacing it, so world 3 still reads as world 3 at sunset.
+ */
+interface SkyPreset {
+  /** Tint and strength for the top of the dome… */
+  top: string;
+  topMix: number;
+  /** …and for the horizon band, which is also the fog colour. */
+  horizon: string;
+  horizonMix: number;
+}
+
+const SKIES: Record<TimeOfDay, SkyPreset> = {
+  // First light: a cool violet overhead, apricot along the horizon.
+  amanecer: { top: '#5E6FA6', topMix: 0.55, horizon: '#F6C89A', horizonMix: 0.65 },
+  // Afternoon: a real blue overhead, a pale luminous horizon. The biome still tints both.
+  dia: { top: '#2F7BD6', topMix: 0.9, horizon: '#D8EAF4', horizonMix: 0.65 },
+  // Dusk: the deepest sky of the three lit presets, and the warmest horizon.
+  atardecer: { top: '#34497A', topMix: 0.6, horizon: '#F79A5B', horizonMix: 0.75 },
+  // Night keeps its own ink; the mix is a full replacement.
+  noche: { top: '#0E1830', topMix: 1, horizon: LIGHT.nightFill, horizonMix: 1 },
+};
+
+export interface WorldPalette {
+  ground: string;
+  grass: string;
+  leaf: string;
+  leafDeep: string;
+  accent: string;
+  water: string;
+  waterDeep: string;
+  foam: string;
+  skyTop: string;
+  skyHorizon: string;
+  /** Fog matches the sky horizon — fog is the depth cue in this game. */
+  fog: string;
+  light: LightPreset;
+}
+
+/**
+ * The palette for a biome at a time of day. The biome's own hues come through
+ * `chalk()`, so all six curated biomes and every procedural one beyond share a
+ * single material feel.
+ */
+export function paletteFor(biome: BiomeConfig, tod: TimeOfDay): WorldPalette {
+  const c = biome.chalked;
+  const sky = SKIES[tod];
+  // The horizon and the fog are the same colour by construction: fog is the
+  // sky seen through the air in front of it, and any gap between the two reads
+  // as a seam at the coastline.
+  const horizon = mixColors(c.skyHorizon, sky.horizon, sky.horizonMix);
+  return {
+    ground: c.ground,
+    grass: c.grass,
+    leaf: c.leaf,
+    leafDeep: c.leafDeep,
+    accent: c.accent,
+    water: c.water,
+    waterDeep: chalk(CLAY.waterDeep),
+    foam: CLAY.foam,
+    skyTop: mixColors(c.skyTop, sky.top, sky.topMix),
+    skyHorizon: horizon,
+    fog: horizon,
+    light: PRESETS[tod],
+  };
+}
+
+/** The palette for a world index, without the caller reaching for `lib/mundo`. */
+export function paletteForWorld(worldIndex: number, tod: TimeOfDay): WorldPalette {
+  return paletteFor(biomeConfig(worldIndex), tod);
+}

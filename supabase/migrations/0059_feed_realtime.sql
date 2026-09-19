@@ -1,0 +1,22 @@
+-- Brote — 0059 — El feed en la publicación de realtime.
+-- Feed v2 ("La Plaza") fase 2, paso 5.
+--
+-- Para la píldora "N publicaciones nuevas" hace falta que `feed_posts` viaje
+-- por realtime. Dos cosas que ya están y hacen esto seguro sin agregar nada:
+--
+--   · `postgres_changes` respeta RLS, y la política de lectura de `feed_posts`
+--     ya filtra por edad y por `hidden`. Una cuenta infantil no va a recibir
+--     el evento de una publicación que no puede ver, igual que no la recibe
+--     en el timeline.
+--   · La identidad de réplica por defecto (la clave primaria) alcanza: el
+--     cliente solo necesita saber QUE hubo algo nuevo para contar, no qué
+--     decía. El contenido lo trae después, por el camino normal.
+--
+-- Sobre el costo: el plan gratis incluye 2 M de mensajes por mes, y la ingesta
+-- de novedades inserta del orden de cientos de filas por día. El cliente se
+-- suscribe solo mientras la pestaña está visible y solo cuenta lo que no
+-- escribió esta misma persona, así que una sesión en segundo plano no gasta
+-- nada. Si algún día el volumen lo pide, el paso siguiente es un canal por
+-- tema en vez de la tabla entera — no hace falta todavía.
+
+alter publication supabase_realtime add table feed_posts;

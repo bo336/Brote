@@ -5,6 +5,283 @@
 > Update `## CURRENT STATE` + checkboxes after every work block. Commit this file with each push.
 
 ## CURRENT STATE
+
+### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
+
+Calidad, seguridad y cierre. El feed dejó de terminarse, el ranking se ajustó
+contra datos reales, el onboarding siembra el grafo, la capa legal está
+completa, y el borrado de cuenta borra de verdad.
+
+**Base de datos** (repo `0065`–`0076`, todas aplicadas en vivo).
+- `0065_feed_ladder` — la escalera: cuando se acaban las publicaciones y las
+  noticias, el feed ofrece cuentas para descubrir, proyectos abiertos (los de tu
+  ciudad primero), acciones sin hacer y la próxima lección. Recién después
+  aparece el final honesto. Una cuenta infantil recibe solo acciones y lección.
+- `0066_ranking_pass` — **medido, no supuesto**: la primera página daba 19
+  noticias / 1 publicación (95 %) y tres medios se llevaban 17 de 20 lugares.
+  La diversidad de autor existía pero estaba exenta para `author_id is null`,
+  o sea que no tocaba al 99 % del feed. Se agregó diversidad por MEDIO (−12 por
+  nota extra) y un piso para lo humano (+45 sobre una noticia igual de reciente,
+  y seguir a alguien pasó de +60 a +80). Después: top-3 medios 12/20, medios
+  distintos 5 → 7, y las 3 publicaciones que existen entran en la página 1.
+- `0067` + `0068_erasure_storage` — consentimiento y borrado. `set_plaza_flag`
+  para las dos tarjetas de una sola vez, y `delete_my_account` revisado. La
+  primera versión intentaba borrar `storage.objects` desde SQL: no se puede
+  (trigger `storage.protect_delete`), así que el barrido de archivos pasó al
+  cliente por la API de Storage. **Faltaban las políticas de DELETE de
+  `projects` y `verifications`**: hasta acá nadie podía borrar sus propias fotos
+  de verificación ni al cerrar la cuenta.
+- `0069_timeline_perf` — `explain analyze` daba **175 ms** y 13.173 buffers. El
+  puntaje disparaba ~8 subconsultas correlacionadas por candidato (news ×2,
+  profiles ×3, follows ×2, feed_seen). Con `my_follows`/`my_followers`
+  materializados una vez y `news`/`profiles` por LEFT JOIN: **59 ms**, 4.597
+  buffers, y el orden resultante idéntico (mismos cursores página a página).
+- `0070_deterministic_diversity` — endurecimiento con una historia honesta
+  adentro: fui a buscar un bug de duplicados que resultó ser de mi banco de
+  pruebas (`v->'next_cursor'` sobre un null de JSON da `'null'::jsonb`, que no
+  es NULL de SQL, así que el bucle reempezaba). El feed estaba bien. El cambio
+  queda igual porque el riesgo es real: `row_number()` sobre filas que empatan
+  no tiene orden garantizado, y si el puntaje de una fila cambia entre páginas
+  el cursor deja de servir.
+- `0071_suggestions_kid_guard` — `suggested_accounts` excluía a los chicos como
+  resultado pero no como quien pregunta.
+- `0072_fix_plaza_flag` — **bug real y silencioso**: `jsonb_set` con
+  `create_missing` crea la última clave del camino, NO los niveles intermedios.
+  Sin `context->'plaza'` previo devolvía el jsonb original sin quejarse, así que
+  la función respondía `{"ok": true}` y no guardaba nada: el aviso de "esto es
+  público" volvía a aparecer en cada publicación, para siempre.
+- `0073_reactions_policy_split` — `feed_reactions` tenía dos políticas
+  permisivas de SELECT (una `FOR ALL` incluye SELECT). Se parte en
+  INSERT/UPDATE/DELETE. Permisos efectivos idénticos, una evaluación menos por
+  fila leída en la tabla más caliente.
+- `0074`/`0075_follow_requests` + `0076` — ver abajo.
+
+**Cliente**
+- `LadderCards` con eyebrow por peldaño (PARA DESCUBRIR · CERCA TUYO · PARA
+  HACER HOY · PARA APRENDER), y el final honesto sólo después.
+- Paso nuevo de onboarding: "¿A quién querés seguir?" con `suggested_accounts(6)`,
+  multi-selección y "Ahora no". Se saltea entero para cuentas infantiles, y los
+  puntitos de progreso cuentan los pasos que esa cuenta realmente ve.
+- Aviso de una sola vez antes de la primera publicación ("es público, con tu
+  nombre y tu Pip") y tarjeta "Tu primera publicación 🌱" con enlace al
+  permalink.
+- `FeedCard` memoizado; imágenes con caja de proporción fija (cero CLS).
+- `scripts/check-feed-cursor.mjs` (`npm run check:feed`): recorre el feed real
+  hasta el final y falla si hay un id repetido o si el puntaje sube.
+
+**Legal**
+- `/legal/normas` nuevo, en criollo, enlazado desde el composer, la hoja de
+  denuncia y Ajustes.
+- Términos: cláusula 6 nueva de contenido publicado (licencia, retiro,
+  denuncias, apelación, menores, derechos de autor y retirada).
+- Privacidad: qué expone un perfil público, qué NUNCA (barrio, guardados, qué
+  viste, a quién bloqueaste), las seis tablas nuevas, retención de `feed_seen`
+  (7 días) y qué sobrevive al borrado y por qué.
+
+**Verificado**
+- Cuenta nueva sin seguir a nadie: **576 items en 29 páginas, 0 duplicados**,
+  el cursor termina en null, y después la escalera da 6 tarjetas.
+- Borrado de cuenta con rastro en las 8 tablas: todo en 0, incluido `auth.users`.
+  La denuncia presentada sobrevive anonimizada.
+- Solicitudes de seguimiento: pedir → no queda como seguidora, no ve el perfil,
+  le llega la notificación → acepta → sí la sigue, la solicitud y la
+  notificación se van, y le avisan a quien pidió.
+
+---
+
+### El agujero que encontró la comparación con las redes de Meta
+
+Comparando función por función contra Instagram y Threads apareció una
+diferencia que no era de funcionalidad sino de seguridad:
+
+**`profile_visibility` existía y `follow_user` no lo miraba.** Un perfil en
+`followers` escondía correctamente números y publicaciones a quien no lo
+seguía… y cualquiera se volvía seguidor con un toque, sin permiso de nadie. El
+candado estaba puesto y la puerta de al lado, abierta. Y le pegaba justo a
+quien más importa: el default de una cuenta ADOLESCENTE es `followers`.
+
+`0075_follow_requests` agrega lo que toda red seria tiene:
+
+- `follow_requests` con RLS: cada quien ve lo que mandó y lo que recibió.
+- Seguir a una cuenta no pública deja una SOLICITUD y avisa.
+- Aceptar crea el follow y avisa a quien pidió. **Rechazar no avisa**: enterarte
+  de que te rechazaron es una invitación a insistir.
+- Dejar de seguir retira también una solicitud pendiente (es el mismo botón).
+- Bloquear borra las solicitudes pendientes en las dos direcciones.
+- El botón tiene cuatro estados: Seguir · Solicitado · Siguiendo · Dejar de
+  seguir, y `get_public_profile_v2` devuelve `requested` para que al volver al
+  perfil diga la verdad.
+
+---
+
+### Backlog deliberado (NO se construyó, y está bien)
+
+Mensajes directos (superficie de moderación entera + problema de menores),
+video, historias, vivo, carruseles, hashtags libres más allá de los 13 dominios,
+paleta de emoji, explorar algorítmico, traducción, encuestas, borradores,
+programar publicaciones, autocompletado de @menciones. Cada una es una fase
+propia y ninguna hace falta para probar el producto.
+
+**Lo que queda para mirar** (métricas de 02 §11): publicaciones por persona
+activa por semana, proporción de cuentas que siguen a ≥3, respuestas por
+publicación, denuncias por cada 1.000 publicaciones, y cuánto del feed es humano
+vs noticia — hoy 15 % humano, y sube solo cuando entre gente real.
+
+---
+
+### F16 · LA PLAZA (Feed v2) — FASE 2 ENTREGADA (2026-08-27)
+
+Perfiles con números reales, hilos que se pueden linkear, replantar/citar/guardar/editar,
+buscador, notificaciones sociales y la cola de moderación en `/panel`.
+
+**Base de datos** (repo `0053`–`0064`, todas aplicadas en vivo).
+- `0053_share_cards` — `feed_post_og` (la ÚNICA función del feed que `anon` puede
+  ejecutar, y sólo porque el rastreador de WhatsApp/Twitter no tiene sesión;
+  devuelve `null` para autor teen, perfil privado o post retenido) y `news_post_id`.
+- `0054_repost_toggle` — `reposted` dentro de `feed_item_json` + `unrepost`.
+- `0055_feed_shape_repost_milestone` — **bug real**: el CHECK `feed_shape` era de
+  cuando había tres formas (news/post/reply). Como 0041 agregó `repost` y
+  `milestone` al enum pero nadie tocó el CHECK, **todo replante y todo logro
+  autopublicado fallaba con `23514`**. El trigger de logros se tragaba el error,
+  así que no se veía.
+- `0056_repost_count_trigger` — **bug real**: `repost_count` se incrementaba a mano
+  y nadie restaba nunca. Ahora lo recalcula un trigger desde la verdad, igual que
+  `reply_count`. Verificado 0→1→2→1→0.
+- `0057_flatten_replies` — **bug real**: `feed_thread_v2` trae sólo hijas directas
+  de la raíz, pero `create_feed_post_v2` guardaba el `parent_id` tal cual. Responder
+  a una respuesta la guardaba bien y **no la mostraba nunca más**. Trigger BEFORE
+  INSERT que reenraiza; a quién le respondés se ve por el "@usuario" que precarga
+  la interfaz.
+- `0058_pip_styles_actors` — `pip_styles_for` ahora trae también nombre, foto y
+  `is_following`, para pintar quién te notificó.
+- `0059_feed_realtime` — `feed_posts` en la publicación de realtime (RLS se
+  respeta: un chico no recibe el evento de algo que no puede ver).
+- `0060_held_posts_visible_to_author` — una publicación retenida se le sigue
+  viendo a quien la escribió, con el cartel "En revisión". Para el resto no existe.
+- `0061_fix_replies_received_alias` — **el peor bug de la tanda: SEGUIR A ALGUIEN
+  FALLABA SIEMPRE.** La rama `replies_received` de 0051 usa `from feed_posts r`, y
+  la función ya declara `r record`: plpgsql resolvía `r.kind` contra la variable
+  sin asignar (`55000`). Como corre en un trigger AFTER INSERT sobre `follows`, la
+  excepción abortaba la transacción entera. Se renombró el alias y además el
+  trigger ahora no puede voltear un follow por un fallo repartiendo insignias.
+- `0062_cursor_end_of_list` — **bug real**: las cuatro funciones paginadas del
+  perfil devolvían cursor aunque la página viniera corta, así que "Cargar más" no
+  desaparecía nunca y pedía páginas vacías para siempre. Es el mismo error que ya
+  estaba corregido en `feed_timeline_v2`; faltaba aplicarlo acá.
+- `0063_lock_trigger_functions` — seis funciones de trigger estaban publicadas en
+  `/rest/v1/rpc/`. No eran explotables, pero la regla desde 0045 es no exponer lo
+  que no se usa.
+- `0064_feed_indexes` — índice duplicado que yo mismo había creado en 0044
+  (`idx_feed_author_created` ≡ `idx_feed_author`) y las FK sin índice de
+  `feed_saves`, `feed_seen`, `content_reports` y `moderation_actions` (importan en
+  los borrados en cascada, que es justo donde `feed_seen` es grande).
+
+**Verificado en la base, no asumido:**
+- 5 me gusta de 5 personas distintas → **1 sola notificación con `count: 5`**;
+  la propia reacción de la autora no suma.
+- Silenciada → 0 notificaciones. Bloqueo → deja de seguir en los **dos** sentidos,
+  y desaparece de búsqueda, perfil y publicaciones, también en los dos sentidos.
+- Editar: dentro de 5 min OK + `edited_at`; a los 6 min rechazado; lo ajeno rechazado.
+- 2 denuncias → visible; la 3ª → se oculta sola; la autora la sigue viendo "En
+  revisión" y nadie más la ve.
+- Moderación: contraseña equivocada rechazada, ocultar/restaurar/descartar OK,
+  2 sostenidas no suspenden y la 3ª sí, se avisa a la autora, queda registro en
+  `moderation_actions`. **La contraseña del dueño se guardó y se restauró byte a
+  byte** (verificado) — nunca la vi ni la necesité.
+- Vista previa pública: adulta+pública trae datos; perfil privado, autor teen y
+  post oculto devuelven `null` (verificado los cuatro casos).
+
+**Verificado en el navegador, con sesión real:**
+- Seguir desde "A quién seguir" → fila, contadores y notificación (era justo lo
+  que rompía 0061).
+- Publicar → aparece en el feed sin recargar; replantar → citar → des-replantar
+  con el contador siguiendo la verdad; guardar → aparece en `/perfil/guardados`.
+- Editar desde el menú ⋯ dentro de los 5 minutos → texto nuevo + "editado".
+- Responder a una respuesta → precarga "@aureum", y se ve plana con
+  "EN RESPUESTA A @AUREUM" y el handle sacado del cuerpo.
+- `/feed/p/[id]` **abre sin sesión** y con las etiquetas OG correctas
+  (`curl | grep og:` → título, descripción, imagen del medio); un id que no se
+  puede previsualizar cae al login con `?next=`. El resto de la app sigue cerrada.
+- Notificaciones: chips Todo/Social/Progreso/Sistema, Pip de quien te notificó,
+  "Seguir de vuelta" en el lugar donde leés que te siguieron, y el enlace a la
+  conversación.
+- `/panel` → cola con el texto denunciado, la confianza de la cuenta y las
+  sostenidas de 30 días; ocultar avisa a la autora y deja registro.
+
+**Tres bugs propios más, encontrados mirando la interfaz y no la base:**
+1. **Ajustes borraba tu nombre y tu provincia.** Los campos se inicializaban
+   desde el store antes de que `SessionHydrator` lo llenara, así que quedaban en
+   `''` y "Guardar cambios" escribía vacío encima. (Era anterior a esta fase; el
+   campo de usuario nuevo lo heredó.)
+2. **Cambiar un interruptor de notificaciones borraba todos los demás.** La
+   pantalla escribía `{ push: true, ...next }`, que REEMPLAZA la columna entera:
+   tocar "Novedades" se llevaba puestas las cinco de la Plaza y las de
+   autopublicar. Ahora se combina en vez de reemplazar.
+3. **Publicar no mostraba tu publicación.** El composer hacía scroll al tope de un
+   timeline que todavía no la tenía.
+
+**Concordancia de plural:** "y 1 personas más" → `{n, plural, ...}` en las dos
+lenguas, igual que "1 denuncias" en el panel.
+
+**Fase 3**: entregada el 2026-08-29 — ver el bloque de arriba. F16 completo.
+
+---
+
+### F16 · LA PLAZA (Feed v2) — FASE 1 ENTREGADA (2026-08-26)
+
+Del pack `Brote Feed prompts/`. El feed dejó de ser un río de noticias con un
+composer colgado y pasó a ser la superficie principal del producto adulto.
+
+**Base de datos** (repo `0040`–`0046`, aplicadas en vivo). Los números `0038` y
+`0039` estaban tomados por la rama de Semillas (sin mergear todavía), así que
+esta tanda arranca en `0040` para no chocar cuando las dos ramas se junten.
+- `0040_moderation_core` — espejo de lo ya aplicado en vivo: bloqueos, silencios,
+  denuncias, registro de decisiones, lista de palabras (28 patrones).
+- `0041_feed_enums` — `repost`/`milestone` + 6 tipos de notificación. Solo. Un
+  `ALTER TYPE ... ADD VALUE` no se puede usar en la misma transacción que lo crea.
+- `0042_social_graph` — `follows` (asimétrico, instantáneo, **distinto** de
+  `friendships`), contadores por trigger, `follow_user`/`unfollow_user`,
+  `suggested_accounts`, `search_profiles`, columnas nuevas de `profiles`.
+- `0043_notify_social` — notificador que **agrupa** por (usuario, tipo, clave)
+  por hora en vez de repetir.
+- `0044_feed_v2` — `feed_seen`, `feed_saves`, `feed_item_json`,
+  `feed_timeline_v2` (cursor, nunca OFFSET), `create_feed_post_v2`,
+  `react_to_post` v2, `feed_thread_v2`, `feed_pulse`, bucket `feed`.
+- `0045_feed_lock_grants` — cierre de `anon` + `pg_trgm` fuera de `public`.
+- `0046_pip_styles_lookup` — búsqueda por lote de Pip para las listas.
+
+**Verificado, no asumido:**
+- Paginación: 8 páginas por SQL y 6 páginas por UI real (120 items) → **0 duplicados**.
+- Edad, llamando a las RPC directo (no mirando la UI): un chico no publica, no
+  reacciona, no sigue, y su timeline devuelve **0 items que no sean noticia**.
+  Un adulto tampoco puede seguir a un chico.
+- Escritura: duplicado rechazado, >1000 rechazado, lista de palabras → retenido
+  (`held`, oculto pero NO descartado), `#agua` → `domain_tags {agua}`,
+  `age_groups {teen,adult}`, +2 semillas por primera publicación del día.
+- Redirecciones `/explorar*` → 308 a los destinos nuevos; cero referencias
+  muertas en el código.
+- `get_advisors(security)`: funciones nuevas ejecutables por `anon` **14 → 0**.
+
+**Dos bugs propios encontrados y corregidos durante la fase**, los dos silenciosos:
+1. `anon` podía ejecutar `feed_item_json` (SECURITY DEFINER) y leer cualquier
+   publicación por id, sin sesión. Revocar de `public` no alcanza: Supabase tiene
+   un ALTER DEFAULT PRIVILEGES que le da EXECUTE a `anon` en cada función nueva.
+2. Al mover las claves de proyectos de `explorar` a `proyectos`, las dos páginas
+   de proyecto siguieron pidiendo el namespace viejo. next-intl no rompe: el
+   botón "Sumarme" simplemente desapareció. Quedó un chequeo de claves para que
+   no vuelva a pasar en silencio.
+
+**Desvío del pack, anotado a propósito:** `pip_style` NO se agregó a las 13 RPC
+de ranking/competencias/amigos. Cada una tiene su forma de retorno y cambiarlas
+significa drop + recreate de las funciones que sostienen los rankings — algo que
+ya se rompió una vez. En su lugar, `pip_styles_for()` + `usePipStyles()`, una
+consulta por lista. El feed sí lleva `pip_style` adentro de `feed_item_json`,
+que es donde el rendimiento importa.
+
+**Fase 2**: entregada el 2026-08-27 — ver el bloque de arriba.
+
+---
+
 - **Phase:** F1-F4 DONE, F6 server-side QA DONE, F7 DONE → remaining: F5 (needs payment provider decision), F6.3 visual click-through, F2.3 archipelago polish, F4.4-AI upgrade of recap
 - **Last done (this block):** NEWS FIXED + FLOWING (12 articles live; cron rewired keyless w/ anon JWT — the Vault secret dependency is gone; push trigger too; live 0011 = repo 0020). Weekly recap cron (Mondays 10:00 AR, template-based, zero AI deps). Streak time-travel QA on live logic PASSED (T1 first daily → streak 1; T2 next-day → 2; T3 freeze consumed, streak survives; T4 no freeze → reset; correct notifications; challenge completions fired end-to-end; synthetic user cleaned up). RLS perf hardening (live 0012 = repo 0021): (select auth.uid()) once-per-query + deduped SELECT policies — advisors now clean of actionable items. OPERACIONES.html written (repo root, styled, Spanish): crons, infinite-content guarantees, AI fallbacks, owner actions, monitoring, costs.
 - **Remaining backlog:** F5 Semillas+Brote+ (blocked on payment provider choice: MercadoPago vs LemonSqueezy — ask user), F6.3 browser click-through + visual canvas check (test account via preview), F6.6 delete old paused Supabase project when confident, F2.3 archipelago swipe, F4.4 upgrade recap to AI-written when GEMINI_API_KEY exists, F3.4 mobile perf pass.

@@ -1,8 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Search, SlidersHorizontal, X, ChevronRight } from 'lucide-react';
+import { SectionTabs } from '@/components/plaza/SectionTabs';
+import { ProjectsSection } from '@/components/plaza/ProjectsSection';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,10 +30,30 @@ function normalize(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 }
 
+/**
+ * Acciones now holds two things: the catalogue, and Projects — which moved
+ * here out of Explorar because a project IS an action, a group one. The tab is
+ * deep-linkable (`?tab=proyectos`) so moving them did not orphan any link.
+ */
 export default function AccionesPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <AccionesInner />
+    </Suspense>
+  );
+}
+
+function AccionesInner() {
   const t = useTranslations('acciones');
+  const tp = useTranslations('proyectos');
   const tc = useTranslations('common');
   const profile = useSession((s) => s.profile);
+  const params = useSearchParams();
+
+  const [section, setSection] = useState<'catalogo' | 'proyectos'>('catalogo');
+  useEffect(() => {
+    if (params.get('tab') === 'proyectos') setSection('proyectos');
+  }, [params]);
 
   const catalog = useCatalog(profile?.accountType ?? 'adult');
   const completions = useCatalogCompletions(profile?.id);
@@ -120,9 +143,32 @@ export default function AccionesPage() {
     return map;
   }, [scored]);
 
+  // The tab switch renders above every state, so a slow catalogue never hides
+  // the way over to Projects.
+  const tabs = (
+    <SectionTabs
+      value={section}
+      onChange={(v) => setSection(v as 'catalogo' | 'proyectos')}
+      options={[
+        { value: 'catalogo', label: tp('sectionCatalogo') },
+        { value: 'proyectos', label: tp('sectionProyectos') },
+      ]}
+    />
+  );
+
+  if (section === 'proyectos') {
+    return (
+      <div className="space-y-4">
+        {tabs}
+        <ProjectsSection />
+      </div>
+    );
+  }
+
   if (catalog.isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
+        {tabs}
         {[0, 1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-[96px] w-full" />
         ))}
@@ -132,6 +178,8 @@ export default function AccionesPage() {
 
   return (
     <div className="space-y-6">
+      {tabs}
+
       {/* Search + filter toggle */}
       <div className="flex gap-2">
         <div className="relative flex-1">

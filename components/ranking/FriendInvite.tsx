@@ -6,7 +6,8 @@ import { Copy, Check, UserPlus, Share2, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { usePipStyles } from '@/hooks/use-pip-styles';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   fetchMyFriendCode,
@@ -34,6 +35,7 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
 
   const mine = useQuery({ queryKey: ['friend-code'], queryFn: fetchMyFriendCode, staleTime: 60 * 60_000 });
   const requests = useQuery({ queryKey: ['friend-requests'], queryFn: fetchFriendRequests, staleTime: 30_000 });
+  const pips = usePipStyles((requests.data ?? []).map((r) => r.user_id));
   const inviteUrl =
     typeof window !== 'undefined' && mine.data ? `${window.location.origin}/ranking?amigo=${mine.data}` : '';
 
@@ -83,7 +85,7 @@ export function FriendInvite({ onAdded }: { onAdded?: () => void }) {
           <div className="space-y-2">
             {requests.data!.map((r) => (
               <div key={r.user_id} className="flex items-center gap-2.5">
-                <Avatar name={r.display_name} src={r.avatar_url} size={34} />
+                <PipAvatar pipStyle={pips.data?.[r.user_id]?.pip_style ?? null} avatarUrl={r.avatar_url} name={r.display_name} rankSlug={r.rank_slug} size={34} ring />
                 <span className="min-w-0 flex-1 truncate text-small font-medium">
                   {r.display_name ?? r.username ?? 'Alguien'}
                 </span>

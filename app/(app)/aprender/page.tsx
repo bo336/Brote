@@ -1,150 +1,198 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Lock, Check, Clock, GraduationCap } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ProgressBar } from '@/components/ui/progress';
-import { DomainIcon } from '@/components/icons/DomainIcon';
+import { useTranslations } from 'next-intl';
+import { Droplets, RotateCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Reveal } from '@/components/ui/reveal';
-import { fetchLearningPath } from '@/lib/api/aprender';
-import { getDomain } from '@/lib/domains';
-import { cn } from '@/lib/utils/cn';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArbolBosque } from '@/components/academia/ArbolBosque';
+import { SaviaMedidor } from '@/components/academia/SaviaMedidor';
+import { TarjetaSiguiente } from '@/components/academia/TarjetaSiguiente';
+import { TiraBosque } from '@/components/academia/TiraBosque';
+import { EnPausa } from '@/components/academia/EnPausa';
+import { fetchArbol, fetchEstadoAcademia } from '@/lib/api/academia';
+import { esFallo } from '@/lib/academia/types';
+import { getDomainColor } from '@/lib/domains';
 
 /**
- * "Aprendé" (F15.17) — a short path of interactive lessons.
+ * El Bosque — la pantalla identitaria de la Academia.
  *
- * Grouped by level rather than shown as one long list, because the point is
- * that it builds: a level opens once most of the previous one is passed, so
- * there is a sense of progression without ever hard-blocking someone.
+ * UNA sola llamada a `academia_arbol()`. Todo lo que se ve acá —el árbol, la
+ * savia, la racha, la tira de cifras, la recomendación y la lista de riego—
+ * sale de ese único objeto. Cuando la cabecera necesitó la racha, lo que se
+ * arregló fue el RPC (migración 0080), no la pantalla.
  */
-export default function AprenderPage() {
-  const q = useQuery({ queryKey: ['learning-path'], queryFn: fetchLearningPath, staleTime: 60_000 });
+export default function BosquePage() {
+  const t = useTranslations('academia');
+  const router = useRouter();
+  const q = useQuery({ queryKey: ['academia', 'arbol'], queryFn: fetchArbol, staleTime: 30_000 });
 
-  const lessons = q.data ?? [];
-  const done = lessons.filter((l) => l.completed).length;
-  const levels = [...new Set(lessons.map((l) => l.level))].sort((a, b) => a - b);
+  // El arbol falla con un mensaje, no con un codigo, cuando la seccion esta
+  // apagada por bandera. Distinguir "en pausa" de "se cayo la red" importa —
+  // una tiene boton de reintentar y la otra no— asi que se pregunta, pero SOLO
+  // cuando ya falló: en el camino feliz sigue siendo una sola llamada.
+  const fallo = q.isError || (q.data != null && esFallo(q.data));
+  const estado = useQuery({
+    queryKey: ['academia', 'estado'],
+    queryFn: fetchEstadoAcademia,
+    enabled: fallo,
+    staleTime: 60_000,
+  });
+
+  if (q.isLoading) return <EsqueletoBosque />;
+
+  if (fallo || !q.data || esFallo(q.data)) {
+    const mensaje = q.data && esFallo(q.data) ? (q.data.mensaje ?? q.data.error) : t('errorCuerpo');
+    const pausada = estado.data && !esFallo(estado.data) && !estado.data.habilitada;
+    return (
+      <div data-shell="wide">
+        {pausada ? (
+          <EnPausa mensaje={mensaje} />
+        ) : (
+          <EmptyState
+            pipMood="worried"
+            title={t('errorTitulo')}
+            message={mensaje}
+            action={
+              <Button variant="secondary" onClick={() => q.refetch()}>
+                <RotateCw className="h-4 w-4" aria-hidden />
+                {t('reintentar')}
+              </Button>
+            }
+          />
+        )}
+      </div>
+    );
+  }
+
+  const arbol = q.data;
+  const conGajos = arbol.ramas.some((r) => r.gajos.length > 0);
+  // `marchitos` y `siguiente` llegan como gajos sueltos, sin su rama: el color
+  // de dominio sale de este índice y no de adivinarlo desde el slug.
+  const ramaDe = new Map(arbol.ramas.flatMap((r) => r.gajos.map((g) => [g.slug, r.slug] as const)));
+  const ramaDeSiguiente = arbol.siguiente ? (ramaDe.get(arbol.siguiente.gajo.slug) ?? 'tronco') : null;
 
   return (
-    <div className="space-y-5 pb-6">
-      <header>
-        <p className="eyebrow text-primary">Aprendé</p>
-        <h1 className="mt-1 text-balance font-display text-display-l font-extrabold leading-tight">
-          Entendé lo que estás haciendo
-        </h1>
-        <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">
-          Lecciones cortas y concretas. Sin humo y sin fórmulas.
-        </p>
+    <div data-shell="wide" className="space-y-5 pb-6">
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="eyebrow text-primary">{t('eyebrow')}</p>
+          {/* El único momento de gradiente de marca de la pantalla. */}
+          <h1 className="mt-1 text-balance font-display text-display-l font-extrabold leading-tight">
+            <span className="bg-brand-gradient bg-clip-text text-transparent">{t('title')}</span>
+          </h1>
+          <p className="mt-1.5 max-w-md text-small leading-relaxed text-muted-foreground">{t('subtitle')}</p>
+        </div>
+        <SaviaMedidor savia={arbol.savia} pro={arbol.pro} className="mt-1 shrink-0" />
       </header>
 
-      {q.isLoading ? (
-        <div className="space-y-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-24 w-full" />
-          ))}
-        </div>
-      ) : lessons.length === 0 ? (
-        <Card className="p-5 text-center">
-          <p className="text-small text-muted-foreground">Todavía no hay lecciones disponibles para tu cuenta.</p>
-        </Card>
+      <TiraBosque stats={arbol.stats} racha={arbol.racha} />
+
+      {!conGajos ? (
+        <EmptyState pipMood="sleepy" title={t('vacioTitulo')} message={t('vacioCuerpo')} />
       ) : (
         <>
-          <Card className="p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-small font-semibold">
-                <GraduationCap className="h-4 w-4 text-primary" /> Tu progreso
-              </span>
-              <span className="tnum text-small text-muted-foreground">
-                {done} de {lessons.length}
-              </span>
-            </div>
-            {/* ProgressBar takes 0..1 and clamps. This passed a percentage, so
-                the bar sat at 100% from the first visit regardless of progress. */}
-            <ProgressBar value={lessons.length ? done / lessons.length : 0} />
-          </Card>
+          <Reveal>
+            <ArbolBosque
+              ramas={arbol.ramas}
+              anillo={arbol.anillo}
+              destacado={arbol.siguiente?.gajo.slug ?? null}
+              onAbrir={(g) => router.push(`/aprender/g/${g.gajo.slug}`)}
+              className="h-[62vh] min-h-[380px] lg:h-[68vh]"
+            />
+          </Reveal>
 
-          {levels.map((level) => {
-            const group = lessons.filter((l) => l.level === level);
-            const locked = group.every((l) => !l.unlocked);
-            return (
-              <section key={level} className="space-y-2">
-                <div className="flex items-center gap-2 pt-1">
-                  <h2 className="font-display text-h3 font-bold">Nivel {level}</h2>
-                  <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-caption text-muted-foreground tnum">
-                    {group.filter((l) => l.completed).length}/{group.length}
-                  </span>
-                  {locked && (
-                    <span className="inline-flex items-center gap-1 rounded-pill border border-border bg-surface-2 px-2 py-0.5 text-caption text-muted-foreground">
-                      <Lock className="h-3 w-3" /> Se abre al avanzar
-                    </span>
-                  )}
-                </div>
+          {arbol.siguiente ? (
+            <Reveal index={1}>
+              <TarjetaSiguiente
+                gajo={arbol.siguiente.gajo}
+                razon={arbol.siguiente.razon}
+                ramaSlug={ramaDeSiguiente ?? 'tronco'}
+              />
+            </Reveal>
+          ) : null}
 
-                {group.map((l, i) => {
-                  const dom = getDomain(l.domain_slug);
-                  const body = (
-                    <>
-                      <span
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px]"
-                        style={{ background: `${dom?.color ?? '#1FB57A'}1f` }}
+          {arbol.marchitos.length > 0 ? (
+            <Reveal index={2}>
+              <section className="rounded-card border border-brote-coral/25 bg-brote-coral/5 p-4">
+                <h2 className="flex items-center gap-2 font-display text-h3 font-bold leading-tight">
+                  <Droplets className="h-5 w-5 text-brote-coral" aria-hidden />
+                  {t('regarTitulo', { n: arbol.marchitos.length })}
+                </h2>
+                <p className="mt-1 text-small leading-relaxed text-muted-foreground">{t('regarCuerpo')}</p>
+                <ul className="mt-3 divide-y divide-hairline border-y border-hairline">
+                  {arbol.marchitos.slice(0, 5).map((g) => (
+                    <li key={g.slug}>
+                      <Link
+                        href={`/aprender/g/${g.slug}`}
+                        className="flex items-center gap-3 py-2.5 text-small transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <DomainIcon domain={l.domain_slug} size={26} variant="bare" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        {dom && (
-                          <span className="eyebrow block" style={{ color: dom.color }}>
-                            {dom.name_es}
-                          </span>
-                        )}
-                        <span className="mt-0.5 block truncate font-display text-body font-bold">
-                          <span className="link-underline">{l.title_es}</span>
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: getDomainColor(ramaDe.get(g.slug) ?? '') }}
+                          aria-hidden
+                        />
+                        <span className="min-w-0 flex-1 truncate">{g.titulo_es}</span>
+                        <span className="tnum shrink-0 text-caption text-muted-foreground">
+                          {Math.round(g.progreso * 100)}%
                         </span>
-                        <span className="block truncate text-caption text-muted-foreground">{l.summary_es}</span>
-                        <span className="mt-1 flex items-center gap-2.5 text-caption text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> {l.minutes} min
-                          </span>
-                          <span>{l.steps} pasos</span>
-                          {!l.completed && <span className="font-semibold text-brote-sun">+{l.reward_points}</span>}
-                        </span>
-                      </span>
-                      {l.completed ? (
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brote-green/15 text-brote-green">
-                          <Check className="h-4 w-4" />
-                        </span>
-                      ) : !l.unlocked ? (
-                        <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      ) : null}
-                    </>
-                  );
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild block variant="secondary" className="mt-3">
+                  <Link href="/aprender/riego">{t('regarCta')}</Link>
+                </Button>
+              </section>
+            </Reveal>
+          ) : null}
 
-                  const cls = cn(
-                    'press group flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft',
-                    l.unlocked
-                      ? 'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift'
-                      : 'cursor-not-allowed opacity-60 shadow-none',
-                  );
-
+          <Reveal index={3}>
+            <ul className="divide-y divide-hairline border-y border-hairline">
+              {arbol.ramas
+                .filter((r) => r.gajos.length > 0)
+                .map((r) => {
+                  const frondosos = r.gajos.filter((g) => g.estado === 'frondoso').length;
                   return (
-                    <Reveal key={l.id} index={i}>
-                      {l.unlocked ? (
-                        <Link href={`/aprender/${l.slug}`} className={cls}>
-                          {body}
-                        </Link>
-                      ) : (
-                        <div className={cls} aria-disabled>
-                          {body}
-                        </div>
-                      )}
-                    </Reveal>
+                    <li key={r.slug}>
+                      <Link
+                        href={`/aprender/${r.slug}`}
+                        className="flex items-center gap-3 py-3 transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <span
+                          className="h-8 w-1 shrink-0 rounded-pill"
+                          style={{ backgroundColor: getDomainColor(r.slug) }}
+                          aria-hidden
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-small font-semibold">{r.nombre_es}</span>
+                          <span className="block truncate text-caption text-muted-foreground">
+                            {t('ramaGajos', { n: r.gajos.length })} · {frondosos} {t('statFrondosos').toLowerCase()}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
                   );
                 })}
-              </section>
-            );
-          })}
+            </ul>
+          </Reveal>
         </>
       )}
+    </div>
+  );
+}
+
+function EsqueletoBosque() {
+  return (
+    <div data-shell="wide" className="space-y-5 pb-6">
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="-mx-4 h-11 rounded-none lg:mx-0 lg:rounded-card" />
+      <Skeleton className="h-[62vh] min-h-[380px] w-full" />
+      <Skeleton className="h-32 w-full" />
     </div>
   );
 }

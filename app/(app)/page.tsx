@@ -4,11 +4,12 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, GraduationCap, Newspaper } from 'lucide-react';
-import { Mundo } from '@/components/mundo/Mundo';
+import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, Newspaper, Users } from 'lucide-react';
+import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
+import { EntradaAcademia } from '@/components/academia/EntradaAcademia';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
-import { NewsNudge } from '@/components/explorar/NewsNudge';
+import { NewsNudge } from '@/components/plaza/NewsNudge';
 import { SectionHeader } from '@/components/ui/section';
 import { Card } from '@/components/ui/card';
 import { LinkRow } from '@/components/ui/link-row';
@@ -23,13 +24,23 @@ import { greetingKey } from '@/lib/utils/dates';
 import { isStreakAtRisk } from '@/lib/streak';
 import { useDailySet, useTodayCompletions, useDailyPool, useCompleteActivity } from '@/hooks/use-daily-set';
 import { fetchDailyChallenge } from '@/lib/api/home';
+import { fetchProjects } from '@/lib/api/plaza';
 import type { ActivityRow } from '@/lib/supabase/rows';
 
 export default function HoyPage() {
   const t = useTranslations('home');
   const tp = useTranslations('pip');
+  const tpr = useTranslations('proyectos');
   const tc = useTranslations('common');
   const profile = useSession((s) => s.profile);
+
+  // Real count, so the card never claims projects that are not there.
+  const projectsQ = useQuery({
+    queryKey: ['projects', profile?.id],
+    queryFn: () => fetchProjects(profile?.id),
+    staleTime: 5 * 60_000,
+  });
+  const openProjects = (projectsQ.data ?? []).filter((p) => p.status === 'active').length;
 
   const dailySet = useDailySet();
   const completions = useTodayCompletions();
@@ -92,13 +103,12 @@ export default function HoyPage() {
 
       {/* Tu Mundo hero — the one hero media per page, so it carries the
           signature leaf notch (§4). */}
-      <Link
-        href="/perfil"
-        aria-label={t('tapWorld')}
-        className="group block overflow-hidden rounded-card leaf-clip shadow-soft-lg transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.005]"
-      >
-        <Mundo mundo={profile?.mundoState} height={320} />
-      </Link>
+      <MundoPoster
+        mundo={profile?.mundoState}
+        snapshotUrl={profile?.worldSnapshotUrl}
+        height={320}
+        className="leaf-clip shadow-soft-lg"
+      />
 
       {/* Streak at risk */}
       {atRisk && (
@@ -182,27 +192,34 @@ export default function HoyPage() {
           renders so it can actually be discovered. */}
       <RoutineSection />
 
-      {/* Aprendé (F15.17). The mobile tab bar keeps five tabs, so this card is
-          how the learning path is discovered on a phone.
+      {/* La Academia. The mobile tab bar keeps five tabs, so this row is how the
+          section is discovered on a phone — and since phase 2 it shows the real
+          sap left today instead of a description that never changes.
           The news row below used a 📰 emoji as its icon, which §0 forbids for
           anything functional, and tinted its tile with `bg-brote-aqua/15` — a
           colour that did not exist, so the tile rendered transparent. */}
       <section className="space-y-2.5">
-        <LinkRow
-          href="/aprender"
-          icon={<GraduationCap className="h-5 w-5" />}
-          title="Aprendé sobre lo que hacés"
-          description="Lecciones cortas, con preguntas y respuestas explicadas"
-        />
+        <EntradaAcademia />
         {/* Always-present way into the feed (F15.19). The floating nudge below
             is the once-a-day prompt; this is the permanent door, so news access
             never depends on catching a transient banner. */}
         <LinkRow
-          href="/explorar"
+          href="/feed"
           icon={<Newspaper className="h-5 w-5" />}
           accent="#2DB4D4"
           title="Últimas noticias y comentarios"
           description="Qué está pasando y qué está opinando la gente"
+        />
+        {/* Projects moved under Acciones, so they need a door on Inicio or the
+            move would simply bury them. Deep-links straight to the tab. */}
+        <LinkRow
+          href="/acciones?tab=proyectos"
+          icon={<Users className="h-5 w-5" />}
+          accent="#FF8A3D"
+          title={tpr('nearbyTitle')}
+          description={
+            openProjects > 0 ? tpr('nearbyBody', { n: openProjects }) : 'Sumate a algo que ya está pasando'
+          }
         />
       </section>
 

@@ -7,7 +7,8 @@ import { ArrowLeft, Share2, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar } from '@/components/ui/avatar';
+import { PipAvatar } from '@/components/pip/PipAvatar';
+import { usePipStyles } from '@/hooks/use-pip-styles';
 import { fetchCompetitionBoard, resetLabel } from '@/lib/api/competencias';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
@@ -31,6 +32,10 @@ export default function CompetenciaDetailPage() {
     enabled: !!params.id,
     refetchInterval: 60_000,
   });
+
+  // competition_leaderboard carries no pip_style; one batched lookup covers
+  // the whole board.
+  const pips = usePipStyles((q.data?.rows ?? []).map((r) => r.user_id));
 
   async function share() {
     const c = q.data;
@@ -112,7 +117,7 @@ export default function CompetenciaDetailPage() {
               )}
             >
               <span className="w-7 text-center text-small font-bold tnum">{medal ?? r.pos}</span>
-              <Avatar name={r.display_name} src={r.avatar_url} size={34} />
+              <PipAvatar pipStyle={pips.data?.[r.user_id]?.pip_style ?? null} avatarUrl={r.avatar_url} name={r.display_name} rankSlug={pips.data?.[r.user_id]?.rank_slug ?? null} size={34} ring />
               <span className="min-w-0 flex-1 truncate text-small font-medium">
                 {r.display_name ?? r.username ?? 'Alguien'}
                 {isMe && <span className="text-muted-foreground"> (vos)</span>}

@@ -98,8 +98,19 @@
   <tr><th>Acción</th><th>Frecuencia</th><th>Estado</th></tr>
   <tr><td>Pegar <code>GEMINI_API_KEY</code> en Supabase → Edge Functions → Secrets (activa la IA real de Pip y los resúmenes con IA)</td><td>Una sola vez</td><td class="warn">Pendiente</td></tr>
   <tr><td>Claves VAPID para notificaciones push (correr <code>npm run vapid</code> y pegar las 2 claves en Vercel + Secrets)</td><td>Una sola vez</td><td class="warn">Pendiente</td></tr>
+  <tr><td><strong>Mirar la cola de moderación</strong> en <code>/panel</code> → Moderación. Con tres denuncias en 24&nbsp;h una publicación se oculta sola y se le avisa a quien la escribió; lo que falta es una persona que decida si vuelve o no.</td><td>Cuando haya gente publicando: una vez por día alcanza</td><td class="ok">Nuevo</td></tr>
   <tr><td>Mergear PRs cuando haya cambios de código</td><td>Cuando desarrolles</td><td class="ok">Normal</td></tr>
   <tr><td>Todo lo demás (rachas, retos, noticias, mundos, rankings, recaps)</td><td>—</td><td class="ok">Automático</td></tr>
+</table>
+
+<p class="muted">La cola no es urgente ni ruidosa: el sistema ya frenó lo denunciado antes de que llegues. Tu trabajo es restaurar los falsos positivos, que en una lista de palabras siempre los hay.</p>
+
+<h2>4.b Los dos techos nuevos de La Plaza</h2>
+<p>Con la parte social encendida aparecen dos límites del plan gratuito que antes no se tocaban. Ninguno está cerca, pero conviene saber dónde están:</p>
+<table>
+  <tr><th>Recurso</th><th>Límite gratis</th><th>Qué lo consume</th><th>Si se acerca</th></tr>
+  <tr><td>Storage</td><td>1&nbsp;GB</td><td>Las fotos de las publicaciones. Se comprimen en el teléfono antes de subir (~200&nbsp;kB típico, y de paso se les borran los metadatos EXIF con la ubicación), así que 1&nbsp;GB son del orden de 5.000 fotos.</td><td>Podar imágenes de publicaciones de más de 60 días, o pasar a Supabase Pro.</td></tr>
+  <tr><td>Realtime</td><td>2&nbsp;M mensajes/mes</td><td>La píldora de «N publicaciones nuevas» escucha los INSERT de <code>feed_posts</code>. El cliente se desuscribe cuando la pestaña no está visible, así que una sesión olvidada en segundo plano no gasta.</td><td>Pasar de escuchar la tabla entera a un canal por tema.</td></tr>
 </table>
 
 <h2>5. Dónde mirar si algo anda raro</h2>
@@ -121,7 +132,7 @@
   <p><strong>$0/mes.</strong> Vercel Hobby + Supabase Free + Gemini Free cubren el estadio actual. Los límites que primero se sentirán con tracción real: 500 MB de base y pausa por inactividad de 7 días en Supabase Free (el tráfico de los crons cada 8 h la mantiene activa), y 50k usuarios activos de auth. El upgrade natural es Supabase Pro (USD 25/mes) recién cuando haya usuarios reales.</p>
 </div>
 
-<p class="muted" style="margin-top:40px">Generado como parte del plan de mejora — actualizá este archivo si cambiás crons o dependencias. Última actualización: julio 2026.</p>
+<p class="muted" style="margin-top:40px">Generado como parte del plan de mejora — actualizá este archivo si cambiás crons o dependencias. Última actualización: agosto 2026 (La Plaza).</p>
 </div>
 </body>
 </html>

@@ -1,0 +1,195 @@
+'use client';
+
+import { useEffect } from 'react';
+
+import { JOYSTICK } from '@/lib/world/config';
+import { useSessionStore } from '../state/useSessionStore';
+
+/**
+ * One normalised movement vector, from the joystick or the keyboard.
+ *
+ * **One code path** (`10-CONTROLS-AND-CAMERA.md` §1): WASD and the arrow keys
+ * drive the same vector the thumb does, so nothing downstream ever asks which
+ * device is in use.
+ *
+ * Like `playerTransform`, this is a plain mutable object rather than React
+ * state — it changes every frame and has exactly one reader.
+ */
+export interface InputVector {
+  /** -1..1, screen-relative. The controller rotates it by the camera yaw. */
+  x: number;
+  z: number;
+  /** 0..1 — how far the stick is from its origin. */
+  magnitude: number;
+  /** Past the run threshold. Direction-only movement, two speeds. */
+  running: boolean;
+  /** True while a finger or a key is actually down. */
+  active: boolean;
+}
+
+/** What the controller reads. Damped, never raw. */
+export const input: InputVector = { x: 0, z: 0, magnitude: 0, running: false, active: false };
+
+/** What the joystick writes. */
+const stick: InputVector = { x: 0, z: 0, magnitude: 0, running: false, active: false };
+/** What the keyboard writes. */
+const keys = { up: false, down: false, left: false, right: false, shift: false };
+
+/**
+ * Is anything still asking the world to move? A held key, a thumb on the stick,
+ * or a character still easing to a stop. The render loop asks this before it
+ * lets itself sleep — without it, holding W past the idle delay walked nowhere.
+ */
+export function hasHeldInput(): boolean {
+  return keys.up || keys.down || keys.left || keys.right || input.active || input.magnitude > 0;
+}
+
+/** A jump asked for and not yet taken. The solver buffers it; this only carries it there. */
+let jumpQueued = false;
+
+/** Space, or the jump button. */
+export function requestJump(): void {
+  jumpQueued = true;
+  useSessionStore.getState().markControl('jump');
+}
+
+/** Read once per step by the controller. */
+export function consumeJump(): boolean {
+  const j = jumpQueued;
+  jumpQueued = false;
+  return j;
+}
+
+/**
+ * The joystick calls this on every pointer move. `x` and `z` are already
+ * dead-zoned and normalised to the stick radius by `Joystick.tsx`.
+ */
+export function setStickInput(x: number, z: number, magnitude: number, active: boolean): void {
+  stick.x = x;
+  stick.z = z;
+  stick.magnitude = magnitude;
+  stick.running = magnitude >= JOYSTICK.runThreshold;
+  stick.active = active;
+}
+
+export function clearStickInput(): void {
+  setStickInput(0, 0, 0, false);
+}
+
+/**
+ * Merge and damp. **On release, input damps to zero over ~150 ms** — a hard cut
+ * reads as a dropped input, and a visible stick-return animation reads as lag.
+ *
+ * The damping uses the exponential form, so it behaves identically at 30 fps
+ * (our target device) and 60 fps (`01-RULES.md` §3.13).
+ */
+export function tickInput(dt: number): InputVector {
+  let tx = stick.x;
+  let tz = stick.z;
+  let running = stick.running;
+  let active = stick.active;
+
+  if (!active) {
+    const kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    const kz = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+    if (kx !== 0 || kz !== 0) {
+      const len = Math.hypot(kx, kz);
+      tx = kx / len;
+      tz = kz / len;
+      running = keys.shift;
+      active = true;
+    }
+  }
+
+  const target = active ? 1 : 0;
+  const lambda = 1000 / JOYSTICK.releaseDampMs;
+  const k = 1 - Math.exp(-lambda * dt);
+  input.x += (tx * target - input.x) * k;
+  input.z += (tz * target - input.z) * k;
+  input.magnitude = Math.min(1, Math.hypot(input.x, input.z));
+  input.running = running && input.magnitude > JOYSTICK.deadZone;
+  input.active = active;
+  // Below the dead zone the stick is thumb tremor, not intent.
+  if (input.magnitude < 0.01) {
+    input.x = 0;
+    input.z = 0;
+    input.magnitude = 0;
+  }
+  return input;
+}
+
+export function resetInput(): void {
+  clearStickInput();
+  keys.up = keys.down = keys.left = keys.right = keys.shift = false;
+  input.x = input.z = input.magnitude = 0;
+  input.running = false;
+  input.active = false;
+}
+
+const KEY_MAP: Record<string, keyof typeof keys> = {
+  ArrowUp: 'up', KeyW: 'up',
+  ArrowDown: 'down', KeyS: 'down',
+  ArrowLeft: 'left', KeyA: 'left',
+  ArrowRight: 'right', KeyD: 'right',
+};
+
+/**
+ * Desktop keyboard, into the same vector. `Space` jumps, `E` (or `F`, or
+ * `Enter`) uses whatever is in front of Pip, `Esc` exits.
+ *
+ * Space and E used to share one handler, and the handler was the render loop's
+ * wake-up call — neither key did anything a player could see.
+ */
+export function useKeyboardInput(
+  opts: { onInteract?: () => void; onExit?: () => void; onActivity?: () => void } = {},
+): void {
+  const { onInteract, onExit, onActivity } = opts;
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      // A sheet's own fields and buttons keep their keys.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
+      const mapped = KEY_MAP[e.code];
+      if (mapped) {
+        keys[mapped] = true;
+        e.preventDefault();
+        useSessionStore.getState().markControl('move');
+        // Walking is input. Only clicks used to wake the render loop, so four
+        // seconds after the page opened the keyboard stopped moving anyone.
+        onActivity?.();
+        return;
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
+      else if (e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat) requestJump();
+        onActivity?.();
+      } else if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
+        e.preventDefault();
+        onActivity?.();
+        if (!e.repeat) onInteract?.();
+      } else if (e.code === 'Escape') onExit?.();
+    };
+    const up = (e: KeyboardEvent) => {
+      const mapped = KEY_MAP[e.code];
+      if (mapped) {
+        keys[mapped] = false;
+        onActivity?.();
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = false;
+    };
+    // A window that loses focus mid-stride would otherwise walk forever.
+    const blur = () => {
+      keys.up = keys.down = keys.left = keys.right = keys.shift = false;
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
+      blur();
+    };
+  }, [onInteract, onExit, onActivity]);
+}

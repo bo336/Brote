@@ -1,54 +1,113 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { useId, useMemo } from 'react';
 
-/** Place N points evenly on a sphere (Fibonacci sphere). */
-function fibSphere(n: number, radius: number): [number, number, number][] {
+/**
+ * The header globe on `/perfil` — **an SVG, not a second WebGL context.**
+ *
+ * `01-RULES.md` §3.1 is absolute: one `WebGLRenderer`, one `<Canvas>`, in the
+ * entire app, ever. This component used to be the second one. It spun a
+ * 48×48-segment sphere with a `MeshStandardMaterial` — which the art direction
+ * also forbids (`18-DECISIONS.md` T4) — on a route that sits one tap away from
+ * `/mundo`, on devices that cap how many live GL contexts they will keep.
+ * Losing that race silently drops the older context, and the older context is
+ * the game.
+ *
+ * It is a decorative header graphic. It never needed a renderer, and the
+ * arithmetic it was doing — points spread evenly over a sphere — is the same
+ * whether a GPU or a `<circle>` draws the result.
+ *
+ * The markers are projected orthographically and the back hemisphere is drawn
+ * dimmer instead of being culled, so the globe still reads as a ball rather
+ * than as a disc.
+ *
+ * **It no longer spins**, and that is a deliberate trade rather than an
+ * oversight: SVG has no third axis, so the only honest way to turn this ball
+ * is to recompute forty projected points every frame — which is a render loop
+ * again, for a decorative header. A wrong-looking rotation (a mirror flip, a
+ * wheel spin) would read worse than stillness.
+ */
+const MARKERS_MAX = 40;
+const R = 100;
+
+/** Evenly spread points on a sphere. Unchanged from the version that spun. */
+function fibSphere(n: number): [number, number, number][] {
   const pts: [number, number, number][] = [];
   const phi = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < n; i++) {
     const y = 1 - (i / Math.max(1, n - 1)) * 2;
     const r = Math.sqrt(1 - y * y);
     const theta = phi * i;
-    pts.push([Math.cos(theta) * r * radius, y * radius, Math.sin(theta) * r * radius]);
+    pts.push([Math.cos(theta) * r, y, Math.sin(theta) * r]);
   }
   return pts;
 }
 
-function Globe({ markerCount }: { markerCount: number }) {
-  const group = useRef<THREE.Group>(null);
-  const markers = useMemo(() => fibSphere(Math.min(40, markerCount), 1.02), [markerCount]);
-  useFrame((_, delta) => {
-    if (group.current) group.current.rotation.y += delta * 0.25;
-  });
-  return (
-    <group ref={group}>
-      <mesh>
-        <sphereGeometry args={[1, 48, 48]} />
-        <meshStandardMaterial color="#1E88A8" roughness={0.6} metalness={0.1} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[1.005, 32, 32]} />
-        <meshStandardMaterial color="#1FB57A" wireframe transparent opacity={0.18} />
-      </mesh>
-      {markers.map((p, i) => (
-        <mesh key={i} position={p}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-          <meshBasicMaterial color="#FFB23E" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 export default function ImpactGlobe({ markerCount = 8 }: { markerCount?: number }) {
+  const id = useId();
+  const markers = useMemo(() => fibSphere(Math.min(MARKERS_MAX, Math.max(1, markerCount))), [markerCount]);
+
+  // The graticule: a handful of meridians as ellipses, which is exactly what a
+  // circle of longitude is under an orthographic projection.
+  const meridians = [0.28, 0.62, 0.92];
+
   return (
-    <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 3.2], fov: 38 }} gl={{ alpha: true }}>
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[3, 2, 4]} intensity={1.1} />
-      <Globe markerCount={markerCount} />
-    </Canvas>
+    <svg
+      viewBox="-120 -120 240 240"
+      className="h-full w-full"
+      role="img"
+      aria-label="Tu huella positiva, en el mundo"
+    >
+      <defs>
+        <radialGradient id={`${id}-ball`} cx="35%" cy="30%">
+          <stop offset="0%" stopColor="#4FC3DE" />
+          <stop offset="65%" stopColor="#1E88A8" />
+          <stop offset="100%" stopColor="#12556B" />
+        </radialGradient>
+        {/* Everything on the far side of the ball is drawn through this, so the
+            markers read as sitting on a surface that curves away. */}
+        <clipPath id={`${id}-disc`}>
+          <circle cx="0" cy="0" r={R} />
+        </clipPath>
+      </defs>
+
+      <circle cx="0" cy="0" r={R} fill={`url(#${id}-ball)`} />
+
+      <g clipPath={`url(#${id}-disc)`}>
+        <g>
+          {meridians.map((k) => (
+            <ellipse
+              key={k}
+              cx="0"
+              cy="0"
+              rx={R * k}
+              ry={R}
+              fill="none"
+              stroke="#1FB57A"
+              strokeOpacity="0.28"
+              strokeWidth="1.5"
+            />
+          ))}
+          <line x1={-R} y1="0" x2={R} y2="0" stroke="#1FB57A" strokeOpacity="0.28" strokeWidth="1.5" />
+
+          {markers.map(([x, y, z], i) => (
+            <circle
+              key={i}
+              cx={x * R * 0.96}
+              cy={-y * R * 0.96}
+              r={z >= 0 ? 4.2 : 3.2}
+              fill="#FFB23E"
+              // The far hemisphere is dimmed rather than hidden: a marker that
+              // vanished at the halfway point would read as a bug.
+              opacity={z >= 0 ? 0.95 : 0.3}
+            />
+          ))}
+        </g>
+      </g>
+
+      {/* The terminator, so the ball has a lit side. */}
+      <circle cx="0" cy="0" r={R} fill="none" stroke="#0B3D4C" strokeOpacity="0.35" strokeWidth="2" />
+
+    </svg>
   );
 }
