@@ -6,11 +6,11 @@
 
 ## CURRENT STATE
 
-### F17 · NEGOCIOS — FASE 2 (Mejora) ENTREGADA (2026-09-17)
+### F17 · NEGOCIOS — FASE 3 (Mercado) ENTREGADA (2026-09-19)
 
 La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
 `F17`. Detalle completo, verificación y desviaciones en `CONTINUE.md`
-("NEGOCIOS — FASE 1" y "NEGOCIOS — FASE 2").
+("NEGOCIOS — FASE 1", "FASE 2" y "FASE 3").
 
 - [x] F17.1 Fundaciones — empresa como entidad, membresías, contexto persona ↔
   negocio (cookie `brote_ctx`, validada contra la base), shell propio sin
@@ -25,14 +25,27 @@ La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
   `/panel/objetivos`, Progreso de Mejora y recálculo de nivel. Migración `0106`
   (+ `0106b` en vivo), edge function `business-goals`, `verify-business` v3 con
   la lectura de la captura de Instagram.
-- [ ] F17.3 Mercado — listados, afirmaciones tipificadas, niveles, catálogo, salida.
+- [x] F17.3 Mercado — registro de certificadoras verificado contra SENASA
+  (Argencert fuera; IRAM, Agrovisto y Control Union adentro), las 16
+  afirmaciones tipificadas con su nivel propio (antihalo: el nivel es de la
+  afirmación, nunca del producto), validador determinista con lista negra,
+  ranking con los pesos exactos y el plan fuera de la fórmula, catálogo
+  `/mercado`, ficha, salida siempre por interstitial, reportes con descargo,
+  menores bloqueados en RLS y RPC, `/legal/niveles` linkeado desde cada badge,
+  colas en `/panel/listados` y `/panel/reportes`. Migración `0107` (+ `0107b`,
+  `0107c` en vivo), edge function `screen-listing`, job diario
+  `brote-negocios-diario`, QA repetible en `supabase/qa/mercado.sql`.
 - [ ] F17.4 Integración y cobro — puente con acciones, analítica, MercadoPago.
 - [ ] F17.5 Endurecimiento y lanzamiento.
 
-**Pendiente del dueño antes de la F17.3:** recorrer las fases 1 y 2 con una
-cuenta real, decidir sobre `profiles.account_type` editable desde el cliente, y
-—opcional— cargar `GEMINI_API_KEY`: sin ella Mejora funciona entera por el
-camino determinista (ver `CONTINUE.md`).
+**Pendiente del dueño antes de la F17.4:** recorrer las fases 1 a 3 con una
+cuenta real y dejar **3 listados publicados de prueba** (prerrequisito de la
+fase 4); confirmar que los anuncios automáticos de AdSense están apagados (o
+que excluyen `/mercado` y `/negocio`); `/legal/negocios` y la ampliación de
+`/legal/privacidad` con un abogado antes de cobrar; decidir sobre
+`profiles.account_type` editable desde el cliente; y —opcional—
+`GEMINI_API_KEY`: sin ella Mejora y el Mercado funcionan enteros por el camino
+determinista (ver `CONTINUE.md`).
 
 ### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
 

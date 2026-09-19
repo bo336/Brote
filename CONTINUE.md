@@ -274,11 +274,7 @@ Todo en un bloque que al final levanta una excepción: nada quedó escrito.
 
 ## ▶ NEXT EXACT TASK (Negocios)
 
-> **Fase 3 · Mercado.** Leer `00_LEEME.md`, 02, 03, 04, `07_DISENO_UI.md` §4.6
-> y §4.7, y `fases/FASE_3_MERCADO.md`: listados, las 16 afirmaciones
-> tipificadas con su nivel de evidencia, el catálogo `/mercado` y la salida
-> pública. Antes conviene que el dueño haga el recorrido real de las fases 1 y 2
-> con una cuenta adulta (abajo), que es lo único que no se pudo probar acá.
+> **Hecha.** El próximo paso está en la sección de la fase 3, más abajo.
 
 ## Qué quedó
 
@@ -435,6 +431,271 @@ Todo en un bloque que al final levanta una excepción: nada quedó escrito.
    aprobar.
 2. **`GEMINI_API_KEY`** en los secretos de las edge functions, si se quiere la
    vía con IA. Sin ella no falta nada: cambia la adaptación fina al caso.
+
+---
+
+# NEGOCIOS — FASE 3 (Mercado) · ENTREGADA · F17.3
+
+> El pedido: `fases/FASE_3_MERCADO.md` con `referencia/CERTIFICACIONES.md`,
+> `08_LEGAL_Y_CONFIANZA.md` completo, 02, 04 §4, 05 §3–§4, 06 §4 y 07 §4.6–§4.7.
+> Una empresa aprobada carga listados con afirmaciones ambientales TIPIFICADAS
+> (16 tipos, cada uno con sus campos obligatorios), cada afirmación tiene su
+> propio nivel de evidencia, un revisor publica, y las personas adultas ven el
+> catálogo `/mercado` y salen al sitio del comercio SIEMPRE por un interstitial.
+> Es la fase con más riesgo legal: la regla que organiza todo es la ANTIHALO —
+> el nivel es de la afirmación, nunca del producto ni de la empresa.
+
+## ▶ NEXT EXACT TASK (Negocios)
+
+> **Fase 4 · Integración y cobro.** Leer 02 §6–§8, 04 §5, `09_MONETIZACION.md`
+> completo, 08 §9, `lib/ads/policy.ts` y `fases/FASE_4_INTEGRACION_Y_COBRO.md`.
+> La migración que la carpeta llama `0041` acá es `0108`. **El documento pone
+> de prerrequisito al menos 3 listados publicados de prueba**: eso es el
+> recorrido real de abajo, con una cuenta adulta, y no se puede hacer desde acá.
+> Los ganchos de plan ya existen y devuelven `'semilla'`
+> (`brote_negocio_plan`, `brote_negocio_permite`, `brote_negocio_acelerado`):
+> la fase 4 solo tiene que redefinirlos contra `business_subscriptions`.
+
+## Qué quedó
+
+**El registro de certificaciones, verificado contra SENASA** antes de escribir
+nada (2026-09-18, contra el PDF "Entidades certificadoras habilitadas por el
+Senasa — Julio 2025", el vigente en su página). La carpeta tenía tres errores:
+Argencert **no figura** (queda cargada con `activo = false`, así un certificado
+suyo no llega a E3); IRAM, SG Agrovisto y Control Union **sí figuran** y
+faltaban; y Rainforest Alliance venía habilitando `organico`, cuando en
+Argentina lo orgánico lo certifica solo una entidad habilitada por SENASA (Ley
+25.127): quedó solo para `certificacion_tercero`. Cada fila lleva en `nota` qué
+se verificó y contra qué, que es lo que mira el revisor antes de confiar en un
+E3. Las no orgánicas (FSC, PEFC, GRS, RCS, compostables, Leaping Bunny, Vegan
+Society, Fairtrade, WFTO, ISO 14001, Sistema B) habilitan solo los tipos que
+de verdad respaldan: un FSC no respalda un `libre_de`.
+
+**El dominio, en TypeScript y sin red** — `lib/mercado/`, con tests.
+- `claims.ts` — las 16 afirmaciones: nombre, ayuda, alcance, campos, esquema
+  Zod con sus reglas duras (biodegradable ≤ 12 meses, reciclable exige
+  disponibilidad real, contenido reciclado exige porcentaje, energía renovable
+  ≥ 80%, etc.), qué pide cada nivel, texto público y documento. La lista negra
+  (absolutos, salud, vagos) con normalización de acentos y espacios.
+- `lib/negocio/niveles.ts` — el nivel de una afirmación (espejo exacto de
+  `brote_claim_nivel`) y "qué te falta para el siguiente".
+- `validador.ts` — el validador determinista del listado: largos, lista negra,
+  rubros incompatibles, términos ambientales sin afirmación que los respalde.
+  **Es la única barrera obligatoria**: con Gemini apagado publicar funciona
+  igual (validador + revisión manual).
+- `ranking.ts` — el puntaje de 05 §4 con los pesos exactos y el comentario
+  literal de que el plan NUNCA entra en la fórmula; el reordenamiento por
+  diversidad.
+- `url.ts` — la verificación de la URL de destino (https, sin IP privada, hasta
+  3 redirecciones dentro del mismo dominio).
+- `servidor.ts` / `acciones.ts` — lecturas y server actions. `enviarListado`
+  corre en orden: validador → URL → `screen-listing` → `listado_enviar`.
+
+**Base de datos** — `supabase/migrations/0107_mercado.sql`, aplicada en vivo
+en cuatro trozos (`0107_mercado_a` a `_d`) más dos correcciones de QA
+(`0107b_reporte_resolver_confirmado`, `0107c_businesses_menores`), las dos ya
+incorporadas al archivo. Los 57 cuerpos de función vivos coinciden con el
+archivo (md5 del cuerpo normalizado).
+- Tablas `certifications`, `business_claims`, `listings`, `listing_claims`
+  (trigger: misma empresa, máximo 5), `listing_clicks`,
+  `listing_clicks_mensual`, `listing_impresiones`, `listing_reports`.
+- **Escritura solo por RPC** y **lectura pública por columnas**: `listings` no
+  concede `precio_referencia` ni `url_destino` a nadie. El precio sale por RPC
+  (y nunca a un teen); la URL, solo de `mercado_salir`, después de registrar el
+  clic.
+- RPCs de negocio (`listado_*`, `claim_guardar`, `mis_listados`,
+  `mis_afirmaciones`), del revisor (`admin_listados_cola`,
+  `admin_listado_revisar` con decisión por afirmación, `admin_listado_despublicar`,
+  `admin_listado_auditar`, `admin_claim_desenganchar`, `admin_nota_correccion`,
+  `admin_certificacion_guardar`, `admin_reportes_cola`, `admin_reporte_resolver`)
+  y públicas (`mercado_listados` con cursor, `mercado_listado`,
+  `mercado_negocio`, `mercado_salida`, `mercado_salir`, `mercado_reportar`,
+  `mercado_vistas`).
+- `brote_negocios_diario()` en pg_cron (`brote-negocios-diario`, 04:00 UTC =
+  01:00 AR): avisos de certificados por vencer, niveles y puntajes, retención
+  (clics 180 días con agregado mensual; impresiones 90), y dos cosas que la
+  fase 2 había dejado sin programar: objetivos en riesgo / incumplidos y el
+  decaimiento del Progreso de Mejora.
+- Bucket `listing-images` (público, 2 MB, carpeta por negocio).
+
+**Edge function** `screen-listing` (desplegada, v1): el prompt de 06 §4
+literal, caché por hash, 20 por día y por negocio. Si no hay clave o falla,
+deja escrito "Revisado solo por reglas — sin análisis automático." y el envío
+sigue: la IA solo le da banderas al revisor, nunca decide.
+
+**App**
+- `/negocio/listados` (lista, nuevo, ficha con su estado, editar) con el editor
+  de afirmaciones: "qué querés afirmar", los campos de ESE tipo, el nivel que
+  va a tener y qué le falta para el siguiente, reutilizar una aprobada.
+- `/mercado` — cabecera "Qué es esto" de 08 §4.4, categorías, filtros (nivel
+  mínimo, zona, cómo se consigue, orden), tarjetas con el nivel y "precio de
+  referencia", cursor infinito.
+- `/mercado/[slug]` — la ficha: cada afirmación con SU nivel y su explicación,
+  un solo botón de salida, el pie legal de 08 §4.3, reportar.
+- `/mercado/salir/[listingId]` — el interstitial con el texto literal de 08 §4.1.
+  Registra el clic con su `origen` y recién ahí muestra la URL. Quien ya lo vio
+  dos veces en 30 días sigue de largo con un aviso breve.
+- `/mercado/negocio/[slug]` — el perfil público, con la nota de corrección.
+- `/legal/niveles` — la escalera pública, con los textos literales de 08 §4.2.
+  **Cada badge de nivel de la app linkea ahí** (también el `NivelChip` de la
+  fase 1).
+- `/panel/listados` (cola y revisión con alerta de halo y los grupos por
+  empresa) y `/panel/reportes` (descargo, confirmar, desestimar). Contadores en
+  `/panel`.
+
+## Verificado contra la base viva (transacciones que terminan en rollback)
+
+Los tres bloques quedaron en **`supabase/qa/mercado.sql`**, con el resultado
+esperado arriba de cada uno, para repetirlos (la fase 5 lo pide). Resultado:
+- Los 8 rechazos de afirmación, cada uno con su código: `no_toxico` sin
+  documento, biodegradable a 24 meses, reciclable sin disponibilidad, reciclado
+  sin porcentaje, FSC para `libre_de`, renovable al 60%, Argencert, huella sin
+  verificador. "100% ecológico" y "cura" bloquean el envío con el término.
+- La empresa NO puede publicarse sola ni aprobarse una afirmación con un
+  `update` directo (permiso denegado). Un usuario ajeno no ve un listado
+  pendiente, ni por tabla ni por RPC.
+- Publicar: la afirmación orgánica queda en E3 y la reciclable en E1, **el
+  listado muestra las dos con su nivel**, el negocio pasa a E3, puntaje 65,5
+  (idéntico al espejo de TypeScript). La alerta de halo salta al enganchar la
+  afirmación de harina a un jabón.
+- Adulto: niveles `[e3, e1]`, precio 4200, solo el dominio de destino. La
+  salida no trae URL hasta el clic; el clic queda registrado con `origen =
+  catalogo`. Leer `listing_clicks` o el precio directo de la tabla: denegado.
+- Teen: ve la ficha sin precio, no ve bebidas (ni por RPC ni por RLS). Kid: 0
+  en el catálogo, sin ficha, sin salida, 0 filas por RLS en `listings`,
+  `business_claims` y `businesses`, y no puede crear una empresa (teen
+  tampoco).
+- Vence el certificado: la afirmación baja a E2, **el listado sigue publicado**,
+  puntaje 50,5, el negocio baja a E2.
+- Reportes: diez del mismo usuario → una fila. Dos de dos usuarios →
+  despublicado por reportes. Confirmar sin descargo se rechaza; con descargo se
+  confirma; desestimar el otro NO lo republica mientras quede uno confirmado.
+- Despublicación inmediata: la empresa retira el suyo y el revisor despublica
+  otro; los dos salen del catálogo y de la ficha en el acto, con quién lo hizo
+  registrado. Con la contraseña equivocada, "No autorizado".
+- El job diario corre.
+
+**Dos bugs reales que encontró esta QA:** desestimar un reporte republicaba un
+listado que tenía otro reporte confirmado (`0107b`), y una cuenta `kid` podía
+leer los perfiles públicos de los negocios aprobados directo de la tabla,
+porque la policy de 0105 era para cualquiera (`0107c`: la visita anónima sigue
+igual; las cuentas lo ven salvo `kid`). Ninguna pantalla leía la tabla
+directo, pero la API sí.
+
+## Verificado de otra forma
+
+- **455 tests** (`npm test`), todos en verde: los 376 previos y 79 nuevos —
+  las 16 afirmaciones válidas y los 16 rechazos que pide el documento, los
+  textos, los niveles, la paridad TypeScript ↔ SQL de los niveles y del
+  puntaje, los escenarios de ranking de §11 (un E1 nuevo en la primera pantalla
+  el día 1, un E3 le gana a los 10 días, nunca más de 2 seguidos de la misma
+  empresa con 8 listados), y los criterios que se prueban leyendo el código:
+  ningún `href` a `url_destino`, una sola salida externa en el Mercado (el
+  interstitial), ningún badge dice "verificado / garantizado / aprobado",
+  "precio" siempre seguido de "de referencia", cero imports de anuncios en el
+  Mercado, etiquetas de nivel literales.
+- Pantallas: ruta de previsualización temporal (borrada, no commiteada) con
+  los componentes reales, capturada con Chrome headless en escritorio y en
+  390 px reales (tres iframes; la ventana headless no baja de ~500 px y
+  recorta). Dos arreglos salieron de ahí: el texto del badge de Nivel 3 usaba
+  el verde profundo sobre fondo oscuro y no llegaba a AA (el color quedó en el
+  punto y el borde, el texto en el color de lectura), y en el editor de
+  afirmaciones el badge al lado del texto lo aplastaba a una palabra por
+  renglón en un teléfono (ahora va debajo).
+- `screen-listing` desplegada responde `no_autenticado` a la clave anon.
+- `npm run typecheck`, `npm run build` y `next lint` limpios.
+
+## Desviaciones — qué se hizo distinto de la carpeta, y por qué
+
+1. **Escritura solo por RPC**, igual que en 0105 y 0106: las policies del
+   documento dejaban a un editor escribir `status = 'publicado'` o
+   `tier = 'e3'` sobre lo suyo.
+2. **Una afirmación con el certificado vencido sigue a la vista, en E2.** La
+   policy `claims publicas` del documento la escondía, y 02 §8 dice lo
+   contrario.
+3. **Máximo 2 seguidos, garantizado.** `0.7^n` solo no alcanza cuando una
+   empresa domina el puntaje; hay una segunda pasada que lo asegura.
+4. **Las categorías sensibles para un teen las definí yo:** `bebidas`,
+   `movilidad` y `servicios-profesionales`. El documento dice "solo
+   categorías no comerciales sensibles" sin listarlas. Viven en un solo lugar
+   (`brote_mercado_sensibles()` y `CATEGORIAS_SENSIBLES`) y se cambian ahí.
+5. **`listing_impresiones`**, que el esquema no tenía: el CTR de 05 §4.4 las
+   necesita. Una por persona, listado y día, para que inflarle las impresiones
+   a un competidor cueste una cuenta por día. El CTR entra recién con 50
+   impresiones.
+6. **Un parcial cuenta como medio ciclo** para el E4 (`mejora_estado`
+   redefinida). El documento no lo decía, y sumarlo entero regalaba el nivel.
+7. **La publicación acelerada está hecha pero dormida**: depende del plan, y
+   los planes son de la fase 4.
+8. **Cero AdSense en el Mercado, por construcción:** no hay espacios de
+   anuncio, con un test que lo prueba. `lib/ads/policy.ts` no se tocó (el
+   documento lo prohíbe). Salvedad para el dueño, abajo.
+9. **El screening de la IA nunca llega al público.** A la empresa le llegan
+   solo las sugerencias de texto (08 §6: Brote no reescribe el texto
+   comercial, la empresa decide); el puntaje, la recomendación y el riesgo de
+   greenwashing son para el revisor.
+
+## Checklist legal de 08 §10 — revisado
+
+- [ ] `/legal/negocios` publicado y revisado por un abogado — **no está**:
+  es texto legal que tiene que pasar por un abogado (08 §7 tiene las diez
+  cláusulas mínimas). Bloquea cobrar, que es la fase 4.
+- [ ] `/legal/privacidad` ampliado con dossier, clics e IA (08 §7.1) — **no
+  está**, mismo motivo.
+- [x] `/legal/niveles` publicado y linkeado desde cada badge.
+- [x] Interstitial en el 100% de las salidas (test + la URL no está en ningún
+  grant).
+- [x] Ningún badge dice "verificado", "garantizado" o "aprobado" (test sobre
+  `messages/es.json`).
+- [x] "Precio" nunca solo (test).
+- [x] Despublicación inmediata probada (empresa y revisor).
+- [x] Trigger de dos reportes probado con dos usuarios distintos.
+- [x] Lista negra de salud activa en el validador determinista (TypeScript y
+  SQL).
+- [x] Rubros incompatibles bloqueados: en el alta el rubro es una de 12
+  opciones cerradas, validadas en SQL (`brote_rubros()`, fase 1), y en cada
+  listado el validador bloquea apuestas, tabaco, armas, cripto, venta bajo
+  receta y suplementos.
+- [x] `kid` no lee `listings` ni `businesses` ni crea una empresa — bloque 3
+  de `supabase/qa/mercado.sql` (repetible, no corre en `npm test`: necesita la
+  base).
+- [x] Un ajeno no lee `improvement_dossiers` — probado en la fase 2.
+- [ ] La empresa acepta los términos con casilla explícita, y queda quién,
+  cuándo y qué versión — **no está**: no hay términos que aceptar todavía. Va
+  con `/legal/negocios`, en la fase 4.
+
+## Lo que NO se pudo verificar
+
+- **El recorrido con sesión real**, de punta a punta en el navegador: crear un
+  listado, subir la imagen al bucket, cargar afirmaciones con documento,
+  enviar, publicar desde `/panel/listados`, verlo en `/mercado`, salir,
+  reportar. Las RPC están probadas con SQL y las pantallas con datos de
+  ejemplo, no juntas.
+- **Una llamada real a `screen-listing`** con Gemini: necesita sesión y
+  `GEMINI_API_KEY`, que no se puede listar desde acá. Sin clave, el envío
+  deja la nota "Revisado solo por reglas" y sigue.
+- **`verificarUrl` contra sitios reales**: corre en el server action, con
+  sesión.
+
+## Owner action items (Negocios, fase 3)
+
+1. **Hacer el recorrido del Mercado y publicar 3 listados de prueba** (el
+   prerrequisito de la fase 4): `/negocio/listados` → nuevo → afirmaciones
+   (una con certificado y documento, otra declarada) → enviar →
+   `/panel/listados` → publicar → `/mercado` → la ficha → salir → reportar
+   con dos cuentas distintas → `/panel/reportes`.
+2. **AdSense: revisar que los anuncios automáticos ("Auto ads") estén
+   APAGADOS** en la consola de AdSense, o excluir `/mercado` y `/negocio` ahí.
+   El código no tiene ningún espacio de anuncio en el Mercado, pero el script
+   se carga para los adultos elegibles y, con Auto ads prendido, Google pone
+   anuncios donde quiere.
+3. **`/legal/negocios` y la ampliación de `/legal/privacidad`** con un
+   abogado, antes de cobrarle a la primera empresa (08 §7 y §10).
+4. **El registro de certificaciones se vuelve a verificar** cuando SENASA
+   publique un PDF nuevo: se edita desde `admin_certificacion_guardar`, sin
+   migración.
+5. Pendiente para la fase 5: el chequeo periódico de enlaces caídos (hoy la
+   URL se verifica al enviar, no después).
 
 ---
 

@@ -17,6 +17,8 @@
   "include": [
     "lib/world/**/*.ts",
     "lib/mejora/**/*.ts",
+    "lib/mercado/**/*.ts",
+    "lib/negocio/niveles.ts",
     "lib/mundo.ts",
     "lib/ranks.ts",
     "lib/domains.ts",

@@ -8,7 +8,7 @@ import { puede } from '@/lib/negocio/roles';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('negocio.mejora.dossier');
-  return { title: `${t('titulo')} · Brote` };
+  return { title: t('titulo') };
 }
 
 /** `/negocio/mejora/dossier` — los ocho bloques, uno por pantalla (fase 2 §4). */

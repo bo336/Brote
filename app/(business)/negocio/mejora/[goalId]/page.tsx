@@ -8,7 +8,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function generateMetadata({ params }: { params: { goalId: string } }): Promise<Metadata> {
   if (!UUID.test(params.goalId)) return {};
   const detalle = await getObjetivoDetalle(params.goalId);
-  return { title: detalle ? `${detalle.objetivo.titulo} · Brote` : undefined };
+  return { title: detalle?.objetivo.titulo };
 }
 
 /**

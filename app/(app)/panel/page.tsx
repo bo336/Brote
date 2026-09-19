@@ -20,6 +20,7 @@ import { ColaAcademia } from '@/components/panel/ColaAcademia';
 import { MetricasAcademia } from '@/components/panel/MetricasAcademia';
 import { NegociosResumen } from '@/components/panel/NegociosResumen';
 import { ObjetivosResumen } from '@/components/panel/ObjetivosResumen';
+import { MercadoResumen } from '@/components/panel/MercadoResumen';
 import { usePanelPass } from '@/components/panel/PanelPass';
 import { toast } from '@/stores/toast';
 
@@ -258,6 +259,7 @@ export default function PanelPage() {
           lado hay alguien esperando una respuesta. */}
       <NegociosResumen pass={pass} />
       <ObjetivosResumen pass={pass} />
+      <MercadoResumen pass={pass} />
 
       {/* La Academia. La cola va antes que los números por el mismo motivo que
           la moderación: es lo único de acá que bloquea contenido. Nada generado

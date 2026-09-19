@@ -4,18 +4,19 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, ShieldCheck, Target, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * Solo las secciones que existen. Listados, Analítica, Equipo y Plan se suman
+ * Solo las secciones que existen. Analítica, Equipo y Plan se suman
  * con sus fases: un enlace a una pantalla que todavía no está es una promesa
  * rota en el lugar más visible del producto.
  */
-const SECCIONES: { clave: 'resumen' | 'mejora' | 'verificacion'; href: string; icono: LucideIcon }[] = [
+const SECCIONES: { clave: 'resumen' | 'mejora' | 'listados' | 'verificacion'; href: string; icono: LucideIcon }[] = [
   { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
   { clave: 'mejora', href: '/negocio/mejora', icono: Target },
+  { clave: 'listados', href: '/negocio/listados', icono: Store },
   { clave: 'verificacion', href: '/negocio/verificacion', icono: ShieldCheck },
 ];
 

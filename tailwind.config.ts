@@ -65,6 +65,15 @@ const config: Config = {
           aire_suelo: '#A38B6D',
           ciencia: '#6FBF73',
         },
+        // Niveles de evidencia (brote-negocios 07 §5). Nuevos, no reciclados de
+        // los dominios. El Nivel 4 no tiene color: lleva la gradiente de marca
+        // en el BORDE, nunca en el relleno. Y el nivel nunca va solo por color:
+        // siempre color + número + palabra (07 §7).
+        nivel: {
+          1: '#8A8F98', // gris pizarra — declarado
+          2: '#2DB4D4', // cian — documentado (el cian ya significa "verificable" en Brote)
+          3: '#0E7A52', // verde profundo — certificado
+        },
       },
       fontFamily: {
         display: ['var(--font-display)', 'Bricolage Grotesque', 'system-ui', 'sans-serif'],

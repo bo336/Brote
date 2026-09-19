@@ -6,7 +6,7 @@ import { getActiveBusiness, getMejoraEstado } from '@/lib/negocio/context';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('negocio.mejora');
-  return { title: `${t('titulo')} · Brote` };
+  return { title: t('titulo') };
 }
 
 /** `/negocio/mejora` — el programa: propuestas, activos y cerrados (07 §4.4). */

@@ -133,7 +133,7 @@ export function ResumenNegocio({ negocio: n }: { negocio: NegocioDetalle }) {
                   icono={Store}
                   titulo={t('resumen.approved.mercadoTitulo')}
                   cuerpo={t('resumen.approved.mercadoCuerpo')}
-                  etiqueta={t('resumen.approved.pronto')}
+                  href="/negocio/listados"
                 />
               ),
             )}

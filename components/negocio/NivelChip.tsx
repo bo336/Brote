@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { COLOR_NIVEL, numeroNivel } from '@/lib/negocio/catalogo';
 import type { EvidenceTier } from '@/lib/supabase/rows-negocio';
@@ -50,6 +51,11 @@ export function NivelChip({
     </span>
   );
 
-  if (tier !== 'e4') return <span className={className}>{cuerpo}</span>;
-  return <span className={cn('inline-flex rounded-pill bg-brand-gradient p-px', className)}>{cuerpo}</span>;
+  // Linkeado a `/legal/niveles` como cada badge de nivel de la app (fase 3 §10).
+  const envuelto = tier !== 'e4' ? cuerpo : <span className="inline-flex rounded-pill bg-brand-gradient p-px">{cuerpo}</span>;
+  return (
+    <Link href="/legal/niveles" className={cn('press inline-flex transition-opacity duration-150 hover:opacity-80', className)}>
+      {envuelto}
+    </Link>
+  );
 }
