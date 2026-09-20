@@ -844,6 +844,37 @@ Brote" en `/perfil`. Los menores no ven ninguna de las tres.
   security definer para cuentas con sesión, igual que las de las fases 1 a 3.
   Ningún error nuevo.
 
+## Probado en PRODUCCIÓN, y lo que encontró
+
+Después de desplegar (`ea46468`) se probó la URL real, no solo el build. Tres
+cosas estaban rotas y se arreglaron en `344e6bd`:
+
+1. **El webhook no llegaba.** El middleware mandaba al login todo lo que no
+   trae sesión de Brote, así que el `POST` de MercadoPago terminaba en
+   `/auth/login?next=…` y el cobro nunca habría funcionado. La edición que
+   agregaba `/api/pagos/` a las rutas públicas **se había perdido en silencio**
+   (el archivo tiene CRLF y el reemplazo multilínea no coincidió). Hoy hay un
+   test que fija esa lista.
+2. **Los cron de Vercel tampoco llegaban** —viene de antes de esta fase— y,
+   peor, corrían sin autenticación si `CRON_SECRET` no estaba configurado.
+   Ahora `/api/cron/` es público para el middleware y las tres rutas **fallan
+   cerradas**: sin el secreto, 401.
+3. **La ficha pública del negocio pedía cuenta**, que es justo lo que el sello
+   del kit de marca no puede permitirse.
+
+Verificado sobre `https://brote-ft7m.vercel.app`: el webhook devuelve 401 sin
+firma y con firma falsa; `/api/cron/billing` devuelve 401 sin secreto;
+`/mercado/negocio/<slug>` responde sin sesión (404 si no existe);
+`/legal/niveles` y `/offline/negocios-demo` dan 200.
+
+## Cómo mirar la fase 4 sin esperar a que haya comercios
+
+`/offline/negocios-demo` — las pantallas reales (catálogo, ficha, "Dónde
+conseguirlo", analítica, planes, kit de marca) con **datos de ejemplo** y un
+cartel que aclara que esos negocios no existen. Es público y no pide cuenta,
+igual que `/offline/mundo-preview`. El Mercado de verdad sigue vacío hasta que
+haya una empresa aprobada con listados publicados.
+
 ## Desviaciones — qué se hizo distinto de la carpeta, y por qué
 
 1. **La función se llama `mp-negocio`, no `mp-subscribe`.** `mp-subscribe` ya
