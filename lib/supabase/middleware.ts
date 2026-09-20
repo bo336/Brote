@@ -17,6 +17,20 @@ const PUBLIC_PREFIXES = [
   '/_next',
   '/api/public',
   '/feed/p/',
+  // Lo que llega de afuera y NO trae sesión de Brote, con su propia puerta:
+  // · `/api/pagos/` — MercadoPago avisa de un cobro. Su autenticación es la
+  //   firma `x-signature`, que el route handler valida antes de tocar nada.
+  //   Sin esto, el webhook se redirigía al login y el cobro nunca llegaba.
+  // · `/api/cron/` — los cron de Vercel. Su autenticación es `CRON_SECRET`,
+  //   y las rutas fallan cerradas si no está configurado.
+  // · `/api/sello/` — el sello del kit de marca, que vive en el sitio de la
+  //   empresa (fase 4 §7).
+  // · `/mercado/negocio/` — la ficha pública a la que ese sello linkea. Los
+  //   listados y los precios siguen pidiendo cuenta: eso lo decide la RPC.
+  '/api/pagos/',
+  '/api/cron/',
+  '/api/sello/',
+  '/mercado/negocio/',
 ];
 
 function isPublic(pathname: string): boolean {

@@ -94,3 +94,18 @@ test('el webhook valida la firma ANTES de tocar nada', () => {
   // Y nunca se le cree al cuerpo: la verdad se vuelve a pedir por la API.
   assert.ok(/MP_API\}\/preapproval\//.test(src), 'no vuelve a consultar la suscripción');
 });
+
+test('el webhook y los cron son alcanzables sin sesión, y los cron fallan cerrados', () => {
+  // Esto se rompió en producción una vez: el middleware mandaba el POST de
+  // MercadoPago a /auth/login y el cobro no llegaba nunca. La puerta de cada
+  // una de estas rutas es propia —la firma, o CRON_SECRET—, no la sesión.
+  const mw = readFileSync(join(process.cwd(), 'lib/supabase/middleware.ts'), 'utf8');
+  const lista = mw.slice(mw.indexOf('const PUBLIC_PREFIXES'), mw.indexOf('function isPublic'));
+  for (const prefijo of ['/api/pagos/', '/api/cron/', '/api/sello/', '/mercado/negocio/']) {
+    assert.ok(lista.includes(`'${prefijo}'`), `${prefijo} no es público: el middleware lo manda al login`);
+  }
+  for (const cron of ['billing', 'maintenance', 'refresh-news']) {
+    const src = readFileSync(join(process.cwd(), `app/api/cron/${cron}/route.ts`), 'utf8');
+    assert.ok(src.includes('if (!secret ||'), `el cron ${cron} corre sin CRON_SECRET configurado`);
+  }
+});
