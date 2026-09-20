@@ -6,11 +6,11 @@
 
 ## CURRENT STATE
 
-### F17 · NEGOCIOS — FASE 4 (Integración y cobro) ENTREGADA (2026-09-20)
+### F17 · NEGOCIOS — COMPLETO, LAS 5 FASES ENTREGADAS (2026-09-20)
 
 La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
 `F17`. Detalle completo, verificación y desviaciones en `CONTINUE.md`
-("NEGOCIOS — FASE 1" a "FASE 4").
+("NEGOCIOS — FASE 1" a "FASE 5"). Cómo operarlo: `NEGOCIOS.html`.
 
 - [x] F17.1 Fundaciones — empresa como entidad, membresías, contexto persona ↔
   negocio (cookie `brote_ctx`, validada contra la base), shell propio sin
@@ -44,9 +44,36 @@ La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
   empresa con la personal filtrando `business_id is null`, kit de marca con
   sello que se actualiza solo, historial público de mejora, y el Mercado por
   fin visible en la navegación. Migración `0108`.
-- [ ] F17.5 Endurecimiento y lanzamiento.
+- [x] F17.5 Endurecimiento y lanzamiento — auditoría de RLS con dos personas
+  reales (las 13 pruebas, incluida la del dossier: `permiso denegado`), storage
+  privado probado adivinando la ruta, cero secretos en el bundle, límites de uso
+  en las tres puertas que faltaban, aceptación de términos con quién/cuándo/qué
+  versión, `/legal/negocios` y la privacidad ampliada, salud de enlaces semanal
+  y sucesión de la titularidad (los dos bordes que faltaban de 02 §8), catálogo
+  **de 754 ms a 6 ms** con 5.000 listados, `/negocios` pública y `NEGOCIOS.html`
+  para operar. Migración `0109`, QA en `supabase/qa/seguridad.sql`.
 
-**Pendiente del dueño antes de la F17.5:** recorrer las fases 1 a 4 con una
+**Deuda conocida de F17** (honesta, no se declara hecho lo que no lo está):
+1. **La revisión del abogado de `/legal/negocios` no está hecha.** Bloquea
+   cobrar, no usar.
+2. **Nunca hubo una empresa real**: cero empresas y cero listados en la base. El
+   recorrido humano completo sigue sin hacerse, y es lo único que desbloquea
+   probar de verdad la analítica, el sello y el puente.
+3. **MercadoPago sin sandbox**: faltan credenciales. Sí están probados el
+   rechazo de firma (incluso contra producción), la idempotencia y el mapeo de
+   estados.
+4. **Accesibilidad revisada por código**, no con lector de pantalla ni
+   recorriendo cada formulario con teclado.
+5. **Las pantallas nuevas no se vieron en modo claro.**
+6. **Sin buscador por texto** en el Mercado y **sin export de datos** de la
+   empresa (el botón de baja con JSON de 02 §8 no existe todavía).
+7. **Push de avisos de empresa** sin probar con una suscripción real.
+8. Fuera de alcance a propósito (backlog del documento): reseñas de usuarios
+   —necesitan diseño antifraude antes de existir—, slots destacados del plan
+   Bosque, chat empresa ↔ persona, expansión a otros países, certificación
+   propia y emails transaccionales.
+
+**Pendiente del dueño ahora que F17 está completo:** recorrer las fases 1 a 4 con una
 cuenta real y dejar 3 listados publicados de prueba —sin eso, ni la analítica
 ni el sello tienen contra qué probarse—; confirmar que los anuncios
 automáticos de AdSense están apagados; `/legal/negocios` y la ampliación de

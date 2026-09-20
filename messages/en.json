@@ -1568,6 +1568,10 @@
         "sitio_o_instagram": "Cargá el sitio web o el Instagram: con uno alcanza.",
         "descripcion": "Contanos un poco más: 120 caracteres como mínimo.",
         "intereses": "Elegí al menos una opción."
+      },
+      "terminos": {
+        "texto": "I confirm I can represent this business and I accept the",
+        "enlace": "business terms"
       }
     },
     "verificacion": {
@@ -2043,7 +2047,8 @@
         "pendiente": "in review",
         "draft": "draft",
         "rechazado": "rejected"
-      }
+      },
+      "tablaCaption": "Impressions, exits and rate for each listing over the last {dias} days"
     },
     "plan": {
       "eyebrow": "Your business",
@@ -2253,7 +2258,11 @@
         "limpiar": "Sacar los filtros"
       },
       "fin": "Eso es todo por ahora.",
-      "cargarMas": "Ver más"
+      "cargarMas": "Ver más",
+      "pocos": {
+        "cuerpo": "We're still building the Market: few businesses have published so far. If you run one that does things differently, get in touch.",
+        "enlace": "How to add your business"
+      }
     },
     "ficha": {
       "precioRef": "Precio de referencia informado por el comercio",

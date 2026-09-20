@@ -34,9 +34,27 @@ test('toda salida pasa por el interstitial: ningún href apunta a url_destino', 
 test('en el Mercado, la única salida hacia un comercio es la del interstitial', () => {
   // El panel del revisor abre el sitio de un negocio para revisarlo: no es una
   // salida de una persona hacia una compra, y queda fuera de esta regla.
+  //
+  // Lo que se busca es una salida FUERA de Brote: un `href` a http(s), o a la
+  // URL de destino. Abrir una pantalla nuestra en otra pestaña —los términos
+  // desde el alta, por ejemplo— no es una salida hacia un comercio.
   const mercado = [...archivos('app/(app)/mercado'), ...archivos('components/mercado'), ...archivos('components/negocio')];
-  const conSalidaExterna = mercado.filter((f) => /rel="noopener noreferrer( nofollow)?"|target="_blank"/.test(readFileSync(join(RAIZ, f), 'utf8')));
-  assert.deepEqual(conSalidaExterna.map((f) => f.replace(/\\/g, '/')), ['components/mercado/SalidaMercado.tsx']);
+  const conSalidaExterna = mercado.filter((f) => {
+    const src = readFileSync(join(RAIZ, f), 'utf8');
+    return (
+      /rel="noopener noreferrer( nofollow)?"/.test(src) ||
+      /window\.location\.(assign|href)/.test(src) ||
+      /href=\{[^}]*url_?[dD]estino/.test(src)
+    );
+  });
+  // Dos, y las dos a propósito:
+  // · el interstitial, que es la ÚNICA salida de una persona hacia un comercio;
+  // · la pantalla de plan, que manda a la empresa al checkout de MercadoPago
+  //   —el pago lo hospeda el proveedor y Brote nunca ve una tarjeta—.
+  assert.deepEqual(conSalidaExterna.map((f) => f.replace(/\\/g, '/')), [
+    'components/mercado/SalidaMercado.tsx',
+    'components/negocio/plan/PlanNegocio.tsx',
+  ]);
 });
 
 const ES = JSON.parse(readFileSync(join(RAIZ, 'messages/es.json'), 'utf8')) as Record<string, any>;

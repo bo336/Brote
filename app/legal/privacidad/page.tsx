@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Cómo ${BRAND.name} trata tus datos personales.`,
 };
 
-const UPDATED = '27 de agosto de 2026';
+const UPDATED = '20 de septiembre de 2026';
 
 export default function PrivacidadPage() {
   return (
@@ -231,7 +231,42 @@ export default function PrivacidadPage() {
         </p>
       </Section>
 
-      <Section n="11" title="Cambios en esta Política">
+      {/* Empresas (08_LEGAL_Y_CONFIANZA.md §7.1). Tres cosas que una PyME
+          pregunta en la primera reunión, contestadas por escrito. */}
+      <Section n="11" title="Datos de empresas del programa">
+        <p>
+          Si administrás una empresa dentro del programa de {BRAND.name}, además de lo anterior tratamos estos datos:
+        </p>
+        <Bullets
+          items={[
+            <>
+              <strong>Datos de la empresa:</strong> nombre, rubro, tamaño, ubicación, sitio web, redes, CUIT si lo
+              cargás, y la documentación que presentás para verificar el dominio o respaldar una afirmación. Se
+              conservan mientras la empresa exista y 90 días después de darla de baja.
+            </>,
+            <>
+              <strong>El dossier de mejora</strong> —consumos, procesos, restricciones— <strong>no se publica
+              nunca</strong>: ni entero, ni en partes, ni agregado o anonimizado, sin tu consentimiento expreso. No lo
+              vendemos ni lo cedemos, y solo se usa para generar y ajustar los objetivos de tu empresa. Ninguna otra
+              empresa ni persona usuaria puede leerlo.
+            </>,
+            <>
+              <strong>Los clics salientes se registran de forma agregada.</strong> La empresa ve cuántas personas
+              salieron hacia su sitio y desde qué pantalla, nunca <em>quién</em>. No le mostramos a una empresa la
+              identidad de quien tocó su listado, ni le damos forma de deducirla.
+            </>,
+          ]}
+        />
+        <p>
+          <strong>Qué se manda a la inteligencia artificial.</strong> Para proponer objetivos o revisar el texto de un
+          listado usamos un modelo de Google (Gemini). Le enviamos únicamente el contenido operativo necesario: rubro,
+          tamaño, los datos del dossier y el texto del listado. <strong>Nunca</strong> le enviamos el CUIT, datos de
+          contacto personales ni el nombre de quien administra la cuenta. Si el servicio no está disponible, el
+          programa sigue funcionando por reglas propias y nada se interrumpe.
+        </p>
+      </Section>
+
+      <Section n="12" title="Cambios en esta Política">
         <p>
           Podemos actualizar esta Política para reflejar cambios en el Servicio o en la normativa aplicable. Los cambios
           sustanciales se notificarán dentro de la Aplicación. La fecha de última actualización figura al inicio de este
@@ -239,7 +274,7 @@ export default function PrivacidadPage() {
         </p>
       </Section>
 
-      <Section n="12" title="Contacto">
+      <Section n="13" title="Contacto">
         <p>
           Para cualquier consulta sobre esta Política o sobre el tratamiento de tus datos, escribinos a{' '}
           <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a>. También podés consultar nuestros{' '}

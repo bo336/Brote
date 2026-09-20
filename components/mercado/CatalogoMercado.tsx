@@ -232,6 +232,18 @@ export function CatalogoMercado({
             <EmptyState title={t('vacio.titulo')} message={t('vacio.cuerpo')} pipMood="happy" />
           )
         ) : (
+          <>
+            {/* Mientras el catálogo es chico, se dice (fase 5 §8.1). Los
+                listados que hay se muestran igual: esconderlos sería peor que
+                la verdad, y una grilla con huecos también. */}
+            {!hayFiltros && items.length < 12 && (
+              <p className="mb-5 rounded-card border border-border bg-surface p-4 text-small leading-relaxed text-muted-foreground">
+                {t('pocos.cuerpo')}{' '}
+                <Link href="/negocios" prefetch={false} className="font-semibold text-primary">
+                  <span className="link-underline">{t('pocos.enlace')}</span>
+                </Link>
+              </p>
+            )}
           <ul ref={grillaRef} className={`grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 ${navegando ? 'opacity-60 transition-opacity' : ''}`}>
             {items.map((item, i) => (
               <li key={item.id} data-listado={item.id} className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both" style={{ animationDelay: `${Math.min(i % 24, 8) * 40}ms` }}>
@@ -247,6 +259,7 @@ export function CatalogoMercado({
                 </li>
               ))}
           </ul>
+          </>
         )}
         <div ref={centinela} aria-hidden className="h-4" />
         {!cursor && items.length > 0 && <p className="mt-8 text-center text-caption text-muted-foreground">{t('fin')}</p>}

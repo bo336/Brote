@@ -37,6 +37,23 @@ competitive, AI-personalized experience. Built to run **entirely on free tiers**
   graded exercise types, every one of them fully playable by tap-to-select and by
   keyboard, with no drag-and-drop library. Every session ends on a real action.
   See [`docs/ACADEMIA.md`](docs/ACADEMIA.md).
+- **Negocios** — the business side, in two halves that are sold in that order.
+  **Mejora** is an improvement programme: a business fills in a dossier, gets 3–5
+  mid-term environmental goals with a number, a method and required evidence,
+  says "I can't reach that" and gets a re-planned version that keeps the history,
+  and closes each one with evidence a reviewer approves. **El Mercado** is the
+  storefront: listings whose environmental claims are *typed* (16 kinds, each with
+  its own required fields), and **each claim carries its own evidence level** —
+  the level belongs to the claim, never to the product or the company, so one
+  listing can show Level 3 and Level 1 side by side. Every exit to a shop goes
+  through a legal interstitial, the destination URL is never in the page, and
+  nothing about a plan ever touches catalogue ranking. Businesses get honest
+  analytics, a badge for their own site that updates itself, and MercadoPago
+  billing that is **off behind a flag** until the owner turns it on. Kid accounts
+  see none of it and teens see no prices — enforced in RLS and RPCs, not the UI.
+  See [`NEGOCIOS.html`](NEGOCIOS.html) to operate it, and
+  [`/offline/negocios-demo`](https://brote-ft7m.vercel.app/offline/negocios-demo)
+  to look at it with example data.
 - **AI (server-side, cached, graceful fallbacks)** — Gemini photo verification,
   personalized recommendations, Spanish news summaries, and the Academia's
   content pipeline: batch generation, grounded in cited sources with a literal

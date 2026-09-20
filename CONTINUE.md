@@ -702,11 +702,7 @@ directo, pero la API sí.
 
 ## ▶ NEXT EXACT TASK (Negocios)
 
-> **Fase 5 · Endurecimiento y lanzamiento.** Leer
-> `fases/FASE_5_ENDURECIMIENTO_Y_LANZAMIENTO.md`, 04 §6 y 08 §10. La migración
-> que la carpeta llama `0042` acá es `0109`. Antes conviene el recorrido real
-> con una cuenta adulta (abajo): sin una empresa aprobada de verdad, ni el
-> sello ni la analítica tienen contra qué probarse.
+> **Hecha.** El próximo paso está en la sección de la fase 5, más abajo.
 
 ## Qué quedó
 
@@ -954,6 +950,240 @@ haya una empresa aprobada con listados publicados.
 3. **Revisar que los anuncios automáticos de AdSense sigan apagados** (viene de
    la fase 3) y **`/legal/negocios` con un abogado** antes de cobrarle a la
    primera empresa.
+
+---
+
+# NEGOCIOS — FASE 5 (Endurecimiento y lanzamiento) · ENTREGADA · F17.5
+
+> El pedido: `fases/FASE_5_ENDURECIMIENTO_Y_LANZAMIENTO.md` con
+> `referencia/QA_MATRIZ.md`, 08 §10 y 09 §10. Que esto se pueda poner delante de
+> una empresa real que va a pagar: seguridad probada con personas reales, la
+> capa legal completa, performance medida, accesibilidad, y el manual para
+> operarlo sin preguntar nada.
+
+## ▶ NEXT EXACT TASK (Negocios)
+
+> **No queda código del pedido original.** Las cinco fases están entregadas.
+> Lo que sigue NO es código, es la secuencia de 09 §10: conseguir 10 empresas a
+> mano en modo fundador, sentarse con ellas, arreglar lo que rompan, y recién
+> cuando 10 usen Mejora dos meses seguidos y al menos 5 digan que lo
+> recomendarían, prender `negocios_cobro_activo`. Antes de cobrarle a la
+> primera: **la revisión del abogado** (abajo, deuda conocida).
+
+## Qué quedó
+
+**Migración `0109_negocios_endurecimiento.sql`**, aplicada en vivo en cinco
+trozos (`_a` … `_e`).
+- **Índices de cobertura** en las dos claves foráneas que quedaron sin uno
+  (`listing_impresiones_mensual.business_id`, `listing_reports.user_id`).
+- **`app_settings` deja de ser escribible** por `anon`/`authenticated` a nivel
+  de grants. RLS ya lo frenaba —hay una sola policy, de lectura—, pero los
+  permisos de tabla estaban abiertos: si mañana alguien agrega una policy
+  amplia, el interruptor del cobro queda a tiro. Dos cerraduras, no una.
+- **Límites de uso** (§2.4) en las tres puertas que faltaban: 30 envíos de
+  listado por empresa y día, 20 reportes por persona y día, 12 replanificaciones
+  por empresa y día. Viven en triggers, como el resto del gating, así que valen
+  aunque la llamada no pase por la pantalla.
+- **Aceptación de términos** con registro de quién, cuándo y qué versión
+  (`business_terms`), casilla explícita en el alta y un trigger que **no deja
+  mandar la empresa a revisión sin ella**. La versión vigente vive en
+  `app_settings`: publicar una nueva obliga a aceptar de nuevo, sin deploy.
+- **Salud de los enlaces** (02 §8, el único de los nueve bordes que seguía sin
+  implementarse): chequeo semanal, 2 fallos → aviso, 4 → despublicación, un
+  acierto pone el contador en cero. Corre entero en la base con `pg_net`, en dos
+  pasos (lanzar y, veinte minutos después, leer). Sin ruta de Next ni secreto en
+  el medio, porque `app_settings` es legible por cualquiera y un token ahí no
+  sería un token.
+- **Sucesión de la titularidad** (02 §8, borde 3): si quien era dueño borra su
+  cuenta de Brote, la empresa pasa al `admin` más antiguo; si no queda nadie,
+  queda `suspended` con su motivo. Antes se quedaba sin dueño y sin forma de
+  arreglarlo desde la app.
+
+**Legales** (08 §7 y §10)
+- **`/legal/negocios`**: los términos para empresas con las diez cláusulas
+  mínimas del documento —qué es y qué no es Brote, veracidad e indemnidad, los
+  niveles no son certificación, derecho a despublicar, sin garantía de tráfico,
+  contenido de la empresa, confidencialidad del dossier, cobro y gracia, baja y
+  conservación, cambios de precio, ley aplicable—. Un test verifica que estén
+  todas y que la versión de la página sea la que guarda la base.
+- **`/legal/privacidad` ampliada** con la sección que faltaba: qué datos de la
+  empresa se guardan y por cuánto, que el dossier **no se publica nunca**, que
+  los clics salientes se registran de forma agregada y **la empresa nunca ve
+  quién** hizo clic, y qué se le manda a Gemini —y qué no: nunca el CUIT, ni
+  datos de contacto personales, ni el nombre de quien administra—.
+
+**Arranque en frío** (§8)
+- **`/negocios`**: la página pública del programa, sin cuenta, para mandar por
+  WhatsApp antes de que exista cualquier relación. Cuenta **Mejora primero y el
+  Mercado después**, que es el orden de 09 §1 y no un detalle de copy.
+- **Catálogo flaco con honestidad**: con menos de 12 listados, el Mercado lo
+  dice y ofrece sumar un negocio, en vez de disimularlo.
+- El texto de una página para WhatsApp está en `NEGOCIOS.html` §11.
+
+**Documentación** (§9)
+- **`NEGOCIOS.html`** en la raíz, con el estilo de `OPERACIONES.html`: cómo
+  aprobar una empresa y qué mirar, cómo leer el informe de la IA, cómo aprobar
+  un listado y cuándo desconfiar de una afirmación, cómo agregar una
+  certificadora al registro (con el SQL), cómo manejar un reporte y el derecho
+  de descargo, precios y planes, cómo prender el cobro, qué pasa si Gemini se
+  cae, los tres relojes y cómo verificar que corrieron, los costos y cuándo
+  dejan de ser cero, el texto para WhatsApp y **la deuda conocida**.
+- `README.md` con la sección de Negocios; `.env.example` con `MP_ACCESS_TOKEN`,
+  `MP_WEBHOOK_SECRET` y `CRON_SECRET`.
+
+## Auditoría de seguridad — con dos personas reales
+
+Las trece pruebas de §2.1, en `supabase/qa/seguridad.sql` (bloque 1), corridas
+con B-ajeno sobre la empresa de A:
+
+| Qué | Resultado |
+|---|---|
+| `businesses` en `draft` | 0 filas |
+| **`improvement_dossiers`** | **permiso denegado** — ni siquiera hay grant |
+| `improvement_goals` no públicos | 0 filas |
+| `goal_checkins` / `goal_evidence` | 0 filas |
+| `business_verifications` | 0 filas |
+| `business_subscriptions` | 0 filas |
+| `listing_clicks` | permiso denegado |
+| `ai_jobs` | permiso denegado |
+| `listings` en `draft` | 0 filas |
+| Modificar negocio, listado o equipo | denegado en los tres |
+| `editor` toca equipo / plan / términos | denegado · `solo_owner` · `sin_permiso` |
+| `admin` borra la empresa | denegado |
+| **La cookie `brote_ctx` apuntando a la empresa ajena** | las seis RPC devuelven `null` |
+
+**Storage** (§2.3, bloque 2): el bucket `business-evidence` es privado, de 5 MB
+y solo acepta pdf/jpeg/png —los tres límites en el servidor, no en el input—.
+A sube y lee lo suyo; B con la **ruta exacta** lee 0, listando el bucket lee 0 y
+subiendo a la carpeta ajena recibe denegado; un anónimo, 0.
+
+**Grants** (§2.2): la consulta del documento devuelve dos funciones, las dos a
+propósito y documentadas: `brote_world_goal` (del mundo, matchea por el patrón)
+y `mercado_negocio`, que es pública desde la fase 4 porque el sello del kit de
+marca linkea a la ficha del negocio desde el sitio de la empresa. Devuelve solo
+datos públicos de una empresa aprobada.
+
+**Superficie de la API** (§2.4): `grep` sobre `.next/static` — ningún
+`SERVICE_ROLE`, `MP_ACCESS` ni `GEMINI`. Los únicos JWT del bundle son la clave
+**anon**, que es pública por diseño (se decodificaron para confirmarlo). El
+webhook rechaza firma inválida, probado además **contra producción** con `curl`.
+
+## Performance — medida, no estimada
+
+Con **5.000 listados publicados** (insertados y revertidos en una transacción):
+
+| Consulta | Antes | Ahora |
+|---|---|---|
+| Primera página del catálogo | 754 ms | **6,0 ms** |
+| Página siguiente por cursor | 388 ms | **2,5 ms** |
+| Con filtros (categoría + nivel) | 113 ms | **1,8 ms** |
+| Orden por nivel | — | **2,2 ms** |
+| Ficha de un listado | 8,6 ms | 8,6 ms |
+
+El umbral del documento era 100 ms. Las dos causas eran reales y estaban
+medidas: `brote_mercado_puede_ver(categoria)` es `security definer` y consulta
+`profiles`, y se evaluaba **una vez por fila**; y el `order by` con un `case`
+sobre un parámetro no lo puede servir ningún índice. Ahora quién mira se
+resuelve una sola vez y cada orden cae en su índice parcial. El comportamiento
+no cambió: el adulto ve precio, el teen no ve precio ni categorías sensibles, y
+`kid` no recibe una sola fila —verificado en la misma corrida—.
+
+## Accesibilidad
+
+- Todos los tokens de color usados en las pantallas nuevas existen en
+  `tailwind.config.ts` (verificado por script, no a ojo).
+- Ninguna barra recibe un porcentaje: todas toman `0..1`.
+- Ningún elemento nuevo anima desde `opacity: 0`; el gráfico de la analítica
+  quedó con `isAnimationActive={false}` justamente por eso.
+- La tabla de la analítica tiene `<caption>` (sr-only), `scope="col"` en los
+  encabezados y `scope="row"` en la primera celda de cada fila. La del programa
+  también.
+- La casilla de términos está dentro de su `<label>` y con anillo de foco.
+- Cero emojis en controles del espacio de negocio.
+- El nivel nunca se comunica solo por color: color **+ número + palabra**, en
+  el badge, en la tarjeta y en el sello.
+
+## QA funcional — qué se corrió y qué no
+
+De las **12 pruebas que no se negocian** de `QA_MATRIZ.md`, **11 están
+verificadas** contra la base viva o por test automático:
+
+`1.5` menores bloqueados en el servidor · `1.13` la cookie no autoriza ·
+`3.20` el dossier es privado · `4.14` las afirmaciones de salud se rechazan
+siempre · `5.5` ninguna salida evade el interstitial · `5.8` los chicos no ven
+el Mercado · `5.12` y `5.13` el guardián de reportes · `7.2` y `7.3` el webhook
+valida firma y es idempotente · `10.2` un certificado vencido no borra un
+listado.
+
+La que falta es **`8.5`** («ningún error visible al usuario con Gemini
+apagado»): las rutas deterministas están probadas y la clave no está
+configurada, así que **hoy el producto ya corre sin IA**, pero el recorrido
+completo con sesión real no se hizo. Es el mismo hueco de siempre.
+
+Los bloques de la matriz que necesitan navegador y cuentas reales —el alta de
+punta a punta, la verificación contra un dominio real, el lector de pantalla y
+el sandbox de MercadoPago— **no se corrieron**. Están anotados abajo.
+
+## Desviaciones — qué se hizo distinto de la carpeta, y por qué
+
+1. **El job diario sigue llamándose `brote_negocios_diario`**, no
+   `brote_business_daily`: ya existía desde la fase 3 con todo adentro y
+   renombrarlo solo rompía el historial.
+2. **La salud de enlaces son dos crons, no uno** (`brote-link-health` a las
+   03:00 del lunes y `-leer` a las 03:20). `pg_net` es asincrónico: un solo job
+   no puede disparar y leer en la misma corrida.
+3. **`pg_net` no tiene HEAD**, así que el chequeo es un GET con timeout corto.
+   Solo cuentan como muerto 404, 410, 5xx o sin respuesta: un 403 o un 405 es un
+   sitio que no quiere robots, y despublicar por eso sería injusto.
+4. **`vercel.json` sigue con dos crons.** El plan Hobby los limita y agregar el
+   tercero podía romper el deploy. Los tres relojes corren en `pg_cron`, que no
+   depende de Vercel; `/api/cron/*` queda como respaldo manual.
+5. **El formulario de interés de `/negocios` es un `mailto:`** con el cuerpo
+   armado. Un formulario público que escriba en la base sin sesión es un imán de
+   spam, y los emails transaccionales están fuera de alcance por decisión del
+   propio documento (§10).
+6. **No se cargaron empresas de demostración** en ningún entorno. El documento
+   pide tres «nunca en producción», y acá solo hay producción: inventar empresas
+   con afirmaciones falsas en el catálogo es exactamente lo que este producto
+   existe para impedir. En su lugar quedó `/offline/negocios-demo`, que es
+   público, no toca la base y dice en cada pantalla que los datos son de
+   ejemplo.
+
+## Deuda conocida — honesta
+
+1. **La revisión del abogado de `/legal/negocios` no está hecha.** El texto está
+   escrito con las diez cláusulas; falta que lo mire un abogado argentino de
+   consumo. **Bloquea cobrar**, no usar.
+2. **Nunca hubo una empresa real.** Cero empresas y cero listados en la base al
+   cierre de esta fase. Todo lo probado con SQL y componentes reales es cierto,
+   pero el recorrido humano completo no se hizo.
+3. **MercadoPago no se probó contra el sandbox**: hacen falta credenciales. Sí
+   están probados el rechazo de firma (incluso en producción), la idempotencia y
+   todo el mapeo de estados.
+4. **Lector de pantalla y teclado**: revisados por código (roles, labels,
+   `caption`, `scope`, foco), no con un lector real ni recorriendo cada
+   formulario con Tab.
+5. **Las pantallas nuevas no se vieron en modo claro.** El proyecto es oscuro
+   por defecto y las capturas se tomaron así.
+6. **Sin buscador por texto** en el Mercado, y **sin export de datos de la
+   empresa** (el botón de baja con JSON de 02 §8 no existe todavía; el borrado
+   se hace por el flujo de cuenta personal).
+7. **Los avisos de empresa por push** dependen de la infraestructura VAPID que
+   ya existe, pero no se probó un push real de un aviso de empresa.
+
+## Owner action items (Negocios, fase 5)
+
+1. **El recorrido real**, que sigue siendo lo único que desbloquea todo lo
+   demás: crear la empresa, aprobarla en `/panel/negocios`, publicar 3 listados,
+   verlos en `/mercado`, salir por el interstitial y mirar `/negocio/analitica`.
+2. **La revisión legal** de `/legal/negocios` antes de cobrarle a nadie.
+3. Cuando quieras cobrar: credenciales de MercadoPago, `MP_WEBHOOK_SECRET`,
+   `SUPABASE_SERVICE_ROLE_KEY` y `CRON_SECRET` en Vercel, precios en `/panel` y
+   el interruptor `negocios_cobro_activo`. El paso a paso está en
+   `NEGOCIOS.html` §6 y §7.
+4. **Revisar que los anuncios automáticos de AdSense estén apagados.**
+5. Un **dominio propio** antes de vender: una PyME que va a poner su tarjeta
+   mira la URL.
 
 ---
 

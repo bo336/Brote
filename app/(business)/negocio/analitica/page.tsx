@@ -87,12 +87,13 @@ export default async function AnaliticaPage() {
           <h2 className="font-display text-h3 font-bold">{t('tusListados')}</h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[30rem] border-collapse text-small">
+              <caption className="sr-only">{t('tablaCaption', { dias: datos.dias })}</caption>
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="eyebrow pb-2 font-semibold text-muted-foreground">{t('listado')}</th>
-                  <th className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('impresiones')}</th>
-                  <th className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('salidas')}</th>
-                  <th className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('tasa')}</th>
+                  <th scope="col" className="eyebrow pb-2 font-semibold text-muted-foreground">{t('listado')}</th>
+                  <th scope="col" className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('impresiones')}</th>
+                  <th scope="col" className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('salidas')}</th>
+                  <th scope="col" className="eyebrow pb-2 text-right font-semibold text-muted-foreground">{t('tasa')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,14 +101,14 @@ export default async function AnaliticaPage() {
                   const tasa = l.impresiones > 0 ? Math.round((l.salidas * 1000) / l.impresiones) / 10 : null;
                   return (
                     <tr key={l.id} className="border-b border-hairline last:border-0 hover:bg-surface-2">
-                      <td className="py-2.5 pr-3">
+                      <th scope="row" className="py-2.5 pr-3 text-left font-normal">
                         <Link href={`/negocio/listados/${l.id}`} className="press font-medium">
                           <span className="link-underline">{l.titulo}</span>
                         </Link>
                         {l.status !== 'publicado' && (
                           <span className="ml-2 text-caption text-muted-foreground">{t(`estado.${l.status}`)}</span>
                         )}
-                      </td>
+                      </th>
                       <td className="py-2.5 text-right tnum">{l.impresiones.toLocaleString('es-AR')}</td>
                       <td className="py-2.5 text-right tnum">{l.salidas.toLocaleString('es-AR')}</td>
                       <td className="py-2.5 text-right tnum">{tasa === null ? '—' : `${tasa}%`}</td>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brote — Negocios (cómo se opera)</title>
+<style>
+  :root{
+    --bg:#0C1A13; --surface:#12241A; --surface2:#1A3324; --border:#27472f;
+    --text:#F7F5EF; --muted:#9FB0A6; --green:#1FB57A; --sun:#F4A62A; --coral:#FF6B5E; --aqua:#2DB4D4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,'Segoe UI',sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:2.2rem;line-height:1.2;margin:0 0 6px}
+  h2{font-size:1.35rem;margin:48px 0 12px;color:var(--green)}
+  h3{font-size:1.05rem;margin:22px 0 6px}
+  p{margin:8px 0;color:var(--text)}
+  .sub{color:var(--muted);font-size:1.05rem;margin-bottom:28px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin:14px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+  code{background:var(--surface2);border-radius:6px;padding:2px 7px;font-size:.88em;color:#c9e8d6}
+  pre{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:.86rem;line-height:1.5}
+  .ok{color:var(--green);font-weight:700}
+  .warn{color:var(--sun);font-weight:700}
+  .bad{color:var(--coral);font-weight:700}
+  .pill{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 12px;font-size:.8rem;color:var(--muted);margin-right:6px}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .muted{color:var(--muted)}
+  .accent{border-left:4px solid var(--green);padding-left:16px}
+  .accent.sun{border-color:var(--sun)}
+  .accent.aqua{border-color:var(--aqua)}
+  .accent.coral{border-color:var(--coral)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Brote — Negocios</h1>
+<p class="sub">Cómo se opera la sección de empresas: aprobar, revisar, cobrar y qué mirar cuando algo se rompe. Escrito para poder hacerlo sin preguntarle nada a nadie.</p>
+
+<div class="card accent">
+  <strong>Qué es.</strong> Dos cosas que se venden en un orden que no es opcional:
+  <strong>Mejora</strong> (un programa de objetivos ambientales con números, seguimiento y evidencia) y
+  <strong>el Mercado</strong> (una vidriera donde cada afirmación muestra con qué está respaldada).
+  <br><br>
+  <strong>Se vende Mejora primero y el Mercado después.</strong> Mejora entrega valor el día uno, sin que exista
+  tráfico. Vender el Mercado primero es prometer lo que todavía no podés entregar, y es la forma más rápida de perder
+  al primer cliente que consigas.
+</div>
+
+<div class="card accent sun">
+  <strong>Estado hoy.</strong> El cobro está <strong>apagado</strong> (<code>negocios_cobro_activo = false</code>):
+  todo funciona en modo fundador, sin tarjeta y con los topes del plan Raíz. Para ver las pantallas con datos de
+  ejemplo, sin cuenta: <code>/offline/negocios-demo</code>. La página pública del programa, para mandar por WhatsApp:
+  <code>/negocios</code>.
+</div>
+
+<h2>1. Aprobar una empresa</h2>
+<p>Entrás a <code>/panel</code> con la contraseña del panel y vas a <strong>Negocios</strong> (<code>/panel/negocios</code>). Ahí está la cola de las que están esperando.</p>
+<p>En la ficha de cada una vas a ver: los datos del alta, el método de verificación y su estado, la captura de Instagram si la subieron, y el informe automático. Los atajos de teclado son <code>A</code> (aprobar), <code>P</code> (pedir cambios) y <code>R</code> (rechazar) — <span class="muted">no disparan si el foco está en la nota</span>.</p>
+
+<h3>Qué mirar antes de aprobar</h3>
+<table>
+  <tr><th>Señal</th><th>Qué significa</th><th>Qué hacer</th></tr>
+  <tr><td>Verificación <span class="ok">fuerte</span> (etiqueta, DNS o archivo)</td><td>Controla el dominio de verdad</td><td>Aprobar si lo demás cierra</td></tr>
+  <tr><td>Solo captura de Instagram</td><td>Verificación media: la persona mostró una cuenta, no probó el dominio</td><td>Aprobar igual, pero sus afirmaciones no llegan a Nivel 2 por esta vía</td></tr>
+  <tr><td>CUIT repetido</td><td>Ya hay otra empresa con ese CUIT</td><td class="warn">Mirar las dos antes de aprobar: puede ser la misma gente o un intento de ocupar un nombre</td></tr>
+  <tr><td>Descripción vaga o copiada</td><td>No sabés qué hace la empresa</td><td>Pedir cambios con una nota concreta</td></tr>
+  <tr><td>Rubro que no corresponde</td><td>El alta solo ofrece 12 rubros compatibles</td><td>Si el negocio real no entra en ninguno, rechazar y explicar</td></tr>
+</table>
+<p class="muted">Aprobar dispara todo lo demás: la empresa entra a su espacio, puede cargar el dossier, recibir objetivos y publicar listados. Las primeras 30 aprobadas quedan marcadas como <strong>fundadoras</strong> automáticamente.</p>
+
+<h2>2. Leer el informe automático</h2>
+<p>Cuando hay clave de Gemini configurada, el alta pasa por <code>verify-business</code>, que mira el sitio y —si la subieron— la captura de Instagram. El informe trae cuatro chequeos y una nota.</p>
+<div class="card">
+  <ul>
+    <li><strong>Aprueba sola</strong> únicamente si los cuatro chequeos dan bien. Cualquier otro caso queda <em>pendiente</em> y lo mirás vos.</li>
+    <li>La nota del modelo <strong>nunca se le muestra a la empresa</strong>. A ella le llega uno de cuatro mensajes fijos según qué chequeo falló.</li>
+    <li>En qué fijarte: si el sitio existe y es de esa empresa, si el rubro declarado coincide con lo que vende, y si el nombre del sitio y el del alta son el mismo negocio.</li>
+    <li><span class="warn">No le creas al informe por encima de lo que ves.</span> El modelo ayuda a ordenar la cola, no decide.</li>
+  </ul>
+</div>
+
+<h2>3. Aprobar un listado y sus afirmaciones</h2>
+<p>La cola está en <code>/panel/listados</code>. Cada listado llega con su validación automática y, si hay IA, con el screening de <code>screen-listing</code>. <strong>Se aprueba afirmación por afirmación</strong>: podés aprobar una y rechazar otra del mismo listado.</p>
+
+<h3>Cuándo desconfiar de una afirmación</h3>
+<ul>
+  <li><strong>Certificado que no habilita esa afirmación.</strong> Un FSC no respalda un «libre de parabenos»; un ISO 14001 no respalda «orgánico». El registro dice qué habilita cada certificadora.</li>
+  <li><strong>Certificadora fuera del registro.</strong> Queda en Nivel 2 con aviso: si es legítima, agregala al registro (punto 4).</li>
+  <li><strong>Alcance vago.</strong> «Todo el producto» casi nunca es cierto: pedí que diga qué parte (el envase, el trigo, el proceso).</li>
+  <li><strong>Alerta de halo.</strong> El panel la marca sola: una afirmación aprobada para harina enganchada a un jabón. Desenganchala.</li>
+  <li><strong>Afirmación de salud.</strong> «Cura», «previene», «no tóxico» sin documento: el validador ya las rechaza, pero si alguna llega, se rechaza igual <span class="muted">aunque tenga certificación</span>.</li>
+</ul>
+<div class="card accent coral">
+  <strong>La regla que sostiene todo:</strong> el nivel es de la <strong>afirmación</strong>, nunca del producto ni de la empresa. Un listado puede mostrar una afirmación en Nivel 3 y otra en Nivel 1 al mismo tiempo. Si alguna vez ves un nivel aplicado al producto entero, eso es un bug y es grave.
+</div>
+
+<h2>4. Agregar una certificación al registro</h2>
+<p>El registro (<code>certifications</code>) dice qué certificadoras existen, qué afirmaciones habilita cada una, si llevan número y si vencen. Se edita <strong>sin migración</strong>, desde el panel, con <code>admin_certificacion_guardar</code>.</p>
+<pre>select admin_certificacion_guardar(
+  '&lt;contraseña del panel&gt;',
+  'slug-de-la-certificadora',     -- ej: 'nueva-cert'
+  'Nombre visible',
+  'Emisor S.A.',
+  array['organico']::claim_kind[], -- qué afirmaciones habilita
+  true,                            -- ¿tiene número?
+  true,                            -- ¿vence?
+  'https://url-del-registro',
+  'Nota: qué se verificó y contra qué documento',
+  true                             -- activa
+);</pre>
+<div class="card accent sun">
+  <strong>Orgánico en Argentina:</strong> solo lo certifican las entidades habilitadas por SENASA (Ley 25.127). Antes de habilitar una certificadora para <code>organico</code>, buscala en el PDF vigente de SENASA. El registro se verificó contra el de julio 2025 el 2026-09-18; cuando SENASA publique uno nuevo, hay que repasarlo.
+</div>
+
+<h2>5. Un reporte y el derecho de descargo</h2>
+<p>Los reportes llegan a <code>/panel/reportes</code>. El circuito es fijo y conviene respetarlo porque es lo que hace defendible el sistema:</p>
+<ol>
+  <li>Alguien reporta. La empresa recibe el aviso <strong>en el momento</strong> y tiene <strong>7 días</strong> para responder con su descargo.</li>
+  <li><strong>Dos reportes de «afirmación falsa» de dos personas distintas despublican el listado solo</strong>, automáticamente, hasta que lo mires.</li>
+  <li>No podés confirmar un reporte antes de que haya descargo o venzan los 7 días: el panel no te deja.</li>
+  <li>Si confirmás, la empresa tiene <strong>30 días</strong> para corregir. Si no corrige, el listado sale del Mercado (lo hace el cron diario).</li>
+  <li>Si desestimás, el listado vuelve — salvo que quede otro reporte confirmado.</li>
+</ol>
+<p class="muted">Diez reportes de la misma persona cuentan como uno. Y hay un tope de 20 reportes por persona y por día.</p>
+
+<h2>6. Precios, planes y el interruptor del cobro</h2>
+<p>Todo se cambia desde <code>/panel</code>, sin deploy.</p>
+<table>
+  <tr><th>Qué</th><th>Dónde</th><th>Detalle</th></tr>
+  <tr><td>Precio de cada plan</td><td><code>/panel</code> → Valores</td><td><code>negocios_precio_semilla</code>, <code>_raiz</code>, <code>_bosque</code>, en pesos. <strong>0 = sin definir</strong>: nadie puede suscribirse.</td></tr>
+  <tr><td>Prender el cobro</td><td><code>/panel</code> → Interruptores</td><td><code>negocios_cobro_activo</code></td></tr>
+  <tr><td>Versión de los términos</td><td><code>/panel</code> → Valores</td><td><code>negocios_terminos_version</code>. Cambiarla obliga a aceptar de nuevo.</td></tr>
+  <tr><td>Tope de empresas por persona</td><td><code>/panel</code> → Valores</td><td><code>negocios_max_por_dueno</code> (sin fila: 3)</td></tr>
+</table>
+
+<h3>Cómo fijar el precio</h3>
+<p>No hay un número en el código a propósito: con la inflación, cualquier cifra escrita hoy está mal en tres meses. Las tres anclas, en orden de utilidad:</p>
+<ul>
+  <li><strong>Dolor:</strong> Semilla tiene que costar menos que una hora del contador de esa PyME. Si el dueño duda más de diez segundos, está caro.</li>
+  <li><strong>Comparación:</strong> mirá lo que ya paga por estar en algún lado (una tienda online, una herramienta de facturación).</li>
+  <li><strong>Referencia:</strong> USD 8–15/mes Semilla, 25–40 Raíz, 60–90 Bosque. Convertí al cambio del día y <strong>redondeá para abajo</strong>.</li>
+</ul>
+<p>Si subís precios: avisá con <strong>30 días</strong> y respetá el precio de fundador (12 meses bloqueados).</p>
+
+<h3>Prender el cobro: la secuencia</h3>
+<ol>
+  <li>Conseguí <strong>10 empresas a mano, gratis</strong>, en modo fundador.</li>
+  <li>Sentate con ellas. Mirá cómo usan el producto. Arreglá lo que rompan.</li>
+  <li>Cuando 10 empresas usen Mejora <strong>dos meses seguidos</strong> y al menos 5 digan que lo recomendarían, prendé <code>negocios_cobro_activo</code>.</li>
+  <li>A las fundadoras se les cobra recién al mes 4, con el precio bloqueado.</li>
+</ol>
+<p class="muted">El número que importa no es el ingreso del mes 1: es la <strong>renovación del mes 2</strong>. Si las del mes 1 no renuevan, el problema es el producto y ningún ajuste de precio lo arregla.</p>
+
+<h3>Antes de cobrarle a la primera empresa</h3>
+<div class="card accent coral">
+  <ul>
+    <li><span class="bad">Falta:</span> que un <strong>abogado argentino de consumo</strong> revise <code>/legal/negocios</code>. El texto ya está escrito con las diez cláusulas mínimas; la revisión es el único costo real de arranque.</li>
+    <li>Credenciales de MercadoPago en su lugar (punto 7).</li>
+    <li>Precios cargados y distintos de 0.</li>
+  </ul>
+</div>
+
+<h2>7. MercadoPago</h2>
+<p>El cobro es por <strong>suscripción (preapproval)</strong> con débito automático, sin SDK. Tres lugares para configurar:</p>
+<table>
+  <tr><th>Dónde</th><th>Qué</th><th>Para qué</th></tr>
+  <tr><td>Supabase → Edge Functions → Secrets</td><td><code>MP_ACCESS_TOKEN</code></td><td>Crear la suscripción (<code>mp-negocio</code>)</td></tr>
+  <tr><td>Vercel → Environment Variables</td><td><code>MP_ACCESS_TOKEN</code>, <code>MP_WEBHOOK_SECRET</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Recibir y aplicar los avisos de cobro</td></tr>
+  <tr><td>MercadoPago → Tus integraciones → Webhooks</td><td>URL <code>https://&lt;dominio&gt;/api/pagos/mercadopago/webhook</code>, temas <code>subscription_preapproval</code> y <code>subscription_authorized_payment</code></td><td>El secreto que te da esa pantalla es <code>MP_WEBHOOK_SECRET</code></td></tr>
+</table>
+<div class="card accent aqua">
+  <strong>El webhook es la fuente de verdad, no la vuelta del navegador.</strong> Valida la firma antes de tocar nada
+  (sin secreto configurado rechaza todo), vuelve a preguntarle a MercadoPago por el id —nunca le cree al cuerpo del
+  aviso— y es idempotente: el mismo evento dos veces no activa ni avisa dos veces.
+</div>
+<p>Qué pasa cuando un pago falla: <strong>7 días de gracia</strong> con aviso diario y los listados <em>siguen publicados</em> (con −15 de puntaje). Vencida la gracia: listados despublicados y Mejora en modo lectura. <strong>Nunca se borra nada</strong>; a los 90 días se ofrece exportar.</p>
+
+<h2>8. Si Gemini se cae (o no hay clave)</h2>
+<div class="card">
+  <p><strong>No pasa nada visible.</strong> Todo el producto funciona sin IA:</p>
+  <ul>
+    <li><strong>Objetivos:</strong> los genera el camino determinista con las 55 palancas del catálogo. Misma calidad presentable, menos adaptación fina.</li>
+    <li><strong>Listados:</strong> pasan solo por el validador determinista y van a la cola con la nota «Revisado solo por reglas».</li>
+    <li><strong>Alta:</strong> queda pendiente de revisión manual, que es lo que hacés igual.</li>
+    <li><strong>Publicación acelerada:</strong> no se activa (necesita que el screening diga que está todo bien), así que todo pasa por la cola.</li>
+  </ul>
+  <p>Cómo confirmarlo: <code>select status, count(*) from ai_jobs group by 1;</code> — <code>fallback</code> es que la IA no respondió, <code>ok</code> es que sí.</p>
+</div>
+
+<h2>9. Los relojes (cron jobs)</h2>
+<p>Corren <strong>dentro de Postgres</strong> (pg_cron), así que no dependen de Vercel.</p>
+<table>
+  <tr><th>Job</th><th>Cuándo (AR)</th><th>Qué hace</th></tr>
+  <tr><td><code>brote-negocios-diario</code></td><td>01:00</td><td>Avisa certificados por vencer · pasa objetivos a en riesgo / incumplido · despublica lo que tiene un reporte confirmado sin corregir a los 30 días · recalcula Progreso, niveles y puntajes · retención de clics e impresiones</td></tr>
+  <tr><td><code>brote-billing</code></td><td>02:00</td><td>Abre la prueba · avisa 3 días antes del fin de prueba y del cobro · gracia de 7 días con aviso diario · vence y despublica · a los 90 días ofrece exportar. <strong>Con el cobro apagado no hace nada.</strong></td></tr>
+  <tr><td><code>brote-link-health</code> + <code>-leer</code></td><td>Lunes 03:00 y 03:20</td><td>Pide cada enlace de destino publicado y lee las respuestas veinte minutos después. 2 fallos: aviso. 4: despublicación. Un acierto pone el contador en cero.</td></tr>
+</table>
+<h3>Cómo verificar que corrieron</h3>
+<pre>-- Los últimos resultados de cada job
+select j.jobname, r.status, r.return_message, r.end_time
+from cron.job_run_details r join cron.job j on j.jobid = r.jobid
+where j.jobname like 'brote-negocios%' or j.jobname like 'brote-billing%' or j.jobname like 'brote-link%'
+order by r.end_time desc limit 20;
+
+-- Y correrlos a mano, cuando haga falta
+select brote_negocios_diario();
+select brote_negocios_cobro();
+select brote_link_health_lanzar();   -- esperar ~20 minutos
+select brote_link_health_leer();</pre>
+
+<h2>10. Costos</h2>
+<table>
+  <tr><th>Concepto</th><th>Hoy</th><th>Cuándo deja de ser cero</th></tr>
+  <tr><td>Supabase</td><td>USD 0 (capa gratuita)</td><td>500 MB de base o 5 GB de tráfico. Con 120 empresas y sus listados, lejos.</td></tr>
+  <tr><td>Vercel</td><td>USD 0 (Hobby)</td><td>100 GB de tráfico al mes, o cuando quieras dominio propio y más crons.</td></tr>
+  <tr><td>Gemini</td><td>USD 0</td><td>~43 pedidos/día contra 1.500 del plan gratuito. Con 100 empresas activas sigue entrando.</td></tr>
+  <tr><td>MercadoPago</td><td>—</td><td>Comisión por transacción, sale del ingreso.</td></tr>
+  <tr><td><strong>Revisión legal</strong></td><td class="bad">Pendiente</td><td><strong>Es el único costo real de arranque.</strong> Presupuestalo antes de cobrar.</td></tr>
+  <tr><td>Dominio propio</td><td>Opcional</td><td>Una PyME que va a poner su tarjeta mira la URL. Vale la pena antes de vender.</td></tr>
+</table>
+
+<h2>11. El texto de una página (para mandar por WhatsApp)</h2>
+<div class="card accent">
+<p><strong>Brote — programa para negocios</strong></p>
+<p>Brote es una app donde miles de personas registran acciones ambientales todos los días. Abrimos un programa para negocios que producen distinto, y tiene dos partes.</p>
+<p><strong>1. Un plan de mejora, tuyo.</strong> Contestás un cuestionario sobre cómo funciona tu negocio y recibís de 3 a 5 objetivos ambientales concretos: qué bajar, cuánto, en cuánto tiempo y cómo medirlo. Si un objetivo no te cierra, lo decís y se ajusta. Cada cierre queda con su evidencia revisada — ese documento es lo que te piden cuando un cliente grande pregunta qué hacen en sostenibilidad.</p>
+<p><strong>2. Una ficha pública.</strong> Tus productos en un catálogo donde cada afirmación (orgánico, a granel, reciclable) muestra con qué está respaldada: nivel 1 si lo declarás vos, 2 si revisamos documentación, 3 si hay certificación de un tercero. No vendemos: cada producto lleva a tu sitio.</p>
+<p><strong>Qué cuesta:</strong> una cuota mensual, con 14 días de prueba sin tarjeta. Las primeras 30 empresas tienen precio bloqueado por 12 meses e insignia de fundadoras.</p>
+<p><strong>Qué NO hacemos:</strong> no certificamos, no vendemos posición (el plan no cambia el orden del catálogo) y no publicamos nunca la información interna que nos des.</p>
+<p><em>Mirá cómo se ve: brote-ft7m.vercel.app/negocios</em></p>
+</div>
+
+<h2>12. Deuda conocida</h2>
+<p>Lo que falta o quedó a medias, anotado para que no se confunda con un olvido:</p>
+<ul>
+  <li><strong>Revisión legal de <code>/legal/negocios</code>.</strong> El texto está; la revisión profesional no. Bloquea cobrar.</li>
+  <li><strong>El recorrido real nunca se hizo</strong> con una empresa de verdad: no hay ninguna aprobada todavía. Hasta que exista una, el Mercado está vacío y varias pantallas no tienen contra qué probarse.</li>
+  <li><strong>MercadoPago no se probó contra el sandbox</strong> (hacen falta credenciales). Sí están probados el rechazo de firmas, la idempotencia y todo el mapeo de estados contra la base.</li>
+  <li><strong>Emails transaccionales:</strong> fuera de alcance. Todo es aviso in-app y push.</li>
+  <li><strong>Sin buscador por texto</strong> en el Mercado (hay filtros por categoría, nivel, zona y modalidad).</li>
+  <li><strong>Reseñas de usuarios, chat empresa ↔ persona, slots destacados y certificación propia:</strong> deliberadamente fuera. Las reseñas sin diseño antifraude serían el primer vector de abuso del sistema.</li>
+  <li><strong>AdSense:</strong> el Mercado no tiene ningún espacio de anuncio, pero si prendés «Auto ads» en la consola de AdSense, Google los mete igual. Revisá que estén apagados.</li>
+</ul>
+
+<p class="muted" style="margin-top:48px">Última actualización: 20 de septiembre de 2026 · Detalle técnico de cada fase en <code>CONTINUE.md</code> («NEGOCIOS — FASE 1» a «FASE 5»).</p>
+
+</div>
+</body>
+</html>

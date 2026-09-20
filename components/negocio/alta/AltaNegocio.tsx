@@ -9,7 +9,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress';
 import { VerificacionMetodos } from '@/components/negocio/VerificacionMetodos';
 import { Paso1, Paso2, Paso3, Paso4, PieDePaso, avisarGuardado, guardadoReciente } from '@/components/negocio/alta/Pasos';
-import { enviarSolicitud, setActiveContext } from '@/lib/negocio/acciones';
+import { aceptarTerminos, enviarSolicitud, setActiveContext } from '@/lib/negocio/acciones';
 import type { MiNegocio, NegocioDetalle } from '@/lib/supabase/rows-negocio';
 import { useToastStore } from '@/stores/toast';
 import { cn } from '@/lib/utils/cn';
@@ -108,11 +108,21 @@ function Paso5({ negocio, onVolver }: { negocio: NegocioDetalle; onVolver: () =>
   const [despues, setDespues] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [faltan, setFaltan] = useState<string[]>([]);
+  // La casilla de los términos (08 §10): explícita, sin tildar por defecto, y
+  // sin ella el botón no hace nada — el servidor tampoco deja pasar el envío.
+  const [acepta, setAcepta] = useState(false);
   const verificada = negocio.verificaciones.some((v) => v.status === 'verificado');
 
   async function enviar() {
     setEnviando(true);
     setFaltan([]);
+    // Queda registrado quién aceptó, cuándo y qué versión.
+    const acept = await aceptarTerminos(negocio.id);
+    if (!acept.ok) {
+      setEnviando(false);
+      useToastStore.getState().push({ variant: 'error', title: t('errores.error') });
+      return;
+    }
     const r = await enviarSolicitud(negocio.id);
     if (r.ok) {
       avisarGuardado();
@@ -177,8 +187,30 @@ function Paso5({ negocio, onVolver }: { negocio: NegocioDetalle; onVolver: () =>
         </div>
       )}
 
+      <label className="mt-6 flex items-start gap-3 rounded-card border border-border bg-surface p-4">
+        <input
+          type="checkbox"
+          checked={acepta}
+          onChange={(e) => setAcepta(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        <span className="text-small leading-relaxed">
+          {t('alta.terminos.texto')}{' '}
+          <Link href="/legal/negocios" target="_blank" className="font-medium text-primary">
+            <span className="link-underline">{t('alta.terminos.enlace')}</span>
+          </Link>
+          .
+        </span>
+      </label>
+
       <PieDePaso onAtras={onVolver} ocupado={enviando} fijo>
-        <Button type="button" className="rounded-pill" loading={enviando} onClick={() => void enviar()}>
+        <Button
+          type="button"
+          className="rounded-pill"
+          loading={enviando}
+          disabled={!acepta}
+          onClick={() => void enviar()}
+        >
           {t('alta.enviar')}
         </Button>
       </PieDePaso>

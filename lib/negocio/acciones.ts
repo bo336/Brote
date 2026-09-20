@@ -149,3 +149,15 @@ export async function registrarCaptura(negocioId: string, ruta: string): Promise
   const res = data as { ok: boolean; error?: string };
   return res.ok ? { ok: true } : { ok: false, error: res.error ?? 'error' };
 }
+
+/**
+ * Deja registrado que esta persona aceptó los términos para empresas, con la
+ * versión vigente (08 §10). Sin esta fila, la base no deja mandar la empresa a
+ * revisión: la casilla de la pantalla es la cortesía, el trigger es la regla.
+ */
+export async function aceptarTerminos(negocioId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('negocio_aceptar_terminos', { p_business: negocioId });
+  if (error) return { ok: false, error: 'error' };
+  const r = data as { ok?: boolean; error?: string } | null;
+  return r?.ok ? { ok: true } : { ok: false, error: r?.error ?? 'error' };
+}
