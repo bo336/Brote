@@ -40,7 +40,10 @@ export function SessionHydrator({
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
         (payload) => {
-          const row = payload.new as { title_es?: string; body_es?: string };
+          const row = payload.new as { title_es?: string; body_es?: string; business_id?: string | null };
+          // Un aviso de empresa no toca la campana personal (02 §7): tiene la
+          // suya en el espacio de negocio.
+          if (row.business_id) return;
           useSession.getState().setUnread(useSession.getState().unreadNotifications + 1);
           if (row.title_es) toast.show({ variant: 'default', glyph: '🔔', title: row.title_es, description: row.body_es ?? undefined });
         },

@@ -25,6 +25,28 @@ import type { TarjetaMercado } from '@/lib/supabase/rows-mercado';
  * BackToTop. Cero AdSense: acá no hay un solo espacio de anuncio, y un test lo
  * comprueba.
  */
+const CLAVE_VISTAS = 'brote:mercado:vistas';
+
+/** Lo visto en esta pestaña, para no volver a contarlo al volver atrás. */
+function vistasDeSesion(): Set<string> {
+  try {
+    const crudo = sessionStorage.getItem(CLAVE_VISTAS);
+    return new Set<string>(crudo ? (JSON.parse(crudo) as string[]) : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function recordarVista(id: string): void {
+  try {
+    const s = vistasDeSesion();
+    s.add(id);
+    sessionStorage.setItem(CLAVE_VISTAS, JSON.stringify([...s].slice(-400)));
+  } catch {
+    /* modo privado: alcanza con la deduplicación de la base */
+  }
+}
+
 export function CatalogoMercado({
   inicial,
   filtros,
@@ -45,7 +67,9 @@ export function CatalogoMercado({
   const [cargando, setCargando] = useState(false);
   const [navegando, startTransition] = useTransition();
   const centinela = useRef<HTMLDivElement>(null);
-  const vistos = useRef(new Set<string>());
+  const grillaRef = useRef<HTMLUListElement>(null);
+  // Lo ya contado en esta sesión: volver atrás no vuelve a contar.
+  const vistos = useRef<Set<string>>(vistasDeSesion());
 
   // Una búsqueda nueva (otros filtros) trae otra primera página.
   useEffect(() => {
@@ -53,12 +77,49 @@ export function CatalogoMercado({
     setCursor(inicial.cursor);
   }, [inicial]);
 
-  // Impresiones (para el CTR de 05 §4.4): una vez por listado y visita.
+  /**
+   * Impresiones (05 §4.4 y fase 4 §3.2): se cuenta cuando la tarjeta ENTRA EN
+   * PANTALLA, no cuando la página la carga. Una vez por listado y por sesión
+   * acá, una vez por persona y día en la base, y en tandas cada 800 ms para no
+   * mandar una consulta por tarjeta mientras alguien hace scroll rápido.
+   */
   useEffect(() => {
-    const nuevos = items.map((i) => i.id).filter((id) => !vistos.current.has(id));
-    if (nuevos.length === 0) return;
-    nuevos.forEach((id) => vistos.current.add(id));
-    void marcarVistas(nuevos);
+    const grilla = grillaRef.current;
+    if (!grilla) return;
+
+    const pendientes = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function vaciar() {
+      timer = null;
+      const lote = [...pendientes];
+      pendientes.clear();
+      if (lote.length) void marcarVistas(lote, 'catalogo');
+    }
+
+    const io = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (!e.isIntersecting) continue;
+          const id = (e.target as HTMLElement).dataset.listado;
+          if (!id || vistos.current.has(id)) continue;
+          vistos.current.add(id);
+          recordarVista(id);
+          pendientes.add(id);
+          io.unobserve(e.target);
+        }
+        if (pendientes.size && timer === null) timer = setTimeout(vaciar, 800);
+      },
+      // Media tarjeta a la vista: pasar de largo en un scroll no es haberla visto.
+      { threshold: 0.5 },
+    );
+
+    for (const el of grilla.querySelectorAll<HTMLElement>('[data-listado]')) io.observe(el);
+    return () => {
+      io.disconnect();
+      if (timer) clearTimeout(timer);
+      vaciar();
+    };
   }, [items]);
 
   // Scroll infinito por cursor.
@@ -171,9 +232,9 @@ export function CatalogoMercado({
             <EmptyState title={t('vacio.titulo')} message={t('vacio.cuerpo')} pipMood="happy" />
           )
         ) : (
-          <ul className={`grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 ${navegando ? 'opacity-60 transition-opacity' : ''}`}>
+          <ul ref={grillaRef} className={`grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 ${navegando ? 'opacity-60 transition-opacity' : ''}`}>
             {items.map((item, i) => (
-              <li key={item.id} className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both" style={{ animationDelay: `${Math.min(i % 24, 8) * 40}ms` }}>
+              <li key={item.id} data-listado={item.id} className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both" style={{ animationDelay: `${Math.min(i % 24, 8) * 40}ms` }}>
                 <TarjetaListado t={item} prioridad={i < 4} />
               </li>
             ))}

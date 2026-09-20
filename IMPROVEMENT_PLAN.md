@@ -6,11 +6,11 @@
 
 ## CURRENT STATE
 
-### F17 · NEGOCIOS — FASE 3 (Mercado) ENTREGADA (2026-09-19)
+### F17 · NEGOCIOS — FASE 4 (Integración y cobro) ENTREGADA (2026-09-20)
 
 La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
 `F17`. Detalle completo, verificación y desviaciones en `CONTINUE.md`
-("NEGOCIOS — FASE 1", "FASE 2" y "FASE 3").
+("NEGOCIOS — FASE 1" a "FASE 4").
 
 - [x] F17.1 Fundaciones — empresa como entidad, membresías, contexto persona ↔
   negocio (cookie `brote_ctx`, validada contra la base), shell propio sin
@@ -35,17 +35,25 @@ La carpeta `brote-negocios/` la numera `F16`, pero `F16` es La Plaza: acá es
   colas en `/panel/listados` y `/panel/reportes`. Migración `0107` (+ `0107b`,
   `0107c` en vivo), edge function `screen-listing`, job diario
   `brote-negocios-diario`, QA repetible en `supabase/qa/mercado.sql`.
-- [ ] F17.4 Integración y cobro — puente con acciones, analítica, MercadoPago.
+- [x] F17.4 Integración y cobro — puente "Dónde conseguirlo" en las acciones y
+  pestaña Mercado en la Plaza (con las cinco reglas duras aplicadas en la
+  base), analítica honesta con "Qué te haría subir", planes y cobro por
+  MercadoPago **detrás de una bandera apagada** (edge function `mp-negocio`,
+  webhook con firma validada e idempotencia, cron `brote-billing` con 7 días
+  de gracia que despublica y nunca borra), gating por triggers, campana de
+  empresa con la personal filtrando `business_id is null`, kit de marca con
+  sello que se actualiza solo, historial público de mejora, y el Mercado por
+  fin visible en la navegación. Migración `0108`.
 - [ ] F17.5 Endurecimiento y lanzamiento.
 
-**Pendiente del dueño antes de la F17.4:** recorrer las fases 1 a 3 con una
-cuenta real y dejar **3 listados publicados de prueba** (prerrequisito de la
-fase 4); confirmar que los anuncios automáticos de AdSense están apagados (o
-que excluyen `/mercado` y `/negocio`); `/legal/negocios` y la ampliación de
+**Pendiente del dueño antes de la F17.5:** recorrer las fases 1 a 4 con una
+cuenta real y dejar 3 listados publicados de prueba —sin eso, ni la analítica
+ni el sello tienen contra qué probarse—; confirmar que los anuncios
+automáticos de AdSense están apagados; `/legal/negocios` y la ampliación de
 `/legal/privacidad` con un abogado antes de cobrar; decidir sobre
-`profiles.account_type` editable desde el cliente; y —opcional—
-`GEMINI_API_KEY`: sin ella Mejora y el Mercado funcionan enteros por el camino
-determinista (ver `CONTINUE.md`).
+`profiles.account_type` editable desde el cliente; y —opcionales hasta que se
+quiera cobrar— las credenciales de MercadoPago, `SUPABASE_SERVICE_ROLE_KEY` en
+Vercel, los precios en `/panel` y `GEMINI_API_KEY` (ver `CONTINUE.md`).
 
 ### F16 · LA PLAZA (Feed v2) — FASE 3 ENTREGADA · F16 COMPLETO (2026-08-29)
 

@@ -9,6 +9,8 @@ export async function fetchNotifications(userId: string): Promise<NotificationRo
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
+    // La campana personal NUNCA muestra avisos de empresa, y viceversa (02 §7).
+    .is('business_id', null)
     .order('created_at', { ascending: false })
     .limit(60);
   if (error) throw error;
@@ -17,7 +19,7 @@ export async function fetchNotifications(userId: string): Promise<NotificationRo
 
 export async function markAllRead(userId: string): Promise<void> {
   const supabase = createClient();
-  await supabase.from('notifications').update({ read: true }).eq('user_id', userId).eq('read', false);
+  await supabase.from('notifications').update({ read: true }).eq('user_id', userId).is('business_id', null).eq('read', false);
 }
 
 export async function fetchUnreadCount(userId: string): Promise<number> {
@@ -26,6 +28,7 @@ export async function fetchUnreadCount(userId: string): Promise<number> {
     .from('notifications')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
+    .is('business_id', null)
     .eq('read', false);
   return count ?? 0;
 }

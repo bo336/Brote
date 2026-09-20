@@ -8,7 +8,8 @@
     "plaza": "Plaza",
     "ranking": "Ranking",
     "perfil": "Perfil",
-    "aprender": "Aprendé"
+    "aprender": "Aprendé",
+    "mercado": "Mercado"
   },
   "common": {
     "loading": "Cargando…",
@@ -530,7 +531,8 @@
     "unfollow": "Dejar de seguir",
     "whoToFollow": "A quién seguir",
     "whoToFollowBody": "Cuentas reales que hacen cosas parecidas a las tuyas.",
-    "withdrawRequest": "Retirar"
+    "withdrawRequest": "Retirar",
+    "tabMercado": "Mercado"
   },
   "proyectos": {
     "proyectos": "Proyectos",
@@ -1340,7 +1342,9 @@
       "resumen": "Resumen",
       "verificacion": "Verificación",
       "mejora": "Mejora",
-      "listados": "Listados"
+      "listados": "Listados",
+      "analitica": "Analítica",
+      "plan": "Plan"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -1446,7 +1450,11 @@
         "mejoraCuerpo": "Objetivos trimestrales con números concretos, pensados para no comerte el día.",
         "mercadoTitulo": "Mercado · tu vidriera",
         "mercadoCuerpo": "Tus productos y servicios, con cada afirmación ambiental y su nivel de evidencia.",
-        "pronto": "Se habilita próximamente"
+        "pronto": "Se habilita próximamente",
+        "analiticaTitulo": "Analítica",
+        "analiticaCuerpo": "Cuántas veces te vieron, cuántas salieron a tu sitio y qué te haría subir.",
+        "kitTitulo": "Kit de marca",
+        "kitCuerpo": "El sello para tu sitio, placas para redes y el texto para anunciarlo."
       },
       "rejected": {
         "eyebrow": "Solicitud · rechazada",
@@ -1988,7 +1996,183 @@
         "pedido": "Corrección pedida",
         "parcialAyuda": "No llegó al número pero hubo avance real: cuenta como medio ciclo.",
         "error": "No se pudo"
+      },
+      "publico": {
+        "titulo": "Mostrarlo en tu ficha pública",
+        "ayuda": "Se ven el objetivo, su métrica y la fecha en que lo cerraste. Tu dossier no se publica nunca.",
+        "ayudaPlan": "El historial público es de los planes Raíz y Bosque.",
+        "verFicha": "Ver tu ficha pública",
+        "verPlanes": "Ver planes",
+        "errorTitulo": "No se pudo",
+        "errorCuerpo": "Probá de nuevo en un rato.",
+        "errorPlan": "Tu plan no incluye el historial público."
       }
+    },
+    "analitica": {
+      "eyebrow": "Tu negocio",
+      "titulo": "Analítica",
+      "impresiones": "Impresiones",
+      "salidas": "Salidas",
+      "tasa": "Tasa",
+      "reportesResueltos": "Reportes resueltos",
+      "ultimosDias": "Últimos {dias} días",
+      "vacioTitulo": "Todavía no hay nada que medir",
+      "vacioTexto": "Cuando tengas un listado publicado y alguien lo vea, los números aparecen acá. No dibujamos ceros con forma de gráfico.",
+      "vacioAccion": "Ir a mis listados",
+      "subirTitulo": "Qué te haría subir",
+      "tusListados": "Tus listados",
+      "listado": "Listado",
+      "origenTitulo": "De dónde vinieron",
+      "origen": {
+        "catalogo": "Catálogo",
+        "accion": "Acciones diarias",
+        "ficha": "Tu ficha",
+        "perfil_negocio": "Tu perfil",
+        "busqueda": "Búsqueda"
+      },
+      "serieTitulo": "Día por día",
+      "completaTitulo": "Analítica completa",
+      "completaTexto": "Con el plan Raíz ves de dónde viene el tráfico y la serie día por día.",
+      "verPlanes": "Ver planes",
+      "honestidad": "Medimos hasta que alguien sale de Brote. Lo que pase después —si compraron, cuánto— pasa en tu sitio y no lo vemos.",
+      "honestidadRef": "Si querés atribuir ventas, agregá ?ref=brote a tu enlace de destino y miralo en tu propia analítica.",
+      "modoFundador": "Estás en modo fundador: todo funciona sin tarjeta mientras el cobro esté apagado.",
+      "estado": {
+        "publicado": "publicado",
+        "despublicado": "despublicado",
+        "pendiente": "en revisión",
+        "draft": "borrador",
+        "rechazado": "rechazado"
+      }
+    },
+    "plan": {
+      "eyebrow": "Tu negocio",
+      "titulo": "Plan",
+      "bajada": "Pagás por el programa de mejora. El Mercado viene incluido y crece con nosotros.",
+      "vueltaPendiente": "Estamos esperando la confirmación de MercadoPago. Cuando llegue, tu plan se actualiza solo: no hace falta que hagas nada.",
+      "situacion": {
+        "fundador": "Modo fundador: todo funciona, sin tarjeta.",
+        "prueba": "Estás en la prueba: te quedan {dias} días.",
+        "activa": "Tu plan está activo.",
+        "gracia": "No pudimos cobrar tu plan. Te quedan {dias} días para actualizar el medio de pago.",
+        "sinPlan": "Sin plan activo: tus listados no están en el Mercado y Mejora quedó en modo lectura."
+      },
+      "fundadora": "Sos una de las primeras 30 empresas: precio bloqueado 12 meses e insignia de fundadora en tu ficha.",
+      "usoActual": "Estás usando {listados} de {tope} listados y {objetivos} de {topeObjetivos} objetivos.",
+      "planes": {
+        "semilla": {
+          "nombre": "Semilla",
+          "para": "Para empezar: un negocio chico, con pocos productos."
+        },
+        "raiz": {
+          "nombre": "Raíz",
+          "para": "Para crecer: más listados, analítica completa y publicación sin espera."
+        },
+        "bosque": {
+          "nombre": "Bosque",
+          "para": "Para catálogos grandes y equipos."
+        }
+      },
+      "precioSinDefinir": "A confirmar",
+      "porMes": "por mes",
+      "ilimitados": "sin tope",
+      "fila": {
+        "listados": "{n} listados publicados",
+        "listadosSinTope": "Listados publicados sin tope",
+        "objetivos": "{n} objetivos activos",
+        "replanificaciones": "{n} replanificaciones con IA por mes",
+        "miembros": "{n} en el equipo",
+        "analitica": {
+          "basica": "Analítica básica",
+          "completa": "Analítica completa"
+        },
+        "historial": "Historial público de mejora",
+        "acelerada": "Publicación acelerada",
+        "kit": "Kit de marca",
+        "destacado": "1 destacado por mes en tu categoría"
+      },
+      "tuPlan": "Tu plan",
+      "suscribirme": "Suscribirme",
+      "procesaMercadoPago": "El pago lo procesa MercadoPago. Brote nunca ve tu tarjeta.",
+      "tuSuscripcion": "Tu suscripción",
+      "estado": "Estado",
+      "monto": "Monto",
+      "proximoCobro": "Próximo cobro",
+      "precioBloqueado": "Precio bloqueado",
+      "doceMeses": "12 meses",
+      "darDeBaja": "Dar de baja",
+      "bajaDetalle": "Se corta el cobro y tus listados salen del Mercado. No se borra nada: si volvés, está todo donde lo dejaste.",
+      "cancelada": "Listo",
+      "canceladaDetalle": "Le pedimos la baja a MercadoPago. Cuando la confirme, lo vas a ver acá.",
+      "errorTitulo": "No se pudo",
+      "error": {
+        "cobro_apagado": "El cobro todavía no está activo: estás en modo fundador.",
+        "precio_sin_definir": "Todavía no hay un precio definido para ese plan.",
+        "solo_owner": "Solo quien es dueña o dueño de la empresa puede cambiar el plan.",
+        "no_aprobada": "Tu empresa todavía no está aprobada.",
+        "no_configurado": "Los pagos todavía no están configurados.",
+        "sin_suscripcion": "No encontramos una suscripción para dar de baja.",
+        "no_disponible": "Probá de nuevo en un rato."
+      },
+      "estados": {
+        "pendiente": "Pendiente",
+        "activa": "Activa",
+        "en_gracia": "Con un pago pendiente",
+        "pausada": "En pausa",
+        "cancelada": "Dada de baja",
+        "vencida": "Vencida"
+      },
+      "nadaSeBorra": "Nunca borramos nada por falta de pago: los listados salen del Mercado y Mejora queda en modo lectura.",
+      "comoFuncionanNiveles": "Cómo funcionan los niveles"
+    },
+    "avisos": {
+      "titulo": "Avisos",
+      "vacio": "Todavía no hay avisos.",
+      "prefsTitulo": "Avisos de esta empresa",
+      "prefsTexto": "Qué te llega al teléfono. En la campana de arriba siguen apareciendo todos.",
+      "tipos": {
+        "listados": "Listados y reportes",
+        "mejora": "Objetivos y cierres",
+        "cuenta": "Cuenta y verificación",
+        "pagos": "Pagos"
+      },
+      "siempre": "Siempre",
+      "errorTitulo": "No se pudo guardar",
+      "errorCuerpo": "Probá de nuevo en un rato."
+    },
+    "kit": {
+      "eyebrow": "Tu negocio",
+      "titulo": "Kit de marca",
+      "bajada": "Para contar que estás en el programa, en tu sitio y en tus redes.",
+      "sello": {
+        "titulo": "El sello para tu sitio",
+        "texto": "Se actualiza solo: si tu nivel cambia, el sello cambia. Pegá este código donde quieras que aparezca.",
+        "alt": "{nombre} en el programa de Brote"
+      },
+      "placas": {
+        "titulo": "Placas para redes",
+        "texto": "Tres imágenes cuadradas, listas para publicar.",
+        "nivel": {
+          "titulo": "Estamos en el programa de Brote"
+        },
+        "mejora": {
+          "titulo": "Nuestro programa de mejora",
+          "conObjetivos": "{n} objetivos cerrados con evidencia",
+          "sinObjetivos": "Con objetivos, seguimiento y evidencia"
+        },
+        "afirmaciones": {
+          "titulo": "Mirá qué afirmamos y con qué lo respaldamos",
+          "linea": "Cada afirmación, con su nivel de evidencia"
+        }
+      },
+      "texto": {
+        "titulo": "El texto para anunciarlo",
+        "ayuda": "Escrito para copiar y pegar. Cambiale lo que quieras."
+      },
+      "copiado": "Copiado",
+      "copiarCodigo": "Copiar el código",
+      "copiarTexto": "Copiar el texto",
+      "descargar": "Descargar"
     }
   },
   "mercado": {
@@ -2136,7 +2320,9 @@
       "vacio": "Todavía no publicó nada en el Mercado.",
       "mejora": "Historial de mejora",
       "fundador": "Fundador",
-      "correccion": "Nota de corrección de Brote"
+      "correccion": "Nota de corrección de Brote",
+      "entrarParaVer": "Para ver lo que publica este comercio hace falta una cuenta.",
+      "entrar": "Entrar a Brote"
     },
     "listados": {
       "nav": "Listados",
@@ -2434,6 +2620,20 @@
         "confirmarAyuda": "Confirmar penaliza el listado y le da 30 días al comercio para corregir. Desestimar no penaliza a nadie.",
         "notaPh": "Qué se encontró."
       }
+    },
+    "puente": {
+      "titulo": "Dónde conseguirlo",
+      "ayuda": "Estas acciones se hacen más fáciles con buenos proveedores. Estos negocios están en el programa de Brote.",
+      "ver": "Ver más en el Mercado",
+      "aclaracion": "Comprar no suma puntos. Brote no vende ni intermedia: cada listado lleva al sitio del comercio."
+    },
+    "plaza": {
+      "eyebrow": "Mercado",
+      "ayuda": "Productos y servicios de negocios que están en el programa, con su nivel de evidencia a la vista.",
+      "ver": "Ver todo",
+      "vacioTitulo": "Todavía no hay nada publicado",
+      "vacioTexto": "El catálogo abre cuando los primeros comercios publiquen. Si tenés un negocio, podés ser uno de ellos.",
+      "sumarNegocio": "Sumar mi negocio"
     }
   }
 }

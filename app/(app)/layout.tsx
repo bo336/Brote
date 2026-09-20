@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   // account at all. That page renders its own public preview; the app shell
   // (sidebar, tab bar, Pip) would be furniture around a door they cannot open.
   const pathname = headers().get('x-pathname') ?? '';
-  if (!profile && pathname.startsWith('/feed/p/')) return <>{children}</>;
+  if (!profile && (pathname.startsWith('/feed/p/') || pathname.startsWith('/mercado/negocio/'))) return <>{children}</>;
 
   if (!profile) redirect('/auth/login');
   if (!profile.onboardingCompleted) redirect('/onboarding');

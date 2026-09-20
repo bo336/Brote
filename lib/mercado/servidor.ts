@@ -150,6 +150,23 @@ export const getNegocioPublico = cache(async (slug: string): Promise<NegocioPubl
   return (data ?? null) as NegocioPublico | null;
 });
 
+/**
+ * "Dónde conseguirlo" de una acción (02 §6.1). Las cinco reglas duras las
+ * aplica `mercado_para_accion` en la base: menores, categorías sensibles, el
+ * mínimo de 3 listados y uno por empresa. Acá no se decide nada.
+ */
+export interface Puente {
+  texto: string | null;
+  categoria: string;
+  items: TarjetaMercado[];
+}
+
+export const getPuente = cache(async (slugAccion: string): Promise<Puente | null> => {
+  const { data, error } = await createClient().rpc('mercado_para_accion', { p_slug: slugAccion, p_limit: 3 });
+  if (error) return null;
+  return (data ?? null) as Puente | null;
+});
+
 export async function getSalida(id: string): Promise<Salida | null> {
   const { data, error } = await createClient().rpc('mercado_salida', { p_listing: id });
   if (error) throw new Error(`mercado_salida: ${error.message}`);

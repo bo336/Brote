@@ -8,7 +8,8 @@
     "plaza": "Square",
     "ranking": "Ranking",
     "perfil": "Profile",
-    "aprender": "Learn"
+    "aprender": "Learn",
+    "mercado": "Market"
   },
   "common": {
     "loading": "Loading…",
@@ -530,7 +531,8 @@
     "unfollow": "Unfollow",
     "whoToFollow": "Who to follow",
     "whoToFollowBody": "Real accounts doing things like yours.",
-    "withdrawRequest": "Withdraw"
+    "withdrawRequest": "Withdraw",
+    "tabMercado": "Market"
   },
   "proyectos": {
     "proyectos": "Projects",
@@ -1340,7 +1342,9 @@
       "resumen": "Resumen",
       "verificacion": "Verificación",
       "mejora": "Mejora",
-      "listados": "Listados"
+      "listados": "Listados",
+      "analitica": "Analytics",
+      "plan": "Plan"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -1446,7 +1450,11 @@
         "mejoraCuerpo": "Objetivos trimestrales con números concretos, pensados para no comerte el día.",
         "mercadoTitulo": "Mercado · tu vidriera",
         "mercadoCuerpo": "Tus productos y servicios, con cada afirmación ambiental y su nivel de evidencia.",
-        "pronto": "Se habilita próximamente"
+        "pronto": "Se habilita próximamente",
+        "analiticaTitulo": "Analytics",
+        "analiticaCuerpo": "How often you were seen, how many went to your site, and what would move you up.",
+        "kitTitulo": "Brand kit",
+        "kitCuerpo": "The badge for your site, cards for social media and the text to announce it."
       },
       "rejected": {
         "eyebrow": "Solicitud · rechazada",
@@ -1988,7 +1996,183 @@
         "pedido": "Corrección pedida",
         "parcialAyuda": "No llegó al número pero hubo avance real: cuenta como medio ciclo.",
         "error": "No se pudo"
+      },
+      "publico": {
+        "titulo": "Show it on your public page",
+        "ayuda": "The goal, its metric and the date you closed it. Your dossier is never published.",
+        "ayudaPlan": "The public history is part of the Raíz and Bosque plans.",
+        "verFicha": "See your public page",
+        "verPlanes": "See plans",
+        "errorTitulo": "Couldn't do it",
+        "errorCuerpo": "Try again in a bit.",
+        "errorPlan": "Your plan doesn't include the public history."
       }
+    },
+    "analitica": {
+      "eyebrow": "Your business",
+      "titulo": "Analytics",
+      "impresiones": "Impressions",
+      "salidas": "Exits",
+      "tasa": "Rate",
+      "reportesResueltos": "Reports resolved",
+      "ultimosDias": "Last {dias} days",
+      "vacioTitulo": "Nothing to measure yet",
+      "vacioTexto": "Once a listing is published and someone sees it, the numbers show up here. We don't draw zeros as a chart.",
+      "vacioAccion": "Go to my listings",
+      "subirTitulo": "What would move you up",
+      "tusListados": "Your listings",
+      "listado": "Listing",
+      "origenTitulo": "Where they came from",
+      "origen": {
+        "catalogo": "Catalogue",
+        "accion": "Daily actions",
+        "ficha": "Your listing page",
+        "perfil_negocio": "Your profile",
+        "busqueda": "Search"
+      },
+      "serieTitulo": "Day by day",
+      "completaTitulo": "Full analytics",
+      "completaTexto": "The Raíz plan shows where traffic comes from and the day-by-day series.",
+      "verPlanes": "See plans",
+      "honestidad": "We measure up to the moment someone leaves Brote. What happens after — whether they bought, how much — happens on your site and we can't see it.",
+      "honestidadRef": "If you want to attribute sales, add ?ref=brote to your destination link and check it in your own analytics.",
+      "modoFundador": "You're in founder mode: everything works without a card while billing is off.",
+      "estado": {
+        "publicado": "published",
+        "despublicado": "unpublished",
+        "pendiente": "in review",
+        "draft": "draft",
+        "rechazado": "rejected"
+      }
+    },
+    "plan": {
+      "eyebrow": "Your business",
+      "titulo": "Plan",
+      "bajada": "You pay for the improvement programme. The Market comes with it and grows with us.",
+      "vueltaPendiente": "We're waiting for MercadoPago to confirm. When it does, your plan updates on its own — nothing for you to do.",
+      "situacion": {
+        "fundador": "Founder mode: everything works, no card needed.",
+        "prueba": "You're on the trial: {dias} days left.",
+        "activa": "Your plan is active.",
+        "gracia": "We couldn't charge your plan. You have {dias} days to update your payment method.",
+        "sinPlan": "No active plan: your listings are out of the Market and Improvement is read-only."
+      },
+      "fundadora": "You're one of the first 30 businesses: price locked for 12 months and a founder badge on your page.",
+      "usoActual": "You're using {listados} of {tope} listings and {objetivos} of {topeObjetivos} goals.",
+      "planes": {
+        "semilla": {
+          "nombre": "Semilla",
+          "para": "To start: a small business with a few products."
+        },
+        "raiz": {
+          "nombre": "Raíz",
+          "para": "To grow: more listings, full analytics and publishing without the wait."
+        },
+        "bosque": {
+          "nombre": "Bosque",
+          "para": "For large catalogues and teams."
+        }
+      },
+      "precioSinDefinir": "To be set",
+      "porMes": "per month",
+      "ilimitados": "no cap",
+      "fila": {
+        "listados": "{n} published listings",
+        "listadosSinTope": "Published listings with no cap",
+        "objetivos": "{n} active goals",
+        "replanificaciones": "{n} AI re-plans per month",
+        "miembros": "{n} on the team",
+        "analitica": {
+          "basica": "Basic analytics",
+          "completa": "Full analytics"
+        },
+        "historial": "Public improvement history",
+        "acelerada": "Fast-tracked publishing",
+        "kit": "Brand kit",
+        "destacado": "1 featured slot a month in your category"
+      },
+      "tuPlan": "Your plan",
+      "suscribirme": "Subscribe",
+      "procesaMercadoPago": "Payment is processed by MercadoPago. Brote never sees your card.",
+      "tuSuscripcion": "Your subscription",
+      "estado": "Status",
+      "monto": "Amount",
+      "proximoCobro": "Next charge",
+      "precioBloqueado": "Price locked",
+      "doceMeses": "12 months",
+      "darDeBaja": "Cancel",
+      "bajaDetalle": "Billing stops and your listings leave the Market. Nothing is deleted: if you come back, it's all where you left it.",
+      "cancelada": "Done",
+      "canceladaDetalle": "We asked MercadoPago to cancel. Once it confirms, you'll see it here.",
+      "errorTitulo": "Couldn't do it",
+      "error": {
+        "cobro_apagado": "Billing isn't on yet: you're in founder mode.",
+        "precio_sin_definir": "There's no price set for that plan yet.",
+        "solo_owner": "Only the business owner can change the plan.",
+        "no_aprobada": "Your business isn't approved yet.",
+        "no_configurado": "Payments aren't configured yet.",
+        "sin_suscripcion": "We couldn't find a subscription to cancel.",
+        "no_disponible": "Try again in a bit."
+      },
+      "estados": {
+        "pendiente": "Pending",
+        "activa": "Active",
+        "en_gracia": "Payment pending",
+        "pausada": "Paused",
+        "cancelada": "Cancelled",
+        "vencida": "Expired"
+      },
+      "nadaSeBorra": "We never delete anything over a missed payment: listings leave the Market and Improvement goes read-only.",
+      "comoFuncionanNiveles": "How the levels work"
+    },
+    "avisos": {
+      "titulo": "Notices",
+      "vacio": "No notices yet.",
+      "prefsTitulo": "Notices from this business",
+      "prefsTexto": "What reaches your phone. They all still show up in the bell above.",
+      "tipos": {
+        "listados": "Listings and reports",
+        "mejora": "Goals and closures",
+        "cuenta": "Account and verification",
+        "pagos": "Payments"
+      },
+      "siempre": "Always",
+      "errorTitulo": "Couldn't save",
+      "errorCuerpo": "Try again in a bit."
+    },
+    "kit": {
+      "eyebrow": "Your business",
+      "titulo": "Brand kit",
+      "bajada": "So you can tell people you're in the programme, on your site and on social media.",
+      "sello": {
+        "titulo": "The badge for your site",
+        "texto": "It updates itself: if your level changes, the badge changes. Paste this code wherever you want it.",
+        "alt": "{nombre} in the Brote programme"
+      },
+      "placas": {
+        "titulo": "Cards for social media",
+        "texto": "Three square images, ready to post.",
+        "nivel": {
+          "titulo": "We're in the Brote programme"
+        },
+        "mejora": {
+          "titulo": "Our improvement programme",
+          "conObjetivos": "{n} goals closed with evidence",
+          "sinObjetivos": "With goals, follow-up and evidence"
+        },
+        "afirmaciones": {
+          "titulo": "See what we claim and what backs it",
+          "linea": "Every claim, with its evidence level"
+        }
+      },
+      "texto": {
+        "titulo": "The text to announce it",
+        "ayuda": "Written to copy and paste. Change whatever you like."
+      },
+      "copiado": "Copied",
+      "copiarCodigo": "Copy the code",
+      "copiarTexto": "Copy the text",
+      "descargar": "Download"
     }
   },
   "mercado": {
@@ -2136,7 +2320,9 @@
       "vacio": "Todavía no publicó nada en el Mercado.",
       "mejora": "Historial de mejora",
       "fundador": "Fundador",
-      "correccion": "Nota de corrección de Brote"
+      "correccion": "Nota de corrección de Brote",
+      "entrarParaVer": "You need an account to see what this business publishes.",
+      "entrar": "Sign in to Brote"
     },
     "listados": {
       "nav": "Listados",
@@ -2434,6 +2620,20 @@
         "confirmarAyuda": "Confirmar penaliza el listado y le da 30 días al comercio para corregir. Desestimar no penaliza a nadie.",
         "notaPh": "Qué se encontró."
       }
+    },
+    "puente": {
+      "titulo": "Where to get it",
+      "ayuda": "These actions are easier with good suppliers. These businesses are in the Brote programme.",
+      "ver": "See more in the Market",
+      "aclaracion": "Buying earns no points. Brote does not sell or broker: every listing leads to the shop's own site."
+    },
+    "plaza": {
+      "eyebrow": "Market",
+      "ayuda": "Products and services from businesses in the programme, each with its evidence level in plain sight.",
+      "ver": "See all",
+      "vacioTitulo": "Nothing published yet",
+      "vacioTexto": "The catalogue opens when the first businesses publish. If you run one, you could be among them.",
+      "sumarNegocio": "Add my business"
     }
   }
 }

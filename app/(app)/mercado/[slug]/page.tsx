@@ -13,10 +13,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
  * un `teen` no ve precios ni categorías sensibles, y los miembros del negocio
  * ven su listado sin publicar como vista previa.
  */
-export default async function FichaPage({ params }: { params: { slug: string } }) {
+const ORIGENES = ['accion', 'plaza', 'perfil_negocio', 'catalogo', 'busqueda'] as const;
+
+export default async function FichaPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { de?: string };
+}) {
   const cuenta = await getCuentaMercado();
   if (!cuenta || cuenta.tipo === 'kid') notFound();
   const f = await getFicha(params.slug);
   if (!f) notFound();
-  return <FichaListado f={f} />;
+  // De dónde venía quien llegó acá: el clic de salida lo registra con ese
+  // origen, que es lo que después arma "de dónde vinieron" en la analítica.
+  const de = (ORIGENES as readonly string[]).includes(searchParams.de ?? '') ? searchParams.de! : 'ficha';
+  return <FichaListado f={f} origen={de} />;
 }

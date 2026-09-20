@@ -13,6 +13,7 @@ import { Composer } from '@/components/feed/Composer';
 import { InfiniteFeed } from '@/components/feed/InfiniteFeed';
 import { ThreadSheet } from '@/components/feed/ThreadSheet';
 import { RightRail } from '@/components/plaza/RightRail';
+import { MercadoTab } from '@/components/plaza/MercadoTab';
 import { fetchPulse, type FeedItem, type FeedTab } from '@/lib/api/feed';
 import { fetchMyFollowingIds } from '@/lib/api/social';
 import { useSession } from '@/stores/session';
@@ -20,6 +21,13 @@ import { DOMAINS, getDomain } from '@/lib/domains';
 
 const TAB_KEY = 'brote:feed:tab';
 const TABS: FeedTab[] = ['para_vos', 'siguiendo', 'novedades'];
+
+/**
+ * El Mercado vive acá como una pestaña más, pero NO es una pestaña del feed:
+ * no se guarda como preferencia y no cambia con qué pestaña abre la Plaza
+ * (F14.2). Se entra a propósito y se sale igual.
+ */
+type Pestana = FeedTab | 'mercado';
 
 export default function FeedPage() {
   return (
@@ -47,7 +55,7 @@ function FeedInner() {
   const profile = useSession((s) => s.profile);
   const isKid = profile?.accountType === 'kid';
 
-  const [tab, setTab] = useState<FeedTab>('para_vos');
+  const [tab, setTab] = useState<Pestana>('para_vos');
   const [topic, setTopic] = useState<string>(params.get('topic') ?? 'all');
   const [thread, setThread] = useState<FeedItem | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -59,8 +67,8 @@ function FeedInner() {
       return;
     }
     const fromUrl = params.get('tab');
-    if (fromUrl && (TABS as string[]).includes(fromUrl)) {
-      setTab(fromUrl as FeedTab);
+    if (fromUrl && ([...TABS, 'mercado'] as string[]).includes(fromUrl)) {
+      setTab(fromUrl as Pestana);
       return;
     }
     try {
@@ -77,7 +85,7 @@ function FeedInner() {
    * rather than `push`: the back button should leave the Plaza, not walk
    * backwards through every chip you tapped.
    */
-  function syncUrl(nextTab: FeedTab, nextTopic: string) {
+  function syncUrl(nextTab: Pestana, nextTopic: string) {
     const q = new URLSearchParams();
     if (nextTab !== 'para_vos') q.set('tab', nextTab);
     if (nextTopic !== 'all') q.set('topic', nextTopic);
@@ -85,7 +93,7 @@ function FeedInner() {
     router.replace(qs ? `/feed?${qs}` : '/feed', { scroll: false });
   }
 
-  function changeTab(next: FeedTab) {
+  function changeTab(next: Pestana) {
     setTab(next);
     syncUrl(next, topic);
   }
@@ -96,7 +104,7 @@ function FeedInner() {
   }
 
   useEffect(() => {
-    if (isKid) return;
+    if (isKid || tab === 'mercado') return;
     try {
       localStorage.setItem(TAB_KEY, tab);
     } catch {
@@ -139,11 +147,12 @@ function FeedInner() {
         {!isKid && (
           <SectionTabs
             value={tab}
-            onChange={(v) => changeTab(v as FeedTab)}
+            onChange={(v) => changeTab(v as Pestana)}
             options={[
               { value: 'para_vos', label: t('tabParaVos') },
               { value: 'siguiendo', label: t('tabSiguiendo') },
               { value: 'novedades', label: t('tabNovedades') },
+              { value: 'mercado', label: t('tabMercado') },
             ]}
           />
         )}
@@ -160,7 +169,9 @@ function FeedInner() {
           </div>
         )}
 
-        {topicOptions.length > 1 && (
+        {tab === 'mercado' && <MercadoTab />}
+
+        {tab !== 'mercado' && topicOptions.length > 1 && (
           <ChipRail
             layoutId="feed-topic"
             value={topic}
@@ -179,7 +190,7 @@ function FeedInner() {
           />
         )}
 
-        {!isKid && (
+        {!isKid && tab !== 'mercado' && (
           // Publishing has to put your post on screen. Scrolling to the top of a
           // timeline that does not contain it yet just looks broken.
           <Composer
@@ -190,14 +201,16 @@ function FeedInner() {
           />
         )}
 
-        <InfiniteFeed
-          tab={tab}
-          topic={topic === 'all' ? null : topic}
-          onReply={setThread}
-          isKid={isKid}
-          showWhoToFollow={showWhoToFollow}
-          reloadToken={reloadToken}
-        />
+        {tab !== 'mercado' && (
+          <InfiniteFeed
+            tab={tab}
+            topic={topic === 'all' ? null : topic}
+            onReply={setThread}
+            isKid={isKid}
+            showWhoToFollow={showWhoToFollow}
+            reloadToken={reloadToken}
+          />
+        )}
 
         <ThreadSheet item={thread} onClose={() => setThread(null)} />
         <BackToTop />

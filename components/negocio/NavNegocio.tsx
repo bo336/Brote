@@ -4,20 +4,26 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
+import { BarChart3, CreditCard, LayoutDashboard, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * Solo las secciones que existen. Analítica, Equipo y Plan se suman
- * con sus fases: un enlace a una pantalla que todavía no está es una promesa
- * rota en el lugar más visible del producto.
+ * Solo las secciones que existen. Equipo llega con su fase: un enlace a una
+ * pantalla que todavía no está es una promesa rota en el lugar más visible del
+ * producto.
  */
-const SECCIONES: { clave: 'resumen' | 'mejora' | 'listados' | 'verificacion'; href: string; icono: LucideIcon }[] = [
+const SECCIONES: {
+  clave: 'resumen' | 'mejora' | 'listados' | 'analitica' | 'verificacion' | 'plan';
+  href: string;
+  icono: LucideIcon;
+}[] = [
   { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
   { clave: 'mejora', href: '/negocio/mejora', icono: Target },
   { clave: 'listados', href: '/negocio/listados', icono: Store },
+  { clave: 'analitica', href: '/negocio/analitica', icono: BarChart3 },
   { clave: 'verificacion', href: '/negocio/verificacion', icono: ShieldCheck },
+  { clave: 'plan', href: '/negocio/plan', icono: CreditCard },
 ];
 
 function activa(href: string, pathname: string): boolean {

@@ -13,10 +13,23 @@ import type { TarjetaMercado } from '@/lib/supabase/rows-mercado';
  * El badge es su propio enlace (a `/legal/niveles`), así que la tarjeta no es
  * un único `<a>`: son dos enlaces hermanos, nunca uno dentro de otro.
  */
-export function TarjetaListado({ t: item, prioridad = false }: { t: TarjetaMercado; prioridad?: boolean }) {
+export function TarjetaListado({
+  t: item,
+  prioridad = false,
+  origen,
+}: {
+  t: TarjetaMercado;
+  prioridad?: boolean;
+  /**
+   * Desde dónde se la está viendo: viaja hasta el clic de salida (fase 4 §2.2).
+   * Son los orígenes que `mercado_salir` acepta; la pestaña del Mercado en la
+   * Plaza cuenta como catálogo, que es lo que es.
+   */
+  origen?: 'accion' | 'catalogo' | 'perfil_negocio';
+}) {
   const t = useTranslations('mercado.catalogo');
   const img = urlImagen(item.imagen);
-  const href = `/mercado/${item.slug}`;
+  const href = origen ? `/mercado/${item.slug}?de=${origen}` : `/mercado/${item.slug}`;
 
   return (
     <article className="group flex flex-col">

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils/cn';
  * antihalo hecha interfaz, y lo que hace que alguien confíe en el catálogo
  * entero. La certificación de la harina no tiñe el envase.
  */
-export function FichaListado({ f }: { f: FichaMercado }) {
+export function FichaListado({ f, origen = 'ficha' }: { f: FichaMercado; origen?: string }) {
   const t = useTranslations('mercado.ficha');
   const tn = useTranslations('mercado.nivel');
   const tc = useTranslations('mercado.categorias');
@@ -87,7 +87,7 @@ export function FichaListado({ f }: { f: FichaMercado }) {
           </span>
         ) : (
           <Link
-            href={`/mercado/salir/${f.id}?o=ficha`}
+            href={`/mercado/salir/${f.id}?o=${origen}`}
             prefetch={false}
             className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full rounded-pill bg-brand-gradient text-white sm:w-auto')}
           >

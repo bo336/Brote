@@ -18,7 +18,7 @@ export function SectionTabs({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-6 border-b border-border">
+    <div className="-mx-4 flex items-center gap-6 overflow-x-auto border-b border-border px-4 no-scrollbar lg:mx-0 lg:px-0">
       {options.map((o) => {
         const active = value === o.value;
         return (
@@ -26,7 +26,7 @@ export function SectionTabs({
             key={o.value}
             onClick={() => onChange(o.value)}
             className={cn(
-              'relative pb-3 font-display text-h1 font-extrabold transition-colors duration-150',
+              'relative shrink-0 whitespace-nowrap pb-3 font-display text-h1 font-extrabold transition-colors duration-150',
               active ? 'text-foreground' : 'text-muted-foreground/50 hover:text-muted-foreground',
             )}
           >

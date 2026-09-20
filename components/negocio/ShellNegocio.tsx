@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ContextSwitcher } from '@/components/negocio/ContextSwitcher';
 import { NavChips, NavLateral } from '@/components/negocio/NavNegocio';
 import { NivelChip } from '@/components/negocio/NivelChip';
+import { CampanaNegocio } from '@/components/negocio/CampanaNegocio';
 import type { MiNegocio } from '@/lib/supabase/rows-negocio';
 
 /**
@@ -50,6 +51,9 @@ export function ShellNegocio({
             negociosIniciales={negocios}
           />
           <div className="ml-auto flex shrink-0 items-center gap-1">
+            {/* La campana de la empresa. La personal vive en la otra app y no
+                se cruzan nunca (02 §7). */}
+            {activo && <CampanaNegocio negocioId={activo.id} />}
             <ThemeToggle />
             <Avatar src={perfil.avatarUrl} name={perfil.displayName ?? perfil.username} size={32} />
           </div>

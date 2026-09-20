@@ -21,7 +21,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
  */
 export default async function NegocioPublicoPage({ params }: { params: { slug: string } }) {
   const cuenta = await getCuentaMercado();
-  if (!cuenta || cuenta.tipo === 'kid') notFound();
+  // Sin cuenta se puede ver la ficha (el sello del kit de marca linkea acá),
+  // pero no el catálogo del comercio: los precios y las categorías sensibles
+  // dependen de quién mira (08 §9).
+  if (cuenta?.tipo === 'kid') notFound();
   const datos = await getNegocioPublico(params.slug);
   if (!datos) notFound();
   const n = datos.negocio;
@@ -30,19 +33,23 @@ export default async function NegocioPublicoPage({ params }: { params: { slug: s
     getTranslations('mercado.ficha'),
     getFormatter(),
   ]);
-  const listados = await getCatalogo(
-    { categoria: null, dominio: null, nivel: null, zona: null, modalidad: null, orden: 'recomendados', negocio: n.id },
-    null,
-    cuenta,
-  );
+  const listados = cuenta
+    ? await getCatalogo(
+        { categoria: null, dominio: null, nivel: null, zona: null, modalidad: null, orden: 'recomendados', negocio: n.id },
+        null,
+        cuenta,
+      )
+    : { items: [], cursor: null };
   const lugar = [n.ciudad, n.provincia].filter(Boolean).join(', ');
 
   return (
     <div className="pb-16">
-      <Link href="/mercado" className="inline-flex items-center gap-1.5 text-small font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" />
-        {tf('volver')}
-      </Link>
+      {cuenta && (
+        <Link href="/mercado" className="inline-flex items-center gap-1.5 text-small font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" />
+          {tf('volver')}
+        </Link>
+      )}
 
       <header className="mt-5 flex items-start gap-4">
         <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[18px] bg-surface-2">
@@ -109,7 +116,14 @@ export default async function NegocioPublicoPage({ params }: { params: { slug: s
 
       <section className="mt-10">
         <span className="eyebrow text-muted-foreground">{t('listados')}</span>
-        {listados.items.length === 0 ? (
+        {!cuenta ? (
+          <p className="mt-2 border-y border-hairline py-6 text-small text-muted-foreground">
+            {t('entrarParaVer')}{' '}
+            <Link href={`/auth/login?next=${encodeURIComponent(`/mercado/negocio/${params.slug}`)}`} className="link-underline font-semibold text-primary">
+              {t('entrar')}
+            </Link>
+          </p>
+        ) : listados.items.length === 0 ? (
           <p className="mt-2 border-y border-hairline py-6 text-small text-muted-foreground">{t('vacio')}</p>
         ) : (
           <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">

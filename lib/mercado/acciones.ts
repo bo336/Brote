@@ -7,10 +7,19 @@ import { createClient } from '@/lib/supabase/server';
 import { CLAIMS, alcanceDe, validarAfirmacion, type Afirmacion, type CertInfo, type ClaimKind, type Datos } from '@/lib/mercado/claims';
 import { verificarUrl, normalizarUrl } from '@/lib/mercado/url';
 import { validarListado, type ErrorListado } from '@/lib/mercado/validador';
-import { getCatalogo, getCertificaciones, getCuentaMercado, type Cursor, type FiltrosCatalogo, type PaginaCatalogo } from '@/lib/mercado/servidor';
+import {
+  getCatalogo,
+  getCertificaciones,
+  getCuentaMercado,
+  getPuente,
+  type Cursor,
+  type FiltrosCatalogo,
+  type PaginaCatalogo,
+  type Puente,
+} from '@/lib/mercado/servidor';
 import { nivelAfirmacion } from '@/lib/negocio/niveles';
 import { getNegocioDetalle } from '@/lib/negocio/context';
-import type { ListadoDetalle, ReportReason } from '@/lib/supabase/rows-mercado';
+import type { ListadoDetalle, ReportReason, TarjetaMercado } from '@/lib/supabase/rows-mercado';
 
 /**
  * Server actions del Mercado. Cada escritura termina en una RPC que vuelve a
@@ -246,8 +255,36 @@ export async function cargarMasCatalogo(f: FiltrosCatalogo, cursor: Cursor): Pro
   return getCatalogo(f, cursor, cuenta);
 }
 
-/** Impresiones, para el CTR (una por persona, listado y día). */
-export async function marcarVistas(ids: string[]): Promise<void> {
+/**
+ * Impresiones, para el CTR y para la analítica (fase 4 §3.2). Se cuenta cuando
+ * la tarjeta ENTRA EN PANTALLA, una vez por sesión del lado del cliente y una
+ * vez por persona y día del lado de la base. `origen` dice desde qué pantalla
+ * la vio, que es lo que después responde "de dónde vinieron".
+ */
+export type OrigenVista = 'catalogo' | 'accion' | 'plaza' | 'perfil_negocio';
+
+/**
+ * El módulo "Dónde conseguirlo" de una acción. Se pide desde el cliente porque
+ * la ficha de la acción es un Client Component; la base decide si hay algo que
+ * mostrar (y para `kid` nunca lo hay).
+ */
+export async function getPuenteAccion(slugAccion: string): Promise<Puente | null> {
+  return getPuente(slugAccion);
+}
+
+/** Los mejores del momento, para la pestaña Mercado de la Plaza (02 §6.2). */
+export async function getMercadoDestacado(limite = 6): Promise<TarjetaMercado[]> {
+  const cuenta = await getCuentaMercado();
+  if (!cuenta || cuenta.tipo === 'kid') return [];
+  const pagina = await getCatalogo(
+    { categoria: null, dominio: null, nivel: null, zona: null, modalidad: null, orden: 'recomendados' },
+    null,
+    cuenta,
+  );
+  return pagina.items.slice(0, limite);
+}
+
+export async function marcarVistas(ids: string[], origen: OrigenVista = 'catalogo'): Promise<void> {
   if (ids.length === 0) return;
-  await createClient().rpc('mercado_vistas', { p_ids: ids.slice(0, 48) });
+  await createClient().rpc('mercado_vistas', { p_ids: ids.slice(0, 48), p_origen: origen });
 }

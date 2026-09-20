@@ -1,11 +1,13 @@
-import { Home, Leaf, MessagesSquare, Trophy, User, GraduationCap, type LucideIcon } from 'lucide-react';
+import { Home, Leaf, MessagesSquare, Trophy, User, GraduationCap, Store, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
-  key: 'hoy' | 'acciones' | 'plaza' | 'ranking' | 'perfil' | 'aprender';
+  key: 'hoy' | 'acciones' | 'plaza' | 'ranking' | 'perfil' | 'aprender' | 'mercado';
   href: string;
   icon: LucideIcon;
   /** The center action tab is visually elevated. */
   elevated?: boolean;
+  /** Menores: el Mercado no existe para una cuenta de chico (08 §9). */
+  soloAdultos?: boolean;
 }
 
 /**
@@ -28,7 +30,12 @@ export const NAV_ITEMS: NavItem[] = [
  * its centre tab is visually elevated — a sixth would knock that off centre.
  * On mobile, Aprendé is reached from the card on the home screen instead.
  */
-export const SECONDARY_NAV: NavItem[] = [{ key: 'aprender', href: '/aprender', icon: GraduationCap }];
+export const SECONDARY_NAV: NavItem[] = [
+  { key: 'aprender', href: '/aprender', icon: GraduationCap },
+  // El Mercado tenía una sola puerta —un ícono sin nombre en la barra
+  // superior— y así no lo encontraba nadie. Acá tiene nombre.
+  { key: 'mercado', href: '/mercado', icon: Store, soloAdultos: true },
+];
 
 /** Active-state matcher: exact for '/', prefix for the rest. */
 export function isNavActive(itemHref: string, pathname: string): boolean {

@@ -60,6 +60,8 @@ export async function getSessionData(): Promise<SessionData> {
       .from('notifications')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
+      // Los avisos de empresa tienen su propia campana (02 §7).
+      .is('business_id', null)
       .eq('read', false),
     // El póster: a real picture of this player's island, taken on their last
     // visit to `/mundo`. Its own query rather than a join, so a missing row —

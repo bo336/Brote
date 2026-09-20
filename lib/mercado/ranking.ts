@@ -43,7 +43,9 @@ export interface EntradaListado {
 
 // ── C — credibilidad (§3.4) ─────────────────────────────────────────────────
 
-const BASE: Record<Nivel, number> = { e0: 0, e1: 0.35, e2: 0.65, e3: 0.9, e4: 0.9 };
+/** Cuánto pesa cada nivel en la credibilidad. Exportado: `lib/negocio/sugerencias.ts` compara dos niveles con esto. */
+export const BASE_CREDIBILIDAD: Record<Nivel, number> = { e0: 0, e1: 0.35, e2: 0.65, e3: 0.9, e4: 0.9 };
+const BASE = BASE_CREDIBILIDAD;
 
 export function credibilidad(e: EntradaListado): number {
   // E4 es de la empresa: +0.10 al listado, tope 1.0.

@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Check, Lock, Repeat, Globe2 } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
+import { DondeConseguirlo } from '@/components/mercado/DondeConseguirlo';
 import { Pill } from '@/components/ui/pill';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -216,6 +217,11 @@ export default function ActivityDetailPage() {
           </Button>
         )}
       </div>
+
+      {/* "Dónde conseguirlo" (02 §6.1): DEBAJO de todo, nunca en el camino de
+          completar, y nunca para una cuenta de chico. Si no hay al menos tres
+          listados relevantes, la base devuelve nada y acá no se dibuja nada. */}
+      {profile?.accountType !== 'kid' && <DondeConseguirlo slugAccion={a.slug} />}
     </div>
   );
 }

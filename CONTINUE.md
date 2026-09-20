@@ -447,14 +447,7 @@ Todo en un bloque que al final levanta una excepción: nada quedó escrito.
 
 ## ▶ NEXT EXACT TASK (Negocios)
 
-> **Fase 4 · Integración y cobro.** Leer 02 §6–§8, 04 §5, `09_MONETIZACION.md`
-> completo, 08 §9, `lib/ads/policy.ts` y `fases/FASE_4_INTEGRACION_Y_COBRO.md`.
-> La migración que la carpeta llama `0041` acá es `0108`. **El documento pone
-> de prerrequisito al menos 3 listados publicados de prueba**: eso es el
-> recorrido real de abajo, con una cuenta adulta, y no se puede hacer desde acá.
-> Los ganchos de plan ya existen y devuelven `'semilla'`
-> (`brote_negocio_plan`, `brote_negocio_permite`, `brote_negocio_acelerado`):
-> la fase 4 solo tiene que redefinirlos contra `business_subscriptions`.
+> **Hecha.** El próximo paso está en la sección de la fase 4, más abajo.
 
 ## Qué quedó
 
@@ -696,6 +689,240 @@ directo, pero la API sí.
    migración.
 5. Pendiente para la fase 5: el chequeo periódico de enlaces caídos (hoy la
    URL se verifica al enviar, no después).
+
+---
+
+# NEGOCIOS — FASE 4 (Integración y cobro) · ENTREGADA · F17.4
+
+> El pedido: `fases/FASE_4_INTEGRACION_Y_COBRO.md` con `09_MONETIZACION.md`
+> completo, 02 §6–§8, 04 §5 y 08 §9. El Mercado se conecta con la app de
+> personas, la empresa ve una analítica honesta, y existe el cobro mensual por
+> MercadoPago —detrás de una bandera apagada, que el dueño prende de un clic
+> cuando la secuencia de 09 §10 lo diga.
+
+## ▶ NEXT EXACT TASK (Negocios)
+
+> **Fase 5 · Endurecimiento y lanzamiento.** Leer
+> `fases/FASE_5_ENDURECIMIENTO_Y_LANZAMIENTO.md`, 04 §6 y 08 §10. La migración
+> que la carpeta llama `0042` acá es `0109`. Antes conviene el recorrido real
+> con una cuenta adulta (abajo): sin una empresa aprobada de verdad, ni el
+> sello ni la analítica tienen contra qué probarse.
+
+## Qué quedó
+
+**El puente acciones ↔ Mercado** (02 §6.1)
+- `activity_market_hints` con **32 filas** sobre ~27 acciones de sustitución
+  (granel, recargables, barra, estación, segunda mano, reparación, huerta):
+  las que tienen una categoría del Mercado que las respalda de verdad, no las
+  475 del catálogo.
+- `mercado_para_accion(slug)` aplica las cinco reglas duras **en la base**:
+  `kid` no recibe nada, `teen` no ve categorías sensibles, con menos de 3
+  listados devuelve null, como máximo uno por empresa, y es de solo lectura —
+  comprar no suma un punto.
+- `components/mercado/DondeConseguirlo.tsx` va **debajo de todo** en
+  `/acciones/[slug]`, nunca en el camino de completar. Se renderiza visible y
+  no anima: es la lección que dejaron CountUp y NewsNudge.
+- Pestaña **Mercado** en la Plaza, que no se guarda como preferencia: la Plaza
+  sigue abriendo donde abría (F14.2).
+
+**Analítica honesta** (09 §6) — `/negocio/analitica`
+- Franja oscura con impresiones, salidas, tasa y reportes resueltos; tabla por
+  listado; origen del tráfico y serie de 30 días con `recharts` (plan Raíz en
+  adelante). Si no hay nada que medir, un estado vacío que lo dice: no se
+  dibujan ceros con forma de gráfico.
+- **"Qué te haría subir"** (`lib/negocio/sugerencias.ts`, con tests): reglas
+  deterministas sobre el estado real —una afirmación E1 que ya tiene con qué
+  ser E2, un objetivo por vencer, un certificado que se vence, una ficha con
+  una sola foto—, como máximo 3, ordenadas por impacto.
+- El **aviso de honestidad** de 09 §6 al pie, siempre visible, con el truco del
+  `?ref=brote`.
+
+**Cobro por MercadoPago** (09 §4), apagado
+- Edge function **`mp-negocio`** (desplegada, v1): crea el preapproval con
+  `fetch`, sin SDK; `external_reference = business_id`; el precio lo calcula
+  la base (`negocio_plan_cotizar`), nunca el cliente; si la empresa está en
+  prueba, el primer cobro arranca cuando la prueba termina.
+- **Webhook** `app/api/pagos/mercadopago/webhook/route.ts`: valida la firma
+  `x-signature` **antes de tocar nada** y falla cerrado si no hay secreto;
+  registra el evento con llave única (idempotencia); vuelve a consultar a
+  MercadoPago porque el cuerpo del aviso no es la verdad; contesta 200 rápido y
+  deja lo que falle para que lo reintente el cron.
+- `negocio_suscripcion_aplicar` es el único lugar donde cambia el estado, con
+  el mapeo de 09 §4.4, y **solo actúa cuando el estado cambia**: el mismo
+  evento dos veces no avisa ni despublica dos veces.
+- Cron **`brote-billing`** (pg_cron, 05:00 UTC = 02:00 AR): abre la prueba,
+  avisa 3 días antes del fin de prueba y del cobro, da 7 días de gracia con
+  aviso diario, vence, despublica (nunca borra) y a los 90 días ofrece
+  llevarse los datos. `/api/cron/billing` es el respaldo y el lugar donde se
+  reintentan los eventos que quedaron a medias.
+- `/negocio/plan`: los tres planes con su tabla, **"Suscribirme"** (no
+  "MercadoPago": F15.1), la prueba de 14 días sin tarjeta con los días a la
+  vista, el estado de la suscripción, cómo darla de baja y la insignia de
+  fundadora.
+
+**Gating en el servidor** (09 §5)
+- `lib/negocio/plan.ts` con `LIMITES` exacto, y su espejo `brote_biz_limites()`
+  en SQL: un test compara los dos.
+- El tope se aplica en **triggers**, no repartido por las RPC: `listings`
+  (enviar/publicar), `improvement_goals` (activar), `goal_checkins`,
+  `goal_evidence`, `improvement_dossiers` (modo lectura) y `business_members`
+  (equipo). Frenan a un miembro; el job diario y quien revisa no son miembros y
+  siguen pudiendo mover todo.
+- Nunca se pierde trabajo: el listado por encima del tope se queda en borrador,
+  con todo lo que la empresa escribió.
+
+**Notificaciones de empresa** (02 §7)
+- `notifications.business_id`, campana propia en el shell de negocio y **la
+  campana personal filtrando `business_id is null`** — el cambio de una línea
+  que la fase 4 marcaba como criterio de aceptación, con test.
+- Preferencias por tipo en `/negocio` (listados, mejora, cuenta). Los avisos de
+  **pago no se pueden apagar**: perderse uno termina con los listados
+  despublicados.
+- Push por la infraestructura VAPID de siempre: `notify_push` tiene ahora una
+  rama de empresa que respeta esas preferencias.
+
+**Kit de marca** (09 §7) — `/negocio/kit`
+- `/api/sello/[slug].svg`, cacheado una hora, que se actualiza solo: si el
+  nivel baja, el sello del sitio de la empresa baja con él. Dice el nivel y el
+  programa, nunca "verificado" sobre un producto (test).
+- Snippet HTML copiable (`<a>` + `<img>` hacia la ficha, con `?ref=sello`),
+  tres placas para redes y el texto sugerido en voseo.
+- **La ficha pública del negocio ahora se puede ver sin cuenta**: si el sello
+  es un enlace entrante, quien llega de afuera tiene que ver algo. Los listados
+  y los precios siguen pidiendo cuenta.
+
+**Historial público de mejora** (fase 4 §8): interruptor por objetivo cerrado
+en su ficha, gated por plan, visible en `/mercado/negocio/[slug]`. El dossier
+no se expone nunca.
+
+**Dónde se entra ahora** (lo que faltaba de verdad): el Mercado tenía una sola
+puerta —un ícono sin nombre en la barra superior—. Ahora está en la barra
+lateral de escritorio, en la pestaña de la Plaza, y hay una fila "Tu negocio en
+Brote" en `/perfil`. Los menores no ven ninguna de las tres.
+
+## Verificado contra la base viva (transacciones que terminan en rollback)
+
+- **Modo fundador** (cobro apagado): plan `raiz`, escritura completa, tope de
+  15 listados, acelerada e historial público habilitados.
+- **Cobro prendido sin suscripción**: plan `semilla`, sin escritura, tope 3,
+  analítica básica.
+- El cron abre la prueba (90 días para una fundadora, 14 para el resto) y
+  durante la prueba la escritura vuelve.
+- **Tope del plan**: de cuatro listados, tres se envían y el cuarto choca con
+  `limite_plan`; el que sobró **queda en borrador**.
+- **Prueba vencida sin plan**: el cron despublica los tres
+  (`despublicado_por = 'cobro'`) y Mejora queda en lectura — un miembro que
+  intenta escribir el dossier recibe `solo_lectura`.
+- **Suscripción**: `authorized` → activa (y un solo aviso: el mismo evento dos
+  veces no cambia nada); pago rechazado → `en_gracia` con 7 días, **listados
+  siguen publicados** y el puntaje baja exactamente 15 (39,3 → 24,3); gracia
+  vencida → `vencida` y despublicado; pagar de nuevo → activa y republicado.
+- **Idempotencia**: el mismo aviso registrado dos veces entra una sola vez.
+- Una referencia externa que no es una empresa se reconoce como persona
+  (Brote+) y no se confunde.
+
+## Verificado de otra forma
+
+- **490 tests** (`npm test`): los 455 de la fase 3 y 35 nuevos — paridad de
+  `LIMITES` con la migración, los topes de 09 §5, la firma del webhook (buena,
+  con otro secreto, con el id cambiado, sin encabezado y **sin secreto
+  configurado**), la idempotencia de la llave, las sugerencias (nunca más de 3,
+  ordenadas por impacto, con el Progreso proyectado calculado con la fórmula
+  real y **sin un solo porcentaje inventado**), el sello (nunca dice
+  "verificado", escapa comillas, corta nombres largos), las reglas duras del
+  puente (no toca `complete_activity`, no aparece en recompensas, onboarding,
+  hábitos ni acciones) y el filtro de la campana personal.
+- Pantallas: ruta de previsualización temporal (borrada, no commiteada) con los
+  componentes reales, capturada con Chrome headless. Dos defectos salieron de
+  ahí: el gráfico no se dibujaba (animación de entrada de recharts → ahora
+  `isAnimationActive={false}`, que además es lo que pide la regla del frame
+  loop) y la franja oscura no se distinguía del fondo (ahora tiene borde).
+- `mp-negocio` desplegada; `npm run typecheck`, `next lint` y `npm run build`
+  limpios.
+- Advisors de Supabase: las tablas nuevas aparecen como "RLS enabled, no
+  policy" (a propósito: nadie las lee de afuera) y las RPC nuevas como
+  security definer para cuentas con sesión, igual que las de las fases 1 a 3.
+  Ningún error nuevo.
+
+## Desviaciones — qué se hizo distinto de la carpeta, y por qué
+
+1. **La función se llama `mp-negocio`, no `mp-subscribe`.** `mp-subscribe` ya
+   existe: es la de Brote+ para personas. Pisarla dejaba a las personas sin
+   poder suscribirse. Por el mismo motivo **el webhook atiende a los dos**:
+   MercadoPago manda todo a una sola URL, así que si la referencia externa es
+   una empresa va por el camino nuevo y si no, por `apply_subscription_event`,
+   que ya existía.
+2. **El gating vive en triggers**, no repetido en cada RPC. Las policies de
+   `business_members` dejan al owner escribir la tabla directo: si el tope
+   estuviera solo en las RPC, un `insert` por la API lo saltearía.
+3. **La bandera y los precios viven en `app_settings`, no en `app_state`.** Es
+   la tabla que `/panel` ya pinta sola —booleanos como interruptor, números
+   como campo—, así que prenderlo es un clic y no un deploy, que es lo que
+   pide 09 §10.
+4. **Con el cobro apagado, toda empresa aprobada está en modo fundador con
+   plan Raíz** (09 §3.2 les da Raíz a las fundadoras), y las fundadoras reciben
+   90 días de prueba cuando el cobro se prenda, no 14: 09 §10.5 dice que se les
+   cobra recién al mes 4.
+5. **Ningún porcentaje inventado en "Qué te haría subir".** El documento
+   propone "+18% estimado de visibilidad"; el efecto real depende de términos
+   del puntaje que la empresa no ve. Se dice lo que sí es cierto —"el Nivel 2
+   pesa casi el doble que el Nivel 1"— y el orden usa el impacto calculado.
+6. **Las placas para redes se dibujan con `<canvas>` en el navegador**, no con
+   `sharp` en el servidor: en una función serverless no hay fuentes instaladas
+   y el texto sale en blanco o en cuadros. La fuente ya está cargada en la
+   página y se le pide al DOM.
+7. **Las impresiones pasaron a un agregado diario por origen**
+   (`listing_impresiones_dia`, con agregado mensual para siempre). La fila por
+   persona queda solo como llave de deduplicación y se borra a los 2 días:
+   guardar quién vio qué durante 90 días era guardar de más (08 §7.1). El CTR
+   y el puntaje leen el agregado y dan el mismo número.
+8. **El tope de "replanificaciones" es el de la IA**, no un bloqueo para
+   replanificar. Ajustar un objetivo que no cierra es el corazón de Mejora:
+   sin cupo, la vía determinista da el mismo resultado
+   (`brote_biz_cupo_ia`).
+9. **El cron de cobro no se agregó a `vercel.json`.** El plan Hobby limita los
+   cron de Vercel y ya hay dos; agregarlo podía romper el deploy. Lo corre
+   `pg_cron`; `/api/cron/billing` queda como respaldo manual y como el lugar
+   donde se reintentan los eventos del webhook.
+10. **`/mercado/negocio/[slug]` es público.** El sello del kit es un enlace
+    entrante desde el sitio de la empresa: mandar a un login a quien llega de
+    afuera desperdicia justamente lo que el sello vino a hacer.
+
+## Lo que NO se pudo verificar
+
+- **El cobro real en el sandbox de MercadoPago.** Hace falta el
+  `MP_ACCESS_TOKEN` de una cuenta de prueba y un usuario de prueba con tarjeta.
+  Lo que sí está probado sin credenciales: el rechazo de firmas inválidas, la
+  idempotencia y todo el mapeo de estados contra la base.
+- **El webhook de punta a punta**: sin credenciales no hay evento real que
+  recibir. La firma se probó con vectores propios (HMAC-SHA256 del manifiesto).
+- **El sello contra una empresa real**: no hay ninguna aprobada todavía, así
+  que la ruta devuelve 404. El dibujo se probó con la función pura y se
+  revisó en pantalla.
+- **El push de un aviso de empresa** (hace falta una suscripción web real) y el
+  recorrido con sesión, igual que en las fases anteriores.
+
+## Owner action items (Negocios, fase 4)
+
+1. **El recorrido real** con una cuenta adulta: crear la empresa, aprobarla
+   desde `/panel/negocios`, publicar 3 listados, ver el Mercado, salir por el
+   interstitial y mirar `/negocio/analitica`. Es lo único que falta para que
+   todo esto tenga datos de verdad.
+2. **Cuando quieras cobrar** (la secuencia es 09 §10, no antes):
+   - En Supabase → Edge Functions → Secrets: `MP_ACCESS_TOKEN`.
+   - En Vercel → Environment Variables: `MP_ACCESS_TOKEN`,
+     `MP_WEBHOOK_SECRET` y `SUPABASE_SERVICE_ROLE_KEY`.
+   - En MercadoPago → Tus integraciones → Webhooks: la URL
+     `https://<tu-dominio>/api/pagos/mercadopago/webhook`, con los temas
+     `subscription_preapproval` y `subscription_authorized_payment`. El secreto
+     que te da esa pantalla es `MP_WEBHOOK_SECRET`.
+   - En `/panel` → Valores: `negocios_precio_semilla`, `negocios_precio_raiz` y
+     `negocios_precio_bosque` (en pesos; 0 = sin definir y nadie puede
+     suscribirse). El método para fijarlos está en 09 §3.1.
+   - En `/panel` → Interruptores: `negocios_cobro_activo`.
+3. **Revisar que los anuncios automáticos de AdSense sigan apagados** (viene de
+   la fase 3) y **`/legal/negocios` con un abogado** antes de cobrarle a la
+   primera empresa.
 
 ---
 

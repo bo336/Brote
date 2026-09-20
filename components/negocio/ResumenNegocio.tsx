@@ -8,10 +8,13 @@ import {
   ShieldCheck,
   Store,
   Target,
+  BadgeCheck,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { NivelChip } from '@/components/negocio/NivelChip';
+import { AvisosNegocio } from '@/components/negocio/AvisosNegocio';
 import { BRAND } from '@/lib/brand';
 import type { NegocioDetalle } from '@/lib/supabase/rows-negocio';
 import { cn } from '@/lib/utils/cn';
@@ -137,8 +140,23 @@ export function ResumenNegocio({ negocio: n }: { negocio: NegocioDetalle }) {
                 />
               ),
             )}
+            <Fila
+              key="analitica"
+              icono={BarChart3}
+              titulo={t('resumen.approved.analiticaTitulo')}
+              cuerpo={t('resumen.approved.analiticaCuerpo')}
+              href="/negocio/analitica"
+            />
+            <Fila
+              key="kit"
+              icono={BadgeCheck}
+              titulo={t('resumen.approved.kitTitulo')}
+              cuerpo={t('resumen.approved.kitCuerpo')}
+              href="/negocio/kit"
+            />
           </Lista>
           {verificada && <EstadoVerificacion negocio={n} indice={3} />}
+          <AvisosNegocio negocioId={n.id} />
         </>
       )}
 
