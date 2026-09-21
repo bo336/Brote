@@ -14,8 +14,8 @@
 --    determinista, no de gente. Están para que la analítica tenga forma.
 -- 4. **Los documentos de evidencia no existen.** Las afirmaciones E2 y el
 --    cierre del objetivo guardan una ruta de Storage que no tiene archivo
---    detrás: el botón "ver documento" del panel del revisor va a fallar en
---    estas tres empresas, y solo en estas tres.
+--    detrás: el botón "ver documento" del panel del revisor va a fallar en los
+--    comercios de demostración, y solo en ellos.
 --
 -- ── BORRAR TODO (dos líneas) ────────────────────────────────────────────────
 --
@@ -416,4 +416,129 @@ begin
   perform brote_recalcular_tiers();
   perform brote_recalcular_scores();
   raise notice 'Demanda de demostración creada.';
+end $seed$;
+
+-- ════ 6. Un cuarto comercio, para que el puente de las acciones aparezca ════
+-- `mercado_para_accion` no muestra nada con menos de TRES negocios distintos:
+-- una tira de "dónde conseguirlo" con dos comercios es publicidad de esos dos,
+-- no un puente. Con tres empresas repartidas en seis categorías, ninguna
+-- categoría llegaba a tres, así que el puente no se podía ver nunca. Este
+-- cuarto comercio es de granel y lleva `almacen-granel` a tres negocios, que
+-- es lo que la regla pide — sin tocar la regla.
+do $seed$
+declare
+  v_d uuid; v_demo uuid := '00000000-0000-4000-8000-000000000d30';
+  cl jsonb; ls jsonb; it jsonb; ref text;
+  v_map jsonb := '{}'::jsonb; v_lids uuid[] := '{}'; v_lid uuid; v_arr uuid[]; v_res jsonb; v_evid text;
+begin
+  if exists (select 1 from businesses where slug = 'demo-almacen-del-centro') then
+    raise notice 'el cuarto comercio ya esta cargado'; return;
+  end if;
+
+  insert into businesses (slug, nombre_comercial, rubro, tamano, status, provincia, ciudad, sitio_web,
+                          descripcion, created_by, revisado_at, ultima_revision, intereses, created_at)
+  values ('demo-almacen-del-centro', 'Almacén del Centro (DEMO)', 'comercio-minorista', '2-10', 'approved',
+          'Santa Fe', 'Rosario', 'https://ejemplo-almacen.com.ar',
+          'DEMOSTRACIÓN — esta empresa no existe. Almacén de venta a granel: secos, legumbres y limpieza con envase propio.',
+          v_demo, now() - interval '20 days', now() - interval '20 days', array['mercado'],
+          now() - interval '29 days')
+  returning id into v_d;
+
+  insert into business_members (business_id, user_id, role, joined_at)
+  values (v_d, v_demo, 'owner', now() - interval '29 days');
+  insert into business_verifications (business_id, method, token, target, status, verified_at)
+  values (v_d, 'dominio_meta', 'demo-token-d', 'ejemplo-almacen.com.ar', 'verificado', now() - interval '19 days');
+  insert into business_terms (business_id, version, user_id, aceptado_at)
+  values (v_d, brote_terminos_version(), v_demo, now() - interval '29 days');
+
+  cl := $j${
+   "d-envase": {"kind":"reduccion_origen","alcance":"Envase de todo lo que se vende a granel","datos":{"que_se_redujo":"envase descartable por compra","porcentaje":"90","comparado_con":"estandar_categoria"},"enunciado":"Se despacha en el envase que trae cada cliente."},
+   "d-recarga": {"kind":"recargable","alcance":"Línea de limpieza a granel","datos":{"mecanismo_recarga":"Se rellena el bidón o la botella que trae el cliente, pesando antes y después","donde_se_recarga":"En el local de Rosario, en el mostrador de limpieza"},"evid":"si","enunciado":"La botella se rellena en el mostrador."},
+   "d-organico": {"kind":"organico","alcance":"Legumbres del proveedor certificado","datos":{"porcentaje":"100"},"cert":"letis","num":"DEMO-0001","vence":"2027-09-30","enunciado":"Las legumbres vienen de un proveedor con certificación orgánica vigente."}
+  }$j$::jsonb;
+
+  for ref, it in select * from jsonb_each(cl) loop
+    v_evid := case when it->>'evid' = 'si'
+                   then v_d::text || '/afirmaciones/' || gen_random_uuid()::text || '.pdf' end;
+    perform set_config('request.jwt.claims', json_build_object('sub', v_demo, 'role', 'authenticated')::text, true);
+    v_res := claim_guardar(v_d, null, (it->>'kind')::claim_kind, it->>'alcance',
+                           coalesce(it->'datos', '{}'::jsonb), it->>'cert', it->>'num',
+                           (it->>'vence')::date, v_evid, it->>'enunciado');
+    if not (v_res->>'ok')::boolean then raise exception 'afirmacion % => %', ref, v_res::text; end if;
+    v_map := v_map || jsonb_build_object(ref, v_res->>'id');
+  end loop;
+
+  ls := $j$[
+   {"img":6,"dias":18,"cat":"almacen-granel","dom":["consumo","residuos"],"precio":2400,"disp":"local","zonas":["Rosario"],"claims":["d-organico","d-envase"],"titulo":"Lentejas a granel, por 100 g","desc":"DEMOSTRACIÓN — producto de ejemplo, no está a la venta. Lentejas despachadas en el envase que traés vos: se pesa el frasco vacío antes y se descuenta. Si no traés, hay bolsa de papel."},
+   {"img":7,"dias":13,"cat":"almacen-granel","dom":["consumo","residuos"],"precio":1800,"disp":"local","zonas":["Rosario"],"claims":["d-envase"],"titulo":"Avena arrollada a granel, por 100 g","desc":"DEMOSTRACIÓN — producto de ejemplo, no está a la venta. Avena arrollada fina, del cajón al envase que traigas. Es el producto que más sale del sector de secos y no lleva envase de fábrica."},
+   {"img":8,"dias":7,"cat":"limpieza-hogar","dom":["residuos","agua"],"precio":4600,"disp":"local","zonas":["Rosario"],"claims":["d-recarga","d-envase"],"titulo":"Limpiador de pisos a granel, por litro","desc":"DEMOSTRACIÓN — producto de ejemplo, no está a la venta. Limpiador de pisos que se despacha por litro en el bidón o la botella que traés. Se pesa antes y después, y se cobra la diferencia."}
+  ]$j$::jsonb;
+
+  for it in select * from jsonb_array_elements(ls) loop
+    perform set_config('request.jwt.claims', json_build_object('sub', v_demo, 'role', 'authenticated')::text, true);
+    v_res := listado_guardar(v_d, null, jsonb_build_object(
+      'titulo', it->>'titulo', 'descripcion', it->>'desc', 'categoria', it->>'cat',
+      'tipo', 'producto', 'dominios', it->'dom', 'precio_referencia', (it->>'precio')::numeric,
+      'url_destino', 'https://brote-ft7m.vercel.app/negocios',
+      'disponibilidad', it->>'disp', 'zonas', it->'zonas'));
+    if not (v_res->>'ok')::boolean then raise exception 'listado % => %', it->>'titulo', v_res::text; end if;
+    v_lid := (v_res->>'id')::uuid;
+    v_lids := v_lids || v_lid;
+    update listings set imagenes = array['/demo/' || (it->>'img') || '.webp'] where id = v_lid;
+    select array_agg((v_map->>x)::uuid) into v_arr from jsonb_array_elements_text(it->'claims') x;
+    perform listado_claims(v_lid, v_arr);
+    v_res := listado_enviar(v_lid, null);
+    if not (v_res->>'ok')::boolean then raise exception 'envio % => %', it->>'titulo', v_res::text; end if;
+    update listings set status = 'publicado',
+           enviado_at = now() - (((it->>'dias')::int + 1) || ' days')::interval,
+           publicado_at = now() - ((it->>'dias') || ' days')::interval,
+           revisado_at = now() - ((it->>'dias') || ' days')::interval,
+           created_at = now() - (((it->>'dias')::int + 3) || ' days')::interval,
+           updated_at = now() - ((it->>'dias') || ' days')::interval
+     where id = v_lid;
+  end loop;
+
+  perform set_config('request.jwt.claims', '', true);
+  update business_claims c
+     set status = 'aprobada', auto_aprobada = false, revisado_at = now() - interval '15 days',
+         categoria_origen = coalesce(c.categoria_origen,
+           (select l.categoria from listing_claims lc join listings l on l.id = lc.listing_id
+             where lc.claim_id = c.id limit 1)), updated_at = now()
+   where c.business_id = v_d and c.status = 'pendiente';
+  delete from notifications n
+   where exists (select 1 from unnest(v_lids) x where n.data::text like '%' || x::text || '%');
+
+  -- Demanda inventada, con la misma fórmula determinista de la sección 5.
+  insert into listing_impresiones_dia (listing_id, business_id, dia, origen, impresiones)
+  select l.id, l.business_id, d::date, o.origen,
+         greatest(1, round(
+           (case l.tier_efectivo when 'e3' then 26 when 'e2' then 19 else 13 end) * o.peso
+           * (case when extract(dow from d) in (0, 6) then 0.55 else 1.0 end)
+           * (0.65 + (((hashtext(l.id::text || d::text || o.origen) % 80) + 80) % 80) / 100.0)))::int
+    from listings l
+    cross join lateral generate_series(greatest(l.publicado_at::date, current_date - 44), current_date, interval '1 day') d
+    cross join (values ('catalogo', 1.0), ('accion', 0.22), ('plaza', 0.12), ('perfil_negocio', 0.10)) as o(origen, peso)
+   where l.business_id = v_d and l.status = 'publicado'
+  on conflict (listing_id, dia, origen) do nothing;
+
+  insert into listing_impresiones_mensual (listing_id, business_id, mes, impresiones)
+  select listing_id, business_id, date_trunc('month', dia)::date, sum(impresiones)
+    from listing_impresiones_dia where business_id = v_d group by 1, 2, 3
+  on conflict (listing_id, mes) do update set impresiones = excluded.impresiones;
+
+  insert into listing_clicks (listing_id, business_id, user_id, origen, ua_hash, created_at)
+  select i.listing_id, i.business_id, null,
+         (array['ficha','catalogo','accion','perfil_negocio'])
+           [1 + (((hashtext(i.listing_id::text || i.dia::text || g::text) % 4) + 4) % 4)],
+         null,
+         i.dia::timestamptz + (interval '1 hour' * (9 + (((hashtext(i.listing_id::text || g::text) % 12) + 12) % 12)))
+           + (interval '1 minute' * (((hashtext(i.dia::text || g::text) % 60) + 60) % 60))
+    from (select listing_id, business_id, dia, sum(impresiones) as imp
+            from listing_impresiones_dia where business_id = v_d group by 1, 2, 3) i
+    cross join lateral generate_series(1, greatest(0, round(
+      i.imp * (0.02 + (((hashtext(i.listing_id::text || i.dia::text) % 5) + 5) % 5) / 100.0))::int)) g;
+
+  perform brote_recalcular_tiers();
+  perform brote_recalcular_scores();
+  raise notice 'Cuarto comercio de demostración creado.';
 end $seed$;

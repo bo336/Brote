@@ -1187,6 +1187,48 @@ el sandbox de MercadoPago— **no se corrieron**. Están anotados abajo.
 
 ---
 
+# NEGOCIOS — DATOS DE DEMOSTRACIÓN EN PRODUCCIÓN · BORRAR ANTES DE LANZAR
+
+> **Hay cuatro comercios inventados en la base viva.** Están para poder mirar
+> la sección con el catálogo lleno. Se borran con dos líneas; hacelo antes de
+> que entre la primera empresa real.
+>
+> ```sql
+> delete from businesses where slug like 'demo-%';
+> delete from auth.users where email = 'demo-negocios@brote.test';
+> ```
+
+Todo está en `supabase/qa/demo-seed.sql`, con las reglas que lo hacen honesto
+arriba de todo. Lo que hay:
+
+| | |
+|---|---|
+| Molino del Valle (DEMO) | **de la cuenta del dueño** — se ve desde `/negocio`. 5 listados, E3 (orgánico `DEMO-0001`), dossier completo, 3 objetivos: uno logrado y público, uno activo, uno en riesgo |
+| Jabonería del Sur (DEMO) | 5 listados, E2 (recarga con documento) |
+| Tostadero Norte (DEMO) | 4 listados, E3 (comercio justo `DEMO-0001`) + 1 listado esperando revisión y 1 reporte abierto |
+| Almacén del Centro (DEMO) | 3 listados de granel — existe para que `almacen-granel` tenga tres negocios y el puente de las acciones aparezca |
+
+- Todo nombre dice "(DEMO)" y toda descripción de listado abre con
+  "DEMOSTRACIÓN — producto de ejemplo, no está a la venta". El botón de salida
+  lleva a `/negocios`, no a ningún sitio de terceros.
+- **Las impresiones y las salidas son inventadas** (fórmula determinista sobre
+  `hashtext`, sin `user_id`). No miden nada.
+- **Los documentos de evidencia no existen**: "ver documento" en el panel del
+  revisor falla en estas empresas, y solo en ellas.
+- Todo pasó por las RPC reales con la sesión del dueño; solo los pasos del
+  revisor se hicieron por SQL, porque piden la contraseña del panel.
+- Las imágenes son `public/demo/*.webp` (abstractas, 160 KB en total), y
+  `urlImagen` deja pasar rutas absolutas de la app para eso. Al borrar la demo,
+  los archivos pueden quedar: no los referencia nada más.
+
+**Lo que encontró cargarla:** el puente "Dónde conseguirlo" pide tres negocios
+distintos y cada una de las 32 pistas mapea a UNA categoría. Con tres empresas
+en seis categorías no aparecía nunca. No es un bug —la regla está bien—, pero
+quiere decir que el puente recién se va a ver cuando haya tres comercios reales
+en una misma categoría. Hoy aparece en las cuatro acciones de granel.
+
+---
+
 # LA ACADEMIA — FASE 3 (El motor infinito) · ENTREGADA · SECCIÓN CERRADA
 
 > Las tres fases están hechas. `docs/ACADEMIA.md` es el mapa completo para quien
