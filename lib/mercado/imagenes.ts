@@ -5,6 +5,9 @@
 export function urlImagen(ruta: string | null | undefined): string | null {
   if (!ruta) return null;
   if (/^https?:\/\//.test(ruta)) return ruta;
+  // Una ruta absoluta de la propia app (`/demo/1.png`): es lo que usan los
+  // listados de demostración, que no viven en Storage.
+  if (ruta.startsWith('/')) return ruta;
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return base ? `${base}/storage/v1/object/public/listing-images/${ruta}` : null;
 }
