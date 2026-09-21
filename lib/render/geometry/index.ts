@@ -68,9 +68,9 @@ export function disposeAll(): void {
   treeCache.clear();
 }
 
-export { growTree, mergePieces } from './tree';
+export { growTree, mergePieces, trunkFootprint } from './tree';
 export { buildProp, buildMovingPart, propFootprint, PROP_IDS, PROP_SPECS } from './props';
-export { buildStructure } from './structures';
+export { buildBridgeRails, buildStructure } from './structures';
 export { buildFauna, type FaunaKind } from './fauna';
 export { buildDebris, type DebrisKind } from './debris';
 export type { TreeBuild, TreeLod, TreeSpecies } from './tree';
