@@ -7,11 +7,8 @@ import { InstancePool } from '@/lib/render/instancing';
 import type { BlobShadowPool } from '@/lib/render/shadows';
 import type { PropCollider } from '../control/CharacterController';
 import { useCanopyFade, type Canopy } from './useCanopyFade';
-import { boundTreeSet, useTreeLod, type TreeLodSet, type TreeRecord } from './useTreeLod';
-import { buildTreePools, type SpeciesPools } from './treePools';
-import { TREE_LOD } from '@/lib/world/config';
 import { flower, grassTuft, rock, sprout } from '@/lib/render/geometry/scatter';
-import { trunkFootprint, type TreeSpecies } from '@/lib/render/geometry';
+import { getTree, type TreeSpecies } from '@/lib/render/geometry';
 import { buildLeafAtlas } from '@/lib/render/geometry/leaf-atlas';
 import { getClayMaterial, getTexture } from '@/lib/render/materials';
 import { TIERS, variantsFor } from '@/lib/render/quality';
@@ -54,10 +51,9 @@ const FLOWER_ACCENTS = [DOMAIN_COLORS.animales, DOMAIN_COLORS.energia, DOMAIN_CO
 const TREE_SHADOW = 0.42;
 const ROCK_SHADOW = 0.3;
 /**
- * Trunk radius, as a fraction of the tree's instance scale — the least any tree
- * gets; the ombú's roots ask for more (`trunkFootprint`). Generous on purpose:
- * it is what stops Pip walking through a trunk and what keeps the camera from
- * ending up inside one, and neither wants to be pixel-accurate.
+ * Trunk radius, as a fraction of the tree's instance scale. Generous on
+ * purpose: it is what stops Pip walking through a trunk and what keeps the
+ * camera from ending up inside one, and neither wants to be pixel-accurate.
  */
 const TRUNK_RADIUS = 0.22;
 /**
@@ -84,7 +80,7 @@ interface PoolSet {
   flowers: InstancePool[];
   rocks: InstancePool[];
   sprouts: InstancePool;
-  trees: SpeciesPools[];
+  trees: { wood: InstancePool; leaves: InstancePool }[];
   all: InstancePool[];
 }
 
@@ -143,9 +139,6 @@ export function Vegetation({
    * placed and read every frame by the fade below — never rebuilt per frame.
    */
   const canopyRef = useRef<Canopy[]>([]);
-  /** Each species' trees, and which pools draw them near and far (`useTreeLod.ts`). */
-  const treeSetsRef = useRef<TreeLodSet[]>([]);
-  const treeVersionRef = useRef(0);
   /**
    * **What grows is decided once, at the tier the session started on** — like
    * the ground. A demotion used to rebuild the pools with one species instead of
@@ -207,14 +200,23 @@ export function Vegetation({
       .sort((a, b) => b[1] - a[1])
       .slice(0, variants)
       .map(([name]) => name);
-    // Near, far and shadow-only pools per species (`treePools.ts`, `useTreeLod.ts`).
-    const trees = buildTreePools({
-      species: Array.from({ length: variants }, (_, v) => species[v] ?? 'oak'),
-      lod: treeLods, perVariant: Math.ceil(max.trees / variants), solid, canopy, canopyDepth, track,
+    const trees = Array.from({ length: variants }, (_, v) => {
+      const built = getTree(species[v] ?? 'oak', v + 1, treeLods);
+      return {
+        wood: track(new InstancePool(built.wood, solid, Math.ceil(max.trees / variants), { name: `wood${v}` })),
+        leaves: track(
+          new InstancePool(built.leaves, canopy, Math.ceil(max.trees / variants), { name: `canopy${v}` }),
+        ),
+      };
     });
-    // Rocks cast the sun's shadow (trees through their shadow pools); everything receives it.
+    // Trees and rocks cast the sun's shadow; ground cover only receives it.
     for (const pool of all) pool.mesh.receiveShadow = true;
     for (const pool of rocks) pool.mesh.castShadow = true;
+    for (const { wood, leaves } of trees) {
+      wood.mesh.castShadow = true;
+      leaves.mesh.castShadow = true;
+      leaves.mesh.customDepthMaterial = canopyDepth;
+    }
     return { grass, flowers, rocks, sprouts, trees, all };
   }, [foliage, solid, canopy, canopyDepth, mix, treeLods, variants]);
 
@@ -328,45 +330,41 @@ export function Vegetation({
         ROCK_SHADOW,
       ),
     );
-    const sets: TreeLodSet[] = [];
     if (config.tier >= 4) {
-      // Only the trees this tier draws: a hidden tree must not be a wall to walk
-      // into, and its canopy has no slot to fade.
-      const limit = Math.ceil(TIERS[plantTier].trees / variants);
-      pools.trees.forEach(({ species, near, far, shadow }, v) => {
+      pools.trees.forEach(({ wood, leaves }, v) => {
         const list = forRegion(pick(points, BANDS.trees, v, variants), 'trees');
-        const records: TreeRecord[] = [];
-        const footprint = Math.max(TRUNK_RADIUS, trunkFootprint(species));
         for (const p of list) {
-          if (records.length >= Math.min(limit, near.wood.max)) break;
+          const wi = wood.alloc();
+          const li = leaves.alloc();
+          if (wi < 0 || li < 0) break;
           const y = sampleHeight(heightfield, p.x, p.z);
           const s = 1.4 + p.roll * 1.2;
           const rot = rng() * Math.PI * 2;
+          wood.place(wi, p.x, y, p.z, rot, s);
+          leaves.place(li, p.x, y, p.z, rot, s);
           if (shadows) {
             const slot = shadows.addStatic(heightfield, p.x, p.z, TREE_SHADOW * s);
             if (slot >= 0) placedShadows.push(slot);
           }
-          trunks.push({ x: p.x, z: p.z, radius: footprint * s, cameraRadius: CROWN_RADIUS * s });
-          const c: Canopy = { x: p.x, z: p.z, radius: CROWN_RADIUS * s, wood: near.wood, leaves: near.leaves, wi: 0, li: 0, fade: 1 };
-          canopies.push(c);
-          records.push({ x: p.x, y, z: p.z, rot, scale: s, near: true, caster: true, canopy: c });
+          trunks.push({
+            x: p.x, z: p.z,
+            radius: TRUNK_RADIUS * s,
+            cameraRadius: CROWN_RADIUS * s,
+          });
+          canopies.push({ x: p.x, z: p.z, radius: CROWN_RADIUS * s, wood, leaves, wi, li, fade: 1 });
         }
-        const set: TreeLodSet = { near, far, shadow, trees: records, limit };
-        boundTreeSet(set);
-        sets.push(set);
+        wood.commit();
+        leaves.commit();
       });
     }
 
     onColliders?.(trunks);
     canopyRef.current = canopies;
-    treeSetsRef.current = sets;
-    treeVersionRef.current += 1;
     return () => {
       canopyRef.current = [];
-      treeSetsRef.current = [];
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
-  }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders, plantTier]);
+  }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders]);
 
   /** The counts for the session's tier: one integer per pool, set once. */
   useEffect(() => {
@@ -375,16 +373,14 @@ export function Vegetation({
     pools.flowers.forEach((pool) => pool.resize(Math.ceil(t.flowers / pools.flowers.length)));
     pools.rocks.forEach((pool) => pool.resize(Math.ceil(t.rocks / variants)));
     pools.sprouts.resize(Math.ceil(t.flowers / 2));
-    // Trees: placed at this tier's count above, and packed by `useTreeLod`.
+    pools.trees.forEach(({ wood, leaves }) => {
+      const n = Math.ceil(t.trees / variants);
+      wood.resize(n);
+      leaves.resize(n);
+    });
   }, [pools, plantTier, variants]);
 
   useCanopyFade(canopyRef);
-  const shadowSquare = TIERS[plantTier].shadowExtentM;
-  useTreeLod(
-    treeSetsRef, treeVersionRef,
-    shadowSquare * TREE_LOD.nearShadowFrac + TREE_LOD.nearMarginM,
-    shadowSquare + TREE_LOD.shadowMarginM,
-  );
 
   useEffect(() => () => pools.all.forEach((pool) => pool.dispose()), [pools]);
 

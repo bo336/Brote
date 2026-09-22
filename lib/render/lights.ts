@@ -9,7 +9,7 @@
  */
 import * as THREE from 'three';
 
-import { LIGHT_PRESET_CROSSFADE_S, LIVELINESS, LOOK, TREE_LOD } from '@/lib/world/config';
+import { LIGHT_PRESET_CROSSFADE_S, LIVELINESS, LOOK } from '@/lib/world/config';
 import type { TimeOfDay } from '@/lib/world/types';
 import { PRESETS, type LightPreset } from './palette';
 import { warmerBy } from '@/lib/world/liveliness';
@@ -45,8 +45,6 @@ export function buildLightRig(initial: TimeOfDay = 'dia'): LightRig {
   key.castShadow = false;
   key.shadow.bias = LOOK.shadowBias;
   key.shadow.normalBias = LOOK.shadowNormalBias;
-  // The trees' shadow-only copies live on their own layer (`useTreeLod.ts`).
-  key.shadow.camera.layers.enable(TREE_LOD.shadowLayer);
   const target = new THREE.Object3D();
   target.name = 'sunTarget';
   key.target = target;

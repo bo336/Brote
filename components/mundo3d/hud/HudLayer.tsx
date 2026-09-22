@@ -7,8 +7,6 @@ import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
 import { ControlsHelp } from './ControlsHelp';
-import { HowToPlay } from './HowToPlay';
-import { WorldLabels } from './WorldLabels';
 import { ObjectiveCard } from './ObjectiveCard';
 import { RegionTitle } from './RegionTitle';
 import { RewardToast } from './RewardToast';
@@ -112,16 +110,8 @@ export function HudLayer({
       />
       <HUD onOpenBitacora={() => setHud('bitacora')} />
       {/* What to do, how to do it, and that it worked. */}
-      {hud === 'play' && <WorldLabels />}
       {hud === 'play' && <ObjectiveCard />}
       {hud === 'play' && <ControlsHelp />}
-      <HowToPlay
-        tier={tier}
-        worldIndex={worldIndex}
-        worldGrowth={worldGrowth}
-        worldGoal={worldGoal}
-        firstRunActive={Boolean(firstRun?.beat)}
-      />
       <RegionTitle />
       <RewardToast />
       <BitacoraSheet

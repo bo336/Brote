@@ -216,24 +216,6 @@ export const GROUND = {
   pathAboveWaterM: 0.03,
 } as const;
 
-/** Near and far trees (`components/mundo3d/scene/useTreeLod.ts`). */
-export const TREE_LOD = {
-  // Full detail and shadows inside this multiple of the tier's shadow square, plus a margin for the crowns.
-  nearShadowFrac: 1.25,
-  nearMarginM: 4,
-  hysteresisM: 3, // a tree on the boundary keeps its shape until it is this far past it
-  repackM: 2, // re-sort the trees once Pip has walked this far
-  maxTreeHeightM: 9, // the tallest tree at the largest scale, for the pools' bounds
-  maxCrownM: 5,
-  /**
-   * Shadows come from a far-detail copy of each tree on this layer, which only the
-   * shadow camera renders. The full crowns into a 2048² map were 3 ms of a 14 ms
-   * frame; the shadow is soft enough that the lighter crown casts the same shade.
-   */
-  shadowLayer: 1,
-  shadowMarginM: 4, // casters this far past the shadow square still throw into it
-} as const;
-
 /** El bote, moored off the beach that faces El Islote (`layout.ts`). */
 export const MOORING = {
   offsetM: 0.9, // how far past the coastline it floats — close enough to board from the sand
@@ -258,7 +240,6 @@ export const BRIDGE = {
   deckWidthM: 1.5,
   deckTopM: 0.355, // the planks' centre line plus half a plank
   camberM: 0.16,
-  railTopM: 0.62, // the top rail's height above the planks (`bridgeRails`)
   sinkM: 0.08, // the ends sit this far into the higher bank, so there is no lip to step over
   stepUpM: 0.6, // a body further below the deck than this is under it, not on it
   railInsetM: 0.15,
@@ -377,3 +358,24 @@ export const PERF_CEILINGS = [
 
 /** Light presets cross-fade over this; it is not a continuous sun sim (`06` §6). */
 export const LIGHT_PRESET_CROSSFADE_S = 2;
+
+/**
+ * El póster — the still image every other screen in the app shows instead of a
+ * second WebGL context (`07-RENDER-ARCHITECTURE.md` §1).
+ */
+export const SNAPSHOT = {
+  bucket: 'world-snapshots',
+  /**
+   * JPEG rather than PNG: the card is at most 320 px tall and this is uploaded
+   * from a phone, often on mobile data. OURS.
+   */
+  quality: 0.78,
+  /**
+   * Seconds after arriving before the shot is taken. Long enough for the
+   * camera to damp in behind Pip and the world to finish building; short
+   * enough that a player who bounces straight back out still gets one. OURS.
+   */
+  settleS: 4,
+  /** The most posters one visit may upload. A souvenir, not a stream. */
+  maxPerVisit: 2,
+} as const;

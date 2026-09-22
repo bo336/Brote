@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
 import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
-import { beamBetween, board, doubleSided, faceAwayFrom, logBetween, nail, rope, v3, weather } from './carpentry';
+import { beamBetween, board, doubleSided, logBetween, nail, rope, v3, weather } from './carpentry';
 import { smoothRock } from './scatter';
 
 const METAL = PIP_PARTS.metal;
@@ -139,56 +139,6 @@ export function farolitos(): THREE.BufferGeometry {
   return mergePainted(parts);
 }
 
-/**
- * One side of the tent's canvas: hung from the ridge, sagging between the poles
- * and across its own width, a hair of ripple, the hem flaring out where it is
- * pegged, seams along its length and sun on its upper half. A flat slab read as
- * an orange board from the side (2026-09-14).
- */
-function canvasSide(side: number, half: number, ridge: number, base: number, hex: string): THREE.BufferGeometry[] {
-  const segU = 18;
-  const segV = 10;
-  const geo = new THREE.PlaneGeometry(1, 1, segU, segV);
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const colors = new Float32Array(pos.count * 3);
-  const outward = new THREE.Vector3(side * ridge, base, 0).normalize();
-  const c = new THREE.Color();
-  const light = new THREE.Color(hex).offsetHSL(0, -0.05, 0.14);
-  const dark = new THREE.Color(hex).offsetHSL(0, 0.02, -0.14);
-  const seam = new THREE.Color(hex).offsetHSL(0, 0.05, -0.26);
-  // Two-tone panels, the way a canvas tent is sewn: every other strip a shade paler.
-  const panel = new THREE.Color(hex).offsetHSL(0.01, -0.12, 0.1);
-  const reinforce = new THREE.Color(hex).offsetHSL(0, 0.04, -0.3);
-  for (let iy = 0; iy <= segV; iy++) {
-    for (let ix = 0; ix <= segU; ix++) {
-      const i = iy * (segU + 1) + ix;
-      const u = ix / segU;
-      const v = iy / segV;
-      // Enough sag to read from across the clearing: it was 6 cm and the panel still looked like a board.
-      const sag = 0.13 * Math.sin(Math.PI * u) * Math.sin(Math.PI * Math.min(1, v * 1.15));
-      const ripple = 0.014 * Math.sin(u * 23 + v * 3) * Math.sin(Math.PI * v);
-      const flare = 0.09 * Math.max(0, (v - 0.82) / 0.18) ** 2;
-      pos.setXYZ(
-        i,
-        side * base * v - outward.x * (sag + ripple) + side * flare,
-        ridge * (1 - v) - outward.y * (sag + ripple),
-        -half + u * half * 2,
-      );
-      c.copy(light).lerp(dark, Math.min(1, v * 1.1));
-      if (Math.floor(u * 4 + 0.5) % 2 === 1) c.lerp(panel, 0.45);
-      const seamLine = Math.abs(((u * 4 + 0.5) % 1) - 0.5) < 0.03;
-      if (seamLine) c.lerp(seam, 0.7);
-      // The reinforced strip along the ridge and the mud-darkened hem.
-      if (v < 0.07 || v > 0.88) c.lerp(reinforce, 0.55);
-      colors.set([c.r, c.g, c.b], i * 3);
-    }
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  // The probe is the middle of the panel; inside is the axis under the ridge.
-  faceAwayFrom(geo, Math.floor(segV / 2) * (segU + 1) + Math.floor(segU / 2), new THREE.Vector3(0, ridge * 0.3, 0));
-  return doubleSided(geo, new THREE.Color(hex).offsetHSL(0, -0.1, -0.2).getHexString().replace(/^/, '#'), 0.006);
-}
-
 /** "Armada junto al fuego, lista para quedarse a dormir." A ridge tent on poles, guyed out, and its fire pit. */
 export function carpa(): THREE.BufferGeometry {
   const rng = mulberry32(307);
@@ -197,13 +147,15 @@ export function carpa(): THREE.BufferGeometry {
   const ridge = 1.16;
   const base = 0.78;
   const canvas = DOMAIN_COLORS.comunidad;
+  const tilt = Math.atan2(base, ridge);
   for (const side of [-1, 1]) {
-    parts.push(...canvasSide(side, half, ridge, base, canvas));
-    // Pegs along the hem, where the canvas is held down.
-    for (let k = 0; k < 4; k++) {
-      const z = -half + 0.12 + k * ((half * 2 - 0.24) / 3);
-      parts.push(beamBetween(v3(side * (base + 0.1), -0.04, z), v3(side * (base + 0.06), 0.09, z), 0.02, 0.02, CLAY.barkDeep, rng));
-    }
+    const wall = bevelBox(0.02, Math.hypot(base, ridge), half * 2, weather(canvas, rng, 0.5), 0.96);
+    wall.rotateZ(side * tilt);
+    wall.translate((side * base) / 2, ridge / 2, 0);
+    const hem = bevelBox(0.026, 0.14, half * 2 + 0.01, weather(CLAY.soilDeep, rng, 0.5), 0.96);
+    hem.rotateZ(side * tilt);
+    hem.translate(side * base * (1 - 0.09 / ridge), 0.09, 0);
+    parts.push(wall, hem);
   }
   const triangle = (w: number, h: number) => new THREE.ShapeGeometry(
     new THREE.Shape([new THREE.Vector2(-w, 0), new THREE.Vector2(w, 0), new THREE.Vector2(0, h)]),
