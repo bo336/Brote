@@ -82,30 +82,6 @@ export function doubleSided(geo: THREE.BufferGeometry, backHex?: string, offset 
   return [front, back];
 }
 
-/**
- * Make an indexed surface face away from a point: if the normal at `probe` (a
- * vertex index) points toward `inside`, reverse every triangle. Built surfaces —
- * a hull, a canvas, an animal's body — come out wound either way depending on
- * how their rows were laid down, and the world material draws front faces only.
- */
-export function faceAwayFrom(geo: THREE.BufferGeometry, probe: number, inside: THREE.Vector3): THREE.BufferGeometry {
-  geo.computeVertexNormals();
-  const pos = geo.attributes.position as THREE.BufferAttribute;
-  const nor = geo.attributes.normal as THREE.BufferAttribute;
-  const out = new THREE.Vector3(pos.getX(probe), pos.getY(probe), pos.getZ(probe)).sub(inside);
-  const n = new THREE.Vector3(nor.getX(probe), nor.getY(probe), nor.getZ(probe));
-  if (n.dot(out) < 0 && geo.index) {
-    const index = geo.index;
-    for (let t = 0; t < index.count; t += 3) {
-      const tmp = index.getX(t + 1);
-      index.setX(t + 1, index.getX(t + 2));
-      index.setX(t + 2, tmp);
-    }
-    geo.computeVertexNormals();
-  }
-  return geo;
-}
-
 /** Orient a geometry built along `axis` so it runs from `a` to `b`. */
 export function between(geo: THREE.BufferGeometry, axis: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): THREE.BufferGeometry {
   const dir = b.clone().sub(a);

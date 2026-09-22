@@ -2,11 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronsUp, HelpCircle, Minus, Plus, Sprout } from 'lucide-react';
+import { ArrowLeft, ChevronsUp, HelpCircle, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
-import { CAMERA, INTERACT, JOYSTICK } from '@/lib/world/config';
+import { INTERACT, JOYSTICK } from '@/lib/world/config';
 import { haptic } from '@/lib/utils/haptics';
 import { ActionButton } from '../interaction/ActionButton';
 import { Joystick } from '../control/Joystick';
@@ -38,9 +38,6 @@ const CAST_MS = 9000;
 /** The jump button: a thumb-sized circle, stacked above the action button's slot. */
 const JUMP_BUTTON_PX = 60;
 const JUMP_BUTTON_LIFT_PX = 76;
-/** The zoom pair, under the counter row. */
-const ZOOM_BUTTON_PX = 44;
-const ZOOM_BELOW_TOP_PX = 52;
 
 export function HUD({ onOpenBitacora }: {
   /**
@@ -178,37 +175,6 @@ export function HUD({ onOpenBitacora }: {
           {semillas}
         </button>
       </div>
-
-      {/* Zoom, where anyone can find it. The 2026-09-16 playtest asked for zoom
-          and never found the wheel, and on a phone a pinch fights the joystick.
-          The owner's call over the four-element rule. */}
-      {playing && (
-        <div
-          className="pointer-events-auto absolute right-4 flex flex-col items-center rounded-full bg-brote-ink/40 text-white backdrop-blur-sm"
-          style={{ top: `calc(max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px) + ${ZOOM_BELOW_TOP_PX}px)` }}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            aria-label={t('zoomIn')}
-            onClick={() => useSessionStore.getState().zoom?.(1 / CAMERA.stepZoom)}
-            className="flex items-center justify-center rounded-full transition-transform active:scale-90"
-            style={{ width: ZOOM_BUTTON_PX, height: ZOOM_BUTTON_PX }}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-          </button>
-          <span className="h-px w-5 bg-white/25" aria-hidden />
-          <button
-            type="button"
-            aria-label={t('zoomOut')}
-            onClick={() => useSessionStore.getState().zoom?.(CAMERA.stepZoom)}
-            className="flex items-center justify-center rounded-full transition-transform active:scale-90"
-            style={{ width: ZOOM_BUTTON_PX, height: ZOOM_BUTTON_PX }}
-          >
-            <Minus className="h-4 w-4" aria-hidden />
-          </button>
-        </div>
-      )}
 
       {/* The day's visitor. Below the caption slot, never in it: it is the one
           thing on screen nobody asked for, so it never displaces something

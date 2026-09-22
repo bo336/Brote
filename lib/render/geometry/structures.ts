@@ -20,7 +20,7 @@ import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
 import { weather } from './carpentry';
 import { banco, hamaca } from './props-build';
 import { smoothRock } from './scatter';
-import { boat, bridge, bridgeRails, compost, telescope, treehouse } from './structures-wood';
+import { boat, bridge, compost, telescope, treehouse } from './structures-wood';
 
 /** A patch of moss, sitting on whatever it is placed on. */
 function moss(parts: THREE.BufferGeometry[], x: number, y: number, z: number, r: number): void {
@@ -182,16 +182,6 @@ export function buildStructure(feature: FeatureId, size?: number): THREE.BufferG
   const build = BUILDERS[feature];
   if (!build) return null;
   const geo = build(size);
-  cache.set(key, geo);
-  return geo;
-}
-
-/** The bridge's rails, apart from its deck (`bridgeRails`). Cached like every structure. */
-export function buildBridgeRails(span?: number): THREE.BufferGeometry {
-  const key = span === undefined ? 'bridge-rails' : `bridge-rails:${Math.round(span * 100)}`;
-  const hit = cache.get(key);
-  if (hit) return hit;
-  const geo = bridgeRails(span);
   cache.set(key, geo);
   return geo;
 }

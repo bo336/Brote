@@ -655,13 +655,7 @@
       "rest": "Buscá un lugar para {thing}",
       "free": "Recorré la isla a tu ritmo",
       "progress": "{done} de {total} tareas",
-      "distance": "a {m} m",
-      "hintFollow": "Seguí el cartel del punto dorado",
-      "hintUseKey": "Cuando veas el aro verde, tocá E",
-      "hintUseTouch": "Cuando veas el aro verde, tocá el botón",
-      "hintFree": "Hoy ya cuidaste tu isla. Crece más con lo que hacés de verdad en Brote.",
-      "doneToday": "Tareas de hoy: listas · mañana hay nuevas",
-      "hintApproach": "Ya casi: caminá hasta el cartel dorado"
+      "distance": "a {m} m"
     },
     "reward": {
       "eyebrow": "¡Bien hecho!",
@@ -696,7 +690,7 @@
         "jump": "Saltar",
         "use": "Usar",
         "look": "Mirar",
-        "zoom": "Acercar y alejar"
+        "zoom": "Acercar"
       },
       "keys": {
         "move": "WASD",
@@ -704,7 +698,7 @@
         "jump": "Espacio",
         "use": "E",
         "look": "Arrastrá",
-        "zoom": "Rueda o + −"
+        "zoom": "Rueda"
       },
       "touch": {
         "move": "Izquierda",
@@ -712,7 +706,7 @@
         "jump": "Botón ⌃",
         "use": "Botón",
         "look": "Derecha",
-        "zoom": "Pellizco o + −"
+        "zoom": "Pellizco"
       }
     },
     "controls": {
@@ -1313,45 +1307,6 @@
       "log": "Registrar algo",
       "later": "Después",
       "skip": "Saltar"
-    },
-    "zoomIn": "Acercar la cámara",
-    "zoomOut": "Alejar la cámara",
-    "howto": {
-      "step": "{n} de {total}",
-      "next": "Siguiente",
-      "back": "Atrás",
-      "start": "¡A jugar!",
-      "skip": "Saltar",
-      "real": {
-        "tag": "Afuera, de verdad",
-        "title": "Tu isla crece con lo que hacés de verdad",
-        "body": "Cada acción real que registrás en Brote (agua, energía, consumo, movilidad) hace crecer tu isla: subís de nivel y aparecen regiones, animales y estructuras.",
-        "level": "Nivel {tier} de {max}",
-        "world": "Mundo {n}: {growth} de {goal}",
-        "hint": "Esas acciones se registran en la app, fuera de este juego."
-      },
-      "island": {
-        "tag": "Acá, en la isla",
-        "title": "Adentro, la cuidás vos",
-        "one": "Cada día hay tareas nuevas en tu isla: regar, juntar, descubrir.",
-        "two": "Seguí la luz dorada. Cuando aparezca el aro verde, tocá E.",
-        "twoTouch": "Seguí la luz dorada. Cuando aparezca el aro verde, tocá el botón.",
-        "three": "Cada cosa que hacés te da semillas y deja tu isla más viva. Lo que descubrís queda en tu Bitácora."
-      },
-      "legend": {
-        "tag": "Guía rápida",
-        "title": "Qué significa cada cosa",
-        "beam": "La luz dorada y su cartel: tu próxima tarea y cuánto falta.",
-        "ring": "El aro verde: acá podés hacer algo ahora.",
-        "button": "E: hace lo que dice el cartel verde.",
-        "buttonTouch": "El botón de abajo a la derecha: hace lo que dice el cartel.",
-        "seeds": "Tus semillas. Tocalas para ver tu Bitácora y tu camino de niveles.",
-        "daily": "Las tareas vuelven todos los días. Las regiones nuevas llegan con tus acciones reales."
-      },
-      "controls": {
-        "tag": "Controles",
-        "title": "Cómo moverte"
-      }
     }
   },
   "negocio": {

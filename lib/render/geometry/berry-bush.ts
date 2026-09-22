@@ -125,10 +125,7 @@ export function berryBush(seed = 1): BerryBush {
     onDome(rng(), 0.25 + rng() * 0.65, -0.04, p);
     for (let j = 0; j < BERRIES_PER_CLUSTER; j++) {
       const r = BERRY_M * (0.8 + rng() * 0.4);
-      // One subdivision, not two: a 1.7 cm berry is ten pixels across from the
-      // closest the lens gets, and the second doubling was 320 triangles a berry —
-      // 34,000 a bush, a third of everything a phone drew at T1.
-      const berry = new THREE.IcosahedronGeometry(r, 1);
+      const berry = new THREE.IcosahedronGeometry(r, 2);
       berry.translate(p.x + (rng() - 0.5) * 0.07, p.y + (rng() - 0.5) * 0.05, p.z + (rng() - 0.5) * 0.07);
       // Dark body, the dusty bloom on top: the look of a real calafate berry.
       parts.push(paintVertical(berry, NATIVE.calafateBerry, NATIVE.calafateBerryBloom, 1.8));

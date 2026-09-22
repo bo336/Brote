@@ -329,6 +329,7 @@ export default function MundoGame({
       onPointerMove={drag.onPointerMove}
       onPointerUp={drag.onPointerUp}
       onPointerCancel={drag.onPointerUp}
+      onWheel={drag.onWheel}
     >
       {/* A measurement run holds the loop open: `demand` gaps are not frames,
           the probe rejects them, and a harness that samples nothing measures

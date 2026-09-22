@@ -35,14 +35,6 @@ const config: Config = {
            * to echo.
            */
           aqua: '#2DB4D4',
-          /*
-           * Same story as `aqua`: the 3D world's level path (its progress bar),
-           * the Bitácora's badges and the level-up title all asked for
-           * `brote-lime`, which did not exist — so the bar was invisible and the
-           * title's gradient faded into nothing. A light leaf green that reads
-           * on the ink sheets it is used on.
-           */
-          lime: '#8FE0A6',
         },
         // Theme-aware semantic tokens (driven by CSS vars)
         background: 'rgb(var(--bg) / <alpha-value>)',

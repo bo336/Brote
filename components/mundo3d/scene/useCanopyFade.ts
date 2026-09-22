@@ -37,10 +37,8 @@ export function useCanopyFade(canopyRef: MutableRefObject<Canopy[]>): void {
     if (canopies.length === 0) return;
     const p = playerTransform;
     // The corridor from Pip to the lens, on the ground.
-    const cx = camera.position.x;
-    const cz = camera.position.z;
-    let ax = cx - p.x;
-    let az = cz - p.z;
+    let ax = camera.position.x - p.x;
+    let az = camera.position.z - p.z;
     const len = Math.hypot(ax, az);
     if (len < 0.001) return;
     ax /= len;
@@ -49,39 +47,23 @@ export function useCanopyFade(canopyRef: MutableRefObject<Canopy[]>): void {
     const kOut = 1 - Math.exp(-CAMERA.fadeOutLambda * delta);
 
     for (const c of canopies) {
-      const next = nextFade(c.fade, blocksLens(c.x, c.z, c.radius, p.x, p.z, ax, az, len, cx, cz), kIn, kOut);
-      if (next === c.fade) continue;
+      const ox = c.x - p.x;
+      const oz = c.z - p.z;
+      const t = ox * ax + oz * az;
+      let blocking = false;
+      if (t > 0 && t < len) {
+        const perpX = ox - ax * t;
+        const perpZ = oz - az * t;
+        const r = c.radius + CAMERA.fadeMarginM;
+        blocking = perpX * perpX + perpZ * perpZ < r * r;
+      }
+      const target = blocking ? CAMERA.fadeMin : 1;
+      const k = target < c.fade ? kIn : kOut;
+      const next = c.fade + (target - c.fade) * k;
+      if (Math.abs(next - c.fade) < 0.001) continue;
       c.fade = next;
       c.wood.setFade(c.wi, next);
       c.leaves.setFade(c.li, next);
     }
   });
-}
-
-/**
- * Does a thing of this reach stand in the lens's way? Either across the
- * corridor from Pip to the lens, or with the lens itself inside its reach — the
- * corridor alone missed a trunk or a tent just behind the camera, which is the
- * one that fills the frame.
- */
-export function blocksLens(
-  x: number, z: number, radius: number,
-  px: number, pz: number, ax: number, az: number, len: number, cx: number, cz: number,
-): boolean {
-  const r = radius + CAMERA.fadeMarginM;
-  if ((x - cx) ** 2 + (z - cz) ** 2 < r * r) return true;
-  const ox = x - px;
-  const oz = z - pz;
-  const t = ox * ax + oz * az;
-  if (t <= 0 || t >= len) return false;
-  const perpX = ox - ax * t;
-  const perpZ = oz - az * t;
-  return perpX * perpX + perpZ * perpZ < r * r;
-}
-
-/** One damped step toward faded or solid; returns `fade` itself once there is nothing left to move. */
-export function nextFade(fade: number, blocking: boolean, kIn: number, kOut: number): number {
-  const target = blocking ? CAMERA.fadeMin : 1;
-  const next = fade + (target - fade) * (target < fade ? kIn : kOut);
-  return Math.abs(next - fade) < 0.001 ? fade : next;
 }
