@@ -1048,6 +1048,56 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/salud/dengue',
     publicado: '2025',
   },
+  // ── Sistemas alimentarios y clima ───────────────────────────────────────────
+  {
+    slug: 'crippa-2021',
+    titulo: 'Food systems are responsible for a third of global anthropogenic GHG emissions',
+    organizacion: 'Nature Food (Crippa y otros)',
+    url: 'https://www.nature.com/articles/s43016-021-00225-9',
+    publicado: '2021',
+  },
+  {
+    slug: 'eat-lancet-2019',
+    titulo: 'Food in the Anthropocene: the EAT-Lancet Commission on healthy diets from sustainable food systems (resumen)',
+    organizacion: 'EAT y The Lancet',
+    url: 'https://eatforum.org/eat-lancet/summary-report/',
+    publicado: '2019',
+  },
+  {
+    slug: 'bcr-carne-2024',
+    titulo: 'El consumo de carne vacuna en Argentina toca un mínimo',
+    organizacion: 'Bolsa de Comercio de Rosario',
+    url: 'https://www.bcr.com.ar/es/mercados/investigacion-y-desarrollo/informativo-semanal/noticias-informativo-semanal/el-consumo-5',
+    publicado: '2024',
+  },
+  {
+    slug: 'ue-deforestacion',
+    titulo: 'Regulation on Deforestation-free products',
+    organizacion: 'Comisión Europea',
+    url: 'https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en',
+    publicado: '2023',
+  },
+  {
+    slug: 'ipcc-srccl',
+    titulo: 'Special Report on Climate Change and Land',
+    organizacion: 'IPCC',
+    url: 'https://www.ipcc.ch/srccl/',
+    publicado: '2019',
+  },
+  {
+    slug: 'aapresid',
+    titulo: 'Asociación Argentina de Productores en Siembra Directa',
+    organizacion: 'Aapresid',
+    url: 'https://www.aapresid.org.ar/es',
+    publicado: '2025',
+  },
+  {
+    slug: 'fao-sofi',
+    titulo: 'El estado de la seguridad alimentaria y la nutrición en el mundo',
+    organizacion: 'FAO, FIDA, OMS, PMA y UNICEF',
+    url: 'https://www.fao.org/publications/fao-flagship-publications/the-state-of-food-security-and-nutrition-in-the-world/en',
+    publicado: '2025',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
