@@ -991,6 +991,49 @@ const NUEVAS = [
     url: 'https://www.iea.org/reports/global-methane-tracker-2025',
     publicado: '2025',
   },
+  // ── Gestión de residuos y residuos peligrosos ───────────────────────────────
+  {
+    slug: 'basurales-ar',
+    titulo: 'Basurales a cielo abierto: situación socioambiental y propuestas de solución integral',
+    organizacion: 'Gobierno de la República Argentina',
+    url: 'https://www.argentina.gob.ar/jefatura/ambiente/accion-ambiental/basurales',
+    publicado: '2024',
+  },
+  {
+    slug: 'chequeado-basurales',
+    titulo: 'Qué datos existen sobre los basurales a cielo abierto en la Argentina',
+    organizacion: 'Chequeado',
+    url: 'https://chequeado.com/el-explicador/que-datos-existen-sobre-los-basurales-a-cielo-abierto-en-la-argentina/',
+    publicado: '2023',
+  },
+  {
+    slug: 'bm-what-a-waste',
+    titulo: 'What a Waste',
+    organizacion: 'Banco Mundial',
+    url: 'https://www.worldbank.org/en/publication/what-a-waste',
+    publicado: '2025',
+  },
+  {
+    slug: 'ley-24051-peligrosos',
+    titulo: 'Ley 24.051 — Residuos peligrosos',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-24051-450',
+    publicado: '1991',
+  },
+  {
+    slug: 'basilea',
+    titulo: 'Convenio de Basilea sobre el control de los movimientos transfronterizos de los desechos peligrosos',
+    organizacion: 'Programa de las Naciones Unidas para el Medio Ambiente',
+    url: 'https://www.basel.int/TheConvention/Overview/tabid/1271/Default.aspx',
+    publicado: '1989',
+  },
+  {
+    slug: 'ley-27279-fitosanitarios',
+    titulo: 'Ley 27.279 — Gestión de los envases vacíos de fitosanitarios',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27279-266332',
+    publicado: '2016',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
