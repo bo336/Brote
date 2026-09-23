@@ -912,6 +912,42 @@ const NUEVAS = [
     url: 'https://www.nature.com/articles/nature13022',
     publicado: '2014',
   },
+  // ── Red eléctrica y almacenamiento ──────────────────────────────────────────
+  {
+    slug: 'iea-baterias-2024',
+    titulo: 'Batteries and Secure Energy Transitions',
+    organizacion: 'Agencia Internacional de Energía',
+    url: 'https://www.iea.org/reports/batteries-and-secure-energy-transitions',
+    publicado: '2024',
+  },
+  {
+    slug: 'bnef-baterias-2024',
+    titulo: 'Lithium-Ion Battery Pack Prices See Largest Drop Since 2017, Falling to $115 per Kilowatt-Hour',
+    organizacion: 'BloombergNEF',
+    url: 'https://about.bnef.com/insights/commodities/lithium-ion-battery-pack-prices-see-largest-drop-since-2017-falling-to-115-per-kilowatt-hour-bloombergnef/',
+    publicado: '2024',
+  },
+  {
+    slug: 'eia-curva-pato',
+    titulo: 'As solar capacity grows, duck curves are getting deeper in California',
+    organizacion: 'Administración de Información Energética de EE. UU.',
+    url: 'https://www.eia.gov/todayinenergy/detail.php?id=56880',
+    publicado: '2023',
+  },
+  {
+    slug: 'almagba-2025',
+    titulo: 'Se abrió la licitación de AlmaGBA: se recibieron 27 proyectos por más de 1347 MW de almacenamiento',
+    organizacion: 'Gobierno de la República Argentina',
+    url: 'https://www.argentina.gob.ar/noticias/se-abrio-la-licitacion-de-almagba-se-recibieron-27-proyectos-por-mas-de-1347-mw-de',
+    publicado: '2025',
+  },
+  {
+    slug: 'iea-renovables-2024',
+    titulo: 'Renewables 2024',
+    organizacion: 'Agencia Internacional de Energía',
+    url: 'https://www.iea.org/reports/renewables-2024',
+    publicado: '2024',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
