@@ -448,6 +448,14 @@ const NUEVAS = [
     url: 'https://www.inidep.edu.ar/',
     publicado: '2024',
   },
+  // ── Alimentación ────────────────────────────────────────────────────────────
+  {
+    slug: 'red-bancos-alimentos',
+    titulo: 'Red Argentina de Bancos de Alimentos',
+    organizacion: 'Red Argentina de Bancos de Alimentos',
+    url: 'https://www.redbda.org.ar/',
+    publicado: '2024',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
