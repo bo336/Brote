@@ -805,6 +805,56 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/normativa/nacional/ley-24071-470',
     publicado: '1992',
   },
+  // ── Justicia y conflictos ambientales ───────────────────────────────────────
+  {
+    slug: 'oxfam-clima-2023',
+    titulo: 'Climate Equality: A planet for the 99%',
+    organizacion: 'Oxfam y Stockholm Environment Institute',
+    url: 'https://www.oxfam.org/en/research/climate-equality-planet-99',
+    publicado: '2023',
+  },
+  {
+    slug: 'cij-clima-2025',
+    titulo: 'Obligations of States in respect of Climate Change (opinión consultiva)',
+    organizacion: 'Corte Internacional de Justicia',
+    url: 'https://www.icj-cij.org/case/187',
+    publicado: '2025',
+  },
+  {
+    slug: 'acumar-causa-mendoza',
+    titulo: 'Causa Mendoza',
+    organizacion: 'ACUMAR',
+    url: 'https://www.acumar.gob.ar/institucional/causa-mendoza/',
+    publicado: '2024',
+  },
+  {
+    slug: 'ejatlas',
+    titulo: 'Environmental Justice Atlas',
+    organizacion: 'EJAtlas (Universitat Autònoma de Barcelona)',
+    url: 'https://ejatlas.org/',
+    publicado: '2025',
+  },
+  {
+    slug: 'ejatlas-esquel',
+    titulo: 'Meridian Gold Mine in Esquel, Argentina',
+    organizacion: 'EJAtlas',
+    url: 'https://ejatlas.org/conflict/esquel-meridian-gold-mine-argentina',
+    publicado: '2024',
+  },
+  {
+    slug: 'global-witness-defensores',
+    titulo: 'Land and Environmental Defenders',
+    organizacion: 'Global Witness',
+    url: 'https://globalwitness.org/en/campaigns/land-and-environmental-defenders/',
+    publicado: '2026',
+  },
+  {
+    slug: 'cij-papeleras-2010',
+    titulo: 'Pulp Mills on the River Uruguay (Argentina v. Uruguay)',
+    organizacion: 'Corte Internacional de Justicia',
+    url: 'https://www.icj-cij.org/case/135',
+    publicado: '2010',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
