@@ -1098,6 +1098,34 @@ const NUEVAS = [
     url: 'https://www.fao.org/publications/fao-flagship-publications/the-state-of-food-security-and-nutrition-in-the-world/en',
     publicado: '2025',
   },
+  {
+    slug: 'fao-hambre-2025',
+    titulo: 'Hunger declines globally, but rises in Africa and western Asia: UN report',
+    organizacion: 'FAO',
+    url: 'https://www.fao.org/newsroom/detail/global-hunger-declines--but-rises-in-africa-and-western-asia--un-report/en',
+    publicado: '2025',
+  },
+  {
+    slug: 'indec-pobreza-2025',
+    titulo: 'Incidencia de la pobreza y la indigencia en 31 aglomerados urbanos. Segundo semestre de 2025',
+    organizacion: 'INDEC',
+    url: 'https://www.indec.gob.ar/uploads/informesdeprensa/eph_pobreza_03_269225CA3217.pdf',
+    publicado: '2026',
+  },
+  {
+    slug: 'ennys2',
+    titulo: 'El 41,1 por ciento de los chicos y adolescentes tiene sobrepeso y obesidad en la Argentina (Segunda Encuesta Nacional de Nutrición y Salud)',
+    organizacion: 'Ministerio de Salud de la Nación',
+    url: 'https://www.argentina.gob.ar/noticias/el-411-por-ciento-de-los-chicos-y-adolescentes-tiene-sobrepeso-y-obesidad-en-la-argentina',
+    publicado: '2019',
+  },
+  {
+    slug: 'via-campesina',
+    titulo: 'La Vía Campesina: soberanía alimentaria',
+    organizacion: 'La Vía Campesina',
+    url: 'https://viacampesina.org/es/',
+    publicado: '2025',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
