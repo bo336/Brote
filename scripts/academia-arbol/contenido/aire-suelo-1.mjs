@@ -99,7 +99,7 @@ export default unidad({
         ['El CO₂ está en una proporción muy chica, más de 420 ppm.', false],
         ['Como el CO₂ es tan poco, no puede afectar el clima.', true, 'Pequeñas cantidades de gases de efecto invernadero tienen grandes efectos.'],
       ], 'Poco no quiere decir sin importancia: la dosis y el efecto no siempre van juntos.', { d: 2 }),
-      est('Estimá hasta qué altura aproximada llega la troposfera, la capa donde está casi todo el aire que respiramos.', 12, { min: 1, max: 100, paso: 1, unidad: 'km' }, 'Entre unos 10 y 15 kilómetros, según la latitud. Si la Tierra fuera una pelota de fútbol, esa capa sería más fina que una hoja de papel.', { d: 3 }),
+      est('Estimá hasta qué altura aproximada llega la troposfera, la capa donde está casi todo el aire que respiramos.', 12, { min: 1, max: 100, paso: 1, unidad: 'km' }, 'Entre unos 10 y 15 kilómetros, según la latitud. Si la Tierra fuera una pelota de fútbol, esa capa tendría el grosor de un par de hojas de papel.', { d: 3 }),
       mult('¿Cuáles de estos gases del aire son de efecto invernadero? Marcá todos.', [
         '+Dióxido de carbono',
         '+Vapor de agua',
