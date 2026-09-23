@@ -1034,6 +1034,20 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27279-266332',
     publicado: '2016',
   },
+  {
+    slug: 'unece-sga',
+    titulo: 'GHS pictograms (Sistema Globalmente Armonizado de clasificación y etiquetado de productos químicos)',
+    organizacion: 'Comisión Económica de las Naciones Unidas para Europa',
+    url: 'https://unece.org/transport/dangerous-goods/ghs-pictograms',
+    publicado: '2023',
+  },
+  {
+    slug: 'msal-dengue',
+    titulo: 'Dengue',
+    organizacion: 'Ministerio de Salud de la Nación',
+    url: 'https://www.argentina.gob.ar/salud/dengue',
+    publicado: '2025',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
