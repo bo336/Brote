@@ -33,10 +33,10 @@ export default unidad({
       ]),
       ord('Ordená estas centrales según su lugar típico en el orden de despacho, de la que entra primero a la que entra última.', [ // e1
         'Parque eólico con viento',
-        'Central nuclear',
-        'Ciclo combinado a gas',
+        'Ciclo combinado a gas, eficiente',
+        'Turbina a gas de ciclo abierto, menos eficiente',
         'Turbina a gasoil para los picos',
-      ], 'Entran primero las de menor costo variable. Las nucleares suelen funcionar de forma pareja porque no conviene subirlas y bajarlas; las de gasoil se reservan para las horas más exigentes.', { d: 3, extremos: ['Entra primero', 'Entra última'] }),
+      ], 'Entran primero las de menor costo variable: el viento no paga combustible; entre las térmicas, las más eficientes gastan menos gas por MWh; el gasoil, el más caro, queda para las horas más exigentes.', { d: 3, extremos: ['Entra primero', 'Entra última'] }),
       teoria('El costo marginal', [
         'La última central que se necesita para cubrir la demanda en una hora marca el costo marginal del sistema en esa hora: es lo que cuesta producir el último megavatio-hora. En las horas de alta demanda entran centrales caras y el costo marginal sube mucho. Cuando sobra sol o viento, el costo marginal puede bajar muchísimo.',
       ]),
