@@ -478,6 +478,63 @@ const NUEVAS = [
     url: 'https://www.who.int/europe/publications/i/item/9789289052498',
     publicado: '2017',
   },
+  // ── El clima que cambia ─────────────────────────────────────────────────────
+  {
+    slug: 'noaa-co2-historia',
+    titulo: 'Climate Change: Atmospheric Carbon Dioxide',
+    organizacion: 'NOAA Climate.gov',
+    url: 'https://www.climate.gov/news-features/understanding-climate/climate-change-atmospheric-carbon-dioxide',
+    publicado: '2025',
+  },
+  {
+    slug: 'nasa-gistemp',
+    titulo: 'GISS Surface Temperature Analysis (GISTEMP v4)',
+    organizacion: 'NASA Goddard Institute for Space Studies',
+    url: 'https://data.giss.nasa.gov/gistemp/',
+    publicado: '2025',
+  },
+  {
+    slug: 'copernicus-clima-2024',
+    titulo: 'Global Climate Highlights 2024',
+    organizacion: 'Copernicus Climate Change Service',
+    url: 'https://climate.copernicus.eu/global-climate-highlights-2024',
+    publicado: '2025',
+  },
+  {
+    slug: 'wmo-clima-2024',
+    titulo: 'State of the Global Climate 2024',
+    organizacion: 'Organización Meteorológica Mundial',
+    url: 'https://wmo.int/publication-series/state-of-global-climate/state-of-global-climate-2024',
+    publicado: '2025',
+  },
+  {
+    slug: 'noaa-nivel-mar',
+    titulo: 'Climate Change: Global Sea Level',
+    organizacion: 'NOAA Climate.gov',
+    url: 'https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level',
+    publicado: '2024',
+  },
+  {
+    slug: 'wwa-atribucion',
+    titulo: 'World Weather Attribution',
+    organizacion: 'World Weather Attribution',
+    url: 'https://www.worldweatherattribution.org/',
+    publicado: '2025',
+  },
+  {
+    slug: 'ipcc-sr15',
+    titulo: 'Global Warming of 1.5 °C',
+    organizacion: 'IPCC',
+    url: 'https://www.ipcc.ch/sr15/',
+    publicado: '2018',
+  },
+  {
+    slug: 'acuerdo-paris',
+    titulo: 'The Paris Agreement',
+    organizacion: 'Convención Marco de las Naciones Unidas sobre el Cambio Climático',
+    url: 'https://unfccc.int/process-and-meetings/the-paris-agreement',
+    publicado: '2015',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
