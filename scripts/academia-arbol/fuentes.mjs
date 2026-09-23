@@ -855,6 +855,63 @@ const NUEVAS = [
     url: 'https://www.icj-cij.org/case/135',
     publicado: '2010',
   },
+  // ── Mares contaminados y áreas marinas protegidas ───────────────────────────
+  {
+    slug: 'diaz-rosenberg-2008',
+    titulo: 'Spreading dead zones and consequences for marine ecosystems',
+    organizacion: 'Science (Diaz y Rosenberg)',
+    url: 'https://www.science.org/doi/10.1126/science.1156401',
+    publicado: '2008',
+  },
+  {
+    slug: 'un-water-aguas-residuales',
+    titulo: 'Progress on wastewater treatment – 2024 update',
+    organizacion: 'ONU-Agua (UN-Water)',
+    url: 'https://www.unwater.org/publications/progress-wastewater-treatment-2024-update',
+    publicado: '2024',
+  },
+  {
+    slug: 'minamata',
+    titulo: 'Convenio de Minamata sobre el Mercurio',
+    organizacion: 'Programa de las Naciones Unidas para el Medio Ambiente',
+    url: 'https://minamataconvention.org/es',
+    publicado: '2013',
+  },
+  {
+    slug: 'ley-27490-amp',
+    titulo: 'Ley 27.490 — Áreas marinas protegidas Yaganes y Namuncurá-Banco Burdwood II',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27490-317651',
+    publicado: '2018',
+  },
+  {
+    slug: 'cdb-meta-3',
+    titulo: 'Marco Mundial de Biodiversidad Kunming-Montreal: Meta 3',
+    organizacion: 'Convenio sobre la Diversidad Biológica',
+    url: 'https://www.cbd.int/gbf/targets/3',
+    publicado: '2022',
+  },
+  {
+    slug: 'mpatlas',
+    titulo: 'Marine Protection Atlas',
+    organizacion: 'Marine Conservation Institute',
+    url: 'https://mpatlas.org/',
+    publicado: '2026',
+  },
+  {
+    slug: 'mci-10-3',
+    titulo: '10% Protected. 3% Effective. The Widening Gap We Can’t Ignore',
+    organizacion: 'Marine Conservation Institute',
+    url: 'https://marine-conservation.org/on-the-tide/ten-percent-protected-three-percent-effective/',
+    publicado: '2026',
+  },
+  {
+    slug: 'edgar-2014-neoli',
+    titulo: 'Global conservation outcomes depend on marine protected areas with five key features',
+    organizacion: 'Nature (Edgar y otros)',
+    url: 'https://www.nature.com/articles/nature13022',
+    publicado: '2014',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
