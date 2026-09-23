@@ -948,6 +948,49 @@ const NUEVAS = [
     url: 'https://www.iea.org/reports/renewables-2024',
     publicado: '2024',
   },
+  // ── Transición energética en Argentina ──────────────────────────────────────
+  {
+    slug: 'ley-27191-renovables',
+    titulo: 'Ley 27.191 — Régimen de fomento de las energías renovables',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27191-253626',
+    publicado: '2015',
+  },
+  {
+    slug: 'argendata-transicion',
+    titulo: 'Transición energética',
+    organizacion: 'Argendata (Fundar)',
+    url: 'https://argendata.fund.ar/topico/transicion-energetica/',
+    publicado: '2024',
+  },
+  {
+    slug: 'renovables-2025-ar',
+    titulo: 'Las energías renovables sumaron más de 1000 MW en 2025 y ya cubren casi un quinto de la demanda',
+    organizacion: 'EconoJournal (con datos de CAMMESA)',
+    url: 'https://econojournal.com.ar/renovables-te/las-energias-renovables-sumaron-mas-de-1-000-mw-en-2025-y-ya-cubren-casi-un-quinto-de-la-demanda/',
+    publicado: '2026',
+  },
+  {
+    slug: 'censo-gas-2022',
+    titulo: 'Censo 2022: cuántos argentinos tienen acceso a gas natural, cloacas y vivienda propia',
+    organizacion: 'Infobae (con datos del INDEC)',
+    url: 'https://www.infobae.com/economia/2023/11/22/censo-2022-cuantos-argentinos-tienen-acceso-a-gas-natural-cloacas-y-vivienda-propia/',
+    publicado: '2023',
+  },
+  {
+    slug: 'balanza-energetica-2024',
+    titulo: 'La balanza comercial energética del 2024 arrojó el superávit más alto en 18 años',
+    organizacion: 'Ámbito (con datos de la Secretaría de Energía)',
+    url: 'https://www.ambito.com/energia/la-balanza-comercial-energetica-del-2024-arrojo-el-superavit-mas-alto-18-anos-n6105371',
+    publicado: '2025',
+  },
+  {
+    slug: 'iea-metano-2025',
+    titulo: 'Global Methane Tracker 2025',
+    organizacion: 'Agencia Internacional de Energía',
+    url: 'https://www.iea.org/reports/global-methane-tracker-2025',
+    publicado: '2025',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
