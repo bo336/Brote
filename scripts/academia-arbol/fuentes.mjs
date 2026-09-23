@@ -778,6 +778,27 @@ const NUEVAS = [
     publicado: '2016',
   },
   {
+    slug: 'ley-24196-mineria',
+    titulo: 'Ley 24.196 — Inversiones mineras (tope de regalías provinciales)',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-24196-594',
+    publicado: '1993',
+  },
+  {
+    slug: 'ue-minerales-conflicto',
+    titulo: 'Conflict Minerals Regulation',
+    organizacion: 'Comisión Europea',
+    url: 'https://policy.trade.ec.europa.eu/development-and-sustainability/conflict-minerals-regulation_en',
+    publicado: '2021',
+  },
+  {
+    slug: 'ocde-diligencia-minerales',
+    titulo: 'OECD Due Diligence Guidance for Responsible Supply Chains of Minerals from Conflict-Affected and High-Risk Areas',
+    organizacion: 'OCDE',
+    url: 'https://www.oecd.org/en/publications/oecd-due-diligence-guidance-for-responsible-supply-chains-of-minerals-from-conflict-affected-and-high-risk-areas_9789264252479-en.html',
+    publicado: '2016',
+  },
+  {
     slug: 'ley-24071-oit-169',
     titulo: 'Ley 24.071 — Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales',
     organizacion: 'Congreso de la Nación Argentina',
