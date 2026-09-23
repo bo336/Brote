@@ -308,6 +308,28 @@ const NUEVAS = [
     url: 'https://www.glaciaresargentinos.gob.ar/',
     publicado: '2018',
   },
+  // ── Residuos y materiales ───────────────────────────────────────────────────
+  {
+    slug: 'mst-bolsas-2018',
+    titulo: 'Life Cycle Assessment of grocery carrier bags',
+    organizacion: 'Danish Environmental Protection Agency',
+    url: 'https://www2.mst.dk/Udgiv/publications/2018/02/978-87-93614-73-4.pdf',
+    publicado: '2018',
+  },
+  {
+    slug: 'iai-reciclaje-aluminio',
+    titulo: 'Aluminium recycling',
+    organizacion: 'International Aluminium Institute',
+    url: 'https://international-aluminium.org/landing/aluminium-recycling/',
+    publicado: '2024',
+  },
+  {
+    slug: 'oecd-plasticos',
+    titulo: 'Global Plastics Outlook: Economic Drivers, Environmental Impacts and Policy Options',
+    organizacion: 'OCDE',
+    url: 'https://www.oecd.org/en/publications/global-plastics-outlook_de747aef-en.html',
+    publicado: '2022',
+  },
   {
     slug: 'onu-ods',
     titulo: 'Objetivos de Desarrollo Sostenible',
