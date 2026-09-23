@@ -70,12 +70,12 @@ export default unidad({
           ctx: `Alerce de ${edad} años; persona de ${vida} años.`,
         };
       }, { d: 1 }),
-      ord('Ordená estas regiones forestales de norte a sur.', [ // e6
-        'Yungas',
-        'Parque chaqueño',
-        'Espinal',
-        'Bosque andino patagónico',
-      ], 'De las selvas de montaña del norte a los bosques fríos de la cordillera sur.', { d: 2, extremos: ['Más al norte', 'Más al sur'] }),
+      ord('Ordená estos bosques de norte a sur.', [ // e6
+        'Yungas de Jujuy',
+        'Espinal del norte de Córdoba',
+        'Caldenal de La Pampa',
+        'Bosque andino de Tierra del Fuego',
+      ], 'De las selvas de montaña de la frontera norte a los bosques fríos del extremo sur.', { d: 2, extremos: ['Más al norte', 'Más al sur'] }),
       mult('¿Qué árboles son nativos de Argentina? Marcá todos.', [ // e7
         '+Quebracho colorado',
         '+Algarrobo',
@@ -84,8 +84,8 @@ export default unidad({
         '-Eucalipto',
       ], 'El eucalipto es originario de Australia: se planta mucho, pero no es nativo.', { d: 1 }),
       est('Estimá cuántos años pueden superar algunos alerces de la cordillera patagónica.', 2000, { min: 50, max: 100000, unidad: 'años', escala: 'log' }, 'Más de 2.000 años: están entre los seres vivos más longevos del planeta.', { d: 2 }),
-      vf('El eucalipto es un árbol nativo de Argentina.', false, 'Es originario de Australia. Se planta mucho en el país, pero no forma parte de los bosques nativos.', { // e7c
-        razones: ['+Porque es originario de Australia', '-Porque crece solo en Europa', '-Porque no es un árbol'],
+      vf('El palo rosa es un árbol de la selva paranaense.', true, 'Es uno de los grandes árboles de la selva misionera, muy explotado por su madera y hoy protegido.', { // e7c
+        razones: ['+Porque es un árbol característico de la selva misionera', '-Porque crece solo en la estepa patagónica', '-Porque es una especie exótica de Australia'],
         d: 1,
       }),
       det('Leé esta nota y marcá lo equivocado.', [ // e8
