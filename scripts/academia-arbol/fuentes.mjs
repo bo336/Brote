@@ -670,6 +670,63 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27640-352587',
     publicado: '2021',
   },
+  // ── Economía circular y precios ─────────────────────────────────────────────
+  {
+    slug: 'circularity-gap-2025',
+    titulo: 'Circularity Gap Report 2025',
+    organizacion: 'Circle Economy y Deloitte',
+    url: 'https://circularity-gap.world/2025',
+    publicado: '2025',
+  },
+  {
+    slug: 'emf-mariposa',
+    titulo: 'The butterfly diagram: visualising the circular economy',
+    organizacion: 'Ellen MacArthur Foundation',
+    url: 'https://www.ellenmacarthurfoundation.org/circular-economy-diagram',
+    publicado: '2024',
+  },
+  {
+    slug: 'ue-ecodiseno',
+    titulo: 'Ecodesign for Sustainable Products Regulation',
+    organizacion: 'Comisión Europea',
+    url: 'https://environment.ec.europa.eu/strategy/circular-economy/ecodesign-sustainable-products-regulation_en',
+    publicado: '2024',
+  },
+  {
+    slug: 'ue-derecho-reparar',
+    titulo: 'Right to repair: making repair easier and more appealing to consumers',
+    organizacion: 'Parlamento Europeo',
+    url: 'https://www.europarl.europa.eu/news/en/press-room/20240419IPR20590/right-to-repair-making-repair-easier-and-more-appealing-to-consumers',
+    publicado: '2024',
+  },
+  {
+    slug: 'bm-precio-carbono',
+    titulo: 'State and Trends of Carbon Pricing',
+    organizacion: 'Banco Mundial',
+    url: 'https://www.worldbank.org/en/publication/state-and-trends-of-carbon-pricing',
+    publicado: '2026',
+  },
+  {
+    slug: 'fmi-subsidios',
+    titulo: 'IMF Fossil Fuel Subsidies Data: 2023 Update',
+    organizacion: 'Fondo Monetario Internacional',
+    url: 'https://www.imf.org/en/Publications/WP/Issues/2023/08/22/IMF-Fossil-Fuel-Subsidies-Data-2023-Update-537281',
+    publicado: '2023',
+  },
+  {
+    slug: 'fao-sofa-2023',
+    titulo: 'El estado mundial de la agricultura y la alimentación 2023: los costos ocultos de los sistemas agroalimentarios',
+    organizacion: 'FAO',
+    url: 'https://www.fao.org/publications/fao-flagship-publications/the-state-of-food-and-agriculture/2023/en',
+    publicado: '2023',
+  },
+  {
+    slug: 'ley-27430-impuesto-co2',
+    titulo: 'Ley 27.430 — Impuesto al dióxido de carbono sobre los combustibles',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27430-305262',
+    publicado: '2017',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
