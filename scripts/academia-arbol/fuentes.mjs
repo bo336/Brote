@@ -1126,6 +1126,42 @@ const NUEVAS = [
     url: 'https://viacampesina.org/es/',
     publicado: '2025',
   },
+  // ── Bosques nativos, fuego y restauración ──────────────────────────────────
+  {
+    slug: 'snmf-origen',
+    titulo: '¿Cómo se originan los incendios?',
+    organizacion: 'Servicio Nacional de Manejo del Fuego',
+    url: 'https://www.argentina.gob.ar/seguridad/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-3',
+    publicado: '2024',
+  },
+  {
+    slug: 'chequeado-incendios',
+    titulo: 'Más de la mitad de las provincias sufren incendios forestales y el 95 % fueron causados por el hombre',
+    organizacion: 'Chequeado',
+    url: 'https://chequeado.com/el-explicador/mas-de-la-mitad-de-las-provincias-sufren-incendios-forestales-y-el-95-fueron-causados-por-el-hombre/',
+    publicado: '2022',
+  },
+  {
+    slug: 'ley-27604-fuego',
+    titulo: 'Ley 27.604 — Modificación de la Ley de Manejo del Fuego',
+    organizacion: 'Boletín Oficial de la República Argentina',
+    url: 'https://www.boletinoficial.gob.ar/detalleAviso/primera/239139/20201224',
+    publicado: '2020',
+  },
+  {
+    slug: 'chequeado-fondo-bosques',
+    titulo: 'Día Internacional de los Bosques: en 2024 no se contaron con los fondos suficientes para preservarlos',
+    organizacion: 'Chequeado',
+    url: 'https://chequeado.com/el-explicador/dia-internacional-de-los-bosques-en-2024-no-se-contaron-con-los-fondos-suficientes-para-preservarlos/',
+    publicado: '2024',
+  },
+  {
+    slug: 'farn-bosques-fondo',
+    titulo: 'La Ley de Bosques, cada vez más desfinanciada',
+    organizacion: 'FARN',
+    url: 'https://farn.org.ar/la-ley-de-bosques-cada-vez-mas-desfinanciada/',
+    publicado: '2025',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
