@@ -130,7 +130,7 @@ export default unidad({
         const q1 = [25, 20, 30][i];
         const q2 = [70, 75, 65][i];
         return {
-          enunciado: `Una verdura se vende a $${p.toLocaleString('es-AR')} el kilo. En el circuito largo, la quinta recibe el ${q1} %; en la feria, el ${q2 }%. ¿Cuántos pesos más por kilo recibe en la feria?`,
+          enunciado: `Una verdura se vende a $${p.toLocaleString('es-AR')} el kilo. En el circuito largo, la quinta recibe el ${q1} %; en la feria, el ${q2} %. ¿Cuántos pesos más por kilo recibe en la feria?`,
           valor: (p * (q2 - q1)) / 100,
           unidad: '$',
           explicacion: `${p.toLocaleString('es-AR')} × (${q2} − ${q1}) ÷ 100 = $${((p * (q2 - q1)) / 100).toLocaleString('es-AR')} más por kilo para la familia productora, al mismo precio para quien compra.`,
