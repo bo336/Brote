@@ -388,7 +388,12 @@ export default unidad({
         ['Si no se puede resolver todo, no vale la pena hacer nada.', true, 'Cada avance importa: no es todo o nada.'],
       ], 'Cuidarse también es parte de cuidar el ambiente a largo plazo.', { d: 2 }),
       comp('Completá.', 'La preocupación por los problemas ambientales se llama [ecoansiedad]; actuar sin garantías pero con compromiso es esperanza [activa].', ['nostalgia', 'pasiva'], 'Dos ideas para sostener el compromiso sin paralizarse.', { d: 1 }),
-      est('Estimá cuántas décimas de grado de calentamiento "valen la pena" evitar, según la idea de que no es todo o nada.', 1, { min: 0, max: 10, paso: 1, unidad: 'décimas' }, 'Todas: cada décima que se evita reduce impactos. Por eso ninguna acción es "demasiado chica" si suma a la dirección correcta.', { d: 1 }),
+      op('Frente al cambio climático, ¿qué significa decir que "no es todo o nada"?', [
+        'Que cada décima de grado evitada reduce daños',
+        'Que si no se evita todo, no sirve de nada',
+        ['Que ya no se puede hacer nada útil', 'Es al revés: siempre hay daños que se pueden evitar.'],
+        'Que solo importa lo que hagan los demás países',
+      ], 'No hay un umbral mágico después del cual todo da igual: cuanto menos calentamiento, menos impactos. Por eso ninguna acción es inútil si suma en la dirección correcta.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
