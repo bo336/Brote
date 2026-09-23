@@ -331,6 +331,35 @@ const NUEVAS = [
     url: 'https://academic.oup.com/condor/article/116/1/8/5153098',
     publicado: '2014',
   },
+  // ── Aire y suelo ────────────────────────────────────────────────────────────
+  {
+    slug: 'oms-aire-exterior',
+    titulo: 'Calidad del aire ambiente (exterior) y salud (nota descriptiva)',
+    organizacion: 'Organización Mundial de la Salud',
+    url: 'https://www.who.int/es/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health',
+    publicado: '2024',
+  },
+  {
+    slug: 'oms-aire-hogar',
+    titulo: 'Contaminación del aire doméstico y salud (nota descriptiva)',
+    organizacion: 'Organización Mundial de la Salud',
+    url: 'https://www.who.int/es/news-room/fact-sheets/detail/household-air-pollution-and-health',
+    publicado: '2024',
+  },
+  {
+    slug: 'anthony-2023-suelo',
+    titulo: 'Enumerating soil biodiversity',
+    organizacion: 'PNAS (Anthony, Bender y van der Heijden)',
+    url: 'https://www.pnas.org/doi/10.1073/pnas.2304663120',
+    publicado: '2023',
+  },
+  {
+    slug: 'fao-suelos-degradacion',
+    titulo: 'Estado mundial del recurso suelo (resumen técnico)',
+    organizacion: 'FAO y Grupo Técnico Intergubernamental de Suelos',
+    url: 'https://www.fao.org/3/i5126s/i5126s.pdf',
+    publicado: '2015',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
