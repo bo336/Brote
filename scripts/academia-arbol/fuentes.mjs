@@ -302,6 +302,13 @@ const NUEVAS = [
     publicado: '2014',
   },
   {
+    slug: 'inventario-glaciares',
+    titulo: 'Inventario Nacional de Glaciares',
+    organizacion: 'IANIGLA-CONICET y Ministerio de Ambiente',
+    url: 'https://www.glaciaresargentinos.gob.ar/',
+    publicado: '2018',
+  },
+  {
     slug: 'onu-ods',
     titulo: 'Objetivos de Desarrollo Sostenible',
     organizacion: 'Naciones Unidas',
