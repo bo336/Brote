@@ -657,6 +657,13 @@ const NUEVAS = [
     publicado: '2020',
   },
   {
+    slug: 'doe-eficiencia-ev',
+    titulo: 'All-Electric Vehicles',
+    organizacion: 'Departamento de Energía de EE. UU. (fueleconomy.gov)',
+    url: 'https://www.fueleconomy.gov/feg/evtech.shtml',
+    publicado: '2025',
+  },
+  {
     slug: 'ley-27640-biocombustibles',
     titulo: 'Ley 27.640 — Marco regulatorio de biocombustibles',
     organizacion: 'Congreso de la Nación Argentina',
