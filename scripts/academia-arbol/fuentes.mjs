@@ -375,6 +375,35 @@ const NUEVAS = [
     url: 'https://www.who.int/es/news-room/fact-sheets/detail/road-traffic-injuries',
     publicado: '2023',
   },
+  // ── Consumo ─────────────────────────────────────────────────────────────────
+  {
+    slug: 'emf-textiles',
+    titulo: 'A new textiles economy: Redesigning fashion’s future',
+    organizacion: 'Ellen MacArthur Foundation',
+    url: 'https://www.ellenmacarthurfoundation.org/a-new-textiles-economy',
+    publicado: '2017',
+  },
+  {
+    slug: 'unep-moda',
+    titulo: 'Putting the brakes on fast fashion',
+    organizacion: 'Programa de las Naciones Unidas para el Medio Ambiente',
+    url: 'https://www.unep.org/news-and-stories/story/putting-brakes-fast-fashion',
+    publicado: '2018',
+  },
+  {
+    slug: 'ce-green-claims',
+    titulo: 'Green claims',
+    organizacion: 'Comisión Europea',
+    url: 'https://environment.ec.europa.eu/topics/circular-economy/green-claims_en',
+    publicado: '2023',
+  },
+  {
+    slug: 'senasa-organicos',
+    titulo: 'Producción orgánica',
+    organizacion: 'SENASA',
+    url: 'https://www.argentina.gob.ar/senasa/programas-sanitarios/produccion-organica',
+    publicado: '2024',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
