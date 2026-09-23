@@ -1183,6 +1183,63 @@ const NUEVAS = [
     url: 'https://ser.org/page/SERStandards',
     publicado: '2019',
   },
+  // ── Convivir con la fauna y una sola salud ──────────────────────────────────
+  {
+    slug: 'apn-atropellamiento-iguazu',
+    titulo: 'Prevención de atropellamiento de fauna en Iguazú',
+    organizacion: 'Administración de Parques Nacionales',
+    url: 'https://www.argentina.gob.ar/noticias/prevencion-de-atropellamiento-de-fauna-en-iguazu',
+    publicado: '2023',
+  },
+  {
+    slug: 'apn-pasafaunas-iguazu',
+    titulo: 'Herramientas viales para la conservación de la fauna en el Parque Nacional Iguazú',
+    organizacion: 'Administración de Parques Nacionales',
+    url: 'https://www.argentina.gob.ar/noticias/herramientas-viales-para-la-conservacion-de-la-fauna-en-el-parque-nacional-iguazu',
+    publicado: '2023',
+  },
+  {
+    slug: 'inta-perros-protectores',
+    titulo: 'Elaboran una guía para la cría de perros protectores del ganado',
+    organizacion: 'INTA',
+    url: 'https://www.argentina.gob.ar/noticias/elaboran-una-guia-para-la-cria-de-perros-protectores-del-ganado',
+    publicado: '2022',
+  },
+  {
+    slug: 'conicet-vicunas',
+    titulo: 'Vicuñas',
+    organizacion: 'CONICET Documental',
+    url: 'https://documental.conicet.gov.ar/vicunas/',
+    publicado: '2020',
+  },
+  {
+    slug: 'oms-una-salud',
+    titulo: 'Una sola salud: preguntas y respuestas',
+    organizacion: 'Organización Mundial de la Salud',
+    url: 'https://www.who.int/es/news-room/questions-and-answers/item/one-health',
+    publicado: '2023',
+  },
+  {
+    slug: 'omsa-una-salud',
+    titulo: 'Una sola salud',
+    organizacion: 'Organización Mundial de Sanidad Animal',
+    url: 'https://www.woah.org/es/que-hacemos/iniciativas-mundiales/una-sola-salud/',
+    publicado: '2024',
+  },
+  {
+    slug: 'ipbes-pandemias',
+    titulo: 'Escaping the Era of Pandemics',
+    organizacion: 'IPBES',
+    url: 'https://www.ipbes.net/pandemics',
+    publicado: '2020',
+  },
+  {
+    slug: 'oms-resistencia',
+    titulo: 'Antimicrobial resistance',
+    organizacion: 'Organización Mundial de la Salud',
+    url: 'https://www.who.int/news-room/fact-sheets/detail/antimicrobial-resistance',
+    publicado: '2023',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
