@@ -463,6 +463,21 @@ const NUEVAS = [
     url: 'https://www.redbda.org.ar/',
     publicado: '2024',
   },
+  // ── Verde urbano ────────────────────────────────────────────────────────────
+  {
+    slug: 'epa-isla-calor',
+    titulo: 'Using Trees and Vegetation to Reduce Heat Islands',
+    organizacion: 'US EPA',
+    url: 'https://www.epa.gov/heatislands/using-trees-and-vegetation-reduce-heat-islands',
+    publicado: '2024',
+  },
+  {
+    slug: 'oms-espacios-verdes',
+    titulo: 'Urban green spaces: a brief for action',
+    organizacion: 'Organización Mundial de la Salud (Europa)',
+    url: 'https://www.who.int/europe/publications/i/item/9789289052498',
+    publicado: '2017',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
