@@ -85,7 +85,7 @@ export default unidad({
       ], 'Los mejillones filtran el agua y no necesitan alimento agregado.', { d: 2 }),
       op('¿Qué institución estudia las poblaciones de peces del Mar Argentino y recomienda cuánto se puede pescar?', [
         'El INIDEP',
-        'La FIFA',
+        'La Dirección Nacional de Vialidad',
         ['El Banco Central', 'No es su función: la investigación pesquera la hace el INIDEP.'],
         'El Servicio Meteorológico',
       ], 'El Instituto Nacional de Investigación y Desarrollo Pesquero aporta la base científica para las decisiones de pesca.', { d: 1 }),
@@ -286,17 +286,7 @@ export default unidad({
         'Los pescadores que cumplen las reglas capturan menos',
         'Se pierden trabajo, alimento y biodiversidad',
       ], ['La pesca ilegal hace crecer las poblaciones'], 'La pesca ilegal perjudica a los ecosistemas y también a quienes pescan legalmente.', { d: 2 }),
-      numv(3, (i) => { // e4
-        const mill = [200, 200, 200][i];
-        const km = 1.852;
-        return {
-          enunciado: `Una milla náutica equivale a 1,852 km. ¿A cuántos kilómetros de la costa llega una zona económica exclusiva de ${mill} millas? Redondeá al entero.`,
-          valor: Math.round(mill * km),
-          unidad: 'km',
-          tol: 1,
-          explicacion: `${mill} × 1,852 ≈ ${Math.round(mill * km)} km. Un territorio marino enorme que hay que controlar.`,
-        };
-      }, { d: 2 }),
+      num('Una milla náutica equivale a 1,852 km. ¿A cuántos kilómetros de la costa llega una zona económica exclusiva de 200 millas? Redondeá al entero.', 370, 'km', '200 × 1,852 ≈ 370 km. Un territorio marino enorme que hay que controlar.', { tol: 1, d: 2 }),
       clas('¿Es una regla de gestión pesquera o una práctica ilegal?', { // e5
         'Regla de gestión': ['Cerrar una zona de cría durante la reproducción', 'Fijar una cuota anual de captura', 'Exigir un sistema de seguimiento satelital a los barcos'],
         'Práctica ilegal': ['Pescar dentro de la zona económica exclusiva sin permiso', 'Apagar el sistema de seguimiento para esconderse', 'Descargar capturas sin declarar'],

@@ -464,18 +464,7 @@ export default unidad({
       ]),
       num('¿En qué porcentaje aumentó realmente el reciclaje, de 20 a 22 toneladas por mes?', 10, '%', '(22 − 20) ÷ 20 × 100 = 10 %. No se triplicó: aumentó un 10 %.', { ctx: 'Reciclaje: 20 t/mes en 2023, 22 t/mes en 2024.', d: 2 }),
       num('¿Qué porcentaje de los residuos de la ciudad se recicla en 2024? (22 de 400 toneladas por mes)', 5.5, '%', '22 ÷ 400 × 100 = 5,5 %. El 94,5 % sigue yendo a disposición final.', { ctx: 'La ciudad genera 400 t/mes; recicla 22 t/mes.', dec: 1, d: 2 }),
-      numv(3, (i) => { // e3
-        const h = [104000, 104000, 104000][i];
-        const t = [22, 22, 22][i];
-        return {
-          enunciado: `Con ${t} toneladas por mes y ${h.toLocaleString('es-AR')} habitantes, ¿cuántos kilos por habitante por mes se reciclan? Redondeá a dos decimales.`,
-          valor: Math.round(((t * 1000) / h) * 100) / 100,
-          unidad: 'kg por habitante',
-          dec: 2,
-          tol: 0.01,
-          explicacion: `${t} t = ${(t * 1000).toLocaleString('es-AR')} kg; ÷ ${h.toLocaleString('es-AR')} ≈ ${(Math.round(((t * 1000) / h) * 100) / 100).toLocaleString('es-AR')} kg por habitante por mes. En 2023, con 100.000 habitantes y 20 t, eran 0,2 kg: la mejora por persona es todavía menor.`,
-        };
-      }, { d: 3 }),
+      num('Con 22 toneladas por mes y 104.000 habitantes, ¿cuántos kilos por habitante por mes se reciclan? Redondeá a dos decimales.', 0.21, 'kg por habitante', '22 t = 22.000 kg; ÷ 104.000 ≈ 0,21 kg por habitante por mes. En 2023, con 100.000 habitantes y 20 t, eran 0,2 kg: la mejora por persona es todavía menor.', { dec: 2, tol: 0.01, d: 3 }),
       mult('¿Qué problemas tiene el gráfico del concejal? Marcá todos.', [ // e4
         '+El eje de las barras empieza en 19, no en cero',
         '+El título dice "triplicamos" cuando el aumento fue del 10 %',
