@@ -1162,6 +1162,27 @@ const NUEVAS = [
     url: 'https://farn.org.ar/la-ley-de-bosques-cada-vez-mas-desfinanciada/',
     publicado: '2025',
   },
+  {
+    slug: 'decenio-restauracion',
+    titulo: 'Decenio de las Naciones Unidas sobre la Restauración de los Ecosistemas 2021–2030',
+    organizacion: 'PNUMA y FAO',
+    url: 'https://www.decadeonrestoration.org/',
+    publicado: '2021',
+  },
+  {
+    slug: 'cdb-meta-2',
+    titulo: 'Marco Mundial de Biodiversidad Kunming-Montreal: Meta 2',
+    organizacion: 'Convenio sobre la Diversidad Biológica',
+    url: 'https://www.cbd.int/gbf/targets/2',
+    publicado: '2022',
+  },
+  {
+    slug: 'ser-estandares',
+    titulo: 'International Principles and Standards for the Practice of Ecological Restoration',
+    organizacion: 'Society for Ecological Restoration',
+    url: 'https://ser.org/page/SERStandards',
+    publicado: '2019',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
