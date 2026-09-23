@@ -81,7 +81,7 @@ export default unidad({
       ], 'Leer la etiqueta es el primer paso para usar y descartar bien un producto.', { d: 1 }),
       rank('Ordená estos residuos según su peligrosidad para una persona que los manipula sin protección, de mayor a menor.', [ // e8
         ['Jeringas usadas con restos de sangre', 'infeccioso y cortante'],
-        ['Ácido de batería derramado', 'corrosivo'],
+        ['Pila rota con líquido derramado', 'corrosivo y tóxico'],
         ['Pila común agotada, entera', 'bajo riesgo inmediato'],
         ['Botella de plástico limpia', 'sin peligro'],
       ], 'El riesgo depende de la característica y del estado del residuo: una pila entera es menos riesgosa que una rota.', { d: 3, extremos: ['Más peligroso', 'Menos peligroso'] }),
