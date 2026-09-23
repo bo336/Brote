@@ -31,6 +31,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "publicado": "2025"
   },
   {
+    "slug": "iucn-categorias",
+    "titulo": "IUCN Red List Categories and Criteria, versión 3.1",
+    "organizacion": "IUCN",
+    "url": "https://portals.iucn.org/library/sites/library/files/documents/RL-2001-001.pdf",
+    "publicado": "2001"
+  },
+  {
     "slug": "ipbes-global",
     "titulo": "IPBES Global Assessment on Biodiversity and Ecosystem Services",
     "organizacion": "IPBES",
@@ -50,6 +57,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "organizacion": "SAREM — Sociedad Argentina para el Estudio de los Mamíferos",
     "url": "https://www.scielo.org.ar/scielo.php?script=sci_arttext&pid=S0327-93832022000100657",
     "publicado": "2019"
+  },
+  {
+    "slug": "aves-argentinas-amenazadas",
+    "titulo": "Categorización de las aves de Argentina según su estado de conservación",
+    "organizacion": "Aves Argentinas / AOP",
+    "url": "https://www.avesargentinas.org.ar/aves-amenazadas",
+    "publicado": "2024"
   },
   {
     "slug": "cites",
@@ -101,6 +115,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "publicado": "2024"
   },
   {
+    "slug": "rewilding-argentina",
+    "titulo": "Fundación Rewilding Argentina — quiénes somos",
+    "organizacion": "Fundación Rewilding Argentina",
+    "url": "https://rewildingargentina.org/",
+    "publicado": "2025"
+  },
+  {
     "slug": "aves-argentinas",
     "titulo": "Aves Argentinas / Asociación Ornitológica del Plata",
     "organizacion": "Aves Argentinas",
@@ -127,6 +148,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "organizacion": "Guía de Plantas Nativas",
     "url": "https://nativas.lanacion.com.ar/acerca/cual-es-tu-ecoregion",
     "publicado": "2024"
+  },
+  {
+    "slug": "ley-bosques-26331",
+    "titulo": "Ley 26.331 de Presupuestos Mínimos de Protección Ambiental de los Bosques Nativos",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.derecho.uba.ar/academica/derecho-abierto/archivos/Ley-26331.pdf",
+    "publicado": "2007"
   },
   {
     "slug": "reserva-costanera-sur",
@@ -217,6 +245,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "titulo": "FACCyR — Federación Argentina de Cartoneros, Carreros y Recicladores",
     "organizacion": "FACCyR",
     "url": "https://faccyr.org.ar/legislacion/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "rep-envases",
+    "titulo": "Ley de Envases y Responsabilidad Extendida del Productor",
+    "organizacion": "Fundación Metropolitana",
+    "url": "https://metropolitana.org.ar/idm/ley-de-envases-y-responsabilidad-extendida-del-productor/",
     "publicado": "2024"
   },
   {
@@ -486,11 +521,32 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "publicado": "2010"
   },
   {
+    "slug": "cammesa",
+    "titulo": "Compañía Administradora del Mercado Mayorista Eléctrico",
+    "organizacion": "CAMMESA",
+    "url": "https://www.cammesa.com/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ley-27424-generacion",
+    "titulo": "Ley 27.424 — Régimen de Fomento a la Generación Distribuida de Energía Renovable",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27424-305179",
+    "publicado": "2017"
+  },
+  {
     "slug": "iea-eficiencia",
     "titulo": "Energy Efficiency",
     "organizacion": "Agencia Internacional de Energía",
     "url": "https://www.iea.org/energy-system/energy-efficiency-and-demand/energy-efficiency",
     "publicado": "2024"
+  },
+  {
+    "slug": "irena",
+    "titulo": "International Renewable Energy Agency",
+    "organizacion": "IRENA",
+    "url": "https://www.irena.org/",
+    "publicado": "2025"
   },
   {
     "slug": "iea-datacenters",
@@ -526,6 +582,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "organizacion": "Congreso de la Nación Argentina",
     "url": "https://www.argentina.gob.ar/normativa/nacional/ley-25916-98327",
     "publicado": "2004"
+  },
+  {
+    "slug": "unep-food-waste-2024",
+    "titulo": "Food Waste Index Report 2024",
+    "organizacion": "Programa de las Naciones Unidas para el Medio Ambiente",
+    "url": "https://www.unep.org/resources/publication/food-waste-index-report-2024",
+    "publicado": "2024"
   },
   {
     "slug": "poore-nemecek-2018",
@@ -582,6 +645,13 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "organizacion": "NOAA",
     "url": "https://www.noaa.gov/education/resource-collections/ocean-coasts/ocean-acidification",
     "publicado": "2023"
+  },
+  {
+    "slug": "ipbes-polinizadores",
+    "titulo": "Assessment Report on Pollinators, Pollination and Food Production",
+    "organizacion": "IPBES",
+    "url": "https://www.ipbes.net/assessment-reports/pollinators",
+    "publicado": "2016"
   },
   {
     "slug": "parques-nacionales",
@@ -752,6 +822,461 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "publicado": "2024"
   },
   {
+    "slug": "fao-agroecologia",
+    "titulo": "Centro de conocimientos sobre agroecología",
+    "organizacion": "FAO",
+    "url": "https://www.fao.org/agroecology/overview/es/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "red-bancos-alimentos",
+    "titulo": "Red Argentina de Bancos de Alimentos",
+    "organizacion": "Red Argentina de Bancos de Alimentos",
+    "url": "https://www.redbda.org.ar/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "epa-isla-calor",
+    "titulo": "Using Trees and Vegetation to Reduce Heat Islands",
+    "organizacion": "US EPA",
+    "url": "https://www.epa.gov/heatislands/using-trees-and-vegetation-reduce-heat-islands",
+    "publicado": "2024"
+  },
+  {
+    "slug": "oms-espacios-verdes",
+    "titulo": "Urban green spaces: a brief for action",
+    "organizacion": "Organización Mundial de la Salud (Europa)",
+    "url": "https://www.who.int/europe/publications/i/item/9789289052498",
+    "publicado": "2017"
+  },
+  {
+    "slug": "noaa-co2-historia",
+    "titulo": "Climate Change: Atmospheric Carbon Dioxide",
+    "organizacion": "NOAA Climate.gov",
+    "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-atmospheric-carbon-dioxide",
+    "publicado": "2025"
+  },
+  {
+    "slug": "nasa-gistemp",
+    "titulo": "GISS Surface Temperature Analysis (GISTEMP v4)",
+    "organizacion": "NASA Goddard Institute for Space Studies",
+    "url": "https://data.giss.nasa.gov/gistemp/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "copernicus-clima-2024",
+    "titulo": "Global Climate Highlights 2024",
+    "organizacion": "Copernicus Climate Change Service",
+    "url": "https://climate.copernicus.eu/global-climate-highlights-2024",
+    "publicado": "2025"
+  },
+  {
+    "slug": "wmo-clima-2024",
+    "titulo": "State of the Global Climate 2024",
+    "organizacion": "Organización Meteorológica Mundial",
+    "url": "https://wmo.int/publication-series/state-of-global-climate/state-of-global-climate-2024",
+    "publicado": "2025"
+  },
+  {
+    "slug": "noaa-nivel-mar",
+    "titulo": "Climate Change: Global Sea Level",
+    "organizacion": "NOAA Climate.gov",
+    "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level",
+    "publicado": "2024"
+  },
+  {
+    "slug": "wwa-atribucion",
+    "titulo": "World Weather Attribution",
+    "organizacion": "World Weather Attribution",
+    "url": "https://www.worldweatherattribution.org/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ipcc-sr15",
+    "titulo": "Global Warming of 1.5 °C",
+    "organizacion": "IPCC",
+    "url": "https://www.ipcc.ch/sr15/",
+    "publicado": "2018"
+  },
+  {
+    "slug": "acuerdo-paris",
+    "titulo": "The Paris Agreement",
+    "organizacion": "Convención Marco de las Naciones Unidas sobre el Cambio Climático",
+    "url": "https://unfccc.int/process-and-meetings/the-paris-agreement",
+    "publicado": "2015"
+  },
+  {
+    "slug": "vosoughi-2018",
+    "titulo": "The spread of true and false news online",
+    "organizacion": "Science (Vosoughi, Roy y Aral)",
+    "url": "https://www.science.org/doi/10.1126/science.aap9559",
+    "publicado": "2018"
+  },
+  {
+    "slug": "flicc-cook",
+    "titulo": "The history of FLICC: the 5 techniques of science denial",
+    "organizacion": "Skeptical Science (John Cook)",
+    "url": "https://skepticalscience.com/history-FLICC-5-techniques-science-denial.html",
+    "publicado": "2020"
+  },
+  {
+    "slug": "first-draft-tipos",
+    "titulo": "Fake news. It’s complicated.",
+    "organizacion": "First Draft (Claire Wardle)",
+    "url": "https://firstdraftnews.org/articles/fake-news-complicated/",
+    "publicado": "2017"
+  },
+  {
+    "slug": "inoculacion",
+    "titulo": "Inoculation Science",
+    "organizacion": "Cambridge Social Decision-Making Lab",
+    "url": "https://inoculation.science/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "lectura-lateral",
+    "titulo": "Civic Online Reasoning",
+    "organizacion": "Digital Inquiry Group (ex Stanford History Education Group)",
+    "url": "https://cor.inquirygroup.org/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "cochrane",
+    "titulo": "About Cochrane",
+    "organizacion": "Cochrane",
+    "url": "https://www.cochrane.org/about-us",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ecsa-principios",
+    "titulo": "Ten Principles of Citizen Science",
+    "organizacion": "European Citizen Science Association",
+    "url": "https://www.ecsa.ngo/10-principles/",
+    "publicado": "2015"
+  },
+  {
+    "slug": "inaturalist-calidad",
+    "titulo": "What is the Data Quality Assessment and how do observations qualify to become Research Grade?",
+    "organizacion": "iNaturalist",
+    "url": "https://help.inaturalist.org/en/support/solutions/articles/151000169936-what-is-the-data-quality-assessment-and-how-do-observations-qualify-to-become-research-grade-",
+    "publicado": "2025"
+  },
+  {
+    "slug": "geovin",
+    "titulo": "GeoVin: el proyecto de ciencia ciudadana sobre vinchucas",
+    "organizacion": "Proyecto GeoVin (investigadores del CONICET)",
+    "url": "https://geovin.com.ar/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "red-sube",
+    "titulo": "Red SUBE",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/redsube",
+    "publicado": "2025"
+  },
+  {
+    "slug": "metrobus-gcba",
+    "titulo": "Metrobus",
+    "organizacion": "Gobierno de la Ciudad de Buenos Aires",
+    "url": "https://buenosaires.gob.ar/gcaba_historico/metrobus",
+    "publicado": "2024"
+  },
+  {
+    "slug": "itdp-brt",
+    "titulo": "The Bus Rapid Transit Standard",
+    "organizacion": "Institute for Transportation and Development Policy",
+    "url": "https://itdp.org/library/standards-and-guides/the-bus-rapid-transit-standard/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "human-transit",
+    "titulo": "Explainer: The Transit Ridership Recipe",
+    "organizacion": "Human Transit (Jarrett Walker)",
+    "url": "https://humantransit.org/2015/07/mega-explainer-the-ridership-recipe.html",
+    "publicado": "2015"
+  },
+  {
+    "slug": "epa-auto-tipico",
+    "titulo": "Greenhouse Gas Emissions from a Typical Passenger Vehicle",
+    "organizacion": "Agencia de Protección Ambiental de EE. UU. (EPA)",
+    "url": "https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle",
+    "publicado": "2024"
+  },
+  {
+    "slug": "icct-ev-global",
+    "titulo": "A global comparison of the life-cycle greenhouse gas emissions of combustion engine and electric passenger cars",
+    "organizacion": "ICCT — International Council on Clean Transportation",
+    "url": "https://theicct.org/publication/a-global-comparison-of-the-life-cycle-greenhouse-gas-emissions-of-combustion-engine-and-electric-passenger-cars/",
+    "publicado": "2021"
+  },
+  {
+    "slug": "iea-ev-outlook",
+    "titulo": "Global EV Outlook 2025",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/global-ev-outlook-2025",
+    "publicado": "2025"
+  },
+  {
+    "slug": "oecd-no-escape",
+    "titulo": "Non-exhaust Particulate Emissions from Road Transport",
+    "organizacion": "OCDE",
+    "url": "https://www.oecd.org/en/publications/non-exhaust-particulate-emissions-from-road-transport_4a4dc6ca-en.html",
+    "publicado": "2020"
+  },
+  {
+    "slug": "doe-eficiencia-ev",
+    "titulo": "All-Electric Vehicles",
+    "organizacion": "Departamento de Energía de EE. UU. (fueleconomy.gov)",
+    "url": "https://www.fueleconomy.gov/feg/evtech.shtml",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ley-27640-biocombustibles",
+    "titulo": "Ley 27.640 — Marco regulatorio de biocombustibles",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27640-352587",
+    "publicado": "2021"
+  },
+  {
+    "slug": "circularity-gap-2025",
+    "titulo": "Circularity Gap Report 2025",
+    "organizacion": "Circle Economy y Deloitte",
+    "url": "https://circularity-gap.world/2025",
+    "publicado": "2025"
+  },
+  {
+    "slug": "emf-mariposa",
+    "titulo": "The butterfly diagram: visualising the circular economy",
+    "organizacion": "Ellen MacArthur Foundation",
+    "url": "https://www.ellenmacarthurfoundation.org/circular-economy-diagram",
+    "publicado": "2024"
+  },
+  {
+    "slug": "ue-ecodiseno",
+    "titulo": "Ecodesign for Sustainable Products Regulation",
+    "organizacion": "Comisión Europea",
+    "url": "https://environment.ec.europa.eu/strategy/circular-economy/ecodesign-sustainable-products-regulation_en",
+    "publicado": "2024"
+  },
+  {
+    "slug": "ue-derecho-reparar",
+    "titulo": "Right to repair: making repair easier and more appealing to consumers",
+    "organizacion": "Parlamento Europeo",
+    "url": "https://www.europarl.europa.eu/news/en/press-room/20240419IPR20590/right-to-repair-making-repair-easier-and-more-appealing-to-consumers",
+    "publicado": "2024"
+  },
+  {
+    "slug": "bm-precio-carbono",
+    "titulo": "State and Trends of Carbon Pricing",
+    "organizacion": "Banco Mundial",
+    "url": "https://www.worldbank.org/en/publication/state-and-trends-of-carbon-pricing",
+    "publicado": "2026"
+  },
+  {
+    "slug": "fmi-subsidios",
+    "titulo": "IMF Fossil Fuel Subsidies Data: 2023 Update",
+    "organizacion": "Fondo Monetario Internacional",
+    "url": "https://www.imf.org/en/Publications/WP/Issues/2023/08/22/IMF-Fossil-Fuel-Subsidies-Data-2023-Update-537281",
+    "publicado": "2023"
+  },
+  {
+    "slug": "fao-sofa-2023",
+    "titulo": "El estado mundial de la agricultura y la alimentación 2023: los costos ocultos de los sistemas agroalimentarios",
+    "organizacion": "FAO",
+    "url": "https://www.fao.org/publications/fao-flagship-publications/the-state-of-food-and-agriculture/2023/en",
+    "publicado": "2023"
+  },
+  {
+    "slug": "ley-27430-impuesto-co2",
+    "titulo": "Ley 27.430 — Impuesto al dióxido de carbono sobre los combustibles",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27430-305262",
+    "publicado": "2017"
+  },
+  {
+    "slug": "iea-energia-ia",
+    "titulo": "Energy and AI",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai",
+    "publicado": "2025"
+  },
+  {
+    "slug": "uptime-2024",
+    "titulo": "Uptime Institute Global Data Center Survey Results 2024",
+    "organizacion": "Uptime Institute",
+    "url": "https://uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024",
+    "publicado": "2024"
+  },
+  {
+    "slug": "google-ia-2025",
+    "titulo": "Measuring the environmental impact of delivering AI at Google Scale",
+    "organizacion": "Google (Elsworth y otros), arXiv",
+    "url": "https://arxiv.org/abs/2508.15734",
+    "publicado": "2025"
+  },
+  {
+    "slug": "usgs-litio-2025",
+    "titulo": "Mineral Commodity Summaries 2025: Lithium",
+    "organizacion": "Servicio Geológico de EE. UU. (USGS)",
+    "url": "https://pubs.usgs.gov/periodicals/mcs2025/mcs2025-lithium.pdf",
+    "publicado": "2025"
+  },
+  {
+    "slug": "usgs-cobalto-2025",
+    "titulo": "Mineral Commodity Summaries 2025: Cobalt",
+    "organizacion": "Servicio Geológico de EE. UU. (USGS)",
+    "url": "https://pubs.usgs.gov/periodicals/mcs2025/mcs2025-cobalt.pdf",
+    "publicado": "2025"
+  },
+  {
+    "slug": "iea-minerales-2025",
+    "titulo": "Global Critical Minerals Outlook 2025",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/global-critical-minerals-outlook-2025",
+    "publicado": "2025"
+  },
+  {
+    "slug": "amnistia-cobalto",
+    "titulo": "\"This is what we die for\": human rights abuses in the Democratic Republic of the Congo power the global trade in cobalt",
+    "organizacion": "Amnistía Internacional",
+    "url": "https://www.amnesty.org/en/documents/afr62/3183/2016/en/",
+    "publicado": "2016"
+  },
+  {
+    "slug": "ley-24196-mineria",
+    "titulo": "Ley 24.196 — Inversiones mineras (tope de regalías provinciales)",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-24196-594",
+    "publicado": "1993"
+  },
+  {
+    "slug": "ue-minerales-conflicto",
+    "titulo": "Conflict Minerals Regulation",
+    "organizacion": "Comisión Europea",
+    "url": "https://policy.trade.ec.europa.eu/development-and-sustainability/conflict-minerals-regulation_en",
+    "publicado": "2021"
+  },
+  {
+    "slug": "ocde-diligencia-minerales",
+    "titulo": "OECD Due Diligence Guidance for Responsible Supply Chains of Minerals from Conflict-Affected and High-Risk Areas",
+    "organizacion": "OCDE",
+    "url": "https://www.oecd.org/en/publications/oecd-due-diligence-guidance-for-responsible-supply-chains-of-minerals-from-conflict-affected-and-high-risk-areas_9789264252479-en.html",
+    "publicado": "2016"
+  },
+  {
+    "slug": "ley-24071-oit-169",
+    "titulo": "Ley 24.071 — Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-24071-470",
+    "publicado": "1992"
+  },
+  {
+    "slug": "oxfam-clima-2023",
+    "titulo": "Climate Equality: A planet for the 99%",
+    "organizacion": "Oxfam y Stockholm Environment Institute",
+    "url": "https://www.oxfam.org/en/research/climate-equality-planet-99",
+    "publicado": "2023"
+  },
+  {
+    "slug": "cij-clima-2025",
+    "titulo": "Obligations of States in respect of Climate Change (opinión consultiva)",
+    "organizacion": "Corte Internacional de Justicia",
+    "url": "https://www.icj-cij.org/case/187",
+    "publicado": "2025"
+  },
+  {
+    "slug": "acumar-causa-mendoza",
+    "titulo": "Causa Mendoza",
+    "organizacion": "ACUMAR",
+    "url": "https://www.acumar.gob.ar/institucional/causa-mendoza/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "ejatlas",
+    "titulo": "Environmental Justice Atlas",
+    "organizacion": "EJAtlas (Universitat Autònoma de Barcelona)",
+    "url": "https://ejatlas.org/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ejatlas-esquel",
+    "titulo": "Meridian Gold Mine in Esquel, Argentina",
+    "organizacion": "EJAtlas",
+    "url": "https://ejatlas.org/conflict/esquel-meridian-gold-mine-argentina",
+    "publicado": "2024"
+  },
+  {
+    "slug": "global-witness-defensores",
+    "titulo": "Land and Environmental Defenders",
+    "organizacion": "Global Witness",
+    "url": "https://globalwitness.org/en/campaigns/land-and-environmental-defenders/",
+    "publicado": "2026"
+  },
+  {
+    "slug": "cij-papeleras-2010",
+    "titulo": "Pulp Mills on the River Uruguay (Argentina v. Uruguay)",
+    "organizacion": "Corte Internacional de Justicia",
+    "url": "https://www.icj-cij.org/case/135",
+    "publicado": "2010"
+  },
+  {
+    "slug": "diaz-rosenberg-2008",
+    "titulo": "Spreading dead zones and consequences for marine ecosystems",
+    "organizacion": "Science (Diaz y Rosenberg)",
+    "url": "https://www.science.org/doi/10.1126/science.1156401",
+    "publicado": "2008"
+  },
+  {
+    "slug": "un-water-aguas-residuales",
+    "titulo": "Progress on wastewater treatment – 2024 update",
+    "organizacion": "ONU-Agua (UN-Water)",
+    "url": "https://www.unwater.org/publications/progress-wastewater-treatment-2024-update",
+    "publicado": "2024"
+  },
+  {
+    "slug": "minamata",
+    "titulo": "Convenio de Minamata sobre el Mercurio",
+    "organizacion": "Programa de las Naciones Unidas para el Medio Ambiente",
+    "url": "https://minamataconvention.org/es",
+    "publicado": "2013"
+  },
+  {
+    "slug": "ley-27490-amp",
+    "titulo": "Ley 27.490 — Áreas marinas protegidas Yaganes y Namuncurá-Banco Burdwood II",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27490-317651",
+    "publicado": "2018"
+  },
+  {
+    "slug": "cdb-meta-3",
+    "titulo": "Marco Mundial de Biodiversidad Kunming-Montreal: Meta 3",
+    "organizacion": "Convenio sobre la Diversidad Biológica",
+    "url": "https://www.cbd.int/gbf/targets/3",
+    "publicado": "2022"
+  },
+  {
+    "slug": "mpatlas",
+    "titulo": "Marine Protection Atlas",
+    "organizacion": "Marine Conservation Institute",
+    "url": "https://mpatlas.org/",
+    "publicado": "2026"
+  },
+  {
+    "slug": "mci-10-3",
+    "titulo": "10% Protected. 3% Effective. The Widening Gap We Can’t Ignore",
+    "organizacion": "Marine Conservation Institute",
+    "url": "https://marine-conservation.org/on-the-tide/ten-percent-protected-three-percent-effective/",
+    "publicado": "2026"
+  },
+  {
+    "slug": "edgar-2014-neoli",
+    "titulo": "Global conservation outcomes depend on marine protected areas with five key features",
+    "organizacion": "Nature (Edgar y otros)",
+    "url": "https://www.nature.com/articles/nature13022",
+    "publicado": "2014"
+  },
+  {
     "slug": "mst-bolsas-2018",
     "titulo": "Life Cycle Assessment of grocery carrier bags",
     "organizacion": "Danish Environmental Protection Agency",
@@ -853,6 +1378,34 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "milla-201",
           "pampa-azul",
           "vida-silvestre"
+        ]
+      },
+      {
+        "slug": "oceanos-3",
+        "titulo": "Ríos y mares contaminados",
+        "fuentes": [
+          "un-water-aguas-residuales",
+          "diaz-rosenberg-2008",
+          "oecd-plasticos",
+          "unep-plasticos",
+          "minamata",
+          "acumar",
+          "aysa",
+          "vida-silvestre"
+        ]
+      },
+      {
+        "slug": "oceanos-4",
+        "titulo": "Áreas protegidas del mar y la costa",
+        "fuentes": [
+          "cdb-meta-3",
+          "mpatlas",
+          "mci-10-3",
+          "edgar-2014-neoli",
+          "ley-27490-amp",
+          "parques-nacionales",
+          "ramsar",
+          "pampa-azul"
         ]
       }
     ]
@@ -963,6 +1516,29 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "guias-alimentarias-ar",
           "ipcc-ar6-syr"
         ]
+      },
+      {
+        "slug": "alimentacion-3",
+        "titulo": "La comida que se tira",
+        "fuentes": [
+          "unep-food-waste-2024",
+          "fao",
+          "owid-alimentos",
+          "red-bancos-alimentos",
+          "guias-alimentarias-ar"
+        ]
+      },
+      {
+        "slug": "alimentacion-4",
+        "titulo": "De estación, cerca y agroecológico",
+        "fuentes": [
+          "fao-agroecologia",
+          "fao",
+          "inta",
+          "owid-alimentos",
+          "ipbes-polinizadores",
+          "guias-alimentarias-ar"
+        ]
       }
     ]
   },
@@ -991,6 +1567,27 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ipbes-global",
           "sib-apn",
           "reserva-costanera-sur"
+        ]
+      },
+      {
+        "slug": "plantas-3",
+        "titulo": "Verde urbano",
+        "fuentes": [
+          "epa-isla-calor",
+          "oms-espacios-verdes",
+          "plantas-nativas",
+          "ecorregiones-pba",
+          "ipcc-ar6-syr"
+        ]
+      },
+      {
+        "slug": "plantas-4",
+        "titulo": "La huerta",
+        "fuentes": [
+          "inta",
+          "fao-agroecologia",
+          "fao-suelos",
+          "ipbes-polinizadores"
         ]
       }
     ]
@@ -1028,6 +1625,34 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "invasoras-mayds",
           "aves-argentinas"
         ]
+      },
+      {
+        "slug": "animales-3",
+        "titulo": "Especies en peligro",
+        "fuentes": [
+          "iucn-red-list",
+          "iucn-categorias",
+          "sarem-2019",
+          "aves-argentinas-amenazadas",
+          "ipbes-global",
+          "rewilding-argentina",
+          "parques-nacionales"
+        ]
+      },
+      {
+        "slug": "animales-4",
+        "titulo": "Qué amenaza a la biodiversidad",
+        "fuentes": [
+          "ipbes-global",
+          "ley-bosques-26331",
+          "global-forest-watch",
+          "invasoras-mayds",
+          "cites",
+          "ley-22421-fauna",
+          "red-centros-rescate",
+          "ipcc-ar6",
+          "ipbes-polinizadores"
+        ]
       }
     ]
   },
@@ -1056,6 +1681,38 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "anthony-2023-suelo",
           "inta",
           "ipbes-global"
+        ]
+      },
+      {
+        "slug": "aire-suelo-3",
+        "titulo": "El efecto invernadero",
+        "fuentes": [
+          "nasa-evidencia",
+          "noaa-co2",
+          "noaa-co2-historia",
+          "global-carbon-budget",
+          "ipcc-ar6",
+          "nasa-gistemp",
+          "copernicus-clima-2024",
+          "wmo-clima-2024",
+          "inventario-gei-ar",
+          "consenso-cook-2016"
+        ]
+      },
+      {
+        "slug": "aire-suelo-4",
+        "titulo": "El clima que cambia",
+        "fuentes": [
+          "ipcc-ar6",
+          "ipcc-ar6-syr",
+          "ipcc-sr15",
+          "noaa-nivel-mar",
+          "wmo-clima-2024",
+          "wwa-atribucion",
+          "inventario-glaciares",
+          "ley-26639-glaciares",
+          "acuerdo-paris",
+          "carbon-brief"
         ]
       }
     ]
@@ -1086,6 +1743,33 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "chequeado",
           "ipcc-ar6-syr"
         ]
+      },
+      {
+        "slug": "ciencia-3",
+        "titulo": "Fuentes y desinformación",
+        "fuentes": [
+          "chequeado",
+          "lectura-lateral",
+          "first-draft-tipos",
+          "flicc-cook",
+          "vosoughi-2018",
+          "inoculacion",
+          "cochrane",
+          "ipcc-ar6-syr"
+        ]
+      },
+      {
+        "slug": "ciencia-4",
+        "titulo": "Ciencia ciudadana",
+        "fuentes": [
+          "ecsa-principios",
+          "ebird",
+          "argentinat",
+          "inaturalist-calidad",
+          "gbif",
+          "geovin",
+          "aves-argentinas"
+        ]
       }
     ]
   },
@@ -1109,6 +1793,28 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
         "titulo": "La energía en casa",
         "fuentes": [
           "iea-eficiencia",
+          "iea-energia",
+          "owid-energia"
+        ]
+      },
+      {
+        "slug": "energia-3",
+        "titulo": "De dónde sale la electricidad",
+        "fuentes": [
+          "cammesa",
+          "iea-energia",
+          "owid-energia",
+          "ley-27424-generacion",
+          "irena"
+        ]
+      },
+      {
+        "slug": "energia-4",
+        "titulo": "Energías renovables",
+        "fuentes": [
+          "irena",
+          "cammesa",
+          "ley-27424-generacion",
           "iea-energia",
           "owid-energia"
         ]
@@ -1138,6 +1844,35 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "oms-seguridad-vial",
           "owid-transporte",
           "oms-aire-exterior"
+        ]
+      },
+      {
+        "slug": "movilidad-3",
+        "titulo": "Transporte público",
+        "fuentes": [
+          "human-transit",
+          "itdp-brt",
+          "metrobus-gcba",
+          "red-sube",
+          "owid-transporte",
+          "oms-aire-exterior",
+          "oms-seguridad-vial"
+        ]
+      },
+      {
+        "slug": "movilidad-4",
+        "titulo": "Autos, eléctricos y combustibles",
+        "fuentes": [
+          "epa-auto-tipico",
+          "doe-eficiencia-ev",
+          "icct-ev-global",
+          "icct-ev",
+          "iea-ev-outlook",
+          "oecd-no-escape",
+          "ley-27640-biocombustibles",
+          "owid-transporte",
+          "oms-aire-exterior",
+          "cammesa"
         ]
       }
     ]
@@ -1170,6 +1905,27 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ley-25916-residuos",
           "epa"
         ]
+      },
+      {
+        "slug": "residuos-3",
+        "titulo": "Compostar: la mitad de la bolsa",
+        "fuentes": [
+          "fao-suelos",
+          "epa",
+          "ley-1854-basura-cero",
+          "unep-food-waste-2024"
+        ]
+      },
+      {
+        "slug": "residuos-4",
+        "titulo": "El problema del plástico",
+        "fuentes": [
+          "oecd-plasticos",
+          "unep-plasticos",
+          "ellen-macarthur",
+          "rep-envases",
+          "emf-textiles"
+        ]
       }
     ]
   },
@@ -1197,6 +1953,34 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "senasa-organicos",
           "unep-plasticos",
           "ellen-macarthur"
+        ]
+      },
+      {
+        "slug": "consumo-3",
+        "titulo": "Economía circular",
+        "fuentes": [
+          "ellen-macarthur",
+          "emf-mariposa",
+          "circularity-gap-2025",
+          "ue-ecodiseno",
+          "ue-derecho-reparar",
+          "faccyr",
+          "rep-envases",
+          "emf-textiles"
+        ]
+      },
+      {
+        "slug": "consumo-4",
+        "titulo": "Lo que el precio no dice",
+        "fuentes": [
+          "fao-sofa-2023",
+          "bm-precio-carbono",
+          "fmi-subsidios",
+          "ley-27430-impuesto-co2",
+          "ley-25675-ambiente",
+          "ipbes-polinizadores",
+          "fao-pesca-sofia",
+          "oms-aire-exterior"
         ]
       }
     ]
@@ -1227,6 +2011,33 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "gbif",
           "iea-eficiencia"
         ]
+      },
+      {
+        "slug": "digital-3",
+        "titulo": "Centros de datos e inteligencia artificial",
+        "fuentes": [
+          "iea-energia-ia",
+          "iea-datacenters",
+          "uptime-2024",
+          "google-ia-2025",
+          "carbon-brief",
+          "iea-streaming"
+        ]
+      },
+      {
+        "slug": "digital-4",
+        "titulo": "De la mina al celular",
+        "fuentes": [
+          "usgs-litio-2025",
+          "usgs-cobalto-2025",
+          "iea-minerales-2025",
+          "ley-24196-mineria",
+          "ley-24071-oit-169",
+          "amnistia-cobalto",
+          "ocde-diligencia-minerales",
+          "ue-minerales-conflicto",
+          "ewaste-monitor"
+        ]
       }
     ]
   },
@@ -1256,6 +2067,34 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "onu-ods",
           "unesco-ods",
           "acumar"
+        ]
+      },
+      {
+        "slug": "comunidad-3",
+        "titulo": "Justicia ambiental",
+        "fuentes": [
+          "acumar",
+          "acumar-causa-mendoza",
+          "oxfam-clima-2023",
+          "cij-clima-2025",
+          "ley-25675-ambiente",
+          "escazu",
+          "acuerdo-paris",
+          "oms-aire-exterior"
+        ]
+      },
+      {
+        "slug": "comunidad-4",
+        "titulo": "Conflictos ambientales",
+        "fuentes": [
+          "ejatlas",
+          "ejatlas-esquel",
+          "cij-papeleras-2010",
+          "escazu",
+          "ley-25675-ambiente",
+          "ley-25831-info",
+          "global-witness-defensores",
+          "ley-24071-oit-169"
         ]
       }
     ]
