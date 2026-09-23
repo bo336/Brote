@@ -308,6 +308,14 @@ const NUEVAS = [
     url: 'https://www.glaciaresargentinos.gob.ar/',
     publicado: '2018',
   },
+  // ── Plantas ─────────────────────────────────────────────────────────────────
+  {
+    slug: 'bar-on-biomasa-2018',
+    titulo: 'The biomass distribution on Earth',
+    organizacion: 'PNAS (Bar-On, Phillips y Milo)',
+    url: 'https://www.pnas.org/doi/10.1073/pnas.1711842115',
+    publicado: '2018',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
