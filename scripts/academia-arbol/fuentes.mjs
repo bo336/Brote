@@ -450,6 +450,13 @@ const NUEVAS = [
   },
   // ── Alimentación ────────────────────────────────────────────────────────────
   {
+    slug: 'fao-agroecologia',
+    titulo: 'Centro de conocimientos sobre agroecología',
+    organizacion: 'FAO',
+    url: 'https://www.fao.org/agroecology/overview/es/',
+    publicado: '2024',
+  },
+  {
     slug: 'red-bancos-alimentos',
     titulo: 'Red Argentina de Bancos de Alimentos',
     organizacion: 'Red Argentina de Bancos de Alimentos',
