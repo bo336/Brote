@@ -285,7 +285,7 @@ for (const u of unidades) {
     if (l.tipo === 'leccion') {
       if (pasos[0]?.tipo !== 'teoria') err(ld, 'una lección empieza enseñando (primer paso: teoría)');
       if (presentacion.length < 2) err(ld, `una lección necesita al menos dos pasos de teoría o ejemplo (tiene ${presentacion.length})`);
-      if (graduables.length < 8) err(ld, `una lección necesita al menos 8 ejercicios (tiene ${graduables.length})`);
+      if (graduables.length < 9) err(ld, `una lección necesita al menos 9 ejercicios (tiene ${graduables.length})`);
       if (tiposDistintos.size < 4) err(ld, `una lección mezcla al menos 4 tipos de ejercicio (tiene ${tiposDistintos.size})`);
       if (PRESENTACION.has(pasos.at(-1)?.tipo)) err(ld, 'una lección termina en un ejercicio, no en teoría');
     }
