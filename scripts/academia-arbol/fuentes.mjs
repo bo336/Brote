@@ -316,6 +316,21 @@ const NUEVAS = [
     url: 'https://www.pnas.org/doi/10.1073/pnas.1711842115',
     publicado: '2018',
   },
+  // ── Animales ────────────────────────────────────────────────────────────────
+  {
+    slug: 'loss-2013-gatos',
+    titulo: 'The impact of free-ranging domestic cats on wildlife of the United States',
+    organizacion: 'Nature Communications (Loss, Will y Marra)',
+    url: 'https://www.nature.com/articles/ncomms2380',
+    publicado: '2013',
+  },
+  {
+    slug: 'loss-2014-vidrios',
+    titulo: 'Bird–window collisions in the United States',
+    organizacion: 'The Condor (Loss, Will, Loss y Marra)',
+    url: 'https://academic.oup.com/condor/article/116/1/8/5153098',
+    publicado: '2014',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
