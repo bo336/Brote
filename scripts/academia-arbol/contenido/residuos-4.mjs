@@ -171,7 +171,7 @@ export default unidad({
         ['Incinerar plástico no emite CO₂.', true, 'Sí emite: el plástico está hecho de carbono de origen fósil.'],
       ], 'Conocer los destinos reales cambia la mirada sobre el plástico.', { d: 2 }),
       comp('Completá.', 'Según la OCDE, solo alrededor del [9] % del plástico se recicla; cerca del [22] % se gestiona mal.', ['90', '2'], 'Dos números que resumen el problema global del plástico.', { d: 2 }),
-      est('Estimá cuántos millones de toneladas de residuos plásticos se generaron en el mundo en 2019.', 353, { min: 1, max: 10000, unidad: 'millones de t', escala: 'log' }, 'Unos 353 millones de toneladas, según la OCDE: casi un camión de basura por segundo, durante todo el año, muchas veces multiplicado.', { d: 3 }),
+      est('Estimá cuántos millones de toneladas de residuos plásticos se generaron en el mundo en 2019.', 353, { min: 1, max: 10000, unidad: 'millones de t', escala: 'log' }, 'Unos 353 millones de toneladas, según la OCDE: más de un camión de basura lleno por segundo, durante todo el año.', { d: 3 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -252,7 +252,7 @@ export default unidad({
       teoria('Del río al mar', [
         'Según el PNUMA, entre 19 y 23 millones de toneladas de residuos plásticos llegan cada año a lagos, ríos y mares. La mayor parte del plástico marino viene de tierra: de basurales, desagües y ríos que lo arrastran. Otra parte viene de la pesca: redes, sogas y boyas perdidas o abandonadas.',
       ], { destacado: { valor: '19-23 millones de t', texto: 'de residuos plásticos llegan cada año a lagos, ríos y mares, según el PNUMA.' } }),
-      est('Estimá cuántos millones de toneladas de plástico llegan por año a lagos, ríos y mares, según el PNUMA.', 21, { min: 0.1, max: 1000, unidad: 'millones de t', escala: 'log' }, 'Entre 19 y 23 millones de toneladas por año. Un camión de basura lleno cada pocos segundos, sin parar.', { d: 3 }),
+      est('Estimá cuántos millones de toneladas de plástico llegan por año a lagos, ríos y mares, según el PNUMA.', 21, { min: 0.1, max: 1000, unidad: 'millones de t', escala: 'log' }, 'Entre 19 y 23 millones de toneladas por año. Como un camión de basura lleno cada unos 15 segundos, sin parar.', { d: 3 }),
       clas('¿Este plástico en el mar viene de tierra o del mar?', { // e1
         'De tierra': ['Bolsas que arrastra un río', 'Botellas de un basural costero', 'Envoltorios que caen a un desagüe'],
         'Del mar': ['Redes de pesca perdidas', 'Sogas y boyas abandonadas', 'Cajones que caen de un barco'],
