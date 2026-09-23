@@ -727,6 +727,63 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/normativa/nacional/ley-27430-305262',
     publicado: '2017',
   },
+  // ── Centros de datos, IA y minerales ────────────────────────────────────────
+  {
+    slug: 'iea-energia-ia',
+    titulo: 'Energy and AI',
+    organizacion: 'Agencia Internacional de Energía',
+    url: 'https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai',
+    publicado: '2025',
+  },
+  {
+    slug: 'uptime-2024',
+    titulo: 'Uptime Institute Global Data Center Survey Results 2024',
+    organizacion: 'Uptime Institute',
+    url: 'https://uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024',
+    publicado: '2024',
+  },
+  {
+    slug: 'google-ia-2025',
+    titulo: 'Measuring the environmental impact of delivering AI at Google Scale',
+    organizacion: 'Google (Elsworth y otros), arXiv',
+    url: 'https://arxiv.org/abs/2508.15734',
+    publicado: '2025',
+  },
+  {
+    slug: 'usgs-litio-2025',
+    titulo: 'Mineral Commodity Summaries 2025: Lithium',
+    organizacion: 'Servicio Geológico de EE. UU. (USGS)',
+    url: 'https://pubs.usgs.gov/periodicals/mcs2025/mcs2025-lithium.pdf',
+    publicado: '2025',
+  },
+  {
+    slug: 'usgs-cobalto-2025',
+    titulo: 'Mineral Commodity Summaries 2025: Cobalt',
+    organizacion: 'Servicio Geológico de EE. UU. (USGS)',
+    url: 'https://pubs.usgs.gov/periodicals/mcs2025/mcs2025-cobalt.pdf',
+    publicado: '2025',
+  },
+  {
+    slug: 'iea-minerales-2025',
+    titulo: 'Global Critical Minerals Outlook 2025',
+    organizacion: 'Agencia Internacional de Energía',
+    url: 'https://www.iea.org/reports/global-critical-minerals-outlook-2025',
+    publicado: '2025',
+  },
+  {
+    slug: 'amnistia-cobalto',
+    titulo: '"This is what we die for": human rights abuses in the Democratic Republic of the Congo power the global trade in cobalt',
+    organizacion: 'Amnistía Internacional',
+    url: 'https://www.amnesty.org/en/documents/afr62/3183/2016/en/',
+    publicado: '2016',
+  },
+  {
+    slug: 'ley-24071-oit-169',
+    titulo: 'Ley 24.071 — Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-24071-470',
+    publicado: '1992',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
