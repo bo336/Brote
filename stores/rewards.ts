@@ -9,7 +9,10 @@ export type RewardEvent =
   | { id: string; kind: 'firstAction' }
   | { id: string; kind: 'worldComplete'; completedIndex: number; newIndex: number }
   /* La Academia: se cerró un anillo del bosque y se abrió el siguiente. */
-  | { id: string; kind: 'anilloUp'; anillo: number; nombre: string };
+  | { id: string; kind: 'anilloUp'; anillo: number; nombre: string }
+  /* La Academia (el Árbol): se completó una unidad y su rama creció. Si era la
+     primera del tronco, lo que se abrió son todas las ramas. */
+  | { id: string; kind: 'ramaCrece'; rama: string; unidad: string; ramasAbiertas: boolean };
 
 /** Distributive Omit so each union member keeps its discriminant-specific props. */
 type DistributiveOmit<T, K extends keyof any> = T extends unknown ? Omit<T, K> : never;

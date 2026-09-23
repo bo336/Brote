@@ -187,6 +187,7 @@ begin
                         select jsonb_agg(jsonb_build_object(
                                  'id', el.leccion_id, 'orden', el.orden,
                                  'tipo', l.tipo, 'estado', el.estado,
+                                 'titulo_es', l.titulo_es, 'minutos', l.minutos,
                                  'mejor_score', el.mejor_score)
                                order by el.orden)
                         from ac_estado_lecciones(v_uid, u.id, e.abierta) el
@@ -755,7 +756,11 @@ begin
 
   -- ── Memoria del grupo: promedio móvil y vida media.
   insert into ac_user_memoria (user_id, grupo, mastery, half_life, vistas, aciertos, ultimo_correcto, last_seen)
-  values (v_uid, v_p.grupo, 0.4 * v_par, case when v_ok then 2.0 else 0.6 end, 1,
+  -- La primera observación fija la maestría (no arranca en cero): quien
+  -- acierta algo la primera vez lo sabe AHORA. Lo que cae después es la
+  -- retrievability, no la maestría. Arrancando en 0,4, una unidad recién
+  -- aprobada aparecía como "para repasar" en el mismo instante (medido en QA).
+  values (v_uid, v_p.grupo, v_par, case when v_ok then 2.0 else 0.6 end, 1,
           case when v_ok then 1 else 0 end, v_ok, now())
   on conflict (user_id, grupo) do update set
     mastery = ac_user_memoria.mastery + 0.4 * (v_par - ac_user_memoria.mastery),

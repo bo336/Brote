@@ -3,211 +3,273 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Sprout } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Flame, History, Play, RotateCcw, Sprout, TreeDeciduous } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CountUp } from '@/components/ui/count-up';
-import { Pip } from '@/components/pip/Pip';
+import { ProgressBar } from '@/components/ui/progress';
 import { Reveal } from '@/components/ui/reveal';
-import { FuerzaMedidor } from '@/components/academia/FuerzaMedidor';
-import { DomainIcon } from '@/components/icons/DomainIcon';
-import type { ResultadoSesion } from '@/lib/academia/types';
-import { cerrarAnillo, marcarGancho } from '@/lib/api/academia';
-import { esFallo } from '@/lib/academia/types';
+import { Pip } from '@/components/pip/Pip';
+import type { Resultado, Sesion } from '@/lib/academia/modelo';
+import { marcarGancho } from '@/lib/api/academia';
+import { useEmpezar } from '@/lib/academia/usar-empezar';
+import { useJugada } from '@/lib/academia/jugada';
+import { getDomainName } from '@/lib/domains';
+import { localDate } from '@/lib/utils/dates';
 import { useRewards } from '@/stores/rewards';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
-import { localDate } from '@/lib/utils/dates';
-import { getDomainColor } from '@/lib/domains';
 
 /**
  * El cierre de una sesión.
  *
- * EL ORDEN ES LA PANTALLA (15-ui-motion.md §5): Pip, el puntaje, lo que se
- * ganó, qué conceptos se movieron, y recién ahí el gancho de acción — con el
- * peso de CTA primario, porque es lo único de esta pantalla que cambia algo
- * afuera de la app. Saber que el agua virtual existe no ahorra un litro; poner
- * el lavarropas lleno, sí.
+ * EL ORDEN ES LA PANTALLA: Pip, el puntaje, lo que se ganó, cuánto avanzó la
+ * unidad (y si la rama creció), el repaso que se hizo sin darse cuenta, y
+ * recién ahí el gancho de acción —con peso de CTA primario, porque es lo único
+ * de esta pantalla que cambia algo afuera de la app— y la próxima sesión.
  *
- * Si el servidor no encontró una acción elegible devuelve `null` y no se
- * dibuja nada: una acción en enfriamiento sería un link roto disfrazado de
- * sugerencia, y esta sección no inventa acciones.
+ * Si no alcanzó el puntaje para completar la sesión, se dice sin drama y con
+ * el camino claro: cuánto hacía falta y un botón para rehacerla (gratis).
  */
 export function Resultados({
-  resultado,
-  sesionId,
-  ramaSlug,
+  resultado: r,
+  sesion,
+  color,
   onCerrar,
 }: {
-  resultado: ResultadoSesion;
-  sesionId: string;
-  ramaSlug: string;
+  resultado: Resultado;
+  sesion: Sesion;
+  color: string;
   onCerrar: () => void;
 }) {
-  const t = useTranslations('academia');
+  const t = useTranslations('arbol');
+  const quieto = useReducedMotion();
   const yaCelebrado = useRef(false);
-  const color = getDomainColor(ramaSlug);
+  const cerrar = useJugada((s) => s.cerrar);
+  const { empezar, arrancando } = useEmpezar();
 
-  // Las celebraciones van por los caminos que ya existen: la cola de premios y
-  // el toast de puntos. La Academia no estrena su propio sistema de festejo.
+  // Las celebraciones van por los caminos que ya existen: el toast de puntos y
+  // la cola de premios. La Academia no estrena un sistema de festejo propio.
   useEffect(() => {
     if (yaCelebrado.current) return;
     yaCelebrado.current = true;
-
-    if (resultado.xp > 0) toast.points(resultado.xp);
-
+    if (r.xp > 0) toast.points(r.xp);
     const { profile, applyCompletion } = useSession.getState();
     if (profile) {
       applyCompletion({
-        totalXp: profile.totalXp + resultado.xp,
-        streak: resultado.racha,
-        streakDate: resultado.racha_sumo ? localDate() : undefined,
+        totalXp: profile.totalXp + r.xp,
+        streak: r.racha,
+        streakDate: r.racha_sumo ? localDate() : undefined,
       });
     }
-
     const eventos: Parameters<ReturnType<typeof useRewards.getState>['enqueue']>[0] = [];
-    for (const x of (resultado.nuevos_titulos ?? []) as { name_es?: string; rarity?: string }[]) {
+    if (r.unidad?.completa) {
+      eventos.push({
+        kind: 'ramaCrece',
+        rama: r.unidad.rama_slug === 'tronco' ? t('tronco') : getDomainName(r.unidad.rama_slug),
+        unidad: r.unidad.titulo_es,
+        ramasAbiertas: r.ramas_abiertas,
+      });
+    }
+    for (const x of (r.nuevos_titulos ?? []) as { name_es?: string; rarity?: string }[]) {
       if (x?.name_es) eventos.push({ kind: 'title', name: x.name_es, rarity: x.rarity ?? 'comun' });
     }
-    for (const x of (resultado.nuevas_insignias ?? []) as { name_es?: string; rarity?: string }[]) {
+    for (const x of (r.nuevas_insignias ?? []) as { name_es?: string; rarity?: string }[]) {
       if (x?.name_es) eventos.push({ kind: 'badge', name: x.name_es, rarity: x.rarity ?? 'comun' });
     }
     if (eventos.length) useRewards.getState().enqueue(eventos);
-
-    // El gancho se muestra: queda registrado para poder calcular la tasa de
-    // toques. Es la métrica que dice si la sección cumple su única promesa.
-    if (resultado.accion) void marcarGancho(sesionId, resultado.accion.id, 'mostrado');
-
-    // ¿Se cerró un anillo? Se pregunta ACÁ y no en `finish_session` porque el
-    // cierre depende del estado del árbol entero, no de esta sesión. La
-    // ceremonia va por la MISMA cola de premios que todo lo demás.
-    void (async () => {
-      const r = await cerrarAnillo();
-      if (!esFallo(r) && r.cerrado && r.anillo) {
-        useRewards.getState().enqueue([
-          { kind: 'anilloUp', anillo: r.anillo, nombre: r.nombre ?? '' },
-        ]);
-      }
-    })();
-  }, [resultado, sesionId]);
+    if (r.accion) void marcarGancho(sesion.intento_id, r.accion.id, 'mostrado');
+  }, [r, sesion.intento_id, t]);
 
   const titulo =
-    resultado.score >= 100
-      ? t('resultadoPerfecto')
-      : resultado.aprobada
-        ? t('resultadoBien')
-        : t('resultadoFlojo');
+    r.score >= 100 ? t('resultadoPerfecto') : r.aprobada ? t('resultadoBien') : r.score >= r.umbral - 15 ? t('resultadoCasi') : t('resultadoFlojo');
 
   return (
     <div className="fixed inset-0 z-[45] overflow-y-auto bg-background">
-      <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-4 pb-8 pt-10">
-        {/* 1 · Pip. La tercera y última aparición de la sesión. */}
+      <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-4 pb-10 pt-10">
+        {/* 1 · Pip y el puntaje */}
         <div className="flex flex-col items-center text-center">
-          <Pip size={96} mood={resultado.aprobada ? 'celebrating' : 'happy'} />
-
-          {/* 2 · El puntaje. */}
-          <h1 className="mt-3 font-display text-display-l font-extrabold leading-none">
-            <CountUp value={resultado.score} format={(n) => `${n}%`} className="tnum" />
+          <Pip size={96} mood={r.aprobada ? 'celebrating' : 'happy'} />
+          <h1 className="mt-3 font-display text-hero font-extrabold leading-none">
+            <CountUp value={r.score} format={(n) => `${n}%`} className="tnum" />
           </h1>
-          <p className="mt-1 font-display text-h2 font-bold" style={{ color }}>
+          <p className="mt-1.5 font-display text-h2 font-bold" style={{ color }}>
             {titulo}
           </p>
-          <p className="mt-0.5 text-small text-muted-foreground">
-            {t('resultadoSub', { aciertos: resultado.correctas, total: resultado.total })}
-          </p>
+          <p className="mt-0.5 text-small text-muted-foreground">{t('resultadoSub', { bien: r.correctas, total: r.total })}</p>
+          {!r.aprobada && sesion.leccion ? (
+            <p className="mt-2 max-w-sm text-small leading-relaxed">{t('faltoUmbral', { umbral: r.umbral })}</p>
+          ) : null}
         </div>
 
-        {/* 3 · Lo que se ganó. */}
+        {/* 2 · Lo que se ganó */}
         <Reveal className="mt-6">
-          <dl className="grid grid-cols-2 overflow-hidden rounded-card border border-hairline">
-            <div className="bg-surface px-4 py-3 text-center">
-              <dd className="font-display text-h2 font-bold text-primary">
-                <CountUp value={resultado.xp} format={(n) => `+${n}`} className="tnum" />
-              </dd>
-              <dt className="mt-0.5 text-caption text-muted-foreground">XP</dt>
-            </div>
-            <div className="border-l border-hairline bg-surface px-4 py-3 text-center">
-              <dd className="flex items-center justify-center gap-1 font-display text-h2 font-bold text-brote-sun">
-                <Sprout className="h-5 w-5" aria-hidden />
-                <CountUp value={resultado.semillas} format={(n) => `+${n}`} className="tnum" />
-              </dd>
-              <dt className="mt-0.5 text-caption text-muted-foreground">
-                {t('semillas')}
-              </dt>
-            </div>
-          </dl>
-          {resultado.racha_sumo ? (
-            <p className="mt-2 text-center text-small font-semibold text-brote-sun">
-              {t('rachaSigue', { n: resultado.racha })}
-            </p>
-          ) : null}
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="tnum inline-flex items-center gap-1.5 rounded-pill bg-primary/15 px-3 py-1.5 text-small font-bold text-primary">
+              +<CountUp value={r.xp} /> {t('xp')}
+            </span>
+            {r.semillas > 0 ? (
+              <span className="tnum inline-flex items-center gap-1.5 rounded-pill bg-brote-sun/15 px-3 py-1.5 text-small font-bold text-brote-sun">
+                <Sprout className="h-4 w-4" aria-hidden />+<CountUp value={r.semillas} /> {t('semillas')}
+              </span>
+            ) : null}
+            {r.racha > 0 ? (
+              <span className="inline-flex items-center gap-1.5 rounded-pill bg-brote-coral/15 px-3 py-1.5 text-small font-bold text-brote-coral">
+                <Flame className="h-4 w-4" aria-hidden />
+                {t('rachaDias', { n: r.racha })}
+              </span>
+            ) : null}
+          </div>
         </Reveal>
 
-        {/* 4 · Qué se movió. Hasta cuatro: la lista completa no es un resultado. */}
-        {resultado.conceptos.length > 0 ? (
+        {/* 3 · La unidad, y la rama si creció */}
+        {r.unidad ? (
           <Reveal index={1} className="mt-6">
-            <h2 className="eyebrow mb-2 text-muted-foreground">{t('seMovio')}</h2>
-            <ul className="divide-y divide-hairline border-y border-hairline">
-              {resultado.conceptos.slice(0, 4).map((c) => (
-                <li key={c.slug} className="py-2.5">
-                  <FuerzaMedidor fuerza={c.fuerza} titulo={c.titulo_es} compacto />
-                </li>
-              ))}
-            </ul>
+            {r.unidad.completa ? (
+              <div className="overflow-hidden rounded-card border-2 p-5 text-center" style={{ borderColor: color }}>
+                <RamaQueCrece color={color} quieto={!!quieto} />
+                <p className="eyebrow mt-2" style={{ color }}>
+                  {r.ramas_abiertas ? t('ramasAbiertasEyebrow') : t('unidadCompletaEyebrow')}
+                </p>
+                <h2 className="mt-1 text-balance font-display text-h1 font-extrabold leading-tight">
+                  {r.ramas_abiertas ? t('ramasAbiertasTitulo') : t('ramaCrecioTitulo')}
+                </h2>
+                <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">
+                  {r.ramas_abiertas ? t('ramasAbiertasCuerpo') : t('ramaCrecioCuerpo', { unidad: r.unidad.titulo_es })}
+                </p>
+                {r.unidad_desbloqueada ? (
+                  <Button asChild className="mt-4" variant="secondary">
+                    <Link href={`/aprender/u/${r.unidad_desbloqueada.slug}`} onClick={() => cerrar()}>
+                      {t('seAbrio', { titulo: r.unidad_desbloqueada.titulo_es })}
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-card border border-hairline bg-surface p-4">
+                <p className="eyebrow" style={{ color }}>
+                  {t('tuUnidad')}
+                </p>
+                <p className="mt-0.5 font-display text-h3 font-bold leading-snug">{r.unidad.titulo_es}</p>
+                <div className="mt-2.5 flex items-center gap-3">
+                  <ProgressBar value={r.unidad.total ? r.unidad.hechas / r.unidad.total : 0} color={color} height={8} />
+                  <span className="tnum shrink-0 text-caption font-semibold text-muted-foreground">
+                    {t('sesionesHechas', { hechas: r.unidad.hechas, total: r.unidad.total })}
+                  </span>
+                </div>
+              </div>
+            )}
           </Reveal>
         ) : null}
 
-        {/* 5 · El gancho de acción, con peso de CTA primario. */}
-        {resultado.accion ? (
-          <Reveal index={2} className="mt-6">
-            <div className="rounded-card border-2 border-primary/30 bg-primary/5 p-4">
-              <p className="eyebrow text-primary">{t('accionTitulo')}</p>
-              <div className="mt-2 flex items-start gap-3">
-                <DomainIcon domain={resultado.accion.domain_slug} size={44} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-small font-semibold leading-snug">{resultado.accion.titulo_es}</p>
-                  {resultado.accion.short_es ? (
-                    <p className="mt-0.5 text-caption leading-relaxed text-muted-foreground">
-                      {resultado.accion.short_es}
-                    </p>
-                  ) : null}
-                  {resultado.accion.equivalencia_es ? (
-                    <p className="mt-1 text-caption font-medium text-primary">
-                      {resultado.accion.equivalencia_es}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-              <p className="mt-3 text-caption leading-relaxed text-muted-foreground">{t('accionCuerpo')}</p>
-              <Button asChild block className="mt-3">
+        {/* 4 · El repaso que se hizo: la memoria espaciada, a la vista */}
+        {r.repasados > 0 ? (
+          <Reveal index={2} className="mt-4">
+            <p className="flex items-start gap-2.5 rounded-card bg-brote-aqua/10 p-3.5 text-small leading-relaxed">
+              <History className="mt-0.5 h-4 w-4 shrink-0 text-brote-aqua" aria-hidden />
+              {t('repasaste', { n: r.repasados })}
+            </p>
+          </Reveal>
+        ) : null}
+
+        {/* 5 · El gancho: de saber a hacer */}
+        {r.accion ? (
+          <Reveal index={3} className="mt-6">
+            <section className="rounded-card border border-primary/30 bg-primary/[0.06] p-5">
+              <p className="eyebrow text-primary">{t('accionEyebrow')}</p>
+              <h2 className="mt-1 font-display text-h2 font-bold leading-snug">{r.accion.titulo_es}</h2>
+              {r.accion.short_es ? <p className="mt-1 text-small leading-relaxed text-muted-foreground">{r.accion.short_es}</p> : null}
+              <Button asChild block size="lg" className="mt-4">
                 <Link
-                  href={`/acciones/${resultado.accion.slug}`}
+                  href={`/acciones/${r.accion.slug}`}
                   onClick={() => {
-                    if (resultado.accion) void marcarGancho(sesionId, resultado.accion.id, 'tocado');
-                    onCerrar();
+                    void marcarGancho(sesion.intento_id, r.accion!.id, 'tocado');
+                    cerrar();
                   }}
                 >
-                  {t('accionCta')}
+                  {t('accionCta', { puntos: r.accion.base_points })}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </Button>
-            </div>
+            </section>
           </Reveal>
         ) : null}
 
-        {/* 6 · Navegación, al final y sin gritar. */}
-        <div className="mt-auto flex flex-col gap-2 pt-8">
-          {resultado.tipo === 'hoja' ? (
-            <Button asChild variant="secondary" block>
-              <Link href={`/aprender/${ramaSlug}`} onClick={onCerrar}>
-                {t('otraHoja')}
-              </Link>
+        {/* 6 · Seguir */}
+        <div className="mt-6 flex flex-col gap-2">
+          {!r.aprobada && sesion.leccion ? (
+            <Button block size="lg" variant={r.accion ? 'secondary' : 'primary'} loading={arrancando === sesion.leccion.id} onClick={() => void empezar(sesion.leccion!.id)}>
+              <RotateCcw className="h-4 w-4" aria-hidden />
+              {t('rehacerSesion')}
+            </Button>
+          ) : r.siguiente ? (
+            <Button block size="lg" variant={r.accion ? 'secondary' : 'primary'} loading={arrancando === r.siguiente.id} onClick={() => void empezar(r.siguiente!.id)}>
+              <Play className="h-4 w-4" aria-hidden fill="currentColor" />
+              {t('seguirCon', { titulo: r.siguiente.titulo_es })}
             </Button>
           ) : null}
-          <Button variant="ghost" block onClick={onCerrar}>
-            {t('volverAlBosque')}
+          <Button block variant="ghost" onClick={onCerrar}>
+            <TreeDeciduous className="h-4 w-4" aria-hidden />
+            {t('volverAlArbol')}
           </Button>
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Una rama que crece: la madera se dibuja, la vena de color la sigue y brotan
+ * las hojas. Es chica, dura un segundo y medio y existe para una sola cosa:
+ * que completar una unidad se VEA como lo que es en el árbol.
+ */
+function RamaQueCrece({ color, quieto }: { color: string; quieto: boolean }) {
+  const hojas = [
+    { x: 70, y: 70, r: -30 },
+    { x: 110, y: 52, r: 20 },
+    { x: 150, y: 40, r: -40 },
+    { x: 190, y: 30, r: 30 },
+    { x: 226, y: 26, r: -15 },
+  ];
+  const trazo = 'M 20 104 C 80 90, 140 50, 240 24';
+  return (
+    <svg viewBox="0 0 260 120" className="mx-auto h-24 w-full max-w-[260px]" aria-hidden>
+      <motion.path
+        d={trazo}
+        fill="none"
+        stroke="#6B4D35"
+        strokeWidth={10}
+        strokeLinecap="round"
+        initial={quieto ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.path
+        d={trazo}
+        fill="none"
+        stroke={color}
+        strokeWidth={4}
+        strokeLinecap="round"
+        initial={quieto ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      />
+      {hojas.map((h, i) => (
+        // La posición va en el <g>: framer-motion escribe `transform` como
+        // estilo en el elemento que anima, y pisaría un translate puesto ahí.
+        <g key={i} transform={`translate(${h.x} ${h.y}) rotate(${h.r})`}>
+          <motion.path
+            d="M 0 -12 C 8 -7 10 1 0 12 C -10 1 -8 -7 0 -12 Z"
+            fill={color}
+            stroke="#fff"
+            strokeWidth={1}
+            initial={quieto ? false : { scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.6 + i * 0.12, type: 'spring', stiffness: 380, damping: 16 }}
+          />
+        </g>
+      ))}
+    </svg>
   );
 }
