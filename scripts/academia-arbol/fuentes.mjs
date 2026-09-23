@@ -404,6 +404,35 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/senasa/programas-sanitarios/produccion-organica',
     publicado: '2024',
   },
+  // ── Digital ─────────────────────────────────────────────────────────────────
+  {
+    slug: 'iea-streaming',
+    titulo: 'The carbon footprint of streaming video: fact-checking the headlines',
+    organizacion: 'Agencia Internacional de Energía (IEA)',
+    url: 'https://www.iea.org/commentaries/the-carbon-footprint-of-streaming-video-fact-checking-the-headlines',
+    publicado: '2020',
+  },
+  {
+    slug: 'global-forest-watch',
+    titulo: 'Global Forest Watch',
+    organizacion: 'World Resources Institute',
+    url: 'https://www.globalforestwatch.org/',
+    publicado: '2024',
+  },
+  {
+    slug: 'nasa-firms',
+    titulo: 'FIRMS — Fire Information for Resource Management System',
+    organizacion: 'NASA',
+    url: 'https://firms.modaps.eosdis.nasa.gov/',
+    publicado: '2024',
+  },
+  {
+    slug: 'conae',
+    titulo: 'Comisión Nacional de Actividades Espaciales (CONAE)',
+    organizacion: 'Gobierno de Argentina',
+    url: 'https://www.argentina.gob.ar/ciencia/conae',
+    publicado: '2024',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
