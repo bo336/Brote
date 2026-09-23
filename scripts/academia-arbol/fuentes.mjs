@@ -433,6 +433,21 @@ const NUEVAS = [
     url: 'https://www.argentina.gob.ar/ciencia/conae',
     publicado: '2024',
   },
+  // ── Océanos y ríos ──────────────────────────────────────────────────────────
+  {
+    slug: 'pampa-azul',
+    titulo: 'Iniciativa Pampa Azul',
+    organizacion: 'Gobierno de Argentina',
+    url: 'https://www.pampazul.gob.ar/',
+    publicado: '2024',
+  },
+  {
+    slug: 'inidep',
+    titulo: 'Instituto Nacional de Investigación y Desarrollo Pesquero (INIDEP)',
+    organizacion: 'INIDEP',
+    url: 'https://www.inidep.edu.ar/',
+    publicado: '2024',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
@@ -444,8 +459,8 @@ const NUEVAS = [
   {
     slug: 'iai-reciclaje-aluminio',
     titulo: 'Aluminium recycling',
-    organizacion: 'International Aluminium Institute',
-    url: 'https://international-aluminium.org/landing/aluminium-recycling/',
+    organizacion: 'European Aluminium',
+    url: 'https://european-aluminium.eu/about-aluminium/aluminium-recycling/',
     publicado: '2024',
   },
   {
