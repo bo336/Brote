@@ -360,6 +360,21 @@ const NUEVAS = [
     url: 'https://www.fao.org/3/i5126s/i5126s.pdf',
     publicado: '2015',
   },
+  // ── Movilidad ───────────────────────────────────────────────────────────────
+  {
+    slug: 'owid-transporte',
+    titulo: 'Which form of transport has the smallest carbon footprint?',
+    organizacion: 'Our World in Data',
+    url: 'https://ourworldindata.org/travel-carbon-footprint',
+    publicado: '2023',
+  },
+  {
+    slug: 'oms-seguridad-vial',
+    titulo: 'Traumatismos causados por el tránsito (nota descriptiva)',
+    organizacion: 'Organización Mundial de la Salud',
+    url: 'https://www.who.int/es/news-room/fact-sheets/detail/road-traffic-injuries',
+    publicado: '2023',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
