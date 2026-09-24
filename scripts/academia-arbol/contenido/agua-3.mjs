@@ -90,6 +90,16 @@ export default unidad({
         ['Agua cloacal con buen tratamiento secundario', 'decenas o menos'],
         ['Arroyo limpio de montaña', 'unos pocos mg/L'],
       ], 'Valores de referencia aproximados. Los efluentes de industrias alimenticias pueden ser mucho más cargados que las cloacas de un barrio.', { d: 3 }),
+      numv(3, (i) => {
+        const hab = [1000, 5000, 20000][i];
+        return {
+          enunciado: `Para dimensionar plantas de tratamiento se usa el "habitante equivalente": unos 60 gramos de DBO por persona por día. ¿Cuántos kg de DBO por día genera un barrio de ${hab.toLocaleString('es-AR')} habitantes?`,
+          valor: hab * 60 / 1000,
+          unidad: 'kg de DBO por día',
+          explicacion: `${hab.toLocaleString('es-AR')} × 60 g = ${(hab * 60).toLocaleString('es-AR')} g = ${(hab * 60 / 1000).toLocaleString('es-AR')} kg por día. Esa es la carga que la planta tiene que sacar para que no le quite oxígeno al río.`,
+          ctx: `${hab} habitantes; 60 g de DBO por persona por día.`,
+        };
+      }, { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -162,6 +172,11 @@ export default unidad({
         ['El tratamiento primario ya saca todos los nutrientes.', true, 'Los nutrientes se sacan, cuando se sacan, en el terciario.'],
       ], 'Etapas bien ubicadas y la idea de que nada desaparece: el barro es la otra cara del agua limpia.', { d: 3 }),
       comp('Completá.', 'En el tratamiento [secundario] se inyecta [aire] para que las bacterias descompongan la materia orgánica; el terciario saca [nutrientes].', ['primario', 'cloro', 'arena'], 'Secundario = bacterias con aire; terciario = nutrientes. Son las dos etapas que más cambian lo que llega al río.', { d: 2 }),
+      clas('¿En qué nivel de tratamiento ocurre cada paso?', {
+        'Primario': ['Dejar que los sólidos se asienten en piletas', 'Separar las grasas que flotan'],
+        'Secundario': ['Bacterias que descomponen la materia orgánica con aire', 'Piletas de barros activados'],
+        'Terciario': ['Quitar nitrógeno y fósforo', 'Filtrados y desinfecciones finales más exigentes'],
+      }, 'Cada nivel saca algo que el anterior deja pasar: por eso importa hasta dónde llega una planta.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -233,6 +248,13 @@ export default unidad({
         ['Mortandad de peces en verano', 'Menos oxígeno por el calor y la descomposición'],
         ['Espuma persistente en un arroyo', 'Detergentes y efluentes industriales'],
       ], 'Cada síntoma tiene una causa más probable. Identificarla orienta qué medir y qué reclamar.', { d: 3 }),
+      mult('¿Qué situaciones bajan el oxígeno disuelto de un río? Marcá todas.', [
+        '+Mucha materia orgánica de cloacas sin tratar',
+        '+Agua más caliente en verano',
+        '+Poco caudal durante una sequía',
+        '+Exceso de nutrientes que dispara algas',
+        '-Una cascada que mezcla el agua con el aire',
+      ], 'El calor, la poca agua y la carga orgánica se suman: por eso las mortandades de peces suelen ocurrir en verano.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -298,6 +320,12 @@ export default unidad({
         razones: ['+Porque también ordenó mejorar la calidad de vida de sus habitantes', '-Porque el fallo no mencionó el río', '-Porque la Corte Suprema no puede ordenar nada sobre el ambiente'],
         d: 2,
       }),
+      par('Uní cada actor con su papel en el saneamiento de la cuenca.', [
+        ['Corte Suprema', 'Dictó el fallo y controla que se cumpla'],
+        ['ACUMAR', 'Coordina el plan entre Nación, Provincia y Ciudad'],
+        ['Industrias de la cuenca', 'Deben tratar sus efluentes antes de volcarlos'],
+        ['Vecinos y organizaciones', 'Participan y controlan los avances'],
+      ], 'El saneamiento de una cuenca necesita a todos los actores, cada uno con su parte.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -361,6 +389,12 @@ export default unidad({
         'Dejan de infiltrarse en el suelo',
         'La napa del barrio se contamina menos',
       ], ['El agua de la canilla sale más caliente'], 'La conexión saca la contaminación del suelo y la lleva a donde se puede tratar. Es de las obras con más impacto en la salud de un barrio.', { d: 3 }),
+      op('¿Por qué conviene barrer la vereda en seco en lugar de baldearla hacia la calle?', [
+        'Lo que llega a la calle termina en el arroyo por el pluvial',
+        'Porque el agua de baldear se va directo a la cloaca',
+        ['Porque así la vereda queda más brillante', 'No es estética: es evitar que la suciedad llegue al arroyo sin tratar.'],
+        'Porque el pluvial lleva todo a una planta de tratamiento',
+      ], 'Barrer en seco ahorra agua y evita mandar tierra, colillas y aceites al arroyo.', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
