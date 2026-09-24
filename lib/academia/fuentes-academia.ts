@@ -1277,6 +1277,1175 @@ export const FUENTES_ACADEMIA: FuenteAcademia[] = [
     "publicado": "2014"
   },
   {
+    "slug": "iea-baterias-2024",
+    "titulo": "Batteries and Secure Energy Transitions",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/batteries-and-secure-energy-transitions",
+    "publicado": "2024"
+  },
+  {
+    "slug": "bnef-baterias-2024",
+    "titulo": "Lithium-Ion Battery Pack Prices See Largest Drop Since 2017, Falling to $115 per Kilowatt-Hour",
+    "organizacion": "BloombergNEF",
+    "url": "https://about.bnef.com/insights/commodities/lithium-ion-battery-pack-prices-see-largest-drop-since-2017-falling-to-115-per-kilowatt-hour-bloombergnef/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "eia-curva-pato",
+    "titulo": "As solar capacity grows, duck curves are getting deeper in California",
+    "organizacion": "Administración de Información Energética de EE. UU.",
+    "url": "https://www.eia.gov/todayinenergy/detail.php?id=56880",
+    "publicado": "2023"
+  },
+  {
+    "slug": "almagba-2025",
+    "titulo": "Se abrió la licitación de AlmaGBA: se recibieron 27 proyectos por más de 1347 MW de almacenamiento",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/noticias/se-abrio-la-licitacion-de-almagba-se-recibieron-27-proyectos-por-mas-de-1347-mw-de",
+    "publicado": "2025"
+  },
+  {
+    "slug": "iea-renovables-2024",
+    "titulo": "Renewables 2024",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/renewables-2024",
+    "publicado": "2024"
+  },
+  {
+    "slug": "ley-27191-renovables",
+    "titulo": "Ley 27.191 — Régimen de fomento de las energías renovables",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27191-253626",
+    "publicado": "2015"
+  },
+  {
+    "slug": "argendata-transicion",
+    "titulo": "Transición energética",
+    "organizacion": "Argendata (Fundar)",
+    "url": "https://argendata.fund.ar/topico/transicion-energetica/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "renovables-2025-ar",
+    "titulo": "Las energías renovables sumaron más de 1000 MW en 2025 y ya cubren casi un quinto de la demanda",
+    "organizacion": "EconoJournal (con datos de CAMMESA)",
+    "url": "https://econojournal.com.ar/renovables-te/las-energias-renovables-sumaron-mas-de-1-000-mw-en-2025-y-ya-cubren-casi-un-quinto-de-la-demanda/",
+    "publicado": "2026"
+  },
+  {
+    "slug": "censo-gas-2022",
+    "titulo": "Censo 2022: cuántos argentinos tienen acceso a gas natural, cloacas y vivienda propia",
+    "organizacion": "Infobae (con datos del INDEC)",
+    "url": "https://www.infobae.com/economia/2023/11/22/censo-2022-cuantos-argentinos-tienen-acceso-a-gas-natural-cloacas-y-vivienda-propia/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "balanza-energetica-2024",
+    "titulo": "La balanza comercial energética del 2024 arrojó el superávit más alto en 18 años",
+    "organizacion": "Ámbito (con datos de la Secretaría de Energía)",
+    "url": "https://www.ambito.com/energia/la-balanza-comercial-energetica-del-2024-arrojo-el-superavit-mas-alto-18-anos-n6105371",
+    "publicado": "2025"
+  },
+  {
+    "slug": "iea-metano-2025",
+    "titulo": "Global Methane Tracker 2025",
+    "organizacion": "Agencia Internacional de Energía",
+    "url": "https://www.iea.org/reports/global-methane-tracker-2025",
+    "publicado": "2025"
+  },
+  {
+    "slug": "basurales-ar",
+    "titulo": "Basurales a cielo abierto: situación socioambiental y propuestas de solución integral",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/jefatura/ambiente/accion-ambiental/basurales",
+    "publicado": "2024"
+  },
+  {
+    "slug": "chequeado-basurales",
+    "titulo": "Qué datos existen sobre los basurales a cielo abierto en la Argentina",
+    "organizacion": "Chequeado",
+    "url": "https://chequeado.com/el-explicador/que-datos-existen-sobre-los-basurales-a-cielo-abierto-en-la-argentina/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "bm-what-a-waste",
+    "titulo": "What a Waste",
+    "organizacion": "Banco Mundial",
+    "url": "https://www.worldbank.org/en/publication/what-a-waste",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ley-24051-peligrosos",
+    "titulo": "Ley 24.051 — Residuos peligrosos",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-24051-450",
+    "publicado": "1991"
+  },
+  {
+    "slug": "basilea",
+    "titulo": "Convenio de Basilea sobre el control de los movimientos transfronterizos de los desechos peligrosos",
+    "organizacion": "Programa de las Naciones Unidas para el Medio Ambiente",
+    "url": "https://www.basel.int/TheConvention/Overview/tabid/1271/Default.aspx",
+    "publicado": "1989"
+  },
+  {
+    "slug": "ley-27279-fitosanitarios",
+    "titulo": "Ley 27.279 — Gestión de los envases vacíos de fitosanitarios",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27279-266332",
+    "publicado": "2016"
+  },
+  {
+    "slug": "unece-sga",
+    "titulo": "GHS pictograms (Sistema Globalmente Armonizado de clasificación y etiquetado de productos químicos)",
+    "organizacion": "Comisión Económica de las Naciones Unidas para Europa",
+    "url": "https://unece.org/transport/dangerous-goods/ghs-pictograms",
+    "publicado": "2023"
+  },
+  {
+    "slug": "msal-dengue",
+    "titulo": "Dengue",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/salud/dengue",
+    "publicado": "2025"
+  },
+  {
+    "slug": "crippa-2021",
+    "titulo": "Food systems are responsible for a third of global anthropogenic GHG emissions",
+    "organizacion": "Nature Food (Crippa y otros)",
+    "url": "https://www.nature.com/articles/s43016-021-00225-9",
+    "publicado": "2021"
+  },
+  {
+    "slug": "ue-deforestacion",
+    "titulo": "Regulation on Deforestation-free products",
+    "organizacion": "Comisión Europea",
+    "url": "https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en",
+    "publicado": "2023"
+  },
+  {
+    "slug": "ipcc-srccl",
+    "titulo": "Special Report on Climate Change and Land",
+    "organizacion": "IPCC",
+    "url": "https://www.ipcc.ch/srccl/",
+    "publicado": "2019"
+  },
+  {
+    "slug": "aapresid",
+    "titulo": "Asociación Argentina de Productores en Siembra Directa",
+    "organizacion": "Aapresid",
+    "url": "https://www.aapresid.org.ar/es",
+    "publicado": "2025"
+  },
+  {
+    "slug": "fao-sofi",
+    "titulo": "El estado de la seguridad alimentaria y la nutrición en el mundo",
+    "organizacion": "FAO, FIDA, OMS, PMA y UNICEF",
+    "url": "https://www.fao.org/publications/fao-flagship-publications/the-state-of-food-security-and-nutrition-in-the-world/en",
+    "publicado": "2025"
+  },
+  {
+    "slug": "fao-hambre-2025",
+    "titulo": "Hunger declines globally, but rises in Africa and western Asia: UN report",
+    "organizacion": "FAO",
+    "url": "https://www.fao.org/newsroom/detail/global-hunger-declines--but-rises-in-africa-and-western-asia--un-report/en",
+    "publicado": "2025"
+  },
+  {
+    "slug": "indec-pobreza-2025",
+    "titulo": "Incidencia de la pobreza y la indigencia en 31 aglomerados urbanos. Segundo semestre de 2025",
+    "organizacion": "INDEC",
+    "url": "https://www.indec.gob.ar/uploads/informesdeprensa/eph_pobreza_03_269225CA3217.pdf",
+    "publicado": "2026"
+  },
+  {
+    "slug": "ennys2",
+    "titulo": "El 41,1 por ciento de los chicos y adolescentes tiene sobrepeso y obesidad en la Argentina (Segunda Encuesta Nacional de Nutrición y Salud)",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/noticias/el-411-por-ciento-de-los-chicos-y-adolescentes-tiene-sobrepeso-y-obesidad-en-la-argentina",
+    "publicado": "2019"
+  },
+  {
+    "slug": "via-campesina",
+    "titulo": "La Vía Campesina: soberanía alimentaria",
+    "organizacion": "La Vía Campesina",
+    "url": "https://viacampesina.org/es/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "snmf-origen",
+    "titulo": "¿Cómo se originan los incendios?",
+    "organizacion": "Servicio Nacional de Manejo del Fuego",
+    "url": "https://www.argentina.gob.ar/seguridad/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-3",
+    "publicado": "2024"
+  },
+  {
+    "slug": "chequeado-incendios",
+    "titulo": "Más de la mitad de las provincias sufren incendios forestales y el 95 % fueron causados por el hombre",
+    "organizacion": "Chequeado",
+    "url": "https://chequeado.com/el-explicador/mas-de-la-mitad-de-las-provincias-sufren-incendios-forestales-y-el-95-fueron-causados-por-el-hombre/",
+    "publicado": "2022"
+  },
+  {
+    "slug": "ley-27604-fuego",
+    "titulo": "Ley 27.604 — Modificación de la Ley de Manejo del Fuego",
+    "organizacion": "Boletín Oficial de la República Argentina",
+    "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/239139/20201224",
+    "publicado": "2020"
+  },
+  {
+    "slug": "chequeado-fondo-bosques",
+    "titulo": "Día Internacional de los Bosques: en 2024 no se contaron con los fondos suficientes para preservarlos",
+    "organizacion": "Chequeado",
+    "url": "https://chequeado.com/el-explicador/dia-internacional-de-los-bosques-en-2024-no-se-contaron-con-los-fondos-suficientes-para-preservarlos/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "farn-bosques-fondo",
+    "titulo": "La Ley de Bosques, cada vez más desfinanciada",
+    "organizacion": "FARN",
+    "url": "https://farn.org.ar/la-ley-de-bosques-cada-vez-mas-desfinanciada/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "decenio-restauracion",
+    "titulo": "Decenio de las Naciones Unidas sobre la Restauración de los Ecosistemas 2021–2030",
+    "organizacion": "PNUMA y FAO",
+    "url": "https://www.decadeonrestoration.org/",
+    "publicado": "2021"
+  },
+  {
+    "slug": "cdb-meta-2",
+    "titulo": "Marco Mundial de Biodiversidad Kunming-Montreal: Meta 2",
+    "organizacion": "Convenio sobre la Diversidad Biológica",
+    "url": "https://www.cbd.int/gbf/targets/2",
+    "publicado": "2022"
+  },
+  {
+    "slug": "ser-estandares",
+    "titulo": "International Principles and Standards for the Practice of Ecological Restoration",
+    "organizacion": "Society for Ecological Restoration",
+    "url": "https://ser.org/page/SERStandards",
+    "publicado": "2019"
+  },
+  {
+    "slug": "apn-atropellamiento-iguazu",
+    "titulo": "Prevención de atropellamiento de fauna en Iguazú",
+    "organizacion": "Administración de Parques Nacionales",
+    "url": "https://www.argentina.gob.ar/noticias/prevencion-de-atropellamiento-de-fauna-en-iguazu",
+    "publicado": "2023"
+  },
+  {
+    "slug": "apn-pasafaunas-iguazu",
+    "titulo": "Herramientas viales para la conservación de la fauna en el Parque Nacional Iguazú",
+    "organizacion": "Administración de Parques Nacionales",
+    "url": "https://www.argentina.gob.ar/noticias/herramientas-viales-para-la-conservacion-de-la-fauna-en-el-parque-nacional-iguazu",
+    "publicado": "2023"
+  },
+  {
+    "slug": "inta-perros-protectores",
+    "titulo": "Elaboran una guía para la cría de perros protectores del ganado",
+    "organizacion": "INTA",
+    "url": "https://www.argentina.gob.ar/noticias/elaboran-una-guia-para-la-cria-de-perros-protectores-del-ganado",
+    "publicado": "2022"
+  },
+  {
+    "slug": "conicet-vicunas",
+    "titulo": "Vicuñas",
+    "organizacion": "CONICET Documental",
+    "url": "https://documental.conicet.gov.ar/vicunas/",
+    "publicado": "2020"
+  },
+  {
+    "slug": "oms-una-salud",
+    "titulo": "Una sola salud: preguntas y respuestas",
+    "organizacion": "Organización Mundial de la Salud",
+    "url": "https://www.who.int/es/news-room/questions-and-answers/item/one-health",
+    "publicado": "2023"
+  },
+  {
+    "slug": "omsa-una-salud",
+    "titulo": "Una sola salud",
+    "organizacion": "Organización Mundial de Sanidad Animal",
+    "url": "https://www.woah.org/es/que-hacemos/iniciativas-mundiales/una-sola-salud/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "ipbes-pandemias",
+    "titulo": "Escaping the Era of Pandemics",
+    "organizacion": "IPBES",
+    "url": "https://www.ipbes.net/pandemics",
+    "publicado": "2020"
+  },
+  {
+    "slug": "oms-resistencia",
+    "titulo": "Antimicrobial resistance",
+    "organizacion": "Organización Mundial de la Salud",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/antimicrobial-resistance",
+    "publicado": "2026"
+  },
+  {
+    "slug": "van-boeckel-2019",
+    "titulo": "Global trends in antimicrobial resistance in animals in low- and middle-income countries",
+    "organizacion": "Science",
+    "url": "https://www.science.org/doi/10.1126/science.aaw1944",
+    "publicado": "2019"
+  },
+  {
+    "slug": "ue-promotores-2006",
+    "titulo": "Ban on antibiotics as growth promoters in animal feed enters into effect",
+    "organizacion": "Comisión Europea",
+    "url": "https://ec.europa.eu/commission/presscorner/detail/en/IP_05_1687",
+    "publicado": "2005"
+  },
+  {
+    "slug": "nejm-andes-2020",
+    "titulo": "“Super-Spreaders” and Person-to-Person Transmission of Andes Virus in Argentina",
+    "organizacion": "New England Journal of Medicine",
+    "url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2009040",
+    "publicado": "2020"
+  },
+  {
+    "slug": "uhart-2024-elefantes",
+    "titulo": "Epidemiological data of an influenza A/H5N1 outbreak in elephant seals in Argentina indicates mammal-to-mammal transmission",
+    "organizacion": "Nature Communications",
+    "url": "https://www.nature.com/articles/s41467-024-53766-5",
+    "publicado": "2024"
+  },
+  {
+    "slug": "msal-hantavirus",
+    "titulo": "Hantavirus",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/salud/glosario/hantavirus",
+    "publicado": "2025"
+  },
+  {
+    "slug": "msal-hidatidosis",
+    "titulo": "Hidatidosis",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/salud/glosario/hidatidosis",
+    "publicado": "2025"
+  },
+  {
+    "slug": "msal-leptospirosis",
+    "titulo": "Leptospirosis",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/salud/glosario/leptospirosis",
+    "publicado": "2025"
+  },
+  {
+    "slug": "msal-rabia",
+    "titulo": "Rabia",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/salud/glosario/rabia",
+    "publicado": "2025"
+  },
+  {
+    "slug": "msal-dengue-2024",
+    "titulo": "Salud actualiza la situación epidemiológica de dengue y presenta los datos de cierre de la temporada 2023-2024",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/noticias/salud-actualiza-la-situacion-epidemiologica-de-dengue-y-presenta-los-datos-de-cierre-de-la",
+    "publicado": "2024"
+  },
+  {
+    "slug": "msal-suh-2026",
+    "titulo": "El Síndrome Urémico Hemolítico registra el menor número de casos de los últimos diez años",
+    "organizacion": "Ministerio de Salud de la Nación",
+    "url": "https://www.argentina.gob.ar/noticias/el-sindrome-uremico-hemolitico-registra-el-menor-numero-de-casos-de-los-ultimos-diez-anos",
+    "publicado": "2026"
+  },
+  {
+    "slug": "unccd-convencion",
+    "titulo": "Convención de las Naciones Unidas de Lucha contra la Desertificación",
+    "organizacion": "UNCCD",
+    "url": "https://www.unccd.int/convention/overview",
+    "publicado": "1994"
+  },
+  {
+    "slug": "unccd-aridez-2024",
+    "titulo": "The global threat of drying lands: Regional and global aridity trends and future projections",
+    "organizacion": "UNCCD",
+    "url": "https://www.unccd.int/resources/reports/global-threat-drying-lands-regional-and-global-aridity-trends-and-future",
+    "publicado": "2024"
+  },
+  {
+    "slug": "unccd-ndt",
+    "titulo": "Land Degradation Neutrality",
+    "organizacion": "UNCCD",
+    "url": "https://www.unccd.int/land-and-life/land-degradation-neutrality/overview",
+    "publicado": null
+  },
+  {
+    "slug": "unccd-gran-muralla",
+    "titulo": "Great Green Wall Initiative",
+    "organizacion": "UNCCD",
+    "url": "https://www.unccd.int/our-work/ggwi",
+    "publicado": null
+  },
+  {
+    "slug": "ar-desertificacion",
+    "titulo": "Desertificación, degradación de tierras y sequía",
+    "organizacion": "Secretaría de Ambiente de la Nación",
+    "url": "https://www.argentina.gob.ar/jefatura/turismo-y-ambiente/ambiente/recursos-naturales/desertificacion-degradacion-de-tierras-y",
+    "publicado": null
+  },
+  {
+    "slug": "ley-24701-desertificacion",
+    "titulo": "Ley 24.701: aprobación de la Convención de lucha contra la desertificación",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/norma-39912/texto",
+    "publicado": "1996"
+  },
+  {
+    "slug": "inta-maras",
+    "titulo": "Día mundial de la desertificación: 25 años a favor de su mitigación",
+    "organizacion": "INTA",
+    "url": "https://intainforma.inta.gob.ar/dia-mundial-de-la-desertificacion-25-anos-a-favor-de-su-mitigacion/",
+    "publicado": "2016"
+  },
+  {
+    "slug": "inta-observatorio-desertificacion",
+    "titulo": "El sur argentino observará la desertificación",
+    "organizacion": "INTA",
+    "url": "https://intainforma.inta.gob.ar/el-sur-argentino-observara-la-desertificacion/",
+    "publicado": "2011"
+  },
+  {
+    "slug": "bcr-sequia-2023",
+    "titulo": "El costo de la sequía 2022/23 ya asciende a más de US$ 14.140 millones para los productores de soja, trigo y maíz",
+    "organizacion": "Bolsa de Comercio de Rosario",
+    "url": "https://www.bcr.com.ar/es/mercados/investigacion-y-desarrollo/informativo-semanal/noticias-informativo-semanal/el-costo-de-la",
+    "publicado": "2023"
+  },
+  {
+    "slug": "dgi-oasis-mendoza",
+    "titulo": "Mendoza, territorio producto de siglos de transformación",
+    "organizacion": "Departamento General de Irrigación de Mendoza",
+    "url": "https://aquabook.irrigacion.gov.ar/385_0",
+    "publicado": null
+  },
+  {
+    "slug": "wmo-la-nina-2023",
+    "titulo": "WMO Update: El Niño may return",
+    "organizacion": "Organización Meteorológica Mundial",
+    "url": "https://wmo.int/news/media-centre/wmo-update-el-nino-may-return",
+    "publicado": "2023"
+  },
+  {
+    "slug": "omm-spi-2012",
+    "titulo": "Standardized Precipitation Index User Guide (WMO-No. 1090)",
+    "organizacion": "Organización Meteorológica Mundial",
+    "url": "https://library.wmo.int/records/item/39629-standardized-precipitation-index-user-guide",
+    "publicado": "2012"
+  },
+  {
+    "slug": "sissa",
+    "titulo": "Sistema de Información sobre Sequías para el sur de Sudamérica (SISSA)",
+    "organizacion": "Centro Regional del Clima para el sur de América del Sur",
+    "url": "https://sissa.crc-sas.org/",
+    "publicado": null
+  },
+  {
+    "slug": "gcb-2025",
+    "titulo": "Fossil fuel CO2 emissions hit record high in 2025",
+    "organizacion": "Global Carbon Project",
+    "url": "https://globalcarbonbudget.org/fossil-fuel-co2-emissions-hit-record-high-in-2025/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "unep-brecha-2025",
+    "titulo": "Emissions Gap Report 2025",
+    "organizacion": "Programa de las Naciones Unidas para el Medio Ambiente",
+    "url": "https://www.unep.org/resources/emissions-gap-report-2025",
+    "publicado": "2025"
+  },
+  {
+    "slug": "unfccc-balance-mundial",
+    "titulo": "Global Stocktake",
+    "organizacion": "Convención Marco de las Naciones Unidas sobre el Cambio Climático",
+    "url": "https://unfccc.int/topics/global-stocktake",
+    "publicado": null
+  },
+  {
+    "slug": "ar-ndc-3",
+    "titulo": "Argentina presentó la tercera Contribución Determinada a Nivel Nacional",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/noticias/argentina-presento-la-tercera-contribucion-determinada-nivel-nacional",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ar-elp-2050",
+    "titulo": "Estrategia de desarrollo resiliente con bajas emisiones a largo plazo a 2050",
+    "organizacion": "Ministerio de Ambiente y Desarrollo Sostenible de la Nación",
+    "url": "https://www.argentina.gob.ar/sites/default/files/estrategia_de_desarrollo_resiliente_con_bajas_emisiones_a_largo_plazo_2050.pdf",
+    "publicado": "2022"
+  },
+  {
+    "slug": "ley-27520-cambio-climatico",
+    "titulo": "Ley 27.520 de presupuestos mínimos de adaptación y mitigación al cambio climático global",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-27520-333515/texto",
+    "publicado": "2019"
+  },
+  {
+    "slug": "cat-argentina",
+    "titulo": "Argentina",
+    "organizacion": "Climate Action Tracker",
+    "url": "https://climateactiontracker.org/countries/argentina/",
+    "publicado": "2026"
+  },
+  {
+    "slug": "west-2023-bonos",
+    "titulo": "Action needed to make carbon offsets from forest conservation work for climate change mitigation",
+    "organizacion": "Science",
+    "url": "https://www.science.org/doi/10.1126/science.ade3535",
+    "publicado": "2023"
+  },
+  {
+    "slug": "onu-integridad-cero-neto",
+    "titulo": "Integrity Matters: Net Zero Commitments by Businesses, Financial Institutions, Cities and Regions",
+    "organizacion": "Naciones Unidas",
+    "url": "https://www.un.org/en/climatechange/high-level-expert-group",
+    "publicado": "2022"
+  },
+  {
+    "slug": "ue-ley-clima",
+    "titulo": "European Climate Law",
+    "organizacion": "Comisión Europea",
+    "url": "https://climate.ec.europa.eu/eu-action/european-climate-law_en",
+    "publicado": "2021"
+  },
+  {
+    "slug": "ipcc-incertidumbre",
+    "titulo": "Guidance Note for Lead Authors of the IPCC Fifth Assessment Report on Consistent Treatment of Uncertainties",
+    "organizacion": "IPCC",
+    "url": "https://www.ipcc.ch/site/assets/uploads/2017/08/AR5_Uncertainty_Guidance_Note.pdf",
+    "publicado": "2010"
+  },
+  {
+    "slug": "hausfather-2020",
+    "titulo": "Evaluating the Performance of Past Climate Model Projections",
+    "organizacion": "Geophysical Research Letters",
+    "url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019GL085378",
+    "publicado": "2020"
+  },
+  {
+    "slug": "zhang-2019-predictibilidad",
+    "titulo": "What Is the Predictability Limit of Midlatitude Weather?",
+    "organizacion": "Journal of the Atmospheric Sciences",
+    "url": "https://journals.ametsoc.org/view/journals/atsc/76/4/jas-d-18-0269.1.xml",
+    "publicado": "2019"
+  },
+  {
+    "slug": "lorenz-1963",
+    "titulo": "Deterministic Nonperiodic Flow",
+    "organizacion": "Journal of the Atmospheric Sciences",
+    "url": "https://journals.ametsoc.org/view/journals/atsc/20/2/1520-0469_1963_020_0130_dnf_2_0_co_2.xml",
+    "publicado": "1963"
+  },
+  {
+    "slug": "hawkins-sutton-2009",
+    "titulo": "The Potential to Narrow Uncertainty in Regional Climate Predictions",
+    "organizacion": "Bulletin of the American Meteorological Society",
+    "url": "https://journals.ametsoc.org/view/journals/bams/90/8/2009bams2607_1.xml",
+    "publicado": "2009"
+  },
+  {
+    "slug": "bm-evaluacion-impacto",
+    "titulo": "La evaluación de impacto en la práctica (segunda edición)",
+    "organizacion": "Banco Mundial",
+    "url": "https://www.worldbank.org/en/programs/sief-trust-fund/publication/impact-evaluation-in-practice",
+    "publicado": "2016"
+  },
+  {
+    "slug": "allcott-2011",
+    "titulo": "Social norms and energy conservation",
+    "organizacion": "Journal of Public Economics",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0047272711000478",
+    "publicado": "2011"
+  },
+  {
+    "slug": "taylor-2019-bolsas",
+    "titulo": "Bag leakage: The effect of disposable carryout bag regulations on unregulated bags",
+    "organizacion": "Journal of Environmental Economics and Management",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0095069618305291",
+    "publicado": "2019"
+  },
+  {
+    "slug": "cee-evidencia",
+    "titulo": "Collaboration for Environmental Evidence",
+    "organizacion": "Collaboration for Environmental Evidence",
+    "url": "https://environmentalevidence.org/",
+    "publicado": null
+  },
+  {
+    "slug": "itdp-tod",
+    "titulo": "The TOD Standard 3.0",
+    "organizacion": "ITDP",
+    "url": "https://itdp.org/library/standards-and-guides/tod3-0/",
+    "publicado": "2017"
+  },
+  {
+    "slug": "duranton-turner-2011",
+    "titulo": "The Fundamental Law of Road Congestion: Evidence from US Cities",
+    "organizacion": "American Economic Review",
+    "url": "https://www.aeaweb.org/articles?id=10.1257/aer.101.6.2616",
+    "publicado": "2011"
+  },
+  {
+    "slug": "cheonggyecheon",
+    "titulo": "Cheonggyecheon Stream Restoration Project",
+    "organizacion": "Landscape Architecture Foundation",
+    "url": "https://www.landscapeperformance.org/case-study-briefs/cheonggyecheon-stream-restoration-project",
+    "publicado": null
+  },
+  {
+    "slug": "shoup-estacionamiento",
+    "titulo": "The High Cost of Free Parking",
+    "organizacion": "Donald Shoup (Routledge)",
+    "url": "https://www.routledge.com/The-High-Cost-of-Free-Parking-Updated-Edition/Shoup/p/book/9781932364965",
+    "publicado": "2011"
+  },
+  {
+    "slug": "borjesson-2012-estocolmo",
+    "titulo": "The Stockholm congestion charges—5 years on. Effects, acceptability and lessons learnt",
+    "organizacion": "Transport Policy",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0967070X11001284",
+    "publicado": "2012"
+  },
+  {
+    "slug": "mta-congestion-2026",
+    "titulo": "Less Traffic, Better Transit: On Its First Anniversary, Governor Hochul Celebrates Transformational Success of Congestion Pricing",
+    "organizacion": "MTA",
+    "url": "https://www.mta.info/press-release/icymi-less-traffic-better-transit-its-first-anniversary-governor-hochul-celebrates",
+    "publicado": "2026"
+  },
+  {
+    "slug": "mueller-2020-supermanzanas",
+    "titulo": "Changing the urban design of cities for health: The superblock model",
+    "organizacion": "Environment International",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0160412019315223",
+    "publicado": "2020"
+  },
+  {
+    "slug": "declaracion-estocolmo-2020",
+    "titulo": "Global consensus achieved for road safety (Declaración de Estocolmo)",
+    "organizacion": "Foro Internacional de Transporte (OCDE)",
+    "url": "https://www.itf-oecd.org/global-consensus-achieved-road-safety",
+    "publicado": "2020"
+  },
+  {
+    "slug": "caf-movilidad-genero",
+    "titulo": "Movilidad cotidiana con perspectiva de género: guía metodológica para la planificación y el diseño del sistema de movilidad y transporte",
+    "organizacion": "CAF y Gobierno de la Ciudad de Buenos Aires",
+    "url": "https://scioteca.caf.com/handle/123456789/1725",
+    "publicado": null
+  },
+  {
+    "slug": "bcr-cargas-2018",
+    "titulo": "¿A cuánto asciende anualmente el transporte de cargas en Argentina? 538 millones de toneladas",
+    "organizacion": "Bolsa de Comercio de Rosario",
+    "url": "https://www.bcr.com.ar/es/mercados/investigacion-y-desarrollo/informativo-semanal/noticias-informativo-semanal/cuanto-1",
+    "publicado": "2020"
+  },
+  {
+    "slug": "bcr-cargas-2024",
+    "titulo": "El transporte de cargas 2023/24 dejaría atrás la sequía",
+    "organizacion": "Bolsa de Comercio de Rosario",
+    "url": "https://www.bcr.com.ar/es/mercados/investigacion-y-desarrollo/informativo-semanal/noticias-informativo-semanal/el-17",
+    "publicado": "2023"
+  },
+  {
+    "slug": "eea-intensidad-transporte",
+    "titulo": "Methodology for GHG Efficiency of Transport Modes",
+    "organizacion": "Agencia Europea de Medio Ambiente (Fraunhofer ISI y CE Delft)",
+    "url": "https://cedelft.eu/wp-content/uploads/sites/2/2021/05/CE_Delft_200258_Methodology_GHG_Efficiency_Transport_Modes.pdf",
+    "publicado": "2020"
+  },
+  {
+    "slug": "owid-aviacion",
+    "titulo": "What share of global CO₂ emissions come from aviation?",
+    "organizacion": "Our World in Data",
+    "url": "https://ourworldindata.org/global-aviation-emissions",
+    "publicado": "2024"
+  },
+  {
+    "slug": "owid-huella-viajes",
+    "titulo": "Which form of transport has the smallest carbon footprint?",
+    "organizacion": "Our World in Data",
+    "url": "https://ourworldindata.org/travel-carbon-footprint",
+    "publicado": "2023"
+  },
+  {
+    "slug": "gossling-humpe-2020",
+    "titulo": "The global scale, distribution and growth of aviation: Implications for climate change",
+    "organizacion": "Global Environmental Change",
+    "url": "https://portal.research.lu.se/en/publications/the-global-scale-distribution-and-growth-of-aviation-implications/",
+    "publicado": "2020"
+  },
+  {
+    "slug": "iata-saf-2024",
+    "titulo": "Disappointingly Slow Growth in SAF Production",
+    "organizacion": "IATA",
+    "url": "https://www.iata.org/en/pressroom/2024-releases/2024-12-10-03/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "francia-vuelos-cortos",
+    "titulo": "Short-haul flights ban in France: Relevant potential but yet modest effects of GHG emissions reduction",
+    "organizacion": "Ecological Economics",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0921800924001861",
+    "publicado": "2024"
+  },
+  {
+    "slug": "imo-ghg4",
+    "titulo": "Fourth IMO Greenhouse Gas Study 2020",
+    "organizacion": "Organización Marítima Internacional",
+    "url": "https://www.imo.org/en/ourwork/environment/pages/fourth-imo-greenhouse-gas-study-2020.aspx",
+    "publicado": "2020"
+  },
+  {
+    "slug": "imo-estrategia-2023",
+    "titulo": "2023 IMO Strategy on Reduction of GHG Emissions from Ships",
+    "organizacion": "Organización Marítima Internacional",
+    "url": "https://www.imo.org/en/ourwork/environment/pages/2023-imo-strategy-on-reduction-of-ghg-emissions-from-ships.aspx",
+    "publicado": "2023"
+  },
+  {
+    "slug": "lenzen-2018-turismo",
+    "titulo": "The carbon footprint of global tourism",
+    "organizacion": "Nature Climate Change",
+    "url": "https://www.nature.com/articles/s41558-018-0141-x",
+    "publicado": "2018"
+  },
+  {
+    "slug": "killingsworth-2023",
+    "titulo": "Income and emotional well-being: A conflict resolved",
+    "organizacion": "PNAS",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/36857342/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "dittmar-2014",
+    "titulo": "The relationship between materialism and personal well-being: A meta-analysis",
+    "organizacion": "Journal of Personality and Social Psychology",
+    "url": "https://research.brighton.ac.uk/en/publications/the-relationship-between-materialism-and-personal-well-being-a-me/",
+    "publicado": "2014"
+  },
+  {
+    "slug": "dunn-2011",
+    "titulo": "If money doesn’t make you happy, then you probably aren’t spending it right",
+    "organizacion": "Journal of Consumer Psychology",
+    "url": "https://doi.org/10.1016/j.jcps.2011.02.002",
+    "publicado": "2011"
+  },
+  {
+    "slug": "max-neef-1989",
+    "titulo": "Human Scale Development: An Option for the Future",
+    "organizacion": "Development Dialogue (Fundación Dag Hammarskjöld)",
+    "url": "https://www.daghammarskjold.se/wp-content/uploads/1989/05/89_1.pdf",
+    "publicado": "1989"
+  },
+  {
+    "slug": "oneill-2018",
+    "titulo": "A good life for all within planetary boundaries",
+    "organizacion": "Nature Sustainability",
+    "url": "https://www.nature.com/articles/s41893-018-0021-4",
+    "publicado": "2018"
+  },
+  {
+    "slug": "dona-raworth",
+    "titulo": "About Doughnut Economics",
+    "organizacion": "Doughnut Economics Action Lab",
+    "url": "https://doughnuteconomics.org/about-doughnut-economics",
+    "publicado": null
+  },
+  {
+    "slug": "ipcc-ar6-demanda",
+    "titulo": "Chapter 5: Demand, services and social aspects of mitigation",
+    "organizacion": "IPCC",
+    "url": "https://www.ipcc.ch/report/ar6/wg3/chapter/chapter-5/",
+    "publicado": "2022"
+  },
+  {
+    "slug": "haya-publicidad-fosil",
+    "titulo": "World first: The Hague bans fossil ads through local law",
+    "organizacion": "World Without Fossil Ads",
+    "url": "https://www.worldwithoutfossilads.org/listing/world-first-the-hague-bans-fossil-adse-through-ordinance/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "francia-publicidad-fosil",
+    "titulo": "La loi Climat et résilience",
+    "organizacion": "Ministerio de Transición Ecológica de Francia",
+    "url": "https://www.publicite-responsable.ecologie.gouv.fr/ressources-et-faq/comprendre-la-loi/article/la-loi-climat-et-resilience",
+    "publicado": null
+  },
+  {
+    "slug": "ghg-protocol",
+    "titulo": "Corporate Standard",
+    "organizacion": "GHG Protocol",
+    "url": "https://ghgprotocol.org/corporate-standard",
+    "publicado": "2004"
+  },
+  {
+    "slug": "ghg-protocol-alcance3",
+    "titulo": "Corporate Value Chain (Scope 3) Standard",
+    "organizacion": "GHG Protocol",
+    "url": "https://ghgprotocol.org/corporate-value-chain-scope-3-standard",
+    "publicado": "2011"
+  },
+  {
+    "slug": "cdp-cadena-2024",
+    "titulo": "Corporates’ supply chain scope 3 emissions are 26 times higher than their operational emissions",
+    "organizacion": "CDP",
+    "url": "https://www.cdp.net/en/press-releases/corporates-supply-chain-scope-3-emissions-are-26-times-higher-than-their-operational-emissions",
+    "publicado": "2024"
+  },
+  {
+    "slug": "oit-rana-plaza",
+    "titulo": "The Rana Plaza disaster ten years on: What has changed?",
+    "organizacion": "Organización Internacional del Trabajo",
+    "url": "https://webapps.ilo.org/infostories/en-GB/Stories/Country-Focus/rana-plaza.html",
+    "publicado": "2023"
+  },
+  {
+    "slug": "onu-principios-rectores",
+    "titulo": "Principios Rectores sobre las Empresas y los Derechos Humanos",
+    "organizacion": "Naciones Unidas",
+    "url": "https://www.ohchr.org/sites/default/files/documents/publications/guidingprinciplesbusinesshr_sp.pdf",
+    "publicado": "2011"
+  },
+  {
+    "slug": "ocde-debida-diligencia",
+    "titulo": "OECD Due Diligence Guidance for Responsible Business Conduct",
+    "organizacion": "OCDE",
+    "url": "https://www.oecd.org/investment/due-diligence-guidance-for-responsible-business-conduct.htm",
+    "publicado": "2018"
+  },
+  {
+    "slug": "ue-csddd",
+    "titulo": "Directiva (UE) 2024/1760 sobre diligencia debida de las empresas en materia de sostenibilidad",
+    "organizacion": "Unión Europea",
+    "url": "https://eur-lex.europa.eu/eli/dir/2024/1760/oj",
+    "publicado": "2024"
+  },
+  {
+    "slug": "issb-s2",
+    "titulo": "IFRS S2 Climate-related Disclosures",
+    "organizacion": "IFRS Foundation",
+    "url": "https://www.ifrs.org/issued-standards/ifrs-sustainability-standards-navigator/ifrs-s2-climate-related-disclosures/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "sbti",
+    "titulo": "Science Based Targets initiative",
+    "organizacion": "SBTi",
+    "url": "https://sciencebasedtargets.org/",
+    "publicado": null
+  },
+  {
+    "slug": "berg-2022-esg",
+    "titulo": "Aggregate Confusion: The Divergence of ESG Ratings",
+    "organizacion": "Review of Finance",
+    "url": "https://academic.oup.com/rof/article/26/6/1315/6590670",
+    "publicado": "2022"
+  },
+  {
+    "slug": "sistema-b",
+    "titulo": "About Sistema B",
+    "organizacion": "Sistema B",
+    "url": "https://www.sistemab.org/en/about-sistema-b/",
+    "publicado": null
+  },
+  {
+    "slug": "aci-principios",
+    "titulo": "Identidad cooperativa: definición, valores y principios",
+    "organizacion": "Alianza Cooperativa Internacional",
+    "url": "https://ica.coop/es/cooperativas/identidad-alianza-cooperativa-internacional",
+    "publicado": null
+  },
+  {
+    "slug": "inaes",
+    "titulo": "Instituto Nacional de Asociativismo y Economía Social",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/inaes",
+    "publicado": null
+  },
+  {
+    "slug": "airnow-ica",
+    "titulo": "AQI Basics",
+    "organizacion": "AirNow (Agencia de Protección Ambiental de Estados Unidos)",
+    "url": "https://www.airnow.gov/aqi/aqi-basics/",
+    "publicado": null
+  },
+  {
+    "slug": "epa-sensores",
+    "titulo": "Air Sensor Toolbox",
+    "organizacion": "Agencia de Protección Ambiental de Estados Unidos",
+    "url": "https://www.epa.gov/air-sensor-toolbox",
+    "publicado": null
+  },
+  {
+    "slug": "fair-2016",
+    "titulo": "The FAIR Guiding Principles for scientific data management and stewardship",
+    "organizacion": "Scientific Data",
+    "url": "https://www.nature.com/articles/sdata201618",
+    "publicado": "2016"
+  },
+  {
+    "slug": "datos-argentina",
+    "titulo": "Portal de datos abiertos de la República Argentina",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.datos.gob.ar/",
+    "publicado": null
+  },
+  {
+    "slug": "nearing-2024-crecidas",
+    "titulo": "Global prediction of extreme floods in ungauged watersheds",
+    "organizacion": "Nature",
+    "url": "https://www.nature.com/articles/s41586-024-07145-1",
+    "publicado": "2024"
+  },
+  {
+    "slug": "smn-alertas",
+    "titulo": "Sistema de Alerta Temprana",
+    "organizacion": "Servicio Meteorológico Nacional",
+    "url": "https://www.smn.gob.ar/alertas",
+    "publicado": null
+  },
+  {
+    "slug": "omm-alertas-para-todos",
+    "titulo": "Early Warnings for All",
+    "organizacion": "Organización Meteorológica Mundial",
+    "url": "https://wmo.int/activities/early-warnings-all",
+    "publicado": null
+  },
+  {
+    "slug": "ley-25326-datos",
+    "titulo": "Ley 25.326 de Protección de los Datos Personales",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/ley-25326-64790/texto",
+    "publicado": "2000"
+  },
+  {
+    "slug": "ue-ecodiseno-moviles",
+    "titulo": "Reglamento (UE) 2023/1670 sobre requisitos de diseño ecológico para teléfonos inteligentes y tabletas",
+    "organizacion": "Unión Europea",
+    "url": "https://eur-lex.europa.eu/eli/reg/2023/1670/oj",
+    "publicado": "2023"
+  },
+  {
+    "slug": "ue-cargador-comun",
+    "titulo": "Directiva (UE) 2022/2380 sobre el cargador común",
+    "organizacion": "Unión Europea",
+    "url": "https://eur-lex.europa.eu/eli/dir/2022/2380/oj",
+    "publicado": "2022"
+  },
+  {
+    "slug": "ue-dsa",
+    "titulo": "Reglamento (UE) 2022/2065 de Servicios Digitales",
+    "organizacion": "Unión Europea",
+    "url": "https://eur-lex.europa.eu/eli/reg/2022/2065/oj",
+    "publicado": "2022"
+  },
+  {
+    "slug": "gsf-sci",
+    "titulo": "Software Carbon Intensity (SCI) Specification (ISO/IEC 21031:2024)",
+    "organizacion": "Green Software Foundation",
+    "url": "https://sci.greensoftware.foundation/",
+    "publicado": "2024"
+  },
+  {
+    "slug": "gsf-principios",
+    "titulo": "Green Software Practitioner",
+    "organizacion": "Green Software Foundation",
+    "url": "https://learn.greensoftware.foundation/",
+    "publicado": null
+  },
+  {
+    "slug": "w3c-wsg",
+    "titulo": "Web Sustainability Guidelines",
+    "organizacion": "W3C Sustainable Web Design Community Group",
+    "url": "https://www.w3.org/TR/web-sustainability-guidelines/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "wcag-22",
+    "titulo": "Web Content Accessibility Guidelines (WCAG) 2.2",
+    "organizacion": "W3C",
+    "url": "https://www.w3.org/TR/WCAG22/",
+    "publicado": "2023"
+  },
+  {
+    "slug": "constitucion-nacional",
+    "titulo": "Constitución de la Nación Argentina",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.argentina.gob.ar/normativa/nacional/norma-804/texto",
+    "publicado": "1994"
+  },
+  {
+    "slug": "ley-24747-iniciativa",
+    "titulo": "Ley 24.747 de iniciativa legislativa popular",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://servicios.infoleg.gob.ar/infolegInternet/anexos/40000-44999/41025/norma.htm",
+    "publicado": "1996"
+  },
+  {
+    "slug": "greenpeace-glaciares",
+    "titulo": "Cronología de nuestra campaña para defender los glaciares",
+    "organizacion": "Fundación Greenpeace Argentina",
+    "url": "https://www.greenpeace.org/argentina/cronologia-glaciares/",
+    "publicado": null
+  },
+  {
+    "slug": "ostrom-nobel-2009",
+    "titulo": "Beyond Markets and States: Polycentric Governance of Complex Economic Systems (conferencia Nobel)",
+    "organizacion": "Fundación Nobel",
+    "url": "https://www.nobelprize.org/prizes/economic-sciences/2009/ostrom/lecture/",
+    "publicado": "2009"
+  },
+  {
+    "slug": "teoria-del-cambio",
+    "titulo": "What is Theory of Change?",
+    "organizacion": "Center for Theory of Change",
+    "url": "https://www.theoryofchange.org/what-is-theory-of-change/",
+    "publicado": null
+  },
+  {
+    "slug": "kellogg-modelo-logico",
+    "titulo": "Logic Model Development Guide",
+    "organizacion": "W. K. Kellogg Foundation",
+    "url": "https://wkkf.issuelab.org/resource/logic-model-development-guide.html",
+    "publicado": "2004"
+  },
+  {
+    "slug": "ipcc-srocc",
+    "titulo": "Special Report on the Ocean and Cryosphere in a Changing Climate",
+    "organizacion": "IPCC",
+    "url": "https://www.ipcc.ch/srocc/",
+    "publicado": "2019"
+  },
+  {
+    "slug": "schmidtko-2017",
+    "titulo": "Decline in global oceanic oxygen content during the past five decades",
+    "organizacion": "Nature",
+    "url": "https://www.nature.com/articles/nature21399",
+    "publicado": "2017"
+  },
+  {
+    "slug": "icri-blanqueo-2025",
+    "titulo": "84% of the world’s coral reefs impacted in the most intense global coral bleaching event ever",
+    "organizacion": "International Coral Reef Initiative",
+    "url": "https://icriforum.org/4gbe-2025/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "poloczanska-2013",
+    "titulo": "Global imprint of climate change on marine life",
+    "organizacion": "Nature Climate Change",
+    "url": "https://www.nature.com/articles/nclimate1958",
+    "publicado": "2013"
+  },
+  {
+    "slug": "fao-clima-pesca-2018",
+    "titulo": "Impacts of climate change on fisheries and aquaculture (FAO Fisheries and Aquaculture Technical Paper 627)",
+    "organizacion": "FAO",
+    "url": "https://openknowledge.fao.org/handle/20.500.14283/i9705en",
+    "publicado": "2018"
+  },
+  {
+    "slug": "hobday-pecl-2014",
+    "titulo": "Identification of global marine hotspots: sentinels for change and vanguards for adaptation action",
+    "organizacion": "Reviews in Fish Biology and Fisheries",
+    "url": "https://link.springer.com/article/10.1007/s11160-013-9326-6",
+    "publicado": "2014"
+  },
+  {
+    "slug": "argo",
+    "titulo": "Argo: preguntas frecuentes",
+    "organizacion": "Programa Argo",
+    "url": "https://argo.ucsd.edu/faq/",
+    "publicado": null
+  },
+  {
+    "slug": "unep-carbono-azul-2009",
+    "titulo": "Blue Carbon: The Role of Healthy Oceans in Binding Carbon",
+    "organizacion": "PNUMA, FAO y UNESCO-COI",
+    "url": "https://www.grida.no/publications/145",
+    "publicado": "2009"
+  },
+  {
+    "slug": "imo-protocolo-londres",
+    "titulo": "Convention on the Prevention of Marine Pollution by Dumping of Wastes and Other Matter (London Convention and Protocol)",
+    "organizacion": "Organización Marítima Internacional",
+    "url": "https://www.imo.org/en/OurWork/Environment/Pages/London-Convention-Protocol.aspx",
+    "publicado": null
+  },
+  {
+    "slug": "convemar",
+    "titulo": "Convención de las Naciones Unidas sobre el Derecho del Mar",
+    "organizacion": "Naciones Unidas",
+    "url": "https://www.un.org/depts/los/convention_agreements/texts/unclos/convemar_es.pdf",
+    "publicado": "1982"
+  },
+  {
+    "slug": "bbnj",
+    "titulo": "Agreement on Marine Biological Diversity of Areas beyond National Jurisdiction (BBNJ)",
+    "organizacion": "Naciones Unidas",
+    "url": "https://www.un.org/bbnjagreement/en",
+    "publicado": "2023"
+  },
+  {
+    "slug": "omc-subsidios-pesca-2025",
+    "titulo": "WTO Agreement on Fisheries Subsidies enters into force",
+    "organizacion": "Organización Mundial del Comercio",
+    "url": "https://www.wto.org/english/news_e/news25_e/fish_15sep25_e.htm",
+    "publicado": "2025"
+  },
+  {
+    "slug": "sumaila-2019",
+    "titulo": "Updated estimates and analysis of global fisheries subsidies",
+    "organizacion": "Marine Policy",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0308597X19303677",
+    "publicado": "2019"
+  },
+  {
+    "slug": "isa-preguntas",
+    "titulo": "Q&A on the ISA",
+    "organizacion": "Autoridad Internacional de los Fondos Marinos",
+    "url": "https://isa.org.jm/faq-for-media/",
+    "publicado": null
+  },
+  {
+    "slug": "mongabay-mineria-2025",
+    "titulo": "World leaders call for deep-sea mining moratorium at UN ocean summit",
+    "organizacion": "Mongabay",
+    "url": "https://news.mongabay.com/2025/06/madness-world-leaders-call-for-deep-sea-mining-moratorium-at-un-ocean-summit/",
+    "publicado": "2025"
+  },
+  {
+    "slug": "ley-27557-plataforma",
+    "titulo": "Ley 27.557: límite exterior de la plataforma continental argentina",
+    "organizacion": "Congreso de la Nación Argentina",
+    "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/234033/20200825",
+    "publicado": "2020"
+  },
+  {
+    "slug": "agujero-azul",
+    "titulo": "Avances para la creación del Área Marina Protegida Agujero Azul",
+    "organizacion": "Gobierno de la República Argentina",
+    "url": "https://www.argentina.gob.ar/noticias/avances-para-la-creacion-del-area-marina-protegida-agujero-azul",
+    "publicado": null
+  },
+  {
+    "slug": "tratado-cuenca-plata",
+    "titulo": "El Tratado de la Cuenca del Plata",
+    "organizacion": "Comité Intergubernamental Coordinador de los Países de la Cuenca del Plata",
+    "url": "https://cicplata.org/el-tratado-de-la-cuenca-del-plata/",
+    "publicado": "1969"
+  },
+  {
     "slug": "mst-bolsas-2018",
     "titulo": "Life Cycle Assessment of grocery carrier bags",
     "organizacion": "Danish Environmental Protection Agency",
@@ -1406,6 +2575,43 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "parques-nacionales",
           "ramsar",
           "pampa-azul"
+        ]
+      },
+      {
+        "slug": "oceanos-5",
+        "titulo": "El océano que cambia",
+        "fuentes": [
+          "ipcc-srocc",
+          "ipcc-ar6",
+          "hobday-pecl-2014",
+          "schmidtko-2017",
+          "noaa-acidificacion",
+          "poloczanska-2013",
+          "fao-clima-pesca-2018",
+          "icri-blanqueo-2025",
+          "unep-carbono-azul-2009",
+          "imo-protocolo-londres",
+          "argo",
+          "inidep",
+          "pampa-azul"
+        ]
+      },
+      {
+        "slug": "oceanos-6",
+        "titulo": "El océano de todos",
+        "fuentes": [
+          "convemar",
+          "ley-27557-plataforma",
+          "bbnj",
+          "cdb-meta-3",
+          "omc-subsidios-pesca-2025",
+          "sumaila-2019",
+          "isa-preguntas",
+          "mongabay-mineria-2025",
+          "tratado-cuenca-plata",
+          "cij-papeleras-2010",
+          "agujero-azul",
+          "milla-201"
         ]
       }
     ]
@@ -1539,6 +2745,36 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ipbes-polinizadores",
           "guias-alimentarias-ar"
         ]
+      },
+      {
+        "slug": "alimentacion-5",
+        "titulo": "El campo y el clima",
+        "fuentes": [
+          "crippa-2021",
+          "poore-nemecek-2018",
+          "ipcc-srccl",
+          "inventario-gei-ar",
+          "ue-deforestacion",
+          "ley-bosques-26331",
+          "aapresid",
+          "inta",
+          "wwa-atribucion"
+        ]
+      },
+      {
+        "slug": "alimentacion-6",
+        "titulo": "Seguridad alimentaria",
+        "fuentes": [
+          "fao-sofi",
+          "fao-hambre-2025",
+          "indec-pobreza-2025",
+          "ennys2",
+          "ley-27642-etiquetado",
+          "guias-alimentarias-ar",
+          "red-bancos-alimentos",
+          "via-campesina",
+          "fao-sofa-2023"
+        ]
       }
     ]
   },
@@ -1588,6 +2824,35 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "fao-agroecologia",
           "fao-suelos",
           "ipbes-polinizadores"
+        ]
+      },
+      {
+        "slug": "plantas-5",
+        "titulo": "Bosques nativos",
+        "fuentes": [
+          "ley-bosques-26331",
+          "chequeado-fondo-bosques",
+          "farn-bosques-fondo",
+          "global-forest-watch",
+          "snmf-origen",
+          "chequeado-incendios",
+          "ley-27604-fuego",
+          "nasa-firms",
+          "parques-nacionales"
+        ]
+      },
+      {
+        "slug": "plantas-6",
+        "titulo": "Restaurar ecosistemas",
+        "fuentes": [
+          "decenio-restauracion",
+          "cdb-meta-2",
+          "ser-estandares",
+          "rewilding-argentina",
+          "plantas-nativas",
+          "ecorregiones-pba",
+          "reserva-costanera-sur",
+          "ipbes-global"
         ]
       }
     ]
@@ -1653,6 +2918,41 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ipcc-ar6",
           "ipbes-polinizadores"
         ]
+      },
+      {
+        "slug": "animales-5",
+        "titulo": "Convivir con la fauna en el paisaje",
+        "fuentes": [
+          "apn-atropellamiento-iguazu",
+          "apn-pasafaunas-iguazu",
+          "inta-perros-protectores",
+          "conicet-vicunas",
+          "cites",
+          "ley-22421-fauna",
+          "rewilding-argentina",
+          "parques-nacionales"
+        ]
+      },
+      {
+        "slug": "animales-6",
+        "titulo": "Una sola salud",
+        "fuentes": [
+          "omsa-una-salud",
+          "oms-una-salud",
+          "ipbes-pandemias",
+          "oms-resistencia",
+          "van-boeckel-2019",
+          "ue-promotores-2006",
+          "nejm-andes-2020",
+          "uhart-2024-elefantes",
+          "msal-hantavirus",
+          "msal-hidatidosis",
+          "msal-leptospirosis",
+          "msal-rabia",
+          "msal-dengue-2024",
+          "msal-suh-2026",
+          "ley-22421-fauna"
+        ]
       }
     ]
   },
@@ -1714,6 +3014,47 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "acuerdo-paris",
           "carbon-brief"
         ]
+      },
+      {
+        "slug": "aire-suelo-5",
+        "titulo": "Tierras secas y desertificación",
+        "fuentes": [
+          "unccd-convencion",
+          "unccd-aridez-2024",
+          "unccd-ndt",
+          "unccd-gran-muralla",
+          "ar-desertificacion",
+          "ley-24701-desertificacion",
+          "inta-maras",
+          "inta-observatorio-desertificacion",
+          "bcr-sequia-2023",
+          "wmo-la-nina-2023",
+          "omm-spi-2012",
+          "sissa",
+          "dgi-oasis-mendoza",
+          "fao-suelos-degradacion",
+          "ipcc-srccl",
+          "onu-ods"
+        ]
+      },
+      {
+        "slug": "aire-suelo-6",
+        "titulo": "Metas climáticas",
+        "fuentes": [
+          "gcb-2025",
+          "ipcc-ar6",
+          "acuerdo-paris",
+          "unfccc-balance-mundial",
+          "unep-brecha-2025",
+          "ue-ley-clima",
+          "west-2023-bonos",
+          "onu-integridad-cero-neto",
+          "ley-27520-cambio-climatico",
+          "ar-elp-2050",
+          "ar-ndc-3",
+          "inventario-gei-ar",
+          "cat-argentina"
+        ]
       }
     ]
   },
@@ -1770,6 +3111,30 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "geovin",
           "aves-argentinas"
         ]
+      },
+      {
+        "slug": "ciencia-5",
+        "titulo": "Modelos, incertidumbre y escenarios",
+        "fuentes": [
+          "ipcc-ar6",
+          "ipcc-incertidumbre",
+          "hausfather-2020",
+          "zhang-2019-predictibilidad",
+          "lorenz-1963",
+          "hawkins-sutton-2009",
+          "ley-25675-ambiente"
+        ]
+      },
+      {
+        "slug": "ciencia-6",
+        "titulo": "Evaluar qué funciona",
+        "fuentes": [
+          "bm-evaluacion-impacto",
+          "allcott-2011",
+          "taylor-2019-bolsas",
+          "cochrane",
+          "cee-evidencia"
+        ]
       }
     ]
   },
@@ -1817,6 +3182,33 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ley-27424-generacion",
           "iea-energia",
           "owid-energia"
+        ]
+      },
+      {
+        "slug": "energia-5",
+        "titulo": "Una red para las renovables",
+        "fuentes": [
+          "cammesa",
+          "iea-baterias-2024",
+          "bnef-baterias-2024",
+          "eia-curva-pato",
+          "almagba-2025",
+          "iea-renovables-2024",
+          "irena"
+        ]
+      },
+      {
+        "slug": "energia-6",
+        "titulo": "La transición energética en Argentina",
+        "fuentes": [
+          "argendata-transicion",
+          "cammesa",
+          "ley-27191-renovables",
+          "renovables-2025-ar",
+          "balanza-energetica-2024",
+          "iea-metano-2025",
+          "censo-gas-2022",
+          "inventario-gei-ar"
         ]
       }
     ]
@@ -1874,6 +3266,40 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "oms-aire-exterior",
           "cammesa"
         ]
+      },
+      {
+        "slug": "movilidad-5",
+        "titulo": "Ciudades para las personas",
+        "fuentes": [
+          "itdp-tod",
+          "human-transit",
+          "duranton-turner-2011",
+          "cheonggyecheon",
+          "shoup-estacionamiento",
+          "borjesson-2012-estocolmo",
+          "mta-congestion-2026",
+          "mueller-2020-supermanzanas",
+          "declaracion-estocolmo-2020",
+          "oms-seguridad-vial",
+          "caf-movilidad-genero"
+        ]
+      },
+      {
+        "slug": "movilidad-6",
+        "titulo": "Carga, logística y viajes largos",
+        "fuentes": [
+          "bcr-cargas-2018",
+          "bcr-cargas-2024",
+          "eea-intensidad-transporte",
+          "owid-aviacion",
+          "owid-huella-viajes",
+          "gossling-humpe-2020",
+          "iata-saf-2024",
+          "francia-vuelos-cortos",
+          "imo-ghg4",
+          "imo-estrategia-2023",
+          "lenzen-2018-turismo"
+        ]
       }
     ]
   },
@@ -1925,6 +3351,33 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ellen-macarthur",
           "rep-envases",
           "emf-textiles"
+        ]
+      },
+      {
+        "slug": "residuos-5",
+        "titulo": "Gestión integral de residuos en la ciudad",
+        "fuentes": [
+          "basurales-ar",
+          "chequeado-basurales",
+          "ley-25916-residuos",
+          "ley-1854-basura-cero",
+          "ceamse",
+          "faccyr",
+          "bm-what-a-waste",
+          "epa"
+        ]
+      },
+      {
+        "slug": "residuos-6",
+        "titulo": "Residuos peligrosos y especiales",
+        "fuentes": [
+          "ley-24051-peligrosos",
+          "basilea",
+          "ley-27279-fitosanitarios",
+          "unece-sga",
+          "ewaste-monitor",
+          "minamata",
+          "msal-dengue"
         ]
       }
     ]
@@ -1982,6 +3435,42 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "fao-pesca-sofia",
           "oms-aire-exterior"
         ]
+      },
+      {
+        "slug": "consumo-5",
+        "titulo": "Consumo, bienestar y suficiencia",
+        "fuentes": [
+          "killingsworth-2023",
+          "dittmar-2014",
+          "dunn-2011",
+          "max-neef-1989",
+          "oneill-2018",
+          "dona-raworth",
+          "ipcc-ar6-demanda",
+          "francia-publicidad-fosil",
+          "haya-publicidad-fosil",
+          "oxfam-clima-2023"
+        ]
+      },
+      {
+        "slug": "consumo-6",
+        "titulo": "Empresas y cadenas de valor",
+        "fuentes": [
+          "ghg-protocol",
+          "ghg-protocol-alcance3",
+          "cdp-cadena-2024",
+          "oit-rana-plaza",
+          "onu-principios-rectores",
+          "ocde-debida-diligencia",
+          "ue-csddd",
+          "ue-deforestacion",
+          "issb-s2",
+          "sbti",
+          "berg-2022-esg",
+          "sistema-b",
+          "aci-principios",
+          "inaes"
+        ]
       }
     ]
   },
@@ -2036,6 +3525,40 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "amnistia-cobalto",
           "ocde-diligencia-minerales",
           "ue-minerales-conflicto",
+          "ewaste-monitor"
+        ]
+      },
+      {
+        "slug": "digital-5",
+        "titulo": "Del dato a la decisión",
+        "fuentes": [
+          "airnow-ica",
+          "epa-sensores",
+          "fair-2016",
+          "datos-argentina",
+          "global-forest-watch",
+          "nearing-2024-crecidas",
+          "smn-alertas",
+          "omm-alertas-para-todos",
+          "ley-25831-info",
+          "escazu",
+          "ley-25326-datos"
+        ]
+      },
+      {
+        "slug": "digital-6",
+        "titulo": "Diseñar tecnología sostenible",
+        "fuentes": [
+          "ue-ecodiseno-moviles",
+          "ue-cargador-comun",
+          "ue-derecho-reparar",
+          "gsf-sci",
+          "gsf-principios",
+          "w3c-wsg",
+          "iea-energia-ia",
+          "cammesa",
+          "ue-dsa",
+          "wcag-22",
           "ewaste-monitor"
         ]
       }
@@ -2095,6 +3618,35 @@ export const RAMAS_FUENTES: RamaFuentes[] = [
           "ley-25831-info",
           "global-witness-defensores",
           "ley-24071-oit-169"
+        ]
+      },
+      {
+        "slug": "comunidad-5",
+        "titulo": "Políticas públicas ambientales",
+        "fuentes": [
+          "constitucion-nacional",
+          "ley-25675-ambiente",
+          "ley-26639-glaciares",
+          "greenpeace-glaciares",
+          "ley-bosques-26331",
+          "chequeado-fondo-bosques",
+          "ley-24747-iniciativa",
+          "ley-25831-info",
+          "escazu",
+          "ley-27520-cambio-climatico",
+          "inventario-glaciares"
+        ]
+      },
+      {
+        "slug": "comunidad-6",
+        "titulo": "Liderar un proyecto colectivo",
+        "fuentes": [
+          "teoria-del-cambio",
+          "kellogg-modelo-logico",
+          "ostrom-nobel-2009",
+          "bm-evaluacion-impacto",
+          "aci-principios",
+          "ley-25831-info"
         ]
       }
     ]
