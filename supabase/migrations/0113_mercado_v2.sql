@@ -326,8 +326,8 @@ returns uuid[] language plpgsql stable security definer set search_path = public
 declare v uuid[]; s uuid[]; fuzzy uuid[]; w text; q tsquery;
 begin
   if p_norm is null then return null; end if;
-  -- Umbral de parecido por palabra: 0,5 tolera un error de tipeo en una
-  -- palabra corta ("jabom" encuentra "jabón"). Se fija acá y no en la
+  -- Umbral de parecido por palabra: tolera un error de tipeo en una palabra
+  -- corta ("jabom" encuentra "jabón"). Se fija acá y no en la
   -- definición porque la base no deja fijar parámetros de una extensión ahí;
   -- `word_similarity` primero carga la extensión para que el parámetro exista.
   select coalesce(array_agg(l.id), '{}') into v
@@ -336,7 +336,9 @@ begin
   -- parecidos solo agrega ruido ("sólido" no es "jabón sólido").
   if cardinality(v) >= 12 then return v; end if;
   perform word_similarity('', '');
-  perform set_config('pg_trgm.word_similarity_threshold', '0.5', true);
+  -- 0,4 por palabra ("bolzon" encuentra "bolsón"): como TODAS las palabras
+  -- tienen que aparecer, el umbral bajo no se llena de ruido.
+  perform set_config('pg_trgm.word_similarity_threshold', '0.4', true);
   -- Parecidos PALABRA POR PALABRA, y todas tienen que aparecer: "jabom
   -- solido" encuentra "Jabón sólido" y no todo lo que dice "sólido". Las
   -- palabras vacías ("para", "con") no cuentan.
@@ -348,6 +350,8 @@ begin
      where l.status = 'publicado' and (l.busqueda @@ q or w <% lower(unaccent_safe(l.titulo)));
     fuzzy := case when fuzzy is null then s else array(select unnest(fuzzy) intersect select unnest(s)) end;
   end loop;
+  -- El nombre de la tienda se compara con la búsqueda entera, más estricto.
+  perform set_config('pg_trgm.word_similarity_threshold', '0.5', true);
   select coalesce(array_agg(distinct id), '{}') into v from (
     select unnest(v) as id
     union all
