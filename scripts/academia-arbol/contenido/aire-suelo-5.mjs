@@ -21,8 +21,8 @@ export default unidad({
     'Analizar el uso del agua en oasis, secanos y sistemas de cosecha de lluvia',
     'Aplicar la jerarquía de la neutralidad en la degradación de las tierras: evitar, reducir y revertir',
   ],
-  repasa: ['aire-suelo-2', 'aire-suelo-4', 'agua-5', 'animales-5'],
-  fuentes: ['unccd-convencion', 'unccd-aridez-2024', 'unccd-ndt', 'unccd-gran-muralla', 'ar-desertificacion', 'ley-24701-desertificacion', 'inta-maras', 'inta-observatorio-desertificacion', 'bcr-sequia-2023', 'wmo-la-nina-2023', 'dgi-oasis-mendoza', 'fao-suelos-degradacion', 'ipcc-srccl', 'onu-ods'],
+  repasa: ['aire-suelo-2', 'aire-suelo-4', 'agua-5', 'agua-6', 'animales-5'],
+  fuentes: ['unccd-convencion', 'unccd-aridez-2024', 'unccd-ndt', 'unccd-gran-muralla', 'ar-desertificacion', 'ley-24701-desertificacion', 'inta-maras', 'inta-observatorio-desertificacion', 'bcr-sequia-2023', 'wmo-la-nina-2023', 'omm-spi-2012', 'sissa', 'dgi-oasis-mendoza', 'fao-suelos-degradacion', 'ipcc-srccl', 'onu-ods'],
   lecciones: [
     // ─────────────────────────────────────────────────────────────── S1
     leccion('Tierras secas', 'Qué son, cómo se mide la aridez y por qué no son tierras "muertas".', [
@@ -166,7 +166,7 @@ export default unidad({
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
-    leccion('Sequías', 'Un déficit de lluvia que llega y se va, pero deja huellas: tipos de sequía, La Niña y la campaña 2022-2023.', [
+    leccion('Sequías', 'Un déficit de lluvia que llega y se va, pero deja huellas: cómo se mide, La Niña y la campaña 2022-2023.', [
       teoria('Aridez, sequía y desertificación', [
         'Son tres cosas distintas. La aridez es una condición estable del clima, que cambia en escalas de tiempo muy largas. La sequía, en cambio, es un período anómalo y más corto de falta de agua, que puede ocurrir tanto en zonas secas como en zonas húmedas. Y la desertificación es la degradación de las tierras secas. Una sequía no es desertificación, pero si encuentra un campo sobrepastoreado o desmontado, puede acelerarla.',
       ]),
@@ -175,15 +175,16 @@ export default unidad({
         'Sequía': ['En 2022-2023 llovió mucho menos de lo normal en la región pampeana', 'Un verano sin lluvias en una zona normalmente húmeda'],
         'Desertificación': ['Un campo sobrepastoreado pierde su cobertura y su suelo', 'Un monte desmontado se vuelve un peladar con médanos'],
       }, 'Distinguirlas importa: cada una pide respuestas distintas.', { d: 2 }),
-      teoria('Una sequía, cuatro caras', [
-        'Las sequías avanzan en cascada. Primero llueve menos de lo normal (sequía meteorológica). Después falta humedad en el suelo para los cultivos y los pastos (sequía agrícola). Si sigue, bajan los ríos, los embalses y las napas (sequía hidrológica). Y al final se sienten los efectos en la economía y en la vida de las personas (sequía socioeconómica).',
+      teoria('Medir una sequía', [
+        'Como viste en la rama del agua, una sequía avanza en cascada: primero falta la lluvia, después se seca el suelo y más tarde bajan los ríos y las napas. Para medirla, los servicios meteorológicos usan índices como el Índice de Precipitación Estandarizado (SPI), recomendado por la Organización Meteorológica Mundial. Compara la lluvia acumulada en un período, por ejemplo tres o seis meses, con lo normal para ese lugar, y la expresa en desvíos: valores entre −0,99 y 0,99 son casi normales; de −1 a −1,49 indican sequía moderada; de −1,5 a −1,99, severa; y −2 o menos, extrema.',
+        'En la región, el Sistema de Información sobre Sequías para el sur de Sudamérica (SISSA) publica estos índices para Argentina y los países vecinos, para anticipar impactos y preparar respuestas.',
       ]),
-      ord('Ordená cómo avanza una sequía prolongada.', [ // e2
-        'Llueve menos de lo normal durante meses',
-        'Falta humedad en el suelo para los cultivos',
-        'Bajan los ríos, los embalses y las napas',
-        'Caen las cosechas, los ingresos y el empleo',
-      ], 'Cuanto más dura la falta de lluvia, más profundo llega el impacto.', { d: 1 }),
+      clas('Según el Índice de Precipitación Estandarizado, ¿qué situación indica cada valor?', { // e2
+        'Casi normal (−0,99 a 0,99)': ['SPI de −0,4', 'SPI de 0,6'],
+        'Sequía moderada (−1 a −1,49)': ['SPI de −1,2', 'SPI de −1,4'],
+        'Sequía severa (−1,5 a −1,99)': ['SPI de −1,6', 'SPI de −1,9'],
+        'Sequía extrema (−2 o menos)': ['SPI de −2,3', 'SPI de −2,8'],
+      }, 'Un índice estandarizado permite comparar sequías entre lugares con lluvias muy distintas, como la Puna y el Litoral.', { d: 2 }),
       teoria('La Niña y la campaña 2022-2023', [
         'Entre 2020 y 2023 hubo tres años seguidos con La Niña, un enfriamiento del océano Pacífico tropical que suele reducir las lluvias en la región pampeana. Según la Organización Meteorológica Mundial, fue apenas la tercera vez desde 1950 que La Niña duró tres años seguidos. La campaña 2022-2023 se hizo bajo las condiciones más secas en décadas: según la Bolsa de Comercio de Rosario, la proyección de cosecha de soja, trigo y maíz cayó en 50 millones de toneladas, con un costo de más de 14.140 millones de dólares para los productores.',
       ], { destacado: { valor: 'US$ 14.140 millones', texto: 'le costó la sequía 2022-2023 a los productores de soja, trigo y maíz, según la Bolsa de Comercio de Rosario.' } }),

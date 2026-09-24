@@ -1384,6 +1384,19 @@ const NUEVAS = [
     url: 'https://wmo.int/news/media-centre/wmo-update-el-nino-may-return',
     publicado: '2023',
   },
+  {
+    slug: 'omm-spi-2012',
+    titulo: 'Standardized Precipitation Index User Guide (WMO-No. 1090)',
+    organizacion: 'Organización Meteorológica Mundial',
+    url: 'https://library.wmo.int/records/item/39629-standardized-precipitation-index-user-guide',
+    publicado: '2012',
+  },
+  {
+    slug: 'sissa',
+    titulo: 'Sistema de Información sobre Sequías para el sur de Sudamérica (SISSA)',
+    organizacion: 'Centro Regional del Clima para el sur de América del Sur',
+    url: 'https://sissa.crc-sas.org/',
+  },
   // ── Metas climáticas ─────────────────────────────────────────────────────────
   {
     slug: 'gcb-2025',
