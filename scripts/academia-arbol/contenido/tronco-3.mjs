@@ -83,6 +83,13 @@ export default unidad({
         ['El punto verde queda lejos', 'Juntar varios meses y llevar todo de una vez con un vecino'],
         ['La bici está trabada en el depósito', 'Guardarla la noche anterior a mano en la entrada'],
       ], 'Cada barrera tiene su palanca: recordatorio, norma social, logística o entorno. Nombrar la barrera es la mitad de la solución.', { d: 2 }),
+      cad('Armá la cadena de por qué la información sola no suele cambiar un hábito.', [
+        'Alguien lee que conviene ducharse menos tiempo',
+        'Está de acuerdo con la idea',
+        'A la mañana actúa en piloto automático',
+        'La ducha dura lo mismo de siempre',
+        'Hace falta cambiar el entorno o la rutina',
+      ], ['Saber algo cambia el hábito automáticamente'], 'Entre saber y hacer hay rutinas, comodidad y entorno: ahí conviene actuar.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -144,6 +151,13 @@ export default unidad({
         ['Pongo el balde de restos al lado de la pileta.', false],
         ['Y el primer día voy a armar tres composteras distintas a la vez.', true, 'Empezar demasiado grande hace abandonar: mejor una sola y chica.'],
       ], 'Disparador fijo y empezar chico: los dos errores más comunes al armar un hábito son justo los contrarios.', { d: 3 }),
+      mult('¿Qué ayuda a que un hábito nuevo se sostenga? Marcá todo.', [
+        '+Atarlo a algo que ya hacés todos los días',
+        '+Empezar con una versión muy chica',
+        '+Dejar a la vista lo que necesitás, como la botella en la puerta',
+        '+Hacerlo con alguien más',
+        '-Esperar a tener muchas ganas cada día',
+      ], 'Los hábitos se apoyan en el entorno y en la repetición, no en la fuerza de voluntad de cada día.', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -207,6 +221,12 @@ export default unidad({
         ['Esperar a que la escuela lo decida sola algún día', 'Los sistemas cambian cuando alguien lo pide: esperar suele ser esperar para siempre.'],
         'Tirar todo junto porque en la escuela no importa',
       ], 'Es una acción colectiva en un círculo cercano: pequeña para empezar y capaz de cambiar lo que hacen cientos de personas por día.', { d: 2 }),
+      par('Uní cada acción personal con su versión que empuja al sistema.', [
+        ['Separar residuos en casa', 'Pedir contenedores de reciclaje en el barrio'],
+        ['Ir en bici al trabajo', 'Pedir ciclovías seguras'],
+        ['Ahorrar energía en casa', 'Proponer eficiencia en edificios públicos'],
+        ['Comprar a granel', 'Impulsar una feria de productores locales'],
+      ], 'Lo personal y lo colectivo se refuerzan: lo que hacés te da experiencia para pedir cambios más grandes.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -283,6 +303,16 @@ export default unidad({
         ['Y si el colectivo tarda más, lo dejo y listo: ya hice lo del cepillo.', true, 'Usa la acción chica como excusa para abandonar la grande.'],
       ], 'Identificar lo grande es el primer paso; sostener el cambio ahí es el importante. Los gestos chicos no compensan.', { d: 4 }),
       comp('Completá la regla para elegir.', 'Conviene empezar por las acciones de [alto impacto] y [bajo esfuerzo], y dejar para el final las de poco impacto y mucho [esfuerzo].', ['bajo impacto', 'alto costo', 'poco tiempo'], 'Impacto por esfuerzo, en tu situación. La matriz cambia de persona en persona, pero la regla es la misma.', { d: 2 }),
+      numv(3, (i) => {
+        const [kg, horas] = [[1000, 10], [300, 2], [2000, 40]][i];
+        return {
+          enunciado: `Una acción ahorra ${kg.toLocaleString('es-AR')} kg de CO₂ por año y requiere unas ${horas} horas de esfuerzo en total. ¿Cuántos kg ahorra por cada hora de esfuerzo?`,
+          valor: kg / horas,
+          unidad: 'kg por hora',
+          explicacion: `${kg.toLocaleString('es-AR')} ÷ ${horas} = ${kg / horas} kg por hora. Comparar impacto por esfuerzo ayuda a elegir por dónde empezar. Valores de ejemplo.`,
+          ctx: `${kg} kg por año; ${horas} horas de esfuerzo.`,
+        };
+      }, { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -345,6 +375,10 @@ export default unidad({
         ['"Hay un estudio que dice lo contrario, te lo mando."', 'dato sin conexión'],
         ['"Con gente como vos no se puede."', 'cierra la conversación'],
       ], 'Escuchar y ofrecer algo concreto abren; el dato solo informa y el juicio cierra. No hay una fórmula perfecta, pero sí respuestas que casi siempre funcionan peor.', { d: 3 }),
+      vf('Para convencer a alguien conviene empezar demostrándole que está equivocado.', false, 'Cuando alguien se siente atacado, se defiende y se cierra. Suele funcionar mejor escuchar, partir de lo que le importa y proponer algo concreto.', {
+        razones: ['+Porque sentirse atacado cierra la conversación', '-Porque nadie cambia nunca de opinión', '-Porque es mejor no hablar nunca de ambiente'],
+        d: 1,
+      }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
