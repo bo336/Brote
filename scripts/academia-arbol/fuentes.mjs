@@ -1905,6 +1905,27 @@ const NUEVAS = [
     url: 'https://www.w3.org/TR/WCAG22/',
     publicado: '2023',
   },
+  // ── Políticas públicas ───────────────────────────────────────────────────────
+  {
+    slug: 'constitucion-nacional',
+    titulo: 'Constitución de la Nación Argentina',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/norma-804/texto',
+    publicado: '1994',
+  },
+  {
+    slug: 'ley-24747-iniciativa',
+    titulo: 'Ley 24.747 de iniciativa legislativa popular',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://servicios.infoleg.gob.ar/infolegInternet/anexos/40000-44999/41025/norma.htm',
+    publicado: '1996',
+  },
+  {
+    slug: 'greenpeace-glaciares',
+    titulo: 'Cronología de nuestra campaña para defender los glaciares',
+    organizacion: 'Fundación Greenpeace Argentina',
+    url: 'https://www.greenpeace.org/argentina/cronologia-glaciares/',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
