@@ -1805,6 +1805,58 @@ const NUEVAS = [
     organizacion: 'Gobierno de la República Argentina',
     url: 'https://www.argentina.gob.ar/inaes',
   },
+  // ── Datos para decidir ───────────────────────────────────────────────────────
+  {
+    slug: 'airnow-ica',
+    titulo: 'AQI Basics',
+    organizacion: 'AirNow (Agencia de Protección Ambiental de Estados Unidos)',
+    url: 'https://www.airnow.gov/aqi/aqi-basics/',
+  },
+  {
+    slug: 'epa-sensores',
+    titulo: 'Air Sensor Toolbox',
+    organizacion: 'Agencia de Protección Ambiental de Estados Unidos',
+    url: 'https://www.epa.gov/air-sensor-toolbox',
+  },
+  {
+    slug: 'fair-2016',
+    titulo: 'The FAIR Guiding Principles for scientific data management and stewardship',
+    organizacion: 'Scientific Data',
+    url: 'https://www.nature.com/articles/sdata201618',
+    publicado: '2016',
+  },
+  {
+    slug: 'datos-argentina',
+    titulo: 'Portal de datos abiertos de la República Argentina',
+    organizacion: 'Gobierno de la República Argentina',
+    url: 'https://www.datos.gob.ar/',
+  },
+  {
+    slug: 'nearing-2024-crecidas',
+    titulo: 'Global prediction of extreme floods in ungauged watersheds',
+    organizacion: 'Nature',
+    url: 'https://www.nature.com/articles/s41586-024-07145-1',
+    publicado: '2024',
+  },
+  {
+    slug: 'smn-alertas',
+    titulo: 'Sistema de Alerta Temprana',
+    organizacion: 'Servicio Meteorológico Nacional',
+    url: 'https://www.smn.gob.ar/alertas',
+  },
+  {
+    slug: 'omm-alertas-para-todos',
+    titulo: 'Early Warnings for All',
+    organizacion: 'Organización Meteorológica Mundial',
+    url: 'https://wmo.int/activities/early-warnings-all',
+  },
+  {
+    slug: 'ley-25326-datos',
+    titulo: 'Ley 25.326 de Protección de los Datos Personales',
+    organizacion: 'Congreso de la Nación Argentina',
+    url: 'https://www.argentina.gob.ar/normativa/nacional/ley-25326-64790/texto',
+    publicado: '2000',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
