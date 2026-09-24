@@ -1926,6 +1926,26 @@ const NUEVAS = [
     organizacion: 'Fundación Greenpeace Argentina',
     url: 'https://www.greenpeace.org/argentina/cronologia-glaciares/',
   },
+  {
+    slug: 'ostrom-nobel-2009',
+    titulo: 'Beyond Markets and States: Polycentric Governance of Complex Economic Systems (conferencia Nobel)',
+    organizacion: 'Fundación Nobel',
+    url: 'https://www.nobelprize.org/prizes/economic-sciences/2009/ostrom/lecture/',
+    publicado: '2009',
+  },
+  {
+    slug: 'teoria-del-cambio',
+    titulo: 'What is Theory of Change?',
+    organizacion: 'Center for Theory of Change',
+    url: 'https://www.theoryofchange.org/what-is-theory-of-change/',
+  },
+  {
+    slug: 'kellogg-modelo-logico',
+    titulo: 'Logic Model Development Guide',
+    organizacion: 'W. K. Kellogg Foundation',
+    url: 'https://wkkf.issuelab.org/resource/logic-model-development-guide.html',
+    publicado: '2004',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
