@@ -97,6 +97,12 @@ export default unidad({
         ['Si el número subió 1 m³, perdí apenas 1 litro, no vale la pena buscar.', true, 'Un metro cúbico son 1.000 litros, no uno: es una pérdida grande.'],
       ], 'La prueba solo sirve si no hay ningún uso de agua. Y la unidad del medidor, el metro cúbico, son mil litros.', { d: 3 }),
       comp('Completá.', 'Para saber si el inodoro pierde se pone [colorante] en la mochila; si aparece en el inodoro sin usarlo, la [goma] de descarga o el [flotante] no cierran bien.', ['cloro', 'caño', 'medidor'], 'La prueba del colorante y las dos piezas culpables más comunes. Los repuestos son baratos y el ahorro es enorme.', { d: 2 }),
+      par('Uní cada síntoma con su causa más probable.', [
+        ['Agua teñida en el inodoro tras la prueba del colorante', 'Goma de descarga gastada'],
+        ['La canilla gotea con la manija cerrada', 'Cuerito o cartucho gastado'],
+        ['El medidor avanza con todo cerrado', 'Pérdida en algún punto de la instalación'],
+        ['Mancha de humedad que crece en la pared', 'Caño roto dentro de la pared'],
+      ], 'Cada síntoma apunta a un lugar distinto: saber leerlos ahorra tiempo al buscar la pérdida.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -181,6 +187,10 @@ export default unidad({
           explicacion: `Por persona y por día: ${min.toLocaleString('es-AR')} min × 10 L = ${min * 10} litros. × ${pers} personas × 30 días = ${(pers * min * 10 * 30).toLocaleString('es-AR')} litros por mes, sin acortar la ducha.`,
         };
       }, { d: 3 }),
+      clas('¿Este cambio ahorra solo agua, o agua y energía a la vez?', {
+        'Agua y energía': ['Acortar la ducha caliente', 'Usar una flor de bajo caudal con agua caliente'],
+        'Solo agua': ['Usar la descarga corta del inodoro', 'Arreglar la pérdida de la mochila'],
+      }, 'Todo lo que reduce agua caliente ahorra dos veces: el agua y la energía para calentarla.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -257,6 +267,16 @@ export default unidad({
         ['Lavaste la lechuga en un bol', 'Usar esa agua para regar las plantas'],
         ['Hervís fideos', 'Dejar enfriar el agua y regar con ella'],
       ], 'En la cocina el ahorro viene de prever y de darle un segundo uso al agua, no de privarse de nada.', { d: 2 }),
+      numv(3, (i) => {
+        const [litros, veces] = [[60, 4], [50, 4], [70, 8]][i];
+        return {
+          enunciado: `Un lavarropas usa ${litros} litros por ciclo, esté lleno o a media carga. Si en vez de dos lavados a media carga se hace uno con carga completa, ${veces} veces por mes, ¿cuántos litros se ahorran por mes?`,
+          valor: litros * veces,
+          unidad: 'litros',
+          explicacion: `Cada vez se evita un ciclo de ${litros} litros; × ${veces} = ${litros * veces} litros por mes, además de la energía de ese ciclo.`,
+          ctx: `${litros} litros por ciclo; ${veces} veces por mes.`,
+        };
+      }, { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -341,6 +361,16 @@ export default unidad({
         ['Un aspersor chico que moje todo el balcón', 'El aspersor tira agua al piso y a las paredes, donde no hay raíces.'],
         'Dejar que el agua desborde de los platos para asegurarse',
       ], 'Poca agua, justo en la raíz y sin sol fuerte: en macetas es fácil hacerlo perfecto.', { d: 2 }),
+      numv(3, (i) => {
+        const litros = [200, 500, 300][i];
+        return {
+          enunciado: `Supongamos que al regar al mediodía se evapora el 30 % del agua y de noche solo el 10 %. Si se riegan ${litros} litros, ¿cuántos litros más llegan a las raíces regando de noche?`,
+          valor: litros * 20 / 100,
+          unidad: 'litros',
+          explicacion: `Al mediodía se pierden ${litros * 30 / 100} litros; de noche, ${litros * 10 / 100}. La diferencia es ${litros * 20 / 100} litros que el jardín aprovecha. Valores de ejemplo: el horario cambia cuánto riego hace falta.`,
+          ctx: `${litros} litros; 30 % de evaporación al mediodía y 10 % de noche.`,
+        };
+      }, { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -414,6 +444,13 @@ export default unidad({
         ['Como bajamos un 50 %, ya no hace falta seguir midiendo.', true, 'De 30 a 24 es un 20 %, no un 50 %. Y medir es lo que sostiene el hábito.'],
       ], 'Unidades y porcentajes bien hechos, y la medición como costumbre: las dos lecciones del tronco aplicadas a la casa.', { d: 4 }),
       est('Estimá: una casa de 4 personas que usa 150 litros por persona por día, ¿cuántos metros cúbicos consume en un bimestre de 60 días?', 36, { min: 5, max: 100, paso: 1, unidad: 'm³' }, '150 × 4 = 600 litros por día; × 60 días = 36.000 litros, que son 36 m³. Es la cuenta inversa a la de la factura.', { d: 3 }),
+      ord('Ordená un plan de ahorro de agua para la casa.', [
+        'Leer la factura o el medidor para tener el punto de partida',
+        'Buscar y arreglar las pérdidas',
+        'Acordar en familia dos o tres cambios de hábito',
+        'Medir de nuevo al mes siguiente',
+        'Comparar con el mismo mes del año anterior y ajustar',
+      ], 'Medir, arreglar, acordar y volver a medir: el ciclo que convierte un propósito en un hábito.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
