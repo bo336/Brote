@@ -23,7 +23,7 @@ export default unidad({
     'Usar herramientas de participación como la iniciativa popular y la incidencia con evidencia',
   ],
   repasa: ['comunidad-2', 'comunidad-4', 'consumo-4', 'ciencia-6'],
-  fuentes: ['constitucion-nacional', 'ley-25675-ambiente', 'ley-26639-glaciares', 'greenpeace-glaciares', 'ley-bosques-26331', 'chequeado-fondo-bosques', 'ley-24747-iniciativa', 'ley-25831-info', 'escazu', 'ley-27520-cambio-climatico'],
+  fuentes: ['constitucion-nacional', 'ley-25675-ambiente', 'ley-26639-glaciares', 'greenpeace-glaciares', 'ley-bosques-26331', 'chequeado-fondo-bosques', 'ley-24747-iniciativa', 'ley-25831-info', 'escazu', 'ley-27520-cambio-climatico', 'inventario-glaciares'],
   lecciones: [
     // ─────────────────────────────────────────────────────────────── S1
     leccion('El ciclo de una política', 'Agenda, formulación, decisión, implementación y evaluación, con el caso de la Ley de Glaciares.', [
@@ -52,6 +52,12 @@ export default unidad({
         'Organizaciones y legisladores siguen impulsando el tema',
         'En 2010 se aprueba la ley 26.639',
       ], ['El veto terminó definitivamente con el tema'], 'Un veto no siempre cierra una discusión: puede reabrir el ciclo.', { d: 2 }),
+      par('Uní cada etapa del ciclo con un momento de la política de glaciares.', [
+        ['Agenda', 'El retroceso del hielo y la minería en zonas glaciares ganan atención pública'],
+        ['Decisión', 'El Congreso sanciona la ley 26.639 en 2010'],
+        ['Implementación', 'Se elabora el Inventario Nacional de Glaciares'],
+        ['Evaluación', 'Se revisa si las actividades en zonas protegidas cumplen la ley'],
+      ], 'Cada etapa tiene sus actores y sus herramientas.', { d: 2 }),
       num('La primera ley de glaciares se sancionó en 2008 y la vigente en 2010. ¿Cuántos años pasaron?', 2, 'años', 'De 2008 a 2010 pasaron 2 años: las políticas ambientales suelen necesitar persistencia.', { ctx: 'Primera ley en 2008; ley vigente en 2010.', d: 1 }),
       op('¿Qué muestra el caso de la Ley de Glaciares sobre el ciclo de las políticas?', [ // e4
         'Que una decisión puede revertirse y el tema volver a la agenda',
@@ -69,6 +75,12 @@ export default unidad({
         '+Datos nuevos que muestran la gravedad del problema',
         '-Que nadie hable del tema durante años',
       ], 'Tener propuestas listas antes de la crisis permite aprovechar la ventana cuando se abre.', { d: 2 }),
+      op('¿Qué tres cosas suelen coincidir cuando se abre una ventana de oportunidad?', [
+        'Un problema visible, una propuesta lista y voluntad política',
+        'Un feriado largo, buen clima y poca gente en el Congreso',
+        ['Solo que alguien famoso hable del tema una vez', 'La visibilidad ayuda, pero sin propuesta ni voluntad política no alcanza.'],
+        'Que el problema desaparezca por sí solo',
+      ], 'Cuando esas tres corrientes se juntan, un tema puede avanzar muy rápido.', { d: 2 }),
       vf('Una vez que una ley se aprueba, el problema queda resuelto.', false, 'Después vienen la implementación y la evaluación, donde muchas políticas fallan por falta de presupuesto, controles o datos. La ley es un paso, no el final.', {
         razones: ['+Porque falta implementarla, controlarla y evaluarla', '-Porque las leyes ambientales no se pueden aplicar', '-Porque aprobar una ley empeora el problema'],
         d: 1,
@@ -184,6 +196,13 @@ export default unidad({
         ['Para aprobar leyes en lugar del Congreso', 'No legisla: coordina entre jurisdicciones.'],
         'Para administrar todos los parques nacionales del país',
       ], 'En un país federal, muchos problemas ambientales cruzan fronteras provinciales y necesitan coordinación.', { d: 2 }),
+      est('¿En qué año se creó el Consejo Federal de Medio Ambiente (COFEMA)?', 1990, { min: 1950, max: 2025, paso: 1, unidad: '' }, 'En 1990, en La Rioja; la Ley General del Ambiente lo ratificó en 2002.', { d: 3 }),
+      op('Una provincia quiere fijar límites de vertido más estrictos que los de una norma nacional de presupuestos mínimos. ¿Puede hacerlo?', [
+        'Sí: puede ser más exigente que el piso nacional',
+        'No: las provincias no pueden dictar normas ambientales',
+        ['Solo si todas las demás provincias hacen lo mismo', 'No hace falta: cada provincia puede complementar el piso común.'],
+        'No: tiene que usar exactamente los mismos límites',
+      ], 'Los presupuestos mínimos son un piso: se puede subir, no bajar.', { d: 2 }),
       cad('Armá la cadena de por qué un río que cruza provincias necesita coordinación.', [ // e4
         'Un río nace en una provincia y atraviesa otras',
         'Cada provincia regula el uso del agua en su territorio',
