@@ -1229,6 +1229,147 @@ en una misma categoría. Hoy aparece en las cuatro acciones de granel.
 
 ---
 
+# LA ACADEMIA — EL ÁRBOL (segunda versión) · ENTREGADA EN RAMA · FALTA EL MERGE
+
+> Reemplaza al Bosque en `/aprender`. `docs/ACADEMIA.md` es el mapa completo
+> (modelo, reglas de desbloqueo, compositor, corrector, currículum como código,
+> carga, verificación, constantes). El Bosque quedó como apéndice de ese
+> documento y sus tablas siguen vivas.
+
+## ▶ NEXT EXACT TASK (Academia)
+
+> **Mergear `claude/academia-arbol` a `main` y desplegar, con el OK del dueño.**
+> La base ya tiene todo cargado; lo único que falta es que la app en
+> producción use la rama. Después: jugar una unidad logueado en un teléfono
+> (owner action item 2).
+
+## Qué pidió el pedido, y dónde quedó cada punto
+
+| Pedido | Dónde quedó |
+|---|---|
+| 1 · Un árbol de copa ancha (no un pino), ramas de colores, unidades como cápsulas, candados, unidades en el tronco, a gran escala | `components/academia/Arbol.tsx` + `lib/academia/geometria.ts`: un ombú con tronco, horqueta y 13 ramas en abanico; 81 cápsulas en el color de su rama, con candado si están cerradas; las 3 del tronco sobre el tronco. Grande a propósito, con scroll nativo y zoom. `<ListaRamas>` es la alternativa sin dibujo. |
+| 2 · Árbol → Unidades → Sesiones; completar una unidad hace crecer la rama y abre la siguiente | Modelo Rama → Unidad → Sesión → Paso (0110). Desbloqueo en un solo lugar, `ac_estado_unidades` (0111). La rama brota en el árbol al completar la unidad. |
+| 3 · Currículum desde cero, curva controlada, repetición espaciada, 5–10 lecciones más largas, «20 veces más profundo» | 81 unidades escritas a mano en tres niveles, 7 sesiones cada una (5 lecciones + práctica + desafío), cada lección con teoría y al menos 10 ejercicios de al menos 4 tipos. Repaso espaciado intercalado en toda sesión, con la espiral del currículum (`repasa`) escrita por unidad. |
+| 4 · Fuentes fuera de la lección, en una página discreta desde Ajustes o el pie, con aviso de curación por IA | `/legal/fuentes`, enlazada solo desde Ajustes y el pie de las páginas legales, con el aviso «Todas las fuentes de esta página fueron seleccionadas y organizadas por un modelo de inteligencia artificial.» Ninguna pantalla de sesión muestra fuentes. |
+| 5 · Original, sin copiar a nadie | Forma, nombres (savia, semillas, rama, brote), mecánicas y texto propios. Las cifras vienen de fuentes públicas citadas y los valores inventados para practicar dicen que son de ejemplo. |
+
+## Qué quedó
+
+**Migraciones**, aplicadas en vivo (ver desviaciones):
+
+| | |
+|---|---|
+| `0110` | esquema del Árbol (unidades, sesiones, pasos, intentos, memoria), corrector `ac_corregir`, barajado y fichas opacas, cargador |
+| `0111` | desbloqueo, compositor `ac_componer` con repaso espaciado, y los RPC `academia_mapa/unidad/empezar/repasar/responder/retomar/terminar/salir` |
+| `0112` | el aviso nocturno de repaso lee la memoria nueva (`ac_user_memoria`) |
+
+**Currículum** (`scripts/academia-arbol/`, generado a `supabase/seed/academia-arbol/`):
+81 unidades (3 del tronco + 6 por rama × 13), 567 sesiones, 7.381 pasos
+(5.942 ejercicios en 12 tipos + 1.439 tarjetas de teoría y ejemplos resueltos),
+unas 440.000 palabras y 350 fuentes citadas. Niveles: 26 unidades básicas, 26
+intermedias y 26 avanzadas, más el tronco. Ninguna opción única deja la
+correcta como la más larga (0 de 584).
+
+**Pantallas:** el árbol (`/aprender`), una rama (`/aprender/[rama]`), una
+unidad (`/aprender/u/[unidad]`), el jugador (`/aprender/sesion/[id]`), el repaso
+libre (`/aprender/repaso`) y las fuentes (`/legal/fuentes`). Las rutas del
+Bosque (`/aprender/g/[gajo]`, `/aprender/riego`) redirigen. Los renderers viejos
+se mudaron a `components/panel/academia-legado/` porque la cola de revisión de
+`/panel` los sigue usando.
+
+## Verificado contra la base viva
+
+- **Carga:** las 16 semillas del commit `c9a9a63`, bajadas con `pg_net` y
+  ejecutadas solo si el md5 coincidía con el local. Quedaron 81 unidades
+  aprobadas (nivel 0: 3 · 1: 26 · 2: 26 · 3: 26) y 7.381 pasos aprobados, más 4
+  retirados de una versión anterior.
+- **Corrección de todo el currículum** (`supabase/qa/academia-arbol-correccion.sql`):
+  5.942 de 5.942 respuestas correctas aceptadas con barajado real; 0
+  equivocadas aceptadas (otra opción, verdadero/falso al revés, orden invertido,
+  números lejanos, marcas vacías).
+- **QA de punta a punta** (`supabase/qa/academia-arbol.sql`, todo con rollback):
+  bloque 1 aprobado (mapa, bloqueo, empezar, responder bien y mal, reencolado,
+  terminar, savia y reembolso, práctica, desafío, 13 ramas abiertas al terminar
+  el tronco 1, repaso, retomar); bloque 2, todo `denegado` por PostgREST (pasos,
+  soluciones, intentos, corrector, cargador).
+- **Desbloqueo del nivel 3:** con las unidades 1–4 de una rama y los troncos 1–2
+  completos, la unidad 5 dice `falta: tronco:Del saber al hacer`; con el tronco
+  3 completo se abre, y la 6 sigue cerrada hasta completar la 5.
+- **Compatibilidad con producción antes del merge:** 0110–0112 no redefinen
+  ninguna función que use la app de `main`; la única reemplazada es
+  `academia_mantenimiento_diario` (el aviso nocturno).
+
+## Verificado de otra forma
+
+- `npm run typecheck`, `npm run lint` y `npm run build` pasan.
+- `node scripts/academia-arbol/construir.mjs --check`: «Sin errores». El
+  constructor ahora exige 10 ejercicios por lección y frena si dos ejercicios
+  son idénticos.
+- Links de las 297 fuentes nuevas: 253 responden, 36 son revistas u organismos
+  que devuelven 403 a robots (Science, ScienceDirect, OECD, W3C…), 8 fallan por
+  certificado o tiempo de espera (AySA, SISSA, INTA, AMS Journals, PubMed) y
+  ninguna da 404.
+- El árbol y los renderers de pasos se miraron en pantallas de fixture
+  temporales (`/offline/arbol-preview`), capturadas con Chrome headless y
+  borradas antes de commitear.
+
+## Estado en producción ahora mismo, entre la carga y el merge
+
+- La base tiene los dos modelos; la app de `main` sigue mostrando el Bosque y
+  funciona igual.
+- **El aviso nocturno de repaso ya lee la memoria del Árbol**, que está vacía
+  hasta el merge: mientras tanto, quien use el Bosque no recibe ese aviso. Hoy
+  son 1 o 2 cuentas con progreso en el Bosque.
+- **El progreso del Bosque no pasa al Árbol:** esas cuentas empiezan por la
+  unidad 1 del tronco. Los modelos no se corresponden uno a uno y con dos
+  personas no vale la pena una migración de progreso.
+
+## Desviaciones — qué se hizo distinto, y por qué
+
+- **Las migraciones no tienen fila en `supabase_migrations.schema_migrations`.**
+  Se aplicaron con SQL directo porque la inserción en el historial fue
+  rechazada. Son idempotentes. Si se quiere el historial completo, ver owner
+  action item 3.
+- **No se borró nada del Bosque.** Tablas, funciones y pipeline siguen vivos:
+  tienen historial y alimentan `/panel`.
+- **El pipeline de generación (Gemini) no escribe en el Árbol.** El Árbol es
+  currículum escrito y revisado como código; el pipeline sigue alimentando solo
+  el Bosque y su cola de revisión.
+- **Todas las unidades valen para todas las edades** (`kid`, `teen`, `adult`).
+  El texto es claro y sin tuteo, pero no hay una versión aparte para chicos.
+  Ver owner action item 4.
+- **«20 veces más profundo»** se tomó como estructura, no como un múltiplo
+  medido. Una sesión del Bosque eran nueve preguntas de reconocimiento sobre
+  una oración por concepto. Una lección del Árbol enseña primero (teoría y
+  ejemplos resueltos) y después practica con al menos 10 ejercicios de al
+  menos 4 tipos, de reconocer a calcular y analizar casos.
+
+## Lo que NO se pudo verificar
+
+- **Jugar logueado en un teléfono real.** Crear cuentas o escribir contraseñas
+  está fuera de lo que puedo hacer. El QA juega los mismos RPC que la pantalla,
+  y las pantallas se miraron con datos de fixture, pero el recorrido completo
+  con una sesión de verdad queda para el dueño.
+- Los 44 links que bloquean robots o fallan por certificado se revisan a mano
+  (`node scripts/academia-arbol/verificar-fuentes.mjs --solo-nuevas` los lista).
+
+## Owner action items (Academia, el Árbol)
+
+1. **Dar el OK para mergear `claude/academia-arbol` a `main` y desplegar.**
+2. **Jugar la unidad 1 del tronco entera, logueado, en un teléfono:** el
+   árbol, una lección, un error y su reencolado, el desafío, y ver brotar las
+   13 ramas.
+3. *(Opcional)* Registrar 0110–0112 en el historial de migraciones, con el
+   mismo formato que el resto:
+   `insert into supabase_migrations.schema_migrations (version, name) values ('20260924000110', '0110_academia_arbol'), ('20260924000111', '0111_academia_arbol_motor'), ('20260924000112', '0112_academia_arbol_aviso');`
+4. **Decidir si las cuentas de chicos ven todo el Árbol** o solo los niveles
+   1–2. El cambio es de datos: `edades` en cada unidad de
+   `scripts/academia-arbol/contenido/`, reconstruir y recargar.
+5. Revisar a mano los links de fuentes que bloquean robots.
+6. Cuándo borrar las tablas del Bosque: sigue abierto desde la fase 3.
+
+---
+
 # LA ACADEMIA — FASE 3 (El motor infinito) · ENTREGADA · SECCIÓN CERRADA
 
 > Las tres fases están hechas. `docs/ACADEMIA.md` es el mapa completo para quien

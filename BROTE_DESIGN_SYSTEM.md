@@ -204,18 +204,52 @@ user-visible, elements that only change on `:active`.
     `/panel` with no screen change. Four kill switches ride on that:
     `academia_enabled`, `academia_generacion_enabled`, `academia_savia_libre`,
     `academia_semillas_dia`.
+- **La Academia** (El Árbol) — 2026-09-24. Replaces the forest at `/aprender` with one broad,
+  deciduous tree (an ombú, not a pine): trunk → 13 coloured branches → 81 units → sessions. The
+  player, results and review screens were rebuilt around a written curriculum (see
+  `docs/ACADEMIA.md`). Notes for anyone extending it:
+  - **The tree is big on purpose, and drawn from pure geometry.** `lib/academia/geometria.ts`
+    places trunk, branches, unit pills and session leaves with no React or DOM; `<Arbol>` only
+    paints. Units are **pills** (`PILDORA`, 214×68) in the branch colour, locked units carry a
+    padlock and a muted fill, trunk units sit on the trunk itself. Basic and intermediate units
+    live inside the canopy; advanced ones poke out above it on thin tendrils — the shape says
+    what is left to grow. Completing a unit grows its branch: `recienCompletas` sprouts it once, and never under reduced motion.
+  - **Native scroll, custom zoom, zero re-renders while panning.** About a thousand static SVG
+    nodes, `overflow: auto`, zoom anchored to the pointer, "Ver el árbol entero" and "Ir a mi
+    próxima sesión" buttons. It opens framed on the next session, not on the whole tree.
+  - **One tab stop** (roving tabindex + arrow keys), and `<ListaRamas>` right under it is the full
+    non-drawn alternative: same state, same progress, hairline rows.
+  - Text on a branch colour picks ink by WCAG relative luminance (`tintaSobre`), never by hand.
+  - `data-shell="wide"` and the player's `fixed inset-0 z-[45]` carry over unchanged.
+  - **Sources left the lesson.** No correction, card or result screen shows a source any more;
+    they live on `/legal/fuentes`, reachable only from Ajustes and the legal footer, under a
+    notice that an AI model selected and organised them. `<FuenteChip>` is gone.
+  - Feedback stays calm: green when right, coral when not, the explanation in both cases, no
+    shake, no red wash, no sound. Pip appears three times per session at most.
 
 ### Primitives added in the Academia pass
 
+The Bosque-era rows are kept for history; the ones marked *removed* no longer exist since the
+Árbol (2026-09-24). The old exercise renderers still live in `components/panel/academia-legado/`
+because the `/panel` review queue renders generated items with them.
+
 | Component | Path | What it is |
 |---|---|---|
-| `<ArbolBosque>` | `components/academia/ArbolBosque.tsx` | The drawn forest. Roving tabindex + arrow keys, pinch/ctrl-wheel zoom, viewport culling. |
-| `<Ficha>` / `<Ranura>` | `components/academia/ejercicios/piezas.tsx` | The two shapes every exercise is built from: a thing you pick and a place it goes. Both real `<button>`s, both ≥44 px. |
+| `<Arbol>` | `components/academia/Arbol.tsx` + `lib/academia/geometria.ts` | The drawn tree. Pure-geometry layout, native scroll, pointer-anchored zoom, one tab stop. |
+| `<ListaRamas>` | `components/academia/ListaRamas.tsx` | The tree as a list — the complete alternative for screen readers, keyboard and anyone who prefers rows. |
+| `<HojaUnidad>` | `components/academia/HojaUnidad.tsx` | The sheet a unit opens without leaving the tree. A locked unit opens too and says exactly what unlocks it. |
+| `<TarjetaSeguir>` | `components/academia/TarjetaSeguir.tsx` | "Seguí donde quedaste": the next session and the server's reason for it. |
+| `<TiraArbol>` | `components/academia/TiraArbol.tsx` | The dark ink band with this person's real numbers; a column with no data is not drawn. |
+| `<Retroalimentacion>` | `components/academia/Retroalimentacion.tsx` | The correction panel. Calm on purpose; no sources. |
+| `<Ficha>` / `<Ranura>` | `components/academia/pasos/piezas.tsx` | The two shapes every exercise is built from: a thing you pick and a place it goes. Both real `<button>`s, both ≥44 px. |
 | `useReportar` | idem | Reports an answer upward without depending on the parent memoising its callback. |
 | `useAnuncio` | idem | The Spanish live region every placement and removal is announced through. |
-| `<FuerzaMedidor>` | `components/academia/FuerzaMedidor.tsx` | Mastery × retrievability, 0..1. Colour shifts as a concept fades — it is what makes "watering" mean something. |
-| `<FuenteChip>` | `components/academia/FuenteChip.tsx` | Where the claim came from. Present on every correction, always tappable. |
+| `<Enunciado>` / `<Adjuntos>` / `<Grafico>` | idem | Prompt, attached context, and the bar chart or table a calculation is read from. |
+| `<PasoVista>` | `components/academia/pasos/index.tsx` | Fourteen step types, no `default`: a type without a renderer fails the build. |
 | `<SaviaMedidor>` | `components/academia/SaviaMedidor.tsx` | The daily limit, or a Brote+ chip in its place — the absence of the meter *is* the benefit. |
+| ~~`<ArbolBosque>`~~ | *removed* | The Bosque's drawn forest. |
+| ~~`<FuerzaMedidor>`~~ | *removed* | Per-concept strength meter; the Árbol shows unit progress instead. |
+| ~~`<FuenteChip>`~~ | *removed* | Sources no longer appear inside a lesson. |
 
 ### Primitives added in the Plaza pass
 
