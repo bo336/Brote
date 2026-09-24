@@ -91,6 +91,13 @@ export default unidad({
         ['Lo que pasa río abajo afecta sobre todo a quienes viven río arriba.', true, 'Es al revés: lo de arriba afecta a los de abajo.'],
       ], 'El agua fluye de arriba hacia abajo, y con ella viajan los efectos.', { d: 3 }),
       comp('Completá.', 'Una [cuenca] es todo el territorio que [drena] hacia el mismo río; sus bordes son las [divisorias] de aguas.', ['provincia', 'evapora', 'costas'], 'Leer el territorio por cuencas es leerlo como lo lee el agua.', { d: 1 }),
+      ord('Ordená el recorrido del agua en una cuenca, desde lo más alto hasta el final.', [
+        'Un arroyo de montaña cerca de la divisoria',
+        'Un río afluente',
+        'El río principal',
+        'El estuario, donde se mezcla con el mar',
+        'El mar',
+      ], 'Todo lo que pasa aguas arriba viaja por ese mismo camino hasta el final.', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -158,6 +165,12 @@ export default unidad({
         ['Bahía de Samborombón', 'Humedal costero con marismas'],
       ], 'Hay humedales de muchas formas. Todos tienen en común el agua que satura el suelo al menos parte del año.', { d: 2 }),
       comp('Completá.', 'Los humedales funcionan como [esponjas]: guardan agua en las [crecidas] y la liberan en las [secas].', ['piedras', 'heladas', 'noches'], 'Esa capacidad de repartir el agua en el tiempo es su servicio más valioso frente a inundaciones y sequías.', { d: 1 }),
+      op('¿Por qué los incendios en humedales como los del Delta son tan dañinos?', [
+        'Queman vegetación y liberan el carbono guardado en el suelo',
+        'Porque el agua del humedal se vuelve salada',
+        ['Porque apagan para siempre las crecidas del río', 'Las crecidas siguen; lo que se pierde es el ecosistema y su carbono.'],
+        'Porque los humedales no vuelven a tener agua nunca más',
+      ], 'Un humedal quemado pierde fauna, vegetación y carbono, y tarda años en recuperarse.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -229,6 +242,12 @@ export default unidad({
         ['Un estacionamiento de pavimento permeable', 'infiltra algo'],
         ['Una avenida asfaltada', 'casi nada'],
       ], 'Cuanto menos infiltra una superficie, más agua escurre hacia los desagües. La ciudad, casi toda asfalto y techos, está en la última fila.', { d: 2 }),
+      par('Uní cada solución con cómo maneja la lluvia.', [
+        ['Techo verde', 'Retiene parte de la lluvia sobre el techo'],
+        ['Plaza inundable', 'Guarda agua por unas horas en las tormentas'],
+        ['Pavimento permeable', 'Deja que el agua infiltre en el suelo'],
+        ['Túnel aliviador', 'Lleva el agua rápido hacia el río'],
+      ], 'Las verdes retienen e infiltran; las grises conducen. Combinadas, protegen mejor.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -292,6 +311,16 @@ export default unidad({
         ['El caudal ecológico será lo que sobre después de producir energía.', true, 'El caudal ecológico se reserva primero, no con lo que sobra.'],
       ], 'Los dos errores son clásicos: suponer que la naturaleza "se adapta" y tratar al río como el último de la fila.', { d: 4 }),
       comp('Completá.', 'Una represa da energía y guarda agua, pero retiene [sedimentos], corta el paso de [peces] y cambia el [caudal] del río.', ['nubes', 'barcos', 'color'], 'Tres costos típicos que hay que poner en la balanza.', { d: 2 }),
+      numv(3, (i) => {
+        const [medio, pct] = [[500, 20], [1200, 20], [80, 30]][i];
+        return {
+          enunciado: `Una regla simple fija el caudal ecológico como un porcentaje del caudal medio. Si un río tiene un caudal medio de ${medio.toLocaleString('es-AR')} m³/s y la regla exige dejar pasar el ${pct} %, ¿cuántos m³/s tiene que soltar la represa como mínimo?`,
+          valor: medio * pct / 100,
+          unidad: 'm³/s',
+          explicacion: `${medio.toLocaleString('es-AR')} × ${pct} % = ${(medio * pct / 100).toLocaleString('es-AR')} m³/s. Es un mínimo: los ecosistemas también necesitan que el caudal varíe, con crecidas y bajantes.`,
+          ctx: `Caudal medio de ${medio} m³/s; ${pct} % como mínimo.`,
+        };
+      }, { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -371,6 +400,10 @@ export default unidad({
         'Cada usuario presiona por su parte',
         'Sin reglas claras, aparece el conflicto',
       ], ['La sequía hace que el río lleve más agua'], 'Por eso las reglas de reparto se acuerdan en años normales, antes de que llegue la sequía.', { d: 3 }),
+      clas('¿Este uso consume el agua o la devuelve casi toda al río?', {
+        'La consume': ['El riego que evaporan los cultivos', 'El agua que se envasa y se lleva a otra región'],
+        'La devuelve casi toda': ['Una central hidroeléctrica', 'El agua de refrigeración que se devuelve al río'],
+      }, 'Para repartir el agua importa cuánto se extrae y también cuánto vuelve al río después de usarse.', { d: 3 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
