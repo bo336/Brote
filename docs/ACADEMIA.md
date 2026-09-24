@@ -145,11 +145,14 @@ Todo el contenido vive en `scripts/academia-arbol/`:
   un banco sin palabras repetidas; estimar con el valor dentro del rango;
   detectar con algo marcable y algo que no.
 - Cualquier payload público que filtre la solución.
+- Dos ejercicios idénticos en todo el currículum (incluidas dos variantes de un
+  cálculo que salieron con los mismos números).
 
-Además avisa (sin frenar) cuando dos ejercicios tienen el mismo enunciado y
-mide en cuántas preguntas de opción única la correcta es claramente la más
-larga (más de 1,25 veces el distractor más largo), porque eso es una pista.
-Hoy es 0 de 584.
+Además informa cuántas consignas se repiten con otro contenido (hoy 192, todas
+del estilo «Uní cada concepto con su definición.», que es normal) y en cuántas
+preguntas de opción única la correcta es claramente la más larga (más de 1,25
+veces el distractor más largo), porque eso es una pista. Hoy es 0 de 584; si
+pasa del 30 % avisa.
 
 ### Cómo escribir o corregir una unidad
 

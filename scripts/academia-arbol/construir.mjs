@@ -366,15 +366,23 @@ for (const [rama, us] of porRama) {
   us.sort((a, b) => a.orden - b.orden);
 }
 
-// Una misma pregunta escrita dos veces en todo el currículum es un descuido.
-const enunciados = new Map();
+// El mismo ejercicio escrito dos veces en todo el currículum es un descuido
+// (o dos variantes de un cálculo que salieron con los mismos números). Una
+// consigna repetida con otro contenido —«Uní cada concepto con su
+// definición.»— es normal: solo se cuenta.
+const ejercicios = new Map();
+const enunciados = new Set();
+let consignasRepetidas = 0;
 for (const u of norm)
   for (const l of u.lecciones)
     for (const p of l.pasos) {
+      const k = JSON.stringify(p.payload);
+      if (ejercicios.has(k)) err(p.slug, `mismo ejercicio que ${ejercicios.get(k)}`);
+      else ejercicios.set(k, p.slug);
       const e = (p.payload.enunciado ?? '') + '|' + (p.payload.afirmacion ?? '') + '|' + (p.payload.texto ?? '');
       if (e.length < 20) continue;
-      if (enunciados.has(e)) aviso(p.slug, `mismo enunciado que ${enunciados.get(e)}`);
-      else enunciados.set(e, p.slug);
+      if (enunciados.has(e)) consignasRepetidas += 1;
+      else enunciados.add(e);
     }
 
 // ── 5 · Informe ──────────────────────────────────────────────────────────────
@@ -404,6 +412,7 @@ for (const r of RAMAS) {
   console.log(`  ${r.slug.padEnd(13)} ${String(us.length).padStart(2)} unidades · ${String(ses).padStart(3)} sesiones · ${String(pas).padStart(4)} pasos`);
 }
 console.log('  por tipo:', Object.entries(stats.porTipo).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(' · '));
+console.log(`  consignas repetidas con otro contenido: ${consignasRepetidas}`);
 if (sesgoLargo.total) {
   const pct = Math.round((100 * sesgoLargo.correctaMasLarga) / sesgoLargo.total);
   console.log(`  opción única: la correcta es claramente la más larga en ${pct}% (${sesgoLargo.correctaMasLarga}/${sesgoLargo.total})`);
