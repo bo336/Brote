@@ -70,6 +70,13 @@ export default unidad({
         'Mucha agua disponible': ['Delta del Paraná', 'Esteros del Iberá', 'Selva misionera'],
         'Poca agua disponible': ['Llanos de La Rioja', 'Meseta patagónica', 'Monte de San Juan'],
       }, 'La misma acción de cuidado vale en todos lados, pero en las zonas secas la diferencia se nota mucho antes.', { d: 2 }),
+      cad('Armá la cadena de cómo una región llega al estrés hídrico.', [
+        'La población y los cultivos de una región crecen',
+        'Se saca cada vez más agua de ríos y napas',
+        'El uso se acerca a toda el agua que se renueva por año',
+        'Queda poco margen para una sequía o una contaminación',
+        'Cualquier problema se convierte en falta de agua',
+      ], ['El estrés hídrico aparece solo en regiones con mucha lluvia'], 'El estrés hídrico no depende solo de cuánta lluvia hay, sino de cuánto se usa frente a lo que se renueva.', { d: 2 }),
       comp('Completá.', 'Casi toda el agua del planeta es [salada]. De la poca agua dulce, la mayor parte está [congelada] o bajo [tierra].', ['caliente', 'evaporada', 'contaminada'], 'Salada, congelada o subterránea: por eso el agua de ríos y lagos, la más fácil de usar, es una fracción mínima.', { d: 1 }),
       est('Estimá qué porcentaje del agua dulce del planeta está en ríos, lagos y humedad del aire.', 1, { min: 0.1, max: 100, unidad: '%', escala: 'log' }, 'Alrededor del 1 % o menos. El agua que vemos correr es una parte mínima del agua dulce total.', { d: 3 }),
       op('¿Por qué proteger los glaciares importa aunque estén lejos de las ciudades?', [
@@ -135,6 +142,16 @@ export default unidad({
         '-El cloro que le agregó la planta',
         '-Que el agua esté fría',
       ], 'La planta entrega agua segura, pero el último tramo —la red y la instalación de cada casa— también tiene que estar en condiciones.', { d: 3 }),
+      numv(3, (i) => {
+        const [litros, dias] = [[1000, 1], [500, 2], [2000, 4]][i];
+        return {
+          enunciado: `Un tanque de ${litros.toLocaleString('es-AR')} litros abastece a una casa que usa ${(litros / dias).toLocaleString('es-AR')} litros por día. Si se corta el agua de red, ¿cuántos días dura el tanque lleno?`,
+          valor: dias,
+          unidad: 'días',
+          explicacion: `${litros.toLocaleString('es-AR')} ÷ ${(litros / dias).toLocaleString('es-AR')} = ${dias} ${dias === 1 ? 'día' : 'días'}. El tanque es una reserva: por eso conviene cuidarlo limpio y tapado.`,
+          ctx: `Tanque de ${litros} litros; consumo de ${litros / dias} litros por día.`,
+        };
+      }, { d: 1 }),
       op('En un pueblo que toma agua de una napa, el agua sale limpia y transparente del pozo. ¿Se puede tomar sin tratarla?', [
         'No siempre: puede tener microbios o sustancias que no se ven',
         'Sí, si sale transparente del pozo ya es segura para tomar',
@@ -199,6 +216,10 @@ export default unidad({
         ['Lavar los platos 10 minutos con la canilla abierta', '≈ 80 litros'],
         ['Cepillarse los dientes 2 minutos con la canilla abierta', '≈ 16 litros'],
       ], 'La ducha larga encabeza. Fijate que lavar platos con la canilla corriendo puede superar al inodoro: por eso "llenar la pileta" es un consejo que rinde.', { d: 3 }),
+      clas('¿Este uso del agua está entre los básicos o es un uso que se puede reducir mucho?', {
+        'Básico': ['Tomar agua', 'Cocinar', 'Higienizarse'],
+        'Se puede reducir mucho': ['Duchas de 20 minutos', 'Lavar la vereda con manguera', 'Lavarropas con media carga'],
+      }, 'Los usos básicos entran en los 50 a 100 litros por persona; los grandes ahorros están en el resto.', { d: 1 }),
       vf('Cerrar la canilla mientras te cepillás los dientes no ahorra casi nada.', false, 'Con una canilla que entrega unos 8 litros por minuto, dos minutos abierta son 16 litros. Dos veces por día, en una casa de cuatro personas, son más de 100 litros diarios.', {
         razones: ['+Porque son varios litros por vez que se multiplican por personas y días', '-Porque la canilla no gasta agua mientras no se usa el vaso', '-Porque el agua de la canilla vuelve sola al tanque'],
         d: 2,
@@ -275,6 +296,16 @@ export default unidad({
         'Puede ir por el inodoro': ['Papel higiénico', 'Desechos del cuerpo'],
         'No va por el inodoro': ['Toallitas húmedas', 'Aceite de cocina usado', 'Medicamentos vencidos', 'Algodones y cotonetes'],
       }, 'El inodoro solo está pensado para dos cosas. Todo lo demás tapa caños, daña la planta o termina contaminando el río.', { d: 2 }),
+      numv(3, (i) => {
+        const [litrosAceite, factor] = [[1, 1000], [2, 1000], [5, 1000]][i];
+        return {
+          enunciado: `Supongamos que cada litro de aceite usado puede contaminar ${factor.toLocaleString('es-AR')} litros de agua. Si un comercio tira ${litrosAceite} ${litrosAceite === 1 ? 'litro' : 'litros'} por semana a la pileta, ¿cuántos litros de agua puede contaminar por semana?`,
+          valor: litrosAceite * factor,
+          unidad: 'litros',
+          explicacion: `${litrosAceite} × ${factor.toLocaleString('es-AR')} = ${(litrosAceite * factor).toLocaleString('es-AR')} litros por semana. Valores de ejemplo: el punto es que poco aceite afecta muchísima agua, por eso se junta y se recicla.`,
+          ctx: `${litrosAceite} litros de aceite por semana; factor de ${factor}.`,
+        };
+      }, { d: 1 }),
       op('¿Qué conviene hacer con el aceite usado de freír?', [
         'Guardarlo frío en una botella y llevarlo a un punto limpio',
         'Tirarlo por la pileta con agua caliente para que no tape',
@@ -349,6 +380,13 @@ export default unidad({
         ['Un tanque domiciliario sucio', 'Limpieza periódica del tanque'],
         ['Un caño roto en la vereda', 'Reclamo a la empresa de agua'],
       ], 'Cada problema tiene responsables distintos: la persona, la familia, la empresa o el Estado. Saber quién puede resolverlo es la mitad de la solución.', { d: 2 }),
+      cad('Armá la cadena de cómo una red de cloacas mejora la salud de un barrio.', [
+        'Se conecta el barrio a la red cloacal',
+        'Las aguas negras dejan de ir a pozos ciegos',
+        'Deja de contaminarse la napa de la que se toma agua',
+        'Bajan las diarreas y otras enfermedades',
+        'Mejora la salud, sobre todo de niñas y niños',
+      ], ['Las cloacas agregan cloro al agua de la canilla'], 'Separar el agua usada del agua para tomar es una de las obras de salud con más impacto.', { d: 2 }),
       teoria('El agua embotellada no es la solución', [
         'En lugares donde el agua de red es segura, el agua embotellada no es más sana, cuesta cientos de veces más por litro y genera toneladas de envases plásticos. Además necesita energía para envasarse y transportarse.',
         'Donde el agua de red no es segura, la solución de fondo es mejorar el servicio, no que cada familia compre bidones para siempre.',
