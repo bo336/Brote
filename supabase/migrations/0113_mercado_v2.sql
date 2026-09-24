@@ -326,7 +326,8 @@ create or replace function mercado_buscar(
   p_negocio      uuid default null,
   p_offset       int default 0,
   p_limit        int default 24)
-returns jsonb language plpgsql stable security definer set search_path = public, extensions as $fn$
+returns jsonb language plpgsql stable security definer
+set search_path = public, extensions set pg_trgm.word_similarity_threshold = 0.4 as $fn$
 declare
   v_uid uuid := (select auth.uid());
   v_cuenta text; v_precios boolean; v_sens text[];
@@ -354,7 +355,7 @@ begin
     select l, b,
            case when v_tsq is null then 0
                 else ts_rank_cd(l.busqueda, v_tsq)
-                   + 0.3 * similarity(lower(unaccent_safe(l.titulo)), v_norm) end as rk
+                   + 0.3 * word_similarity(v_norm, lower(unaccent_safe(l.titulo))) end as rk
       from listings l
       join businesses b on b.id = l.business_id and b.status = 'approved'
      where l.status = 'publicado'
@@ -369,8 +370,8 @@ begin
        and (v_pmax is null or l.precio_referencia <= v_pmax)
        and (v_tsq is null
             or l.busqueda @@ v_tsq
-            or lower(unaccent_safe(l.titulo)) % v_norm
-            or lower(unaccent_safe(b.nombre_comercial)) % v_norm)
+            or v_norm <% lower(unaccent_safe(l.titulo))
+            or v_norm <% lower(unaccent_safe(b.nombre_comercial)))
   ),
   filtrado as (
     select * from base
@@ -421,7 +422,8 @@ end $fn$;
 -- Autocompletar: títulos que empiezan o se parecen, categorías cuyo nombre
 -- coincide (lo resuelve la pantalla con la taxonomía) y tiendas por nombre.
 create or replace function mercado_sugerencias(p_q text)
-returns jsonb language plpgsql stable security definer set search_path = public, extensions as $fn$
+returns jsonb language plpgsql stable security definer
+set search_path = public, extensions set pg_trgm.word_similarity_threshold = 0.4 as $fn$
 declare
   v_uid uuid := (select auth.uid()); v_cuenta text; v_sens text[]; v_norm text; v_tsq tsquery;
 begin
@@ -439,21 +441,21 @@ begin
                                           'categoria', x.categoria) order by x.rk desc)
         from (
           select l.slug, l.titulo, l.imagenes[1] as imagen, l.categoria,
-                 ts_rank_cd(l.busqueda, v_tsq) + similarity(lower(unaccent_safe(l.titulo)), v_norm)
+                 ts_rank_cd(l.busqueda, v_tsq) + word_similarity(v_norm, lower(unaccent_safe(l.titulo)))
                  + l.score / 1000.0 as rk
             from listings l join businesses b on b.id = l.business_id and b.status = 'approved'
            where l.status = 'publicado'
              and (cardinality(v_sens) = 0 or not (l.categoria = any(v_sens)))
-             and (l.busqueda @@ v_tsq or lower(unaccent_safe(l.titulo)) % v_norm)
+             and (l.busqueda @@ v_tsq or v_norm <% lower(unaccent_safe(l.titulo)))
            order by rk desc limit 6) x), '[]'::jsonb),
     'tiendas', coalesce((
       select jsonb_agg(jsonb_build_object('slug', b.slug, 'nombre', b.nombre_comercial, 'logo', b.logo_url))
         from (select * from businesses b
                where b.status = 'approved'
-                 and (lower(unaccent_safe(b.nombre_comercial)) % v_norm
+                 and (v_norm <% lower(unaccent_safe(b.nombre_comercial))
                       or lower(unaccent_safe(b.nombre_comercial)) like v_norm || '%')
                  and exists (select 1 from listings l where l.business_id = b.id and l.status = 'publicado')
-               order by similarity(lower(unaccent_safe(b.nombre_comercial)), v_norm) desc
+               order by word_similarity(v_norm, lower(unaccent_safe(b.nombre_comercial))) desc
                limit 3) b), '[]'::jsonb));
 end $fn$;
 
