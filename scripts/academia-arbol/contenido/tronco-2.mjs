@@ -96,6 +96,11 @@ export default unidad({
         ['El año exacto en que se hizo la medición', 'El año importa, pero antes que eso falta saber qué se está midiendo.'],
         'La cantidad de habitantes del país entero',
       ], 'Sin unidad, 450 puede ser un consumo razonable por persona o un número gigante para toda la ciudad. Pedir la unidad es la primera pregunta frente a cualquier dato.', { d: 2 }),
+      clas('¿Qué mide cada unidad?', {
+        'Volumen': ['Litro', 'Metro cúbico'],
+        'Masa': ['Kilo', 'Tonelada'],
+        'Energía': ['Kilovatio-hora', 'Caloría'],
+      }, 'Saber qué mide cada unidad evita comparar cosas que no se pueden comparar.', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -180,6 +185,12 @@ export default unidad({
         ['90 kWh por noche', 'Cuidado con la unidad: 9 W × 10 h son 90 Wh. Para kWh hay que dividir por mil.'],
         'Nada, las lámparas LED no consumen',
       ], '9 W × 10 h = 90 Wh = 0,09 kWh. Es poco por noche, pero en un año son unos 33 kWh. Los ahorros chicos se vuelven visibles cuando se multiplican por el tiempo.', { d: 3 }),
+      par('Uní cada aparato con su potencia aproximada.', [
+        ['Lámpara LED', 'Unos 9 W'],
+        ['Heladera funcionando', 'Unos 150 W'],
+        ['Microondas', 'Unos 1.000 W'],
+        ['Estufa eléctrica', 'Unos 2.000 W'],
+      ], 'La potencia dice qué tan rápido usa energía un aparato; cuánto gasta depende también de las horas de uso.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -251,6 +262,13 @@ export default unidad({
         'Sobre todo CO₂': ['El caño de escape de un auto a nafta', 'Una caldera a gas', 'Un bosque que se quema'],
         'Sobre todo metano': ['Un relleno sanitario con restos de comida', 'Un campo con ganado vacuno', 'Una pérdida en un gasoducto'],
       }, 'El gas natural es casi todo metano: si se quema, sale CO₂; si se escapa sin quemar, sale metano, que calienta mucho más.', { d: 3 }),
+      mult('¿Qué gases se suman al calcular el CO₂ equivalente de un país? Marcá todos.', [
+        '+Dióxido de carbono',
+        '+Metano',
+        '+Óxido nitroso',
+        '+Gases fluorados de heladeras y aires acondicionados',
+        '-Oxígeno',
+      ], 'Se suman los gases de efecto invernadero, cada uno multiplicado por su potencial de calentamiento.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -336,6 +354,12 @@ export default unidad({
         ['Gramos de CO₂ por kilómetro', '¿Qué auto contamina menos al recorrer lo mismo?'],
         ['Porcentaje de orgánicos en la basura', '¿Qué parte de la basura se podría compostar?'],
       ], 'Cada forma de presentar un dato sirve para una pregunta. Elegir la correcta es la mitad del análisis.', { d: 3 }),
+      op('Un pueblo y una gran ciudad generan distintas cantidades de basura. ¿Qué comparación es más justa?', [
+        'Los kilos de basura por habitante por día',
+        'Las toneladas totales de basura de cada uno',
+        ['La cantidad de camiones recolectores', 'Depende de cómo se organiza la recolección, no de cuánto genera cada persona.'],
+        'La superficie del basural de cada lugar',
+      ], 'Para comparar lugares de distinto tamaño, conviene pasar el dato a "por persona".', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -405,6 +429,16 @@ export default unidad({
         ['Igual, lo que conviene es sumar gestos y también mirar lo que pesa más.', false],
       ], 'Los gestos chicos no compensan los grandes: están en distintos órdenes de magnitud. Lo sano es sumar los dos, sin culpa y con números.', { d: 3 }),
       comp('Completá.', 'Entre 1 kilo y 1 tonelada hay [tres] órdenes de magnitud, porque una tonelada son [mil] kilos.', ['dos', 'cien', 'diez mil'], 'Cada orden de magnitud es un factor de diez: 10 × 10 × 10 = 1.000, o sea tres órdenes.', { d: 2 }),
+      numv(3, (i) => {
+        const [a, b] = [[2000, 20], [1000, 1], [500, 5]][i];
+        return {
+          enunciado: `Una acción ahorra ${a.toLocaleString('es-AR')} kg de CO₂ por año y otra ${b} kg. ¿Cuántas veces más ahorra la primera?`,
+          valor: a / b,
+          unidad: 'veces',
+          explicacion: `${a.toLocaleString('es-AR')} ÷ ${b} = ${(a / b).toLocaleString('es-AR')} veces. Cuando la diferencia es de cien o mil veces, conviene empezar por la acción grande.`,
+          ctx: `${a} kg contra ${b} kg por año.`,
+        };
+      }, { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
