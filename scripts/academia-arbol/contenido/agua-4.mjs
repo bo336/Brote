@@ -92,6 +92,13 @@ export default unidad({
         'Forma parte': ['La lluvia que usó el trigo para crecer', 'El agua de riego del campo, si lo regaron', 'El agua de la masa y de limpiar la panadería'],
         'No forma parte': ['El agua que tomás después de comer el pan', 'El agua de lavar el plato donde lo comiste'],
       }, 'La huella de producción suma todo lo usado hasta que el producto está listo. Lo que pasa después, en tu casa, es otro consumo.', { d: 2 }),
+      cad('Armá la cadena del agua virtual de una remera de algodón.', [
+        'Se riega el algodón en el campo',
+        'Se cosecha, se limpia y se hila',
+        'Se tiñe la tela con agua y químicos',
+        'Se cose la remera',
+        'La remera llega al negocio con toda esa agua en su huella',
+      ], ['La remera trae adentro toda el agua que se usó'], 'El agua virtual no está dentro del producto: es la que se usó en cada etapa de su vida.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S2
@@ -164,6 +171,13 @@ export default unidad({
         ['La gris, lavando más seguido las uvas', 'Lavar más no reduce el agua gris; y en este caso el problema urgente es la extracción del río.'],
         'Ninguna: el vino no tiene huella hídrica',
       ], 'En una zona seca con un río en baja, la huella azul es la que presiona. Pasar a goteo puede reducirla mucho con la misma producción.', { d: 3 }),
+      mult('¿Qué acciones reducen la huella gris de un producto? Marcá todas.', [
+        '+Usar menos fertilizantes y plaguicidas',
+        '+Tratar los efluentes de la fábrica',
+        '+Elegir tintes menos contaminantes',
+        '+Aplicar agroquímicos con buenas prácticas',
+        '-Regar más para diluir la contaminación',
+      ], 'La huella gris baja cuando entra menos contaminación al agua, no cuando se agrega más agua para diluirla.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -183,7 +197,7 @@ export default unidad({
         'Aun así, incluso comparando por proteína, las legumbres suelen necesitar bastante menos agua que la carne vacuna. Lo importante es saber qué pregunta se está respondiendo con cada comparación.',
       ]),
       op('Alguien dice: "La lechuga tiene menos huella por kilo que las lentejas, así que conviene comer lechuga en vez de lentejas para cuidar el agua". ¿Qué falla?', [
-        'Que no nutren igual: las lentejas dan mucha más proteína',
+        'Que no nutren igual: las lentejas dan más proteína',
         'Que la lechuga no necesita agua para crecer',
         ['Que las lentejas no tienen huella hídrica', 'Todas las plantas tienen huella: el problema es comparar alimentos que cumplen funciones distintas.'],
         'Que la huella hídrica solo se mide en carnes',
@@ -234,6 +248,10 @@ export default unidad({
         ['Comparar alimentos por kilo siempre da la respuesta correcta.', true, 'Por kilo engaña cuando los alimentos nutren muy distinto.'],
       ], 'Los consejos buenos hablan de qué se come y cuánto se tira. Los malos, de "huella cero" y comparaciones sin contexto.', { d: 3 }),
       comp('Completá.', 'Comparar alimentos solo por [kilo] puede engañar: conviene mirar también la [proteína] que aportan, y recordar que tirar comida tira su [agua].', ['color', 'precio', 'envase'], 'Tres ideas para leer cualquier tabla de huellas de alimentos.', { d: 2 }),
+      clas('¿Tiene mucha o poca agua virtual por kilo (promedio mundial)?', {
+        'Mucha': ['Carne vacuna', 'Chocolate', 'Queso'],
+        'Poca': ['Tomate', 'Papa', 'Lechuga'],
+      }, 'Los productos animales y los que vienen de cultivos de largo ciclo suelen tener las huellas más altas por kilo.', { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -306,6 +324,16 @@ export default unidad({
         'No se cultiva algodón ni se tiñe tela para él',
         'Se evitan miles de litros de agua y su contaminación',
       ], ['El jean usado absorbe menos agua al lavarlo'], 'El ahorro no está en el lavado sino en la fabricación que se evita. El señuelo mezcla un uso posterior con la huella de producción.', { d: 3 }),
+      numv(3, (i) => {
+        const usos = [50, 100, 250][i];
+        return {
+          enunciado: `Supongamos que un jean tiene una huella hídrica de unos 10.000 litros. Si se usa ${usos} veces antes de descartarlo, ¿cuántos litros le corresponden a cada uso?`,
+          valor: 10000 / usos,
+          unidad: 'litros por uso',
+          explicacion: `10.000 ÷ ${usos} = ${10000 / usos} litros por uso. Cuantas más veces se usa una prenda, menos agua le corresponde a cada puesta. Valores de ejemplo.`,
+          ctx: `Huella de 10.000 litros; ${usos} usos.`,
+        };
+      }, { d: 1 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -372,6 +400,12 @@ export default unidad({
         ['El agua virtual que se exporta se saca de las canillas de las ciudades.', true, 'Viene sobre todo de la lluvia en los campos y del riego, no de las redes urbanas.'],
       ], 'Entender el agua virtual es entender matices: ni todo es un problema, ni nada lo es.', { d: 4 }),
       comp('Completá.', 'Un país con poca agua puede [importar] alimentos para ahorrar sus ríos; uno con mucha lluvia puede [exportar] alimentos hechos con agua [verde].', ['comprar agua embotellada', 'secar', 'azul'], 'El comercio de agua virtual puede ser una forma de repartir mejor el agua del mundo, o de trasladar problemas: depende de cómo se haga.', { d: 3 }),
+      op('¿Por qué a un país muy seco le puede convenir importar trigo en lugar de cultivarlo?', [
+        'Porque así no gasta su poca agua de riego en ese cultivo',
+        'Porque el trigo importado no tiene huella hídrica',
+        ['Porque el trigo crece mejor en el desierto', 'Necesitaría mucho riego, justo lo que le falta.'],
+        'Porque importar alimentos siempre es más barato',
+      ], 'Importar alimentos es, en parte, importar el agua que se usó para producirlos.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
