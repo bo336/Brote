@@ -326,14 +326,19 @@ returns uuid[] language plpgsql stable security definer set search_path = public
 declare v uuid[];
 begin
   if p_norm is null then return null; end if;
-  -- Umbral de parecido por palabra: 0,4 tolera un error de tipeo en una
-  -- palabra corta ("bolzon" encuentra "bolsón"). Se fija acá y no en la
+  -- Umbral de parecido por palabra: 0,5 tolera un error de tipeo en una
+  -- palabra corta ("jabom" encuentra "jabón"). Se fija acá y no en la
   -- definición porque la base no deja fijar parámetros de una extensión ahí;
   -- `word_similarity` primero carga la extensión para que el parámetro exista.
+  select coalesce(array_agg(l.id), '{}') into v
+    from listings l where l.status = 'publicado' and p_tsq is not null and l.busqueda @@ p_tsq;
+  -- Con 12 o más coincidencias exactas, eso es lo que se buscaba: sumar
+  -- parecidos solo agrega ruido ("sólido" no es "jabón sólido").
+  if cardinality(v) >= 12 then return v; end if;
   perform word_similarity('', '');
-  perform set_config('pg_trgm.word_similarity_threshold', '0.4', true);
+  perform set_config('pg_trgm.word_similarity_threshold', '0.5', true);
   select coalesce(array_agg(distinct id), '{}') into v from (
-    select l.id from listings l where l.status = 'publicado' and p_tsq is not null and l.busqueda @@ p_tsq
+    select unnest(v) as id
     union all
     select l.id from listings l where l.status = 'publicado' and p_norm <% lower(unaccent_safe(l.titulo))
     union all
@@ -464,6 +469,8 @@ begin
   v_sens := case when v_cuenta = 'teen' then brote_mercado_sensibles() else array[]::text[] end;
   v_tsq := brote_mercado_tsquery(v_norm);
   v_cand := brote_mercado_candidatos(v_norm, v_tsq);
+  perform word_similarity('', '');
+  perform set_config('pg_trgm.word_similarity_threshold', '0.5', true);
 
   return jsonb_build_object(
     'productos', coalesce((
@@ -505,18 +512,15 @@ end $fn$;
 -- puede) y arma las tarjetas de esos 12 y nada más: armar 5.000 tarjetas para
 -- quedarse con 12 era lo que hacía tardar 230 ms al inicio.
 
--- Los publicados que una cuenta puede ver, en columnas sueltas (sin armar
--- tarjetas). Cada estante filtra y ordena sobre esto.
-create or replace function brote_mercado_visibles(p_sens text[])
-returns table (id uuid, business_id uuid, categoria text, dominios text[], zonas text[], disponibilidad text,
-               condicion text, tier evidence_tier, score numeric, publicado_at timestamptz,
-               precio numeric, precio_anterior numeric, precio_cambio_at timestamptz, provincia text)
-language sql stable security definer set search_path = public as $fn$
-  select l.id, l.business_id, l.categoria, l.dominios, l.zonas, l.disponibilidad, l.condicion, l.tier_efectivo,
-         l.score, l.publicado_at, l.precio_referencia, l.precio_anterior, l.precio_cambio_at, b.provincia
-    from listings l join businesses b on b.id = l.business_id and b.status = 'approved'
-   where l.status = 'publicado' and (cardinality(p_sens) = 0 or not (l.categoria = any(p_sens)));
-$fn$;
+-- Una fila de lo visible, en columnas sueltas (sin armar tarjetas). El inicio
+-- las lee UNA vez a un arreglo en memoria y cada estante filtra y ordena ahí:
+-- leer la tabla nueve veces era lo que lo dejaba en 107 ms.
+do $$ begin
+  create type brote_mercado_fila as (
+    id uuid, business_id uuid, categoria text, dominios text[], zonas text[], disponibilidad text,
+    condicion text, tier evidence_tier, score numeric, publicado_at timestamptz,
+    precio numeric, precio_anterior numeric, precio_cambio_at timestamptz, provincia text);
+exception when duplicate_object then null; end $$;
 
 -- Las tarjetas de una lista de ids, en ese orden, con la marca de guardado.
 create or replace function brote_mercado_tarjetas(p_ids uuid[], p_precios boolean, p_favs uuid[])
@@ -535,7 +539,7 @@ declare
   v_cuenta text; v_precios boolean; v_sens text[];
   v_intereses text[]; v_prov text; v_cats text[];
   v_acc_titulo text; v_acc_slug text; v_acc_cat text; v_rama text;
-  v_favs uuid[]; v_seguidas uuid[]; v_ids uuid[];
+  v_favs uuid[]; v_seguidas uuid[]; v_ids uuid[]; v_vis brote_mercado_fila[];
   v_estantes jsonb := '[]'::jsonb;
 begin
   v_cuenta := coalesce(brote_account_type(v_uid), 'adult');
@@ -575,9 +579,16 @@ begin
      and ul.updated_at > now() - interval '60 days'
    order by ul.updated_at desc limit 1;
 
+  select coalesce(array_agg((l.id, l.business_id, l.categoria, l.dominios, l.zonas, l.disponibilidad, l.condicion,
+                             l.tier_efectivo, l.score, l.publicado_at, l.precio_referencia, l.precio_anterior,
+                             l.precio_cambio_at, b.provincia)::brote_mercado_fila), '{}')
+    into v_vis
+    from listings l join businesses b on b.id = l.business_id and b.status = 'approved'
+   where l.status = 'publicado' and (cardinality(v_sens) = 0 or not (l.categoria = any(v_sens)));
+
   -- Seguí viendo
   select array_agg(id order by visto_at desc) into v_ids from (
-    select v.listing_id id, v.visto_at from mercado_vistos v join brote_mercado_visibles(v_sens) m on m.id = v.listing_id
+    select v.listing_id id, v.visto_at from mercado_vistos v join unnest(v_vis) m on m.id = v.listing_id
      where v.user_id = v_uid order by v.visto_at desc limit 12) x;
   if coalesce(cardinality(v_ids), 0) >= 2 then
     v_estantes := v_estantes || jsonb_build_array(jsonb_build_object('clave', 'seguir_viendo',
@@ -595,7 +606,7 @@ begin
              + case when v_prov is not null and (m.provincia = v_prov or v_prov = any(m.zonas)) then 10 else 0 end
              + case when m.business_id = any(v_seguidas) then 10 else 0 end as ps,
              row_number() over (partition by m.business_id order by m.score desc) as rn
-        from brote_mercado_visibles(v_sens) m
+        from unnest(v_vis) m
        where not (m.id = any(v_favs))) z
      where rn <= 2 order by ps desc limit 12) x;
   if coalesce(cardinality(v_ids), 0) >= 4 then
@@ -606,7 +617,7 @@ begin
   -- Porque hiciste una acción
   if v_acc_cat is not null then
     select array_agg(id order by score desc) into v_ids from (
-      select id, score from brote_mercado_visibles(v_sens) where categoria = v_acc_cat order by score desc limit 12) x;
+      select id, score from unnest(v_vis) where categoria = v_acc_cat order by score desc limit 12) x;
     if coalesce(cardinality(v_ids), 0) >= 4 then
       v_estantes := v_estantes || jsonb_build_array(jsonb_build_object(
         'clave', 'porque_hiciste', 'param', v_acc_titulo, 'accion', v_acc_slug,
@@ -617,7 +628,7 @@ begin
   -- Lo que estás aprendiendo
   if v_rama is not null then
     select array_agg(id order by score desc) into v_ids from (
-      select id, score from brote_mercado_visibles(v_sens) where v_rama = any(dominios) order by score desc limit 12) x;
+      select id, score from unnest(v_vis) where v_rama = any(dominios) order by score desc limit 12) x;
     if coalesce(cardinality(v_ids), 0) >= 4 then
       v_estantes := v_estantes || jsonb_build_array(jsonb_build_object(
         'clave', 'aprendiendo', 'param', v_rama, 'items', brote_mercado_tarjetas(v_ids, v_precios, v_favs)));
@@ -627,7 +638,7 @@ begin
   -- Cerca tuyo: se puede ir a buscar o lo traen a la provincia.
   if v_prov is not null then
     select array_agg(id order by score desc) into v_ids from (
-      select id, score from brote_mercado_visibles(v_sens)
+      select id, score from unnest(v_vis)
        where disponibilidad in ('local','ambas') and (provincia = v_prov or v_prov = any(zonas))
        order by score desc limit 12) x;
     if coalesce(cardinality(v_ids), 0) >= 4 then
@@ -639,7 +650,7 @@ begin
   -- Bajó el precio de referencia (solo adultos: un teen no ve precios)
   if v_precios then
     select array_agg(id order by precio_cambio_at desc) into v_ids from (
-      select id, precio_cambio_at from brote_mercado_visibles(v_sens)
+      select id, precio_cambio_at from unnest(v_vis)
        where precio_anterior > precio and precio_cambio_at > now() - interval '30 days'
        order by precio_cambio_at desc limit 12) x;
     if coalesce(cardinality(v_ids), 0) >= 4 then
@@ -650,7 +661,7 @@ begin
 
   -- Nuevos
   select array_agg(id order by publicado_at desc) into v_ids from (
-    select id, publicado_at from brote_mercado_visibles(v_sens) where publicado_at > now() - interval '21 days'
+    select id, publicado_at from unnest(v_vis) where publicado_at > now() - interval '21 days'
      order by publicado_at desc limit 12) x;
   if coalesce(cardinality(v_ids), 0) >= 4 then
     v_estantes := v_estantes || jsonb_build_array(jsonb_build_object('clave', 'nuevos',
@@ -659,7 +670,7 @@ begin
 
   -- Segunda vida: usado, reacondicionado o reparación
   select array_agg(id order by score desc) into v_ids from (
-    select id, score from brote_mercado_visibles(v_sens)
+    select id, score from unnest(v_vis)
      where condicion in ('usado','reacondicionado') or categoria = 'reparacion-y-reuso'
      order by score desc limit 12) x;
   if coalesce(cardinality(v_ids), 0) >= 4 then
@@ -669,7 +680,7 @@ begin
 
   -- Mejor documentados: Nivel 2 o más
   select array_agg(id order by o) into v_ids from (
-    select id, row_number() over (order by tier desc, score desc) o from brote_mercado_visibles(v_sens)
+    select id, row_number() over (order by tier desc, score desc) o from unnest(v_vis)
      where tier >= 'e2' order by tier desc, score desc limit 12) x;
   if coalesce(cardinality(v_ids), 0) >= 4 then
     v_estantes := v_estantes || jsonb_build_array(jsonb_build_object('clave', 'documentados',
@@ -680,8 +691,8 @@ begin
     'cuenta', v_cuenta,
     'provincia', v_prov,
     'categorias', coalesce((select jsonb_object_agg(c, n) from (
-                              select categoria c, count(*) n from brote_mercado_visibles(v_sens) group by 1) x), '{}'::jsonb),
-    'total', (select count(*) from brote_mercado_visibles(v_sens)),
+                              select categoria c, count(*) n from unnest(v_vis) group by 1) x), '{}'::jsonb),
+    'total', (select count(*) from unnest(v_vis)),
     'estantes', v_estantes,
     -- Tiendas para seguir: las que ya sigue van al final.
     'tiendas', coalesce((
@@ -694,7 +705,7 @@ begin
                                                filter (where l.imagenes[1] is not null))[1:3])
                                 from listings l where l.business_id = b.id and l.status = 'publicado')) t,
                x.s - case when b.id = any(v_seguidas) then 1000 else 0 end as s
-          from (select business_id, count(*) n, max(score) s from brote_mercado_visibles(v_sens) group by 1
+          from (select business_id, count(*) n, max(score) s from unnest(v_vis) group by 1
                  order by max(score) desc limit 10) x
           join businesses b on b.id = x.business_id) y), '[]'::jsonb));
 end $fn$;
@@ -1197,7 +1208,6 @@ revoke all on function brote_urlencode(text) from public, anon, authenticated;
 revoke all on function brote_mercado_normalizar(text) from public, anon, authenticated;
 revoke all on function brote_mercado_tsquery(text) from public, anon, authenticated;
 revoke all on function brote_mercado_candidatos(text, tsquery) from public, anon, authenticated;
-revoke all on function brote_mercado_visibles(text[]) from public, anon, authenticated;
 revoke all on function brote_mercado_tarjetas(uuid[], boolean, uuid[]) from public, anon, authenticated;
 revoke all on function brote_listado_tarjeta(listings, businesses, boolean) from public, anon, authenticated;
 revoke all on function brote_listado_tarjeta(listings, businesses) from public, anon, authenticated;
