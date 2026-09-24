@@ -1490,6 +1490,33 @@ const NUEVAS = [
     url: 'https://journals.ametsoc.org/view/journals/bams/90/8/2009bams2607_1.xml',
     publicado: '2009',
   },
+  {
+    slug: 'bm-evaluacion-impacto',
+    titulo: 'La evaluación de impacto en la práctica (segunda edición)',
+    organizacion: 'Banco Mundial',
+    url: 'https://www.worldbank.org/en/programs/sief-trust-fund/publication/impact-evaluation-in-practice',
+    publicado: '2016',
+  },
+  {
+    slug: 'allcott-2011',
+    titulo: 'Social norms and energy conservation',
+    organizacion: 'Journal of Public Economics',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0047272711000478',
+    publicado: '2011',
+  },
+  {
+    slug: 'taylor-2019-bolsas',
+    titulo: 'Bag leakage: The effect of disposable carryout bag regulations on unregulated bags',
+    organizacion: 'Journal of Environmental Economics and Management',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0095069618305291',
+    publicado: '2019',
+  },
+  {
+    slug: 'cee-evidencia',
+    titulo: 'Collaboration for Environmental Evidence',
+    organizacion: 'Collaboration for Environmental Evidence',
+    url: 'https://environmentalevidence.org/',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
