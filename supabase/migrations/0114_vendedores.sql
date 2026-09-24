@@ -1104,6 +1104,37 @@ end $fn$;
 
 -- ── 9. Listados: publicar en el acto ────────────────────────────────────────
 
+-- La lista negra de 0107, con las conjugaciones que se colaban: "curan",
+-- "previenen", "adelgazante". Con la publicación en el acto, esto es lo único
+-- que frena una afirmación de salud antes de que alguien la lea. Quedan afuera
+-- a propósito "curar" y "curado" (el mate se cura, el jamón es curado) y
+-- "prevenir" (se previene el desperdicio). ESPEJO de `LISTA_NEGRA` en
+-- lib/mercado/claims.ts.
+create or replace function brote_texto_prohibido(p text)
+returns text language plpgsql immutable set search_path = public as $fn$
+declare
+  t text := ' ' || regexp_replace(lower(unaccent_safe(coalesce(p, ''))), '[^a-z0-9%]+', ' ', 'g') || ' ';
+  termino text;
+begin
+  t := replace(t, ' se trata de ', ' ');
+  t := replace(t, ' se trata del ', ' ');
+  foreach termino in array array[
+    -- absolutos
+    '100% ecologico','totalmente natural','no contamina','impacto cero','completamente sustentable',
+    'amigable con el planeta','el mas ecologico','producto verde','eco friendly','biodegradable al 100%',
+    'carbono neutral','carbono neutro','neutro en carbono',
+    -- salud (ANMAT)
+    'cura','previene','trata','sana','desintoxica','detox','elimina toxinas','refuerza las defensas',
+    'fortalece el sistema inmune','adelgaza','antitumoral','antiviral','sin efectos secundarios',
+    'curan','curativo','curativa','curativos','curativas','previenen','sanan','desintoxican',
+    'desintoxicante','adelgazan','adelgazante','adelgazantes','depurativo','depurativa','quema grasa',
+    'milagroso','milagrosa'
+  ] loop
+    if position(' ' || termino || ' ' in t) > 0 then return termino; end if;
+  end loop;
+  return null;
+end $fn$;
+
 -- ESPEJO de `terminosSinAfirmacion` (lib/mercado/claims.ts): una palabra
 -- ambiental en el texto libre ("orgánico", "reciclable", "sin TACC") exige la
 -- afirmación tipificada que la respalde. Antes esto lo miraba solo el servidor
