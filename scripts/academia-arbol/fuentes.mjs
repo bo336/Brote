@@ -1656,6 +1656,68 @@ const NUEVAS = [
     url: 'https://www.nature.com/articles/s41558-018-0141-x',
     publicado: '2018',
   },
+  // ── Consumo y bienestar ──────────────────────────────────────────────────────
+  {
+    slug: 'killingsworth-2023',
+    titulo: 'Income and emotional well-being: A conflict resolved',
+    organizacion: 'PNAS',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/36857342/',
+    publicado: '2023',
+  },
+  {
+    slug: 'dittmar-2014',
+    titulo: 'The relationship between materialism and personal well-being: A meta-analysis',
+    organizacion: 'Journal of Personality and Social Psychology',
+    url: 'https://research.brighton.ac.uk/en/publications/the-relationship-between-materialism-and-personal-well-being-a-me/',
+    publicado: '2014',
+  },
+  {
+    slug: 'dunn-2011',
+    titulo: 'If money doesn’t make you happy, then you probably aren’t spending it right',
+    organizacion: 'Journal of Consumer Psychology',
+    url: 'https://doi.org/10.1016/j.jcps.2011.02.002',
+    publicado: '2011',
+  },
+  {
+    slug: 'max-neef-1989',
+    titulo: 'Human Scale Development: An Option for the Future',
+    organizacion: 'Development Dialogue (Fundación Dag Hammarskjöld)',
+    url: 'https://www.daghammarskjold.se/wp-content/uploads/1989/05/89_1.pdf',
+    publicado: '1989',
+  },
+  {
+    slug: 'oneill-2018',
+    titulo: 'A good life for all within planetary boundaries',
+    organizacion: 'Nature Sustainability',
+    url: 'https://www.nature.com/articles/s41893-018-0021-4',
+    publicado: '2018',
+  },
+  {
+    slug: 'dona-raworth',
+    titulo: 'About Doughnut Economics',
+    organizacion: 'Doughnut Economics Action Lab',
+    url: 'https://doughnuteconomics.org/about-doughnut-economics',
+  },
+  {
+    slug: 'ipcc-ar6-demanda',
+    titulo: 'Chapter 5: Demand, services and social aspects of mitigation',
+    organizacion: 'IPCC',
+    url: 'https://www.ipcc.ch/report/ar6/wg3/chapter/chapter-5/',
+    publicado: '2022',
+  },
+  {
+    slug: 'haya-publicidad-fosil',
+    titulo: 'World first: The Hague bans fossil ads through local law',
+    organizacion: 'World Without Fossil Ads',
+    url: 'https://www.worldwithoutfossilads.org/listing/world-first-the-hague-bans-fossil-adse-through-ordinance/',
+    publicado: '2024',
+  },
+  {
+    slug: 'francia-publicidad-fosil',
+    titulo: 'La loi Climat et résilience',
+    organizacion: 'Ministerio de Transición Ecológica de Francia',
+    url: 'https://www.publicite-responsable.ecologie.gouv.fr/ressources-et-faq/comprendre-la-loi/article/la-loi-climat-et-resilience',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
