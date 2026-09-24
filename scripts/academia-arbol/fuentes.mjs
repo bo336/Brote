@@ -1454,6 +1454,42 @@ const NUEVAS = [
     url: 'https://climate.ec.europa.eu/eu-action/european-climate-law_en',
     publicado: '2021',
   },
+  // ── Modelos e incertidumbre ──────────────────────────────────────────────────
+  {
+    slug: 'ipcc-incertidumbre',
+    titulo: 'Guidance Note for Lead Authors of the IPCC Fifth Assessment Report on Consistent Treatment of Uncertainties',
+    organizacion: 'IPCC',
+    url: 'https://www.ipcc.ch/site/assets/uploads/2017/08/AR5_Uncertainty_Guidance_Note.pdf',
+    publicado: '2010',
+  },
+  {
+    slug: 'hausfather-2020',
+    titulo: 'Evaluating the Performance of Past Climate Model Projections',
+    organizacion: 'Geophysical Research Letters',
+    url: 'https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019GL085378',
+    publicado: '2020',
+  },
+  {
+    slug: 'zhang-2019-predictibilidad',
+    titulo: 'What Is the Predictability Limit of Midlatitude Weather?',
+    organizacion: 'Journal of the Atmospheric Sciences',
+    url: 'https://journals.ametsoc.org/view/journals/atsc/76/4/jas-d-18-0269.1.xml',
+    publicado: '2019',
+  },
+  {
+    slug: 'lorenz-1963',
+    titulo: 'Deterministic Nonperiodic Flow',
+    organizacion: 'Journal of the Atmospheric Sciences',
+    url: 'https://journals.ametsoc.org/view/journals/atsc/20/2/1520-0469_1963_020_0130_dnf_2_0_co_2.xml',
+    publicado: '1963',
+  },
+  {
+    slug: 'hawkins-sutton-2009',
+    titulo: 'The Potential to Narrow Uncertainty in Regional Climate Predictions',
+    organizacion: 'Bulletin of the American Meteorological Society',
+    url: 'https://journals.ametsoc.org/view/journals/bams/90/8/2009bams2607_1.xml',
+    publicado: '2009',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
