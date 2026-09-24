@@ -130,7 +130,7 @@ export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | nul
         />
       </Field>
 
-      <fieldset id="campo-categoria_principal">
+      <fieldset id="campo-categoria_principal" className="min-w-0">
         <legend className="mb-1.5 text-small font-medium">{t('queVendes')}</legend>
         {errores.categoria_principal && <p className="mb-2 text-caption text-brote-coral">{err('categoria_principal')}</p>}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -159,7 +159,7 @@ export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | nul
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="mb-1.5 text-small font-medium">{t('comoVendes')}</legend>
         <div className="grid grid-cols-2 gap-2">
           {(['persona', 'empresa'] as const).map((x) => (
@@ -207,7 +207,7 @@ export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | nul
         </Field>
       </div>
 
-      <fieldset id="campo-contacto" className="space-y-3">
+      <fieldset id="campo-contacto" className="min-w-0 space-y-3">
         <legend className="text-small font-medium">{t('contacto')}</legend>
         <p className={cn('-mt-1 text-caption', errores.contacto ? 'text-brote-coral' : 'text-muted-foreground')}>
           {errores.contacto ? err('contacto') : t('contactoAyuda')}

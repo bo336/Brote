@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   Store,
 } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { urlImagen } from '@/lib/mercado/imagenes';
 import type { EstadoVendedor } from '@/lib/negocio/vendedor';
 import type { MisListados } from '@/lib/supabase/rows-mercado';

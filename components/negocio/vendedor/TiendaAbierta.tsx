@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, PackagePlus, PartyPopper, Store } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import type { EstadoVendedor } from '@/lib/negocio/vendedor';
 import { cn } from '@/lib/utils/cn';
 

@@ -339,7 +339,7 @@ export function FormProducto({
             </Select>
           </Field>
         </div>
-        <fieldset>
+        <fieldset className="min-w-0">
           <legend className="mb-1.5 text-small font-medium">{t('condicion')}</legend>
           <div className="flex flex-wrap gap-1.5">
             {CONDICIONES.map((c) => (
@@ -528,7 +528,7 @@ export function FormProducto({
         )}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-lg sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <div className="mx-auto flex max-w-2xl gap-2">
           {publicado ? (
             <Button onClick={soloGuardar} loading={ocupado === 'guardar'} disabled={!!ocupado} size="lg" block className="rounded-pill">
@@ -536,7 +536,7 @@ export function FormProducto({
             </Button>
           ) : (
             <>
-              <Button variant="secondary" onClick={soloGuardar} loading={ocupado === 'guardar'} disabled={!!ocupado} size="lg" className="rounded-pill">
+              <Button variant="secondary" onClick={soloGuardar} loading={ocupado === 'guardar'} disabled={!!ocupado} size="lg" className="shrink-0 whitespace-nowrap rounded-pill px-4">
                 {t('guardarBorrador')}
               </Button>
               <Button onClick={publicar} loading={ocupado === 'publicar'} disabled={!!ocupado} size="lg" block className="rounded-pill">

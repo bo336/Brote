@@ -17,12 +17,12 @@ export function TiendasEstante({ tiendas, titulo }: { tiendas: TiendaResumen[]; 
   return (
     <section aria-label={titulo}>
       <h2 className="mb-3 font-display text-h3 font-bold">{titulo}</h2>
-      <ul className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+      <ul className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:scroll-px-0 lg:grid-cols-4 lg:overflow-visible lg:px-0">
         {tiendas.slice(0, 8).map((s) => {
           const logo = urlLogo(s.logo);
           const fotos = (s.imagenes ?? []).map((i) => urlImagen(i)).filter((x): x is string => !!x).slice(0, 3);
           return (
-            <li key={s.id} className="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-auto">
+            <li key={s.id} className="relative w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-auto">
               <Link
                 href={`/mercado/tienda/${s.slug}`}
                 className="press group flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface transition-shadow duration-200 hover:shadow-lift"
@@ -50,9 +50,11 @@ export function TiendasEstante({ tiendas, titulo }: { tiendas: TiendaResumen[]; 
                       {s.ciudad || s.provincia ? ` · ${s.ciudad ?? s.provincia}` : ''}
                     </span>
                   </span>
-                  <BotonSeguir negocioId={s.id} inicial={!!s.seguida} tamano="sm" />
                 </div>
               </Link>
+              {/* Fuera del enlace (un botón dentro de un <a> no es HTML válido) y
+                  arriba de las fotos, para que el nombre tenga todo el ancho. */}
+              <BotonSeguir negocioId={s.id} inicial={!!s.seguida} tamano="sm" className="absolute right-2 top-2 shadow-soft" />
             </li>
           );
         })}

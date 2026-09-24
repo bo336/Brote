@@ -3436,7 +3436,7 @@
       "titulo": "Tus guardados",
       "pestanas": {
         "guardados": "Guardados ({n})",
-        "vistos": "Vistos hace poco",
+        "vistos": "Vistos",
         "tiendas": "Tiendas ({n})"
       },
       "vacio": {

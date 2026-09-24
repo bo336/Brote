@@ -141,11 +141,15 @@ export function ResultadosBusqueda({
         </ul>
       )}
 
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-small text-muted-foreground" aria-live="polite">
-          {f.q ? t('resultadosParaN', { total, q: f.q }) : total}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        {/* En el teléfono, cuántos va en su propio renglón, debajo de Filtros y
+            Orden, y sin repetir lo buscado (ya está en el buscador de arriba):
+            en el mismo renglón empujaba los botones fuera de la pantalla. */}
+        <p className="order-last min-w-0 basis-full truncate text-small text-muted-foreground sm:order-none sm:flex-1 sm:basis-auto" aria-live="polite">
+          <span className="sm:hidden">{total}</span>
+          <span className="hidden sm:inline">{f.q ? t('resultadosParaN', { total, q: f.q }) : total}</span>
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setHoja(true)}
@@ -159,7 +163,7 @@ export function ResultadosBusqueda({
             value={ordenActual}
             onChange={(e) => cambiar({ orden: e.target.value as FiltrosURL['orden'] })}
             aria-label={tf('orden')}
-            className="h-9 w-auto rounded-pill py-0 text-small"
+            className="h-9 w-auto max-w-[12rem] truncate rounded-pill py-0 text-small sm:max-w-none"
           >
             {ordenes.map((o) => (
               <option key={o} value={o}>

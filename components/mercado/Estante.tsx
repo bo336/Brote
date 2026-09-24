@@ -102,7 +102,7 @@ export function Estante({
       </div>
       <ul
         ref={ref}
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-1 lg:mx-0 lg:px-0"
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto scroll-smooth px-4 pb-1 lg:mx-0 lg:scroll-px-0 lg:px-0"
       >
         {items.map((item, i) => (
           <li key={item.id} data-listado={item.id} className="w-[44%] shrink-0 snap-start sm:w-[30%] md:w-[23%] lg:w-[18.5%]">

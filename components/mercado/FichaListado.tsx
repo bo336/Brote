@@ -9,7 +9,7 @@ import { NivelBadge } from '@/components/mercado/NivelBadge';
 import { PreguntasListado } from '@/components/mercado/PreguntasListado';
 import { ReportarListado } from '@/components/mercado/ReportarListado';
 import { TarjetaVendedor } from '@/components/mercado/TarjetaVendedor';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { urlBusqueda } from '@/lib/mercado/busqueda';
 import { CLAIMS } from '@/lib/mercado/claims';
 import { formatoPrecio, urlImagen } from '@/lib/mercado/imagenes';
@@ -110,7 +110,7 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
             {f.disponibilidad !== 'local' && (
               <li className="flex items-start gap-2">
                 <Truck className="mt-0.5 h-4 w-4 shrink-0 text-brote-green" />
-                <span>{zonas.length ? t2('envioA', { zonas: zonas.join(', ') }) : t2('envioPais')}</span>
+                <span>{zonas.length ? t2('envioA', { zonas: zonas.map((z) => (z === 'Todo el país' ? 'todo el país' : z)).join(', ') }) : t2('envioPais')}</span>
               </li>
             )}
             {f.disponibilidad !== 'online' && (
@@ -126,7 +126,7 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
             {f.vista_previa ? (
               <span className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'pointer-events-none flex-1 rounded-pill opacity-50')}>{cta}</span>
             ) : (
-              <Link href={salida} prefetch={false} className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'flex-1 rounded-pill bg-brand-gradient text-white')}>
+              <Link href={salida} prefetch={false} className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'flex-1 rounded-pill')}>
                 {cta}
               </Link>
             )}
@@ -229,7 +229,7 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
                 <span className="block truncate text-[10px] text-muted-foreground">{t2('deReferencia')}</span>
               </span>
             )}
-            <Link href={salida} prefetch={false} className={cn(buttonVariants({ variant: 'primary' }), 'h-12 flex-1 rounded-pill bg-brand-gradient text-white')}>
+            <Link href={salida} prefetch={false} className={cn(buttonVariants({ variant: 'primary' }), 'h-12 min-w-0 flex-1 whitespace-nowrap rounded-pill px-4 text-small')}>
               {cta}
             </Link>
           </div>

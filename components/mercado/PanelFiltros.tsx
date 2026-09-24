@@ -157,7 +157,7 @@ export function PanelFiltros({
               e.preventDefault();
               aplicarPrecio();
             }}
-            className="flex items-center gap-2"
+            className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"
           >
             <input
               inputMode="numeric"
@@ -165,7 +165,7 @@ export function PanelFiltros({
               onChange={(e) => setDesde(e.target.value)}
               placeholder={t('desde')}
               aria-label={t('desde')}
-              className="h-10 min-w-0 flex-1 rounded-button border border-border bg-surface px-3 text-small outline-none focus:border-primary/60"
+              className="h-10 w-full min-w-0 rounded-button border border-border bg-surface px-3 text-small outline-none focus:border-primary/60"
             />
             <span className="text-muted-foreground">–</span>
             <input
@@ -174,11 +174,11 @@ export function PanelFiltros({
               onChange={(e) => setHasta(e.target.value)}
               placeholder={t('hasta')}
               aria-label={t('hasta')}
-              className="h-10 min-w-0 flex-1 rounded-button border border-border bg-surface px-3 text-small outline-none focus:border-primary/60"
+              className="h-10 w-full min-w-0 rounded-button border border-border bg-surface px-3 text-small outline-none focus:border-primary/60"
             />
             <button
               type="submit"
-              className="press h-10 shrink-0 rounded-button bg-surface-2 px-3 text-small font-semibold hover:bg-border/60"
+              className="press col-span-3 h-10 rounded-button bg-surface-2 px-3 text-small font-semibold hover:bg-border/60"
             >
               {t('aplicar')}
             </button>
@@ -191,7 +191,7 @@ export function PanelFiltros({
 
 function Grupo({ titulo, ayuda, children }: { titulo: string; ayuda?: string; children: React.ReactNode }) {
   return (
-    <fieldset>
+    <fieldset className="min-w-0">
       <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{titulo}</legend>
       {ayuda && <p className="-mt-1 mb-2 text-caption text-muted-foreground">{ayuda}</p>}
       {children}
