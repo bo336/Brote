@@ -163,6 +163,11 @@ export default unidad({
         ['Al quemarlos, eliminamos toda la materia sin dejar rastros.', true, 'Quemar transforma la materia en gases, humo y cenizas; siempre deja rastros.'],
       ], 'Las frases que prometen que algo "desaparece" chocan con la idea central de esta sesión. La materia siempre termina en algún lugar.', { d: 3 }),
       comp('Completá.', 'La materia no se [crea] ni se [destruye]: se [transforma] y cambia de lugar.', ['recicla', 'evapora', 'multiplica'], 'Esta frase resume la sesión. Cada vez que escuches que algo "se fue", preguntate adónde fue.', { d: 1 }),
+      clas('¿Qué pasa con la materia en cada caso?', {
+        'Se transforma en gases': ['Quemar hojas secas', 'La nafta que usa un auto'],
+        'Vuelve al suelo': ['Una hoja que se descompone', 'Restos de comida en una compostera'],
+        'Queda casi igual durante muchísimo tiempo': ['Una botella de vidrio en un basural', 'Una bolsa de plástico enterrada'],
+      }, 'Nada desaparece: la materia cambia de forma y de lugar, a veces rápido y a veces en siglos.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S3
@@ -229,6 +234,12 @@ export default unidad({
         '-Los carnívoros tienen más energía total que las plantas',
         '-La energía vuelve al sol al final de la cadena',
       ], 'La tercera conclusión es la base de un tema que verás en Alimentación: cada paso extra de la cadena multiplica la cantidad de plantas, agua y tierra necesarias.', { d: 3 }),
+      par('Uní cada transformación de energía con su ejemplo.', [
+        ['Luz en energía química', 'Una planta que hace fotosíntesis'],
+        ['Energía química en movimiento', 'Un auto que quema nafta y avanza'],
+        ['Energía química en calor', 'Una estufa a gas que calienta la casa'],
+        ['Movimiento en electricidad', 'Un molino eólico que genera energía'],
+      ], 'La energía no se crea ni se pierde: se transforma, y en cada paso una parte termina como calor.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S4
@@ -298,6 +309,10 @@ export default unidad({
         'No les pasa nada: el oxígeno no depende de las algas',
         ['Se mudan todos a otro lago sin problemas', 'En un lago cerrado los peces no tienen adónde ir: el efecto les llega de lleno.'],
       ], 'Es un efecto en cadena muy común llamado eutrofización: más nutrientes → más algas → más descomposición → menos oxígeno → mueren peces. Lo que empezó en un campo termina en un lago.', { d: 4 }),
+      vf('En un sistema, los efectos de un cambio siempre aparecen enseguida y cerca de la causa.', false, 'Muchos efectos llegan con retraso o aparecen lejos, como la contaminación que se nota río abajo años después. Por eso "no pasó nada" no significa que no vaya a pasar.', {
+        razones: ['+Porque hay retrasos y efectos que aparecen lejos', '-Porque los sistemas no tienen efectos', '-Porque las causas siempre están en otro país'],
+        d: 1,
+      }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S5
@@ -373,6 +388,13 @@ export default unidad({
         ['Se pescan 150 toneladas de una especie que repone 100 por año', 'Sobreexplotación: la población cae'],
         ['Se pesca todo lo que se encuentra, sin medir', 'Ni siquiera se sabe cuánto se está perdiendo'],
       ], 'Lo sostenible no es "no usar", es usar por debajo de la reposición y medir para saber dónde se está.', { d: 4, extremos: ['Más sostenible', 'Menos sostenible'] }),
+      cad('Armá la cadena de cómo una pesca sin límites agota un recurso renovable.', [
+        'Se pescan más peces de los que nacen cada año',
+        'La población de peces baja',
+        'Quedan menos adultos que se reproducen',
+        'Nacen todavía menos peces',
+        'La pesquería colapsa',
+      ], ['Pescar más hace que nazcan más peces'], 'Un recurso renovable se agota si se usa más rápido de lo que se repone.', { d: 2 }),
     ]),
 
     // ─────────────────────────────────────────────────────────────── S6
