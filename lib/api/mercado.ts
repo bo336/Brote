@@ -23,6 +23,31 @@ export async function subirImagenListado(negocioId: string, listingId: string, a
   return error ? { ok: false, error: 'archivo_rechazado' } : { ok: true, ruta };
 }
 
+/**
+ * La foto del compromiso de una tienda (Mercado v2). Va al bucket público de
+ * imágenes, en la carpeta de la tienda: la ven quienes compran.
+ */
+export async function subirFotoCompromiso(negocioId: string, archivo: File): Promise<Subida> {
+  const blob = await compressImage(archivo, 1600, 0.85);
+  if (blob.size > 2 * 1024 * 1024) return { ok: false, error: 'archivo_grande' };
+  const ruta = `${negocioId}/compromisos/${crypto.randomUUID()}.jpg`;
+  const { error } = await createClient()
+    .storage.from('listing-images')
+    .upload(ruta, blob, { contentType: 'image/jpeg', upsert: false });
+  return error ? { ok: false, error: 'archivo_rechazado' } : { ok: true, ruta };
+}
+
+/** El logo de la tienda: cuadrado chico, en el bucket público de logos. */
+export async function subirLogoTienda(negocioId: string, archivo: File): Promise<Subida> {
+  const blob = await compressImage(archivo, 512, 0.9);
+  if (blob.size > 1024 * 1024) return { ok: false, error: 'archivo_grande' };
+  const ruta = `${negocioId}/${crypto.randomUUID()}.jpg`;
+  const { error } = await createClient()
+    .storage.from('business-logos')
+    .upload(ruta, blob, { contentType: 'image/jpeg', upsert: false });
+  return error ? { ok: false, error: 'archivo_rechazado' } : { ok: true, ruta };
+}
+
 /** El documento de una afirmación o de un descargo: privado, ≤ 5 MB. */
 export async function subirDocumento(negocioId: string, carpeta: 'afirmaciones' | 'reportes', archivo: File): Promise<Subida> {
   const esPdf = archivo.type === 'application/pdf';
@@ -88,5 +113,33 @@ export async function reportesCola(pass: string, estado: 'abierto' | 'confirmado
 export function reporteResolver(pass: string, id: string, accion: 'confirmar' | 'desestimar', nota: string) {
   return rpc<{ ok: boolean; error?: string; hasta?: string }>('admin_reporte_resolver', {
     p_pass: pass, p_id: id, p_accion: accion, p_nota: nota || null,
+  });
+}
+
+// ── Compromisos de las tiendas (Mercado v2) ─────────────────────────────────
+
+export interface ColaCompromisos {
+  pendientes: number;
+  items: {
+    business_id: string;
+    slug: string;
+    nombre: string;
+    abierta_at: string | null;
+    categoria: string | null;
+    provincia: string | null;
+    tipo: 'persona' | 'empresa';
+    mp_nickname: string | null;
+    compromisos: { practica: string; estado: 'declarado' | 'revisado' | 'rechazado'; foto_path: string | null; nota: string | null; created_at: string }[];
+  }[];
+}
+
+export async function compromisosCola(pass: string): Promise<({ ok: true } & ColaCompromisos) | { ok: false; error: string }> {
+  const r = await rpc<ColaCompromisos>('admin_compromisos_cola', { p_pass: pass });
+  return 'items' in r ? { ok: true, ...r } : { ok: false, error: (r as { error: string }).error };
+}
+
+export function compromisoRevisar(pass: string, negocioId: string, practica: string, decision: 'revisado' | 'rechazado', nota: string) {
+  return rpc<{ ok: boolean; error?: string }>('admin_compromiso_revisar', {
+    p_pass: pass, p_business: negocioId, p_practica: practica, p_decision: decision, p_nota: nota || null,
   });
 }

@@ -30,7 +30,10 @@ export function EstadoListado({ detalle }: { detalle: ListadoDetalle }) {
   const router = useRouter();
   const [ocupado, setOcupado] = useState(false);
   const l = detalle.listado;
-  const editable = l.status === 'draft' || l.status === 'despublicado';
+  // Una tienda nueva (Mercado v2) edita en vivo lo publicado; el flujo anterior
+  // lo tenía que retirar primero.
+  const vendedor = detalle.negocio?.modelo === 'vendedor';
+  const editable = l.status === 'draft' || l.status === 'despublicado' || (vendedor && l.status === 'publicado');
   const puedeEditar = puede(detalle.rol, 'crear_listado');
 
   async function retirar() {
@@ -42,7 +45,8 @@ export function EstadoListado({ detalle }: { detalle: ListadoDetalle }) {
       useToastStore.getState().push({ variant: 'error', title: t('errores.no_retirable') });
       return;
     }
-    router.push(`/negocio/listados/${l.id}/editar?paso=1`);
+    router.push(vendedor ? `/negocio/listados/${l.id}` : `/negocio/listados/${l.id}/editar?paso=1`);
+    router.refresh();
   }
 
   return (

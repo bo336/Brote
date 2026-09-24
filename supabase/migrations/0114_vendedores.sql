@@ -1432,6 +1432,47 @@ begin
   return jsonb_build_object('ok', true, 'status', 'pendiente');
 end $fn$;
 
+-- El detalle de un listado para su formulario: lo de 0107 más los campos
+-- nuevos y lo que la tienda tiene cargado para contactarla (sin los datos:
+-- solo si existen, para ofrecer o no cada canal).
+create or replace function listado_detalle(p_listing uuid)
+returns jsonb language plpgsql stable security definer set search_path = public as $fn$
+declare l listings%rowtype; b businesses%rowtype;
+begin
+  select * into l from listings where id = p_listing;
+  if l.id is null or not brote_is_member(l.business_id) then return null; end if;
+  select * into b from businesses where id = l.business_id;
+  return jsonb_build_object(
+    'rol', brote_biz_role(l.business_id),
+    'verificacion', brote_verificacion_fuerza(l.business_id),
+    'negocio', jsonb_build_object('modelo', b.modelo, 'whatsapp', b.whatsapp is not null,
+                                  'instagram', b.instagram is not null, 'sitio_web', b.sitio_web,
+                                  'contacto_preferido', b.contacto_preferido, 'provincia', b.provincia),
+    'listado', jsonb_build_object(
+      'id', l.id, 'business_id', l.business_id, 'slug', l.slug, 'tipo', l.tipo, 'titulo', l.titulo,
+      'descripcion', l.descripcion, 'imagenes', to_jsonb(l.imagenes), 'categoria', l.categoria,
+      'subcategoria', l.subcategoria, 'condicion', l.condicion, 'contacto', l.contacto,
+      'dominios', to_jsonb(l.dominios), 'precio_referencia', l.precio_referencia, 'moneda', l.moneda,
+      'url_destino', l.url_destino, 'disponibilidad', l.disponibilidad, 'zonas', to_jsonb(l.zonas),
+      'status', l.status, 'tier_efectivo', l.tier_efectivo, 'observacion', l.observacion,
+      'acelerada', l.acelerada, 'despublicado_por', l.despublicado_por, 'favoritos', l.favoritos,
+      'publicado_at', l.publicado_at, 'enviado_at', l.enviado_at, 'updated_at', l.updated_at,
+      'sugerencias', case when l.screening_ia->>'por' = 'ia' then jsonb_build_object(
+          'banderas_texto', l.screening_ia->'banderas_texto',
+          'afirmaciones', l.screening_ia->'afirmaciones') else null end),
+    'afirmaciones', coalesce((
+      select jsonb_agg(brote_claim_json(c) order by lc.created_at)
+      from listing_claims lc join business_claims c on c.id = lc.claim_id
+      where lc.listing_id = l.id), '[]'::jsonb),
+    'reportes', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', r.id, 'motivo', r.motivo, 'detalle', r.detalle, 'estado', r.estado,
+        'descargo', r.descargo, 'descargo_at', r.descargo_at, 'descargo_vence', r.descargo_vence,
+        'corregir_hasta', r.corregir_hasta, 'nota', r.nota, 'created_at', r.created_at)
+        order by r.created_at desc)
+      from listing_reports r where r.listing_id = l.id), '[]'::jsonb));
+end $fn$;
+
 -- La salud de enlaces mira solo los productos que salen a un sitio web: un
 -- WhatsApp o un Instagram no tienen "enlace caído".
 create or replace function brote_link_health_lanzar(p_limit int default 200)
@@ -1484,6 +1525,21 @@ returns jsonb language sql stable security definer set search_path = public as $
         order by l.updated_at desc)
       from listings l where l.business_id = p_business and l.status <> 'removido'), '[]'::jsonb)) end;
 $fn$;
+
+-- Las tiendas de la persona, para el selector de contexto: lo de 0105 más el
+-- modelo, que decide qué secciones tiene el espacio de la tienda. Cambia la
+-- forma de lo que devuelve, así que hay que borrarla y crearla de nuevo.
+drop function if exists my_businesses();
+create function my_businesses()
+returns table (id uuid, nombre text, slug text, role text, status business_status, tier evidence_tier, modelo text)
+language sql stable security definer set search_path = public as $fn$
+  select b.id, b.nombre_comercial, b.slug, m.role::text, b.status, b.tier, b.modelo
+  from business_members m join businesses b on b.id = m.business_id
+  where m.user_id = auth.uid()
+  order by b.created_at;
+$fn$;
+revoke all on function my_businesses() from public, anon;
+grant execute on function my_businesses() to authenticated;
 
 -- ── 10. El equipo revisa los compromisos ────────────────────────────────────
 
@@ -1582,6 +1638,7 @@ revoke all on function listado_guardar(uuid, uuid, jsonb) from public, anon;
 revoke all on function listado_imagenes(uuid, text[]) from public, anon;
 revoke all on function listado_enviar(uuid, jsonb) from public, anon;
 revoke all on function mis_listados(uuid) from public, anon;
+revoke all on function listado_detalle(uuid) from public, anon;
 revoke all on function admin_compromisos_cola(text) from public, anon;
 revoke all on function admin_compromiso_revisar(text, uuid, text, text, text) from public, anon;
 
@@ -1599,5 +1656,6 @@ grant execute on function listado_guardar(uuid, uuid, jsonb) to authenticated;
 grant execute on function listado_imagenes(uuid, text[]) to authenticated;
 grant execute on function listado_enviar(uuid, jsonb) to authenticated;
 grant execute on function mis_listados(uuid) to authenticated;
+grant execute on function listado_detalle(uuid) to authenticated;
 grant execute on function admin_compromisos_cola(text) to authenticated;
 grant execute on function admin_compromiso_revisar(text, uuid, text, text, text) to authenticated;

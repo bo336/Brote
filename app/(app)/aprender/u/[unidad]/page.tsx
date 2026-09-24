@@ -16,6 +16,7 @@ import { SaviaVacia } from '@/components/academia/SaviaVacia';
 import { fetchUnidad } from '@/lib/api/academia';
 import { esFallo, leerFalta, type LeccionDeUnidad } from '@/lib/academia/modelo';
 import { useEmpezar } from '@/lib/academia/usar-empezar';
+import { EnElMercado } from '@/components/mercado/EnElMercado';
 import { getDomainColor } from '@/lib/domains';
 import { cn } from '@/lib/utils/cn';
 
@@ -256,6 +257,8 @@ export default function UnidadPage() {
           )}
         </p>
       ) : null}
+
+      {!rama.es_tronco && <EnElMercado dominio={rama.slug} />}
     </div>
   );
 }

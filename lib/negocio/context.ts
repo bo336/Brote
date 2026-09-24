@@ -21,6 +21,7 @@ export type ActiveBusiness = {
   role: BusinessRole;
   status: BusinessStatus;
   tier: EvidenceTier;
+  modelo?: 'vendedor' | 'legacy';
 };
 
 /** Lo mínimo de la persona que necesita el shell de negocio. */

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { FormListado } from '@/components/negocio/listados/FormListado';
+import { FormProducto } from '@/components/negocio/vendedor/FormProducto';
 import { getCertificaciones, getListadoDetalle, getMisAfirmaciones } from '@/lib/mercado/servidor';
 import { getActiveBusiness } from '@/lib/negocio/context';
 import { puede } from '@/lib/negocio/roles';
@@ -14,9 +15,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 /**
- * `/negocio/listados/[id]/editar?paso=N`. Solo en borrador o fuera del
- * Mercado: uno pendiente o publicado se ve en su ficha de estado, y para
- * editarlo primero se retira (vuelve a pasar por revisión).
+ * `/negocio/listados/[id]/editar`. Una tienda nueva edita en vivo lo que ya
+ * está publicado (sin sacarlo del Mercado); en el flujo anterior, solo en
+ * borrador o fuera del Mercado. Uno en revisión se ve en su ficha de estado.
  */
 export default async function EditarListadoPage({ params, searchParams }: { params: { id: string }; searchParams: { paso?: string } }) {
   const activo = await getActiveBusiness();
@@ -24,11 +25,26 @@ export default async function EditarListadoPage({ params, searchParams }: { para
   if (!UUID.test(params.id)) notFound();
   const detalle = await getListadoDetalle(params.id);
   if (!detalle) notFound();
-  if (!['draft', 'despublicado'].includes(detalle.listado.status) || !puede(detalle.rol, 'crear_listado')) {
+  const vendedor = detalle.negocio?.modelo === 'vendedor';
+  const editables = vendedor ? ['draft', 'despublicado', 'publicado'] : ['draft', 'despublicado'];
+  if (!editables.includes(detalle.listado.status) || !puede(detalle.rol, 'crear_listado')) {
     redirect(`/negocio/listados/${params.id}`);
   }
 
   const [certs, disponibles] = await Promise.all([getCertificaciones(), getMisAfirmaciones(detalle.listado.business_id)]);
+  if (vendedor && detalle.negocio) {
+    return (
+      <FormProducto
+        negocioId={detalle.listado.business_id}
+        listado={detalle.listado}
+        afirmaciones={detalle.afirmaciones}
+        disponibles={disponibles}
+        certs={certs}
+        verificacionFuerte={detalle.verificacion === 'fuerte'}
+        canales={detalle.negocio}
+      />
+    );
+  }
   return (
     <FormListado
       negocioId={detalle.listado.business_id}

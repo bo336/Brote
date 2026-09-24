@@ -4,13 +4,18 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { fit, reordenarPorDiversidad, scoreEnVivo, type Persona } from '@/lib/mercado/ranking';
 import type { Nivel } from '@/lib/mercado/claims';
+import type { Condicion, OrdenBusqueda } from '@/lib/mercado/categorias';
 import type {
   AfirmacionFila,
+  Busqueda,
   CertificacionFila,
   FichaMercado,
+  Guardados,
+  InicioMercado,
   ListadoDetalle,
   MisListados,
   NegocioPublico,
+  PreguntasTienda,
   Salida,
   TarjetaMercado,
 } from '@/lib/supabase/rows-mercado';
@@ -166,6 +171,94 @@ export const getPuente = cache(async (slugAccion: string): Promise<Puente | null
   if (error) return null;
   return (data ?? null) as Puente | null;
 });
+
+// ── Mercado v2 (0113) ───────────────────────────────────────────────────────
+
+/** Lo que la búsqueda acepta: todo opcional, todo validado antes de llegar acá. */
+export interface FiltrosBusqueda {
+  q: string | null;
+  categoria: string | null;
+  subcategoria: string | null;
+  nivel: Nivel | null;
+  zona: string | null;
+  modalidad: 'online' | 'local' | null;
+  condicion: Condicion | null;
+  precioMin: number | null;
+  precioMax: number | null;
+  orden: OrdenBusqueda | null;
+  negocio?: string | null;
+  dominio?: string | null;
+}
+
+export const PAGINA_BUSQUEDA = 24;
+
+/**
+ * Una página de la búsqueda. Con el orden "recomendados" en la primera página
+ * se suma el fit de la persona y se reordena por diversidad (05 §4.7), igual
+ * que el catálogo de 0107; con cualquier otro orden, lo que dice la base.
+ */
+export async function buscar(f: FiltrosBusqueda, offset: number, cuenta: CuentaMercado): Promise<Busqueda> {
+  const { data, error } = await createClient().rpc('mercado_buscar', {
+    p_q: f.q,
+    p_categoria: f.categoria,
+    p_subcategoria: f.subcategoria,
+    p_tier_min: f.nivel ?? 'e0',
+    p_zona: f.zona,
+    p_modalidad: f.modalidad,
+    p_condicion: f.condicion,
+    p_precio_min: f.precioMin,
+    p_precio_max: f.precioMax,
+    p_orden: f.orden,
+    p_negocio: f.negocio ?? null,
+    p_offset: offset,
+    p_limit: PAGINA_BUSQUEDA,
+    p_dominio: f.dominio ?? null,
+  });
+  if (error) throw new Error(`mercado_buscar: ${error.message}`);
+  const r = (data ?? { items: [], total: 0, offset: 0, orden: 'recomendados', facetas: {} }) as Busqueda;
+  if (r.orden === 'recomendados' && offset === 0 && cuenta) {
+    const conFit = r.items.map((t) => ({
+      ...t,
+      score: scoreEnVivo(
+        Number(t.score),
+        fit(
+          {
+            dominios: t.dominios,
+            disponibilidad: t.disponibilidad,
+            zonas: t.zonas,
+            categoria: t.categoria,
+            negocio: { provincia: t.negocio.provincia },
+            tieneImagen: !!t.imagen,
+            descripcionLargo: t.descripcion_largo,
+            tienePrecio: t.tiene_precio,
+          },
+          cuenta.persona,
+          f.categoria,
+        ),
+      ),
+    }));
+    return { ...r, items: reordenarPorDiversidad(conFit) };
+  }
+  return r;
+}
+
+export const getInicio = cache(async (): Promise<InicioMercado | null> => {
+  const { data, error } = await createClient().rpc('mercado_inicio');
+  if (error) throw new Error(`mercado_inicio: ${error.message}`);
+  return (data ?? null) as InicioMercado | null;
+});
+
+export const getGuardados = cache(async (): Promise<Guardados | null> => {
+  const { data, error } = await createClient().rpc('mercado_guardados');
+  if (error) throw new Error(`mercado_guardados: ${error.message}`);
+  return (data ?? null) as Guardados | null;
+});
+
+export async function getPreguntasTienda(negocioId: string, estado: 'pendientes' | 'respondidas' | 'ocultas'): Promise<PreguntasTienda | null> {
+  const { data, error } = await createClient().rpc('tienda_preguntas', { p_business: negocioId, p_estado: estado });
+  if (error) throw new Error(`tienda_preguntas: ${error.message}`);
+  return (data ?? null) as PreguntasTienda | null;
+}
 
 export async function getSalida(id: string): Promise<Salida | null> {
   const { data, error } = await createClient().rpc('mercado_salida', { p_listing: id });

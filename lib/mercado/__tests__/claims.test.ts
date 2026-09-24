@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
@@ -221,10 +221,25 @@ test('reducción en origen y recargable se quedan en E2', () => {
 
 // ── Paridad con la base ─────────────────────────────────────────────────────
 
-const SQL = readFileSync(join(process.cwd(), 'supabase/migrations/0107_mercado.sql'), 'utf8');
+// Todas las migraciones en orden: vale la ÚLTIMA definición de cada función
+// (0114 redefinió la lista negra con las conjugaciones de salud).
+const DIR = join(process.cwd(), 'supabase/migrations');
+const SQL = readdirSync(DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(join(DIR, f), 'utf8'))
+  .join('\n');
+
+/** Dónde empieza la ÚLTIMA definición (no un `revoke … on function`). */
+function ultimaDefinicion(nombre: string): number {
+  const re = new RegExp(`create (or replace )?function ${nombre}\\(`, 'g');
+  let i = -1;
+  for (const m of SQL.matchAll(re)) i = m.index ?? i;
+  return i;
+}
 
 function arrayDeFuncion(nombre: string): string[] {
-  const i = SQL.indexOf(`function ${nombre}(`);
+  const i = ultimaDefinicion(nombre);
   const cuerpo = SQL.slice(i, SQL.indexOf('$fn$;', i));
   return [...cuerpo.matchAll(/'([^']+)'/g)].map((m) => m[1]!);
 }
@@ -235,15 +250,16 @@ test('las categorías y las sensibles son las mismas que en la base', () => {
 });
 
 test('la lista negra es la misma que en la base', () => {
-  const sql = arrayDeFuncion('brote_texto_prohibido').filter((t) => !t.includes('%') || t.includes(' '));
+  const i = ultimaDefinicion('brote_texto_prohibido');
+  assert.ok(i >= 0, 'no se encontró brote_texto_prohibido');
+  const cuerpo = SQL.slice(i, SQL.indexOf('$fn$;', i));
   for (const termino of [...LISTA_NEGRA.absolutos, ...LISTA_NEGRA.salud]) {
-    assert.ok(SQL.includes(`'${termino}'`), `"${termino}" no está en brote_texto_prohibido`);
+    assert.ok(cuerpo.includes(`'${termino}'`), `"${termino}" no está en la última brote_texto_prohibido`);
   }
-  assert.ok(sql.length > 0);
 });
 
 test('los conjuntos SIN_E* son los mismos que usa brote_claim_nivel', () => {
-  const i = SQL.indexOf('function brote_claim_nivel(');
+  const i = ultimaDefinicion('brote_claim_nivel');
   const cuerpo = SQL.slice(i, SQL.indexOf('$fn$;', i));
   assert.ok(cuerpo.includes(`c.kind not in (${SIN_E3.map((k) => `'${k}'`).join(',')})`));
   assert.ok(cuerpo.includes(`c.kind not in (${SIN_E1.map((k) => `'${k}'`).join(',')})`));

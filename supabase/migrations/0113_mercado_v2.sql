@@ -389,7 +389,7 @@ declare
   v_uid uuid := (select auth.uid());
   v_cuenta text; v_precios boolean; v_sens text[];
   v_norm text; v_tsq tsquery; v_cand uuid[]; v_orden text; v_limit int; v_offset int;
-  v_pmin numeric; v_pmax numeric; v_out jsonb;
+  v_pmin numeric; v_pmax numeric; v_out jsonb; v_favs uuid[];
 begin
   v_cuenta := coalesce(brote_account_type(v_uid), 'adult');
   if v_cuenta = 'kid' then
@@ -400,6 +400,7 @@ begin
   v_norm := brote_mercado_normalizar(p_q);
   v_tsq := brote_mercado_tsquery(v_norm);
   v_cand := brote_mercado_candidatos(v_norm, v_tsq);
+  select coalesce(array_agg(listing_id), '{}') into v_favs from mercado_favoritos where user_id = v_uid;
   v_limit := least(greatest(coalesce(p_limit, 24), 1), 48);
   v_offset := least(greatest(coalesce(p_offset, 0), 0), 960);
   -- Un teen no ve precios: tampoco filtra ni ordena por ellos.
@@ -449,7 +450,8 @@ begin
      where z.n > v_offset and z.n <= v_offset + v_limit
   )
   select jsonb_build_object(
-    'items', coalesce((select jsonb_agg(brote_listado_tarjeta(l, b, v_precios) order by p.n)
+    'items', coalesce((select jsonb_agg(brote_listado_tarjeta(l, b, v_precios)
+                                         || jsonb_build_object('favorito', l.id = any(v_favs)) order by p.n)
                          from pagina p join listings l on l.id = p.id join businesses b on b.id = l.business_id), '[]'::jsonb),
     'total', (select count(*) from (select 1 from filtrado limit 1001) x),
     'offset', v_offset,
@@ -743,7 +745,7 @@ create or replace function mercado_listado(p_slug text)
 returns jsonb language plpgsql stable security definer set search_path = public as $fn$
 declare
   l listings%rowtype; b businesses%rowtype; v_miembro boolean; v_uid uuid := (select auth.uid());
-  v_cuenta text; v_precios boolean; v_sens text[];
+  v_cuenta text; v_precios boolean; v_sens text[]; v_favs uuid[];
 begin
   select * into l from listings where slug = p_slug;
   if l.id is null then return null; end if;
@@ -755,10 +757,12 @@ begin
   v_cuenta := coalesce(brote_account_type(v_uid), 'adult');
   v_precios := v_cuenta = 'adult';
   v_sens := case when v_cuenta = 'teen' then brote_mercado_sensibles() else array[]::text[] end;
+  select coalesce(array_agg(listing_id), '{}') into v_favs from mercado_favoritos where user_id = v_uid;
 
   return brote_listado_tarjeta(l, b, v_precios) || jsonb_build_object(
     'descripcion', l.descripcion, 'imagenes', to_jsonb(l.imagenes), 'status', l.status,
     'vista_previa', l.status <> 'publicado',
+    'propia', v_miembro,
     'dominio_destino', case when l.contacto = 'web' then brote_dominio(l.url_destino) end,
     'contacto', l.contacto,
     'publicado_at', l.publicado_at,
@@ -789,13 +793,13 @@ begin
                          where q.listing_id = l.id and q.estado = 'visible' and q.respondida_at is not null),
     'mas_de_la_tienda', coalesce((
       select jsonb_agg(t) from (
-        select brote_listado_tarjeta(x, b, v_precios) t from listings x
+        select brote_listado_tarjeta(x, b, v_precios) || jsonb_build_object('favorito', x.id = any(v_favs)) t from listings x
          where x.business_id = b.id and x.status = 'publicado' and x.id <> l.id
            and not (x.categoria = any(v_sens))
          order by x.score desc limit 8) y), '[]'::jsonb),
     'parecidos', coalesce((
       select jsonb_agg(t order by s desc) from (
-        select brote_listado_tarjeta(x, xb, v_precios) t,
+        select brote_listado_tarjeta(x, xb, v_precios) || jsonb_build_object('favorito', x.id = any(v_favs)) t,
                x.score
                + case when l.subcategoria is not null and x.subcategoria = l.subcategoria then 40 else 0 end
                + case when x.dominios && l.dominios then 10 else 0 end as s

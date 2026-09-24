@@ -63,7 +63,7 @@ export function ShellNegocio({
       <div className="mx-auto flex max-w-6xl">
         {!enfocado && activo && (
           <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[220px] shrink-0 flex-col justify-between border-r border-border px-3 py-6 lg:flex">
-            <NavLateral />
+            <NavLateral modelo={activo.modelo} />
             <NivelChip tier={activo.tier} apilado />
           </aside>
         )}
@@ -74,7 +74,7 @@ export function ShellNegocio({
               : 'min-w-0 flex-1 px-4 pb-16 pt-5 lg:px-10 lg:pt-8'
           }
         >
-          {!enfocado && activo && <NavChips />}
+          {!enfocado && activo && <NavChips modelo={activo.modelo} />}
           {children}
         </main>
       </div>

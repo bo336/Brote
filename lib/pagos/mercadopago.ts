@@ -74,6 +74,69 @@ export function claveEvento(cuerpo: Record<string, unknown>, tipo: string, dataI
   return `${tipo}:${dataId}:${String(cuerpo.action ?? '')}`;
 }
 
+// ── Vincular la cuenta de quien vende (Mercado v2, 0114) ────────────────────
+//
+// La verificación de una tienda nueva la hace Mercado Pago: la persona entra
+// a su cuenta, autoriza a Brote (OAuth), y con esa autorización el servidor
+// consulta `/users/me`. Recién si la cuenta es de Argentina, está activa y
+// tiene la identidad cargada, queda vinculada — y RECIÉN AHÍ se le cobra la
+// suscripción, a esa misma cuenta.
+
+export const MP_AUTH = 'https://auth.mercadopago.com/authorization';
+
+/** La URL a la que se manda a la persona para autorizar a Brote. */
+export function urlAutorizacion(p: { clientId: string; redirectUri: string; state: string }): string {
+  const q = new URLSearchParams({
+    client_id: p.clientId,
+    response_type: 'code',
+    platform_id: 'mp',
+    state: p.state,
+    redirect_uri: p.redirectUri,
+  });
+  return `${MP_AUTH}?${q.toString()}`;
+}
+
+/** Lo que importa de `/users/me` (MercadoLibre y Mercado Pago comparten la API de usuarios). */
+export interface UsuarioMp {
+  id?: number | string;
+  nickname?: string;
+  email?: string;
+  site_id?: string;
+  identification?: { type?: string | null; number?: string | null } | null;
+  status?: { site_status?: string | null } | null;
+}
+
+export type CuentaMp =
+  | { ok: true; id: string; nickname: string; email: string; datos: { site_id: string; identificacion: string | null } }
+  | { ok: false; motivo: 'sin_id' | 'pais' | 'inactiva' | 'sin_identidad' | 'sin_email' };
+
+/**
+ * ¿Alcanza esta cuenta para abrir una tienda? Una cuenta argentina (MLA),
+ * activa, con documento cargado y con correo (el cobro va a ese correo).
+ * No se guarda el número de documento: solo QUÉ tipo es.
+ */
+export function evaluarCuentaMp(u: UsuarioMp | null | undefined): CuentaMp {
+  if (!u || u.id === undefined || u.id === null || String(u.id) === '') return { ok: false, motivo: 'sin_id' };
+  if ((u.site_id ?? '').toUpperCase() !== 'MLA') return { ok: false, motivo: 'pais' };
+  const estado = u.status?.site_status;
+  if (estado && estado !== 'active') return { ok: false, motivo: 'inactiva' };
+  if (!u.identification?.number || !String(u.identification.number).trim()) return { ok: false, motivo: 'sin_identidad' };
+  if (!u.email || !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(u.email)) return { ok: false, motivo: 'sin_email' };
+  return {
+    ok: true,
+    id: String(u.id),
+    nickname: (u.nickname ?? '').slice(0, 80),
+    email: u.email.toLowerCase(),
+    datos: { site_id: 'MLA', identificacion: u.identification.type ?? null },
+  };
+}
+
+/** El `state` del OAuth viaja en una cookie: "<state>.<negocio>". */
+export function partirEstado(cookie: string | undefined): { state: string; negocio: string } | null {
+  const m = (cookie ?? '').match(/^([0-9a-f]{64})\.([0-9a-f-]{36})$/);
+  return m ? { state: m[1]!, negocio: m[2]! } : null;
+}
+
 export type TipoEvento = 'preapproval' | 'authorized_payment' | 'payment' | 'otro';
 
 export function tipoDeEvento(tipo: string): TipoEvento {

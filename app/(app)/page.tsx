@@ -8,6 +8,7 @@ import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, Newspaper, Users } 
 import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
 import { EntradaAcademia } from '@/components/academia/EntradaAcademia';
+import { EntradaMercado } from '@/components/mercado/EntradaMercado';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
 import { NewsNudge } from '@/components/plaza/NewsNudge';
 import { SectionHeader } from '@/components/ui/section';
@@ -200,6 +201,7 @@ export default function HoyPage() {
           colour that did not exist, so the tile rendered transparent. */}
       <section className="space-y-2.5">
         <EntradaAcademia />
+        <EntradaMercado />
         {/* Always-present way into the feed (F15.19). The floating nudge below
             is the once-a-day prompt; this is the permanent door, so news access
             never depends on catching a transient banner. */}

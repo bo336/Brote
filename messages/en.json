@@ -1347,7 +1347,10 @@
       "mejora": "Mejora",
       "listados": "Listados",
       "analitica": "Analytics",
-      "plan": "Plan"
+      "plan": "Plan",
+      "productos": "Productos",
+      "preguntas": "Preguntas",
+      "tienda": "Tienda"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -2181,6 +2184,396 @@
       "copiarCodigo": "Copy the code",
       "copiarTexto": "Copy the text",
       "descargar": "Download"
+    },
+    "vendedor": {
+      "tituloPagina": "Abrí tu tienda",
+      "eyebrow": "Tu tienda en el Mercado",
+      "progreso": "Pasos para abrir tu tienda",
+      "pasos": {
+        "tienda": {
+          "corto": "Tu tienda",
+          "titulo": "Contanos de tu tienda",
+          "bajada": "Lo justo para que te encuentren y te escriban. Lo podés cambiar cuando quieras."
+        },
+        "compromiso": {
+          "corto": "Compromiso",
+          "titulo": "Tu compromiso ambiental",
+          "bajada": "Elegí las prácticas que ya hacés y mostrá una con una foto. Así sabe quien compra a quién le compra."
+        },
+        "prueba": {
+          "corto": "Prueba verde",
+          "titulo": "La prueba verde",
+          "bajada": "Cinco preguntas sobre cómo hablar de ambiente sin exagerar. Son las reglas del Mercado."
+        },
+        "mercado_pago": {
+          "corto": "Mercado Pago",
+          "titulo": "Vinculá Mercado Pago y abrí",
+          "bajada": "Confirmamos tu cuenta con Mercado Pago y recién ahí te suscribís. Brote nunca ve tu tarjeta."
+        }
+      },
+      "tienda": {
+        "nombre": "Nombre de la tienda",
+        "nombreAyuda": "Como te conoce la gente. Así aparece en el Mercado.",
+        "nombrePlaceholder": "Ej.: La Huerta de Ana",
+        "queVendes": "¿Qué vendés, principalmente?",
+        "comoVendes": "¿Cómo vendés?",
+        "tipo": {
+          "persona": "Por mi cuenta",
+          "personaAyuda": "Emprendimiento o persona",
+          "empresa": "Como empresa",
+          "empresaAyuda": "Con razón social"
+        },
+        "razonSocial": "Razón social",
+        "opcional": "Opcional.",
+        "cuit": "CUIT",
+        "cuitAyuda": "Opcional. Lo ve el equipo de Brote, no quien compra.",
+        "provincia": "Provincia",
+        "elegir": "Elegí",
+        "ciudad": "Ciudad o barrio",
+        "contacto": "¿Por dónde te escriben?",
+        "contactoAyuda": "Al menos uno. Cuando alguien quiera comprar, lo llevamos ahí con el producto en el mensaje.",
+        "whatsappPlaceholder": "11 2233-4455",
+        "sitio": "Sitio web",
+        "preferido": "¿Cuál preferís?",
+        "preferidoAyuda": "Es el que se usa en tus productos, salvo que elijas otro en cada uno.",
+        "descripcion": "Contá en pocas palabras qué hacés",
+        "descripcionAyuda": "Opcional. Qué hacés y cómo. Las afirmaciones ambientales («orgánico», «reciclable») van en cada producto, con su nivel.",
+        "descripcionPlaceholder": "Ej.: Cultivamos verduras en Cañuelas y armamos bolsones cada semana.",
+        "guardar": "Guardar y seguir"
+      },
+      "errores": {
+        "nombre": "Poné el nombre de tu tienda.",
+        "nombre_comercial": "Ese nombre no se puede usar.",
+        "categoria": "Elegí qué vendés.",
+        "categoria_principal": "Elegí qué vendés.",
+        "provincia": "Elegí tu provincia.",
+        "ciudad": "Revisá la ciudad.",
+        "whatsapp": "Ese número no parece de WhatsApp. Probá con el código de área: 11 2233-4455.",
+        "instagram": "Ese usuario de Instagram no es válido.",
+        "sitio_web": "Esa dirección no parece un sitio web.",
+        "contacto": "Poné al menos un WhatsApp, un Instagram o un sitio web.",
+        "cuit": "Ese CUIT no es válido.",
+        "razon_social": "Revisá la razón social.",
+        "descripcion": "Revisá la descripción.",
+        "logo_url": "No pudimos guardar el logo.",
+        "descripcion_verde": "Las afirmaciones ambientales van en cada producto, con su nivel.",
+        "descripcion_verde_termino": "«{termino}» es una afirmación ambiental: cargala en cada producto, con su nivel, y sacala de la descripción de la tienda.",
+        "solo_adultos": "Para abrir una tienda hace falta ser mayor de edad.",
+        "onboarding_pendiente": "Primero terminá de crear tu cuenta de Brote.",
+        "email_sin_confirmar": "Confirmá tu email antes de abrir una tienda.",
+        "limite_negocios": "Ya tenés el máximo de tiendas.",
+        "campo_invalido": "Revisá los datos marcados.",
+        "archivo_grande": "La foto es muy pesada. Probá con otra.",
+        "archivo_rechazado": "No pudimos subir la foto.",
+        "pocas_practicas": "Elegí al menos dos prácticas.",
+        "demasiadas_practicas": "Elegí como mucho seis.",
+        "practica_invalida": "Hay una práctica que no reconocemos.",
+        "foto_sin_practica": "Elegí qué práctica muestra la foto.",
+        "ruta_invalida": "No pudimos usar esa foto. Subila de nuevo.",
+        "falta_foto": "Falta la foto.",
+        "sin_permiso": "No tenés permiso para hacer esto.",
+        "no_editable": "Esta tienda no se puede editar.",
+        "error": "Algo salió mal. Probá de nuevo."
+      },
+      "compromiso": {
+        "maximo": "Elegí como mucho {n}.",
+        "minimo": "Elegí al menos {n} prácticas.",
+        "elegiPrimero": "Primero elegí al menos una práctica.",
+        "faltaFoto": "Subí una foto que muestre una de tus prácticas.",
+        "rechazadas": "Revisamos tu compromiso y hay algo para corregir:",
+        "queHaces": "¿Qué hacés ya?",
+        "elegidas": "{n} de {max}",
+        "queHacesAyuda": "Elegí al menos {n} prácticas que hoy hacés de verdad. Se muestran en tu tienda.",
+        "verTodas": "Ver las {n} prácticas",
+        "fotoTitulo": "Mostrá una con una foto",
+        "fotoAyuda": "Una foto real de tu trabajo: el paquete como lo mandás, tu huerta, tu estación de recarga. La van a ver quienes compran.",
+        "fotoAlt": "La foto de tu compromiso",
+        "fotoMuestra": "Esta foto muestra:",
+        "subiendo": "Subiendo…",
+        "cambiarFoto": "Cambiar foto",
+        "quitarFoto": "Quitar",
+        "subirFoto": "Subir una foto",
+        "subirFotoAyuda": "JPG o PNG. La achicamos antes de subirla.",
+        "revision": "Tu tienda abre sin esperar: el equipo de Brote revisa la foto después. Mientras tanto se muestra como «declarado, con foto».",
+        "guardar": "Guardar y seguir"
+      },
+      "prueba": {
+        "yaAprobada": "Ya pasaste la prueba verde.",
+        "demasiados": "Probaste muchas veces hoy. Volvé mañana.",
+        "error": "Algo salió mal. Probá de nuevo.",
+        "introTitulo": "Cinco preguntas, dos minutos",
+        "introCuerpo": "Necesitás {n} respuestas correctas. Si te equivocás, te explicamos por qué y seguís con otra; con {e} errores, empezás de nuevo.",
+        "otraVez": "Casi. Volvamos a empezar",
+        "otraVezCuerpo": "Ya viste las explicaciones: son las reglas que después aplica el Mercado a cada producto. Las preguntas vienen en otro orden.",
+        "regla1": "Nada de absolutos: «100% ecológico» o «no contamina» no se pueden probar.",
+        "regla2": "Nada de salud: curar, prevenir o adelgazar no se afirman en el Mercado.",
+        "regla3": "Cada afirmación vale para su producto: un sello no se contagia a los demás.",
+        "empezar": "Empezar",
+        "reintentar": "Empezar de nuevo",
+        "correctasDe": "{n} de {total} correctas",
+        "errores": "Errores: {n} de {max}",
+        "bien": "¡Bien!",
+        "mal": "No es esa.",
+        "aprobadaSeguir": "Seguir a Mercado Pago",
+        "fallidaSeguir": "Volver a intentar",
+        "siguiente": "Siguiente pregunta",
+        "aprobada": "Pasaste la prueba verde."
+      },
+      "mp": {
+        "error": "Algo salió mal. Probá de nuevo.",
+        "errorAbrir": "No pudimos abrir tu tienda. Revisá los pasos anteriores.",
+        "errores": {
+          "no_configurado": "El cobro con Mercado Pago todavía no está disponible. Te avisamos apenas esté.",
+          "mp_error": "Mercado Pago no respondió. Probá de nuevo en un rato.",
+          "alta_incompleta": "Antes de suscribirte, completá los pasos anteriores.",
+          "sin_cotizacion": "Hoy no tenemos la cotización del dólar oficial. Probá de nuevo en unas horas.",
+          "cobro_apagado": "Por ahora no hace falta suscribirse.",
+          "ya_suscripta": "Tu suscripción ya está activa.",
+          "solo_owner": "Solo quien es dueña o dueño de la tienda puede suscribirla.",
+          "error": "Algo salió mal. Probá de nuevo."
+        },
+        "esperandoTitulo": "Esperando a Mercado Pago…",
+        "esperandoCuerpo": "Cuando confirme el pago, tu tienda abre sola. Suele tardar unos segundos.",
+        "motivos": {
+          "cancelado": "Cancelaste en Mercado Pago. Podés volver a intentarlo cuando quieras.",
+          "vencido": "Pasó demasiado tiempo. Volvé a tocar «Vincular Mercado Pago».",
+          "no_configurado": "Vincular Mercado Pago todavía no está disponible. Te avisamos apenas esté.",
+          "autorizacion": "Mercado Pago no confirmó la autorización. Probá de nuevo.",
+          "sin_id": "Mercado Pago no nos devolvió tu cuenta. Probá de nuevo.",
+          "pais": "La cuenta de Mercado Pago tiene que ser de Argentina.",
+          "inactiva": "Tu cuenta de Mercado Pago no está activa. Revisala en Mercado Pago y volvé a intentar.",
+          "sin_identidad": "Tu cuenta de Mercado Pago no tiene la identidad cargada. Completala en Mercado Pago y volvé a intentar.",
+          "sin_email": "Tu cuenta de Mercado Pago no tiene un email válido.",
+          "solo_owner": "Solo quien es dueña o dueño de la tienda puede vincular Mercado Pago.",
+          "mp_en_uso": "Esa cuenta de Mercado Pago ya está vinculada a la tienda de otra persona.",
+          "mp_invalido": "Mercado Pago devolvió una cuenta que no pudimos leer. Probá de nuevo.",
+          "datos": "El enlace no era válido. Volvé a intentar desde acá.",
+          "error": "No pudimos vincular Mercado Pago. Probá de nuevo."
+        },
+        "vinculadaOk": "¡Listo! Tu cuenta de Mercado Pago quedó vinculada.",
+        "demora": "Mercado Pago está tardando en confirmar. Tu tienda abre apenas llegue la confirmación; te avisamos.",
+        "plan": "Suscripción de tienda",
+        "usd": "USD {n}",
+        "porMes": "por mes",
+        "enPesos": "Hoy son {ars}, al dólar oficial del {fecha}.",
+        "enPesosManual": "Hoy son {ars} por mes.",
+        "sinCotizacion": "Hoy todavía no tenemos la cotización del dólar oficial.",
+        "incluye1": "Hasta 300 productos publicados a la vez",
+        "incluye2": "Te escriben directo por WhatsApp, Instagram o tu sitio",
+        "incluye3": "Preguntas, seguidores y estadísticas de tu tienda",
+        "incluye4": "Sin comisiones: la venta es tuya",
+        "ajuste": "Se cobra en pesos, todos los meses, a la cuenta de Mercado Pago que vinculás. Si el dólar oficial se mueve más de 10%, el monto del mes siguiente se ajusta y te avisamos. Te podés dar de baja cuando quieras.",
+        "terminos": "Leí y acepto los <enlace>términos para tiendas</enlace>.",
+        "vinculada": "Mercado Pago vinculado: {cuenta}",
+        "vincularTitulo": "Vinculá tu cuenta de Mercado Pago",
+        "vinculadaAyuda": "Mercado Pago confirmó que es una cuenta activa de Argentina, con la identidad cargada.",
+        "vincularAyuda": "Te llevamos a Mercado Pago para que autorices a Brote. Confirmamos que tu cuenta es de Argentina y tiene la identidad cargada. No vemos tu clave ni tus tarjetas.",
+        "vincular": "Vincular Mercado Pago",
+        "noConfigurado": "El cobro con Mercado Pago todavía no está disponible. Te avisamos apenas esté.",
+        "suscripta": "Tu suscripción está activa.",
+        "suscribirme": "Suscribirme por {ars} al mes",
+        "suscribirmeSinPrecio": "Suscribirme",
+        "faltaTerminos": "Primero aceptá los términos.",
+        "faltaVincular": "Primero vinculá tu cuenta de Mercado Pago.",
+        "seguridad": "El pago se hace en Mercado Pago. Brote nunca ve tu tarjeta.",
+        "abrirGratis": "Abrir mi tienda",
+        "gratisAyuda": "Por ahora abrir una tienda no tiene costo. Si eso cambia, te avisamos antes."
+      },
+      "abierta": {
+        "titulo": "¡Tu tienda está abierta!",
+        "cuerpo": "{tienda} ya está en el Mercado. Ahora, lo más importante: tus productos.",
+        "publicar": "Publicar mi primer producto",
+        "verTienda": "Ver mi tienda",
+        "consejo1": "Fotos reales y con buena luz: la primera es la que se ve en todas partes.",
+        "consejo2": "Respondé las preguntas rápido. Una respuesta pública le sirve a la próxima persona.",
+        "consejo3": "Si tu producto tiene algo ambiental para contar, cargalo como afirmación: se muestra con su nivel.",
+        "irAlPanel": "Ir al panel de mi tienda"
+      },
+      "inicio": {
+        "eyebrow": "Tu tienda",
+        "verTienda": "Ver como cliente",
+        "gracia": "No pudimos cobrar tu suscripción. Actualizá el medio de pago para que tus productos sigan en el Mercado.",
+        "sinSuscripcion": "Tu suscripción no está activa: tus productos no se ven en el Mercado.",
+        "preguntasPendientes": "{n, plural, one {Tenés # pregunta sin responder} other {Tenés # preguntas sin responder}}",
+        "publicados": "Publicados",
+        "guardados": "Guardados",
+        "salidas": "Consultas (30 días)",
+        "preguntas": "Sin responder",
+        "publicar": "Publicar un producto",
+        "publicarAyuda": "Fotos, precio de referencia y listo. Se publica en el acto.",
+        "responder": "Responder preguntas",
+        "responderAyuda": "Lo que la gente quiere saber antes de escribirte.",
+        "editarTienda": "Editar mi tienda",
+        "editarTiendaAyuda": "Logo, datos, contacto y compromiso.",
+        "vacioTitulo": "Todavía no publicaste nada",
+        "vacioCuerpo": "Tu tienda está abierta pero vacía. Publicá tu primer producto: lleva dos minutos.",
+        "publicarPrimero": "Publicar mi primer producto",
+        "tusProductos": "Tus productos",
+        "verTodos": "Ver todos",
+        "enRevisionN": "{n, plural, one {# en revisión} other {# en revisión}}",
+        "borradoresN": "{n, plural, one {# borrador} other {# borradores}}",
+        "filaDatos": "{salidas} consultas · {guardados} guardados",
+        "preguntasN": "{n, plural, one {# pregunta} other {# preguntas}}",
+        "compromisoTitulo": "Tu compromiso",
+        "compromisoRevisado": "Revisado por Brote: se muestra así en tu tienda.",
+        "compromisoEnRevision": "Tu foto está en revisión. Mientras, se muestra como «declarado, con foto».",
+        "compromisoSinFoto": "Subí una foto que muestre una de tus prácticas."
+      },
+      "producto": {
+        "primeroTitulo": "Primero poné un título y elegí la categoría.",
+        "borradorGuardado": "Borrador guardado.",
+        "cambiosPublicados": "Listo: los cambios ya se ven en el Mercado.",
+        "publicadoToast": "¡Publicado! Ya está en el Mercado.",
+        "enRevisionToast": "Enviado: tiene afirmaciones para revisar, te avisamos cuando se publique.",
+        "eyebrowEnVivo": "Publicado · editando en vivo",
+        "eyebrowEditar": "Editar producto",
+        "eyebrowNuevo": "Nuevo producto",
+        "tituloNuevo": "Publicá un producto",
+        "enVivoAyuda": "Lo que cambies se ve en el Mercado al guardar, sin sacarlo de la vidriera.",
+        "corregir": "Antes de publicar, corregí esto:",
+        "fotos": "Fotos",
+        "fotosAyuda": "Hasta {n}. La primera es la portada: que se vea bien el producto.",
+        "portada": "Portada",
+        "moverIzq": "Mover a la izquierda",
+        "moverDer": "Mover a la derecha",
+        "quitarFoto": "Quitar foto",
+        "subiendo": "Subiendo…",
+        "agregarFoto": "Agregar",
+        "queEs": "Qué es",
+        "producto": "Producto",
+        "servicio": "Servicio",
+        "titulo": "Título",
+        "tituloAyuda": "Qué es, de qué y cuánto: «Jabón sólido de avena, 100 g»",
+        "tituloPh": "Ej.: Bolsón de verduras de la huerta, 5 kg",
+        "categoria": "Categoría",
+        "elegir": "Elegí",
+        "subcategoria": "Subcategoría",
+        "sinSubcategoria": "Sin subcategoría",
+        "condicion": "Estado",
+        "precio": "Precio de referencia",
+        "precioAyuda": "Lo que cobrás hoy. La venta la hacés vos por tu canal; Brote lo muestra como precio de referencia.",
+        "precioOpcional": "A consultar",
+        "descripcion": "Descripción",
+        "descripcionAyuda": "Cómo es, de qué está hecho, medidas, cómo se entrega. Lo ambiental que quieras afirmar va abajo, como afirmación.",
+        "descripcionPh": "Contá lo que te preguntarían antes de comprar.",
+        "faltanCaracteres": "{n, plural, one {Falta # carácter} other {Faltan # caracteres}}",
+        "caracteres": "{n} caracteres",
+        "entrega": "Cómo se consigue",
+        "disponibilidad": {
+          "online": "Con envío",
+          "local": "Retiro o local",
+          "ambas": "Las dos"
+        },
+        "zonasN": "{n, plural, one {Envío a # provincia} other {Envío a # provincias}}",
+        "todoElPais": "Envío a todo el país",
+        "sinProvincia": "Cargá tu provincia en «Editar mi tienda» para que te encuentren cerca.",
+        "contacto": "Por dónde te escriben",
+        "contactoAyuda": "Al tocar el botón del producto, la persona va a este canal.",
+        "canal": {
+          "whatsapp": "WhatsApp",
+          "instagram": "Instagram",
+          "web": "Mi sitio"
+        },
+        "urlPh": "https://tutienda.com.ar/producto",
+        "url": "Dirección del producto en tu sitio",
+        "probar": "Probar",
+        "urlOk": "Funciona.",
+        "temas": "Temas de Brote",
+        "temasAyuda": "Opcional, hasta 3. Así aparece en «Para poner en práctica» de la Academia y en las acciones.",
+        "afirmaciones": "Afirmaciones ambientales (opcional)",
+        "afirmacionesAyuda": "Si tu producto es orgánico, reciclable, recargable… cargalo acá con su documento: se muestra con su nivel de evidencia. Sin esto, no se puede decir en la descripción.",
+        "sinAfirmaciones": "Este producto no tiene afirmaciones.",
+        "afirmacionesPrimero": "Para cargar afirmaciones, primero guardá el producto.",
+        "guardarParaSeguir": "Guardar borrador y seguir",
+        "afirmacionesEnVivo": "Para cambiar las afirmaciones de un producto publicado, sacalo del Mercado y volvé a publicarlo: vuelven a revisarse.",
+        "guardarCambios": "Guardar cambios",
+        "guardarBorrador": "Guardar borrador",
+        "republicar": "Volver a publicar",
+        "publicar": "Publicar"
+      },
+      "preguntas": {
+        "titulo": "Preguntas",
+        "bajada": "Lo que la gente te pregunta en tus productos. Tu respuesta se publica y le llega a quien preguntó.",
+        "estados": {
+          "pendientes": "Sin responder ({n})",
+          "respondidas": "Respondidas",
+          "ocultas": "Ocultas"
+        },
+        "vacio": {
+          "pendientesTitulo": "Estás al día",
+          "pendientes": "No tenés preguntas sin responder.",
+          "respondidasTitulo": "Nada por acá",
+          "respondidas": "Todavía no respondiste ninguna pregunta.",
+          "ocultasTitulo": "Nada por acá",
+          "ocultas": "No ocultaste ninguna pregunta."
+        },
+        "respondida": "Respuesta publicada.",
+        "respuestaPh": "Escribí tu respuesta",
+        "respuestaAyuda": "Se ve en público. Nada de afirmaciones de salud.",
+        "guardar": "Guardar",
+        "responder": "Responder",
+        "editar": "Editar",
+        "ocultar": "Ocultar",
+        "mostrar": "Volver a mostrar",
+        "errores": {
+          "muy_corta": "Escribí un poco más.",
+          "muy_larga": "Es muy larga: hasta 1.000 caracteres.",
+          "texto_no_permitido": "La respuesta tiene palabras que no se pueden publicar.",
+          "texto_prohibido": "La respuesta tiene una afirmación que no se puede publicar (salud o absolutos).",
+          "sin_permiso": "No tenés permiso para responder.",
+          "error": "No pudimos guardarla. Probá de nuevo."
+        }
+      },
+      "perfil": {
+        "titulo": "Tu tienda",
+        "logoError": "No pudimos subir el logo. Probá con otra imagen.",
+        "cambiarLogo": "Cambiar logo",
+        "verComoCliente": "Ver como la ve la gente",
+        "mpVinculada": "Mercado Pago vinculado: {cuenta}",
+        "secciones": {
+          "datos": "Datos",
+          "compromiso": "Compromiso"
+        },
+        "guardado": "Guardado.",
+        "verificacionSitio": "¿Tenés un sitio propio? Podés verificarlo: tu tienda lo muestra como verificado por su dominio.",
+        "verificarSitio": "Verificar mi sitio"
+      },
+      "plan": {
+        "errores": {
+          "no_configurado": "El cobro con Mercado Pago todavía no está disponible. Te avisamos apenas esté.",
+          "mp_error": "Mercado Pago no respondió. Probá de nuevo en un rato.",
+          "alta_incompleta": "Antes de suscribirte, completá los pasos anteriores.",
+          "sin_cotizacion": "Hoy no tenemos la cotización del dólar oficial. Probá de nuevo en unas horas.",
+          "cobro_apagado": "Por ahora no hace falta suscribirse.",
+          "ya_suscripta": "Tu suscripción ya está activa.",
+          "solo_owner": "Solo quien es dueña o dueño de la tienda puede suscribirla.",
+          "error": "Algo salió mal. Probá de nuevo.",
+          "cancelar": "No pudimos darte de baja. Probá de nuevo o escribinos."
+        },
+        "cancelarConfirma": "¿Darte de baja? Tus productos salen del Mercado. No se borra nada: si volvés, está todo como lo dejaste.",
+        "cancelada": "Listo. Mercado Pago lo confirma en unos minutos.",
+        "eyebrow": "Tu tienda",
+        "titulo": "Suscripción",
+        "gratis": "Por ahora tu tienda no tiene costo. Si eso cambia, te avisamos antes.",
+        "activaHasta": "Tu suscripción está al día. El próximo cobro es el {fecha}: {monto}.",
+        "activa": "Tu suscripción está al día.",
+        "gracia": "No pudimos cobrar tu suscripción. Tenés hasta el {fecha} para actualizar el medio de pago en Mercado Pago; mientras, tus productos siguen publicados.",
+        "sinSuscripcion": "Tu suscripción no está activa: tus productos no se ven en el Mercado.",
+        "usd": "USD {n}",
+        "porMes": "por mes",
+        "hoy": "Hoy son {ars}, al dólar oficial del {fecha}.",
+        "hoyManual": "Hoy son {ars} por mes.",
+        "productos": "Productos publicados",
+        "equipo": "Personas en tu equipo",
+        "ajuste": "Se cobra en pesos a tu cuenta de Mercado Pago. Si el dólar oficial se mueve más de 10%, el monto del mes siguiente se ajusta y te avisamos.",
+        "cuenta": "Mercado Pago vinculado: {cuenta}",
+        "suscribirme": "Suscribirme",
+        "actualizarPago": "Actualizar el medio de pago en Mercado Pago",
+        "bajaTitulo": "Darte de baja",
+        "bajaCuerpo": "Tus productos salen del Mercado y no se borra nada. Podés volver cuando quieras.",
+        "cancelar": "Darme de baja",
+        "legales": "Cómo se cobra, cómo darte de baja y qué pasa con tus datos está en los <enlace>términos para tiendas</enlace>."
+      }
     }
   },
   "mercado": {
@@ -2293,7 +2686,11 @@
       "preparando": "Preparando la salida…",
       "toast": "Saliendo de Brote hacia {dominio}",
       "noDisponible": "Este listado ya no está disponible.",
-      "error": "No pudimos abrir el sitio. Probá de nuevo."
+      "error": "No pudimos abrir el sitio. Probá de nuevo.",
+      "vasAWhatsapp": "Vas a escribirle a {comercio} por WhatsApp.",
+      "vasAInstagram": "Vas al Instagram de {comercio}.",
+      "irWhatsapp": "Abrir WhatsApp",
+      "irInstagram": "Abrir Instagram"
     },
     "reporte": {
       "titulo": "Reportar este listado",
@@ -2442,7 +2839,18 @@
         "archivo_grande": "La imagen pesa demasiado. Probá con una más chica.",
         "archivo_rechazado": "No pudimos subir el archivo.",
         "validacion": "Hay cosas para corregir antes de enviar.",
-        "error": "Algo salió mal. Probá de nuevo."
+        "error": "Algo salió mal. Probá de nuevo.",
+        "falta_precio": "Poné el precio de referencia: es lo primero que mira la gente.",
+        "sin_whatsapp": "Tu tienda no tiene WhatsApp cargado. Cargalo en «Editar mi tienda» o elegí otro canal.",
+        "sin_instagram": "Tu tienda no tiene Instagram cargado. Cargalo en «Editar mi tienda» o elegí otro canal.",
+        "condicion_invalida": "Elegí el estado del producto.",
+        "contacto_invalido": "Elegí por dónde te escriben.",
+        "disponibilidad_invalida": "Elegí cómo se consigue.",
+        "tipo_invalido": "Elegí si es un producto o un servicio.",
+        "zonas_invalidas": "Revisá las provincias de envío.",
+        "demasiados_envios": "Publicaste muchos productos hoy. Seguí mañana.",
+        "limite_plan": "Llegaste al tope de productos publicados de tu plan.",
+        "solo_lectura": "Tu suscripción no está activa: no podés publicar."
       }
     },
     "afirmaciones": {
@@ -2631,6 +3039,27 @@
         "descargoPendiente": "Hay que esperar el descargo o que pasen los 7 días.",
         "confirmarAyuda": "Confirmar penaliza el listado y le da 30 días al comercio para corregir. Desestimar no penaliza a nadie.",
         "notaPh": "Qué se encontró."
+      },
+      "resumenCompromisos": "Compromisos de tiendas",
+      "fotosPorRevisar": "{n, plural, one {# foto por revisar} other {# fotos por revisar}}",
+      "compromisos": {
+        "eyebrow": "Mercado",
+        "titulo": "Compromisos de tiendas",
+        "pendientesN": "{n, plural, one {# foto por revisar} other {# fotos por revisar}}",
+        "ayuda": "Las tiendas abren sin esperar esta revisión. Mirá que la foto muestre la práctica: si coincide, pasa a «revisado por Brote»; si no, rechazala con una nota que le llega a la tienda.",
+        "vacia": "No hay fotos por revisar.",
+        "abrio": "abrió el {fecha}",
+        "mp": "Mercado Pago: {cuenta}",
+        "estados": {
+          "declarado": "Declarado",
+          "revisado": "Revisado",
+          "rechazado": "Rechazado"
+        },
+        "sinFoto": "sin foto",
+        "notaPh": "Nota para la tienda (obligatoria si rechazás)",
+        "aprobar": "Coincide: revisado",
+        "rechazar": "No coincide",
+        "faltaNota": "Para rechazar, escribí una nota para la tienda."
       }
     },
     "puente": {
@@ -2646,6 +3075,388 @@
       "vacioTitulo": "Nothing published yet",
       "vacioTexto": "The catalogue opens when the first businesses publish. If you run one, you could be among them.",
       "sumarNegocio": "Add my business"
+    },
+    "condicion": {
+      "nuevo": "Nuevo",
+      "usado": "Usado",
+      "reacondicionado": "Reacondicionado"
+    },
+    "subcategorias": {
+      "alimentos-frescos": {
+        "frutas-y-verduras": "Frutas y verduras",
+        "bolsones": "Bolsones",
+        "panaderia": "Panadería",
+        "lacteos-y-quesos": "Lácteos y quesos",
+        "carnes-y-huevos": "Carnes y huevos",
+        "conservas-y-dulces": "Conservas y dulces"
+      },
+      "almacen-granel": {
+        "legumbres-y-cereales": "Legumbres y cereales",
+        "harinas": "Harinas",
+        "frutos-secos-y-semillas": "Frutos secos y semillas",
+        "yerba-cafe-y-te": "Yerba, café y té",
+        "especias": "Especias",
+        "aceites-y-vinagres": "Aceites y vinagres"
+      },
+      "bebidas": {
+        "jugos-y-aguas": "Jugos y aguas",
+        "vinos": "Vinos",
+        "cervezas": "Cervezas",
+        "fermentados": "Kombucha y fermentados"
+      },
+      "limpieza-hogar": {
+        "detergentes": "Detergentes",
+        "jabon-para-ropa": "Jabón para ropa",
+        "limpiadores": "Limpiadores",
+        "recargas": "Recargas",
+        "esponjas-y-utensilios": "Esponjas y utensilios"
+      },
+      "cuidado-personal": {
+        "solidos": "Shampoo y jabón sólidos",
+        "cosmetica": "Cosmética",
+        "higiene-bucal": "Higiene bucal",
+        "higiene-menstrual": "Higiene menstrual",
+        "desodorantes": "Desodorantes",
+        "bebes": "Bebés"
+      },
+      "indumentaria": {
+        "ropa": "Ropa",
+        "calzado": "Calzado",
+        "accesorios": "Accesorios",
+        "ninos": "Niñas y niños",
+        "segunda-mano": "Segunda mano"
+      },
+      "hogar-y-deco": {
+        "muebles": "Muebles",
+        "textiles": "Textiles",
+        "cocina": "Cocina",
+        "iluminacion": "Iluminación",
+        "decoracion": "Decoración"
+      },
+      "jardin-y-huerta": {
+        "semillas-y-plantines": "Semillas y plantines",
+        "sustratos-y-compost": "Sustratos y compost",
+        "composteras": "Composteras",
+        "macetas-y-herramientas": "Macetas y herramientas",
+        "riego": "Riego"
+      },
+      "mascotas": {
+        "alimento": "Alimento",
+        "accesorios": "Accesorios",
+        "higiene": "Higiene",
+        "juguetes": "Juguetes"
+      },
+      "movilidad": {
+        "bicicletas": "Bicicletas",
+        "repuestos-y-service": "Repuestos y service",
+        "electrica": "Movilidad eléctrica",
+        "accesorios": "Accesorios",
+        "alquiler": "Alquiler"
+      },
+      "servicios-profesionales": {
+        "consultoria": "Consultoría",
+        "talleres-y-cursos": "Talleres y cursos",
+        "diseno": "Diseño",
+        "instalaciones": "Instalaciones",
+        "eventos": "Eventos"
+      },
+      "reparacion-y-reuso": {
+        "electronica": "Electrónica",
+        "electrodomesticos": "Electrodomésticos",
+        "costura": "Costura y arreglos",
+        "muebles": "Muebles",
+        "reacondicionados": "Reacondicionados"
+      }
+    },
+    "practicas": {
+      "envio-sin-plastico": {
+        "titulo": "Envíos sin plástico de un solo uso",
+        "ayuda": "Papel, cartón o packaging reutilizado. En la foto, un paquete armado como lo mandás."
+      },
+      "recibe-envases": {
+        "titulo": "Recibo envases para reusar",
+        "ayuda": "Frascos, botellas o cajas que vuelven. En la foto, los envases que recibís."
+      },
+      "materia-prima-local": {
+        "titulo": "Materia prima de la zona",
+        "ayuda": "Lo principal viene de menos de 300 km. En la foto, tu proveedor o lo que llega."
+      },
+      "produccion-a-pedido": {
+        "titulo": "Produzco a pedido",
+        "ayuda": "No acumulo stock que después se tira. En la foto, tu taller o tu mesa de trabajo."
+      },
+      "repara-o-da-repuestos": {
+        "titulo": "Reparo o doy repuestos",
+        "ayuda": "Lo que vendo se puede arreglar. En la foto, una reparación o tus repuestos."
+      },
+      "vende-usado": {
+        "titulo": "Vendo usado o reacondicionado",
+        "ayuda": "Le doy una segunda vida a las cosas. En la foto, algo que reacondicionaste."
+      },
+      "energia-renovable": {
+        "titulo": "Uso energía renovable",
+        "ayuda": "Paneles, tarifa verde o similar. En la foto, la instalación o la factura (tapá tus datos)."
+      },
+      "separa-residuos": {
+        "titulo": "Separo y reciclo lo que desecho",
+        "ayuda": "Los residuos de tu producción tienen destino. En la foto, cómo los separás."
+      },
+      "materiales-recuperados": {
+        "titulo": "Trabajo con materiales recuperados",
+        "ayuda": "Telas, maderas o piezas que iban a descartarse. En la foto, el material."
+      },
+      "ingredientes-publicos": {
+        "titulo": "Publico todos los ingredientes",
+        "ayuda": "Cada producto dice exactamente qué lleva. En la foto, una etiqueta completa."
+      },
+      "agroecologico": {
+        "titulo": "Produzco sin agroquímicos de síntesis",
+        "ayuda": "Cultivo o crianza sin químicos de síntesis. En la foto, tu huerta o tu campo."
+      },
+      "granel-o-recarga": {
+        "titulo": "Vendo a granel o con recarga",
+        "ayuda": "Menos envases por compra. En la foto, tu estación de recarga o tu granel."
+      },
+      "de-estacion": {
+        "titulo": "Vendo según la estación",
+        "ayuda": "Lo que ofrezco cambia con la temporada. En la foto, lo que cosechaste esta semana."
+      },
+      "entrega-sin-emisiones": {
+        "titulo": "Entrego en bici o a pie",
+        "ayuda": "O en vehículo eléctrico. En la foto, tu forma de repartir."
+      },
+      "precio-justo": {
+        "titulo": "Pago lo justo a quien produce",
+        "ayuda": "Lo podés contar con nombres. En la foto, las personas o la cooperativa."
+      },
+      "hecho-para-durar": {
+        "titulo": "Hago cosas que duran",
+        "ayuda": "Materiales resistentes y garantía. En la foto, el detalle que lo hace durar."
+      },
+      "alquila-o-presta": {
+        "titulo": "Alquilo o presto en vez de vender nuevo",
+        "ayuda": "Menos cosas fabricadas para usar pocas veces. En la foto, lo que alquilás."
+      },
+      "packaging-compostable": {
+        "titulo": "Mi packaging se composta en casa",
+        "ayuda": "Papel sin plastificar, cartón, fibras. En la foto, tu packaging."
+      },
+      "cuida-el-agua": {
+        "titulo": "Cuido el agua en mi producción",
+        "ayuda": "Reúso, riego por goteo o menos consumo. En la foto, cómo lo hacés."
+      },
+      "dona-excedentes": {
+        "titulo": "Dono lo que no vendo",
+        "ayuda": "Lo que sobra no termina en la basura. En la foto, a quién se lo das."
+      }
+    },
+    "tarjeta": {
+      "guardar": "Guardar",
+      "quitar": "Quitar de guardados",
+      "guardarCorto": "Guardar",
+      "guardadoCorto": "Guardado",
+      "guardadoToast": "Guardado. Te avisamos si baja su precio de referencia.",
+      "guardarError": "No pudimos guardarlo. Probá de nuevo.",
+      "guardarTope": "Llegaste a 500 guardados: sacá alguno para sumar otro.",
+      "bajo": "Bajó",
+      "deReferencia": "precio de referencia",
+      "aConsultar": "A consultar",
+      "envio": "Envío",
+      "retiro": "Retiro"
+    },
+    "buscador": {
+      "placeholder": "Buscar en el Mercado",
+      "borrar": "Borrar",
+      "sugerenciasN": "{n, plural, one {# sugerencia} other {# sugerencias}}",
+      "recientes": "Buscaste hace poco",
+      "buscarTexto": "Buscar “{q}”",
+      "enCategoria": "En",
+      "tienda": "tienda"
+    },
+    "inicio": {
+      "verTodo": "Ver todo",
+      "anterior": "Anterior",
+      "siguiente": "Siguiente",
+      "categorias": "Categorías",
+      "productosN": "{n, plural, one {# producto} other {# productos}}",
+      "guardados": "Guardados",
+      "queEsCorto": "Tiendas con compromiso ambiental. No vendemos: te llevamos a la tienda.",
+      "comoFunciona": "Cómo funciona",
+      "queEsLargo": "Un mercado de tiendas que están en Brote. No vendemos ni cobramos: cuando elegís un producto te llevamos al WhatsApp, al Instagram o al sitio de la tienda. Cada tienda contó y mostró con fotos su compromiso ambiental, y cada afirmación ambiental de un producto tiene un nivel según la documentación que presentó.",
+      "vacio": {
+        "titulo": "El Mercado está abriendo",
+        "cuerpo": "Las primeras tiendas se están sumando. Volvé en unos días, o abrí la tuya."
+      },
+      "tiendas": "Tiendas para conocer",
+      "descubri": "Descubrí más",
+      "estantes": {
+        "seguir_viendo": "Seguí viendo",
+        "para_vos": "Para vos",
+        "para_vosSub": "Según tus intereses y lo que venís mirando",
+        "porque_hiciste": "Porque hiciste «{accion}»",
+        "porque_hicisteSub": "Para que la próxima vez sea más fácil",
+        "aprendiendo": "Para poner en práctica: {rama}",
+        "aprendiendoSub": "Lo que estás aprendiendo en la Academia",
+        "cerca": "Cerca tuyo, en {provincia}",
+        "cercaSub": "Para retirar o que te lo acerquen",
+        "bajaron": "Bajó su precio de referencia",
+        "bajaronSub": "En los últimos 30 días",
+        "nuevos": "Recién llegados",
+        "segunda_vida": "Segunda vida",
+        "segunda_vidaSub": "Usado, reacondicionado y reparación",
+        "documentados": "Con más evidencia",
+        "documentadosSub": "Productos con afirmaciones de Nivel 2 o más"
+      },
+      "vender": {
+        "titulo": "¿Hacés algo bien? Vendelo en Brote",
+        "tituloPocos": "El Mercado recién abre: sumá tu tienda",
+        "cuerpo": "Abrí tu tienda en minutos por USD 5 al mes. Te contactan por WhatsApp, Instagram o tu sitio."
+      }
+    },
+    "resultados": {
+      "titulo": "Buscar",
+      "fin": "Eso es todo por ahora.",
+      "volver": "Volver al Mercado",
+      "masDeMil": "Más de 1.000 resultados",
+      "resultadosN": "{n, plural, one {# resultado} other {# resultados}}",
+      "resultadosPara": "Resultados para “{q}”",
+      "resultadosParaN": "{total} para “{q}”",
+      "vacio": {
+        "titulo": "No encontramos nada",
+        "conFiltros": "Probá sacando algún filtro.",
+        "conTexto": "No hay productos que coincidan con “{q}”. Probá con otra palabra o una categoría.",
+        "cuerpo": "Todavía no hay productos acá."
+      },
+      "irAlInicio": "Ir al inicio del Mercado"
+    },
+    "filtros": {
+      "titulo": "Filtros",
+      "boton": "Filtros",
+      "categoria": "Categoría",
+      "todasCategorias": "Todas las categorías",
+      "estado": "Estado",
+      "comoSeConsigue": "Cómo se consigue",
+      "conEnvio": "Con envío",
+      "retiro": "Retiro o local",
+      "zona": "Zona",
+      "todoElPais": "Todo el país",
+      "llegaA": "Llega a {zona}",
+      "nivel": "Evidencia ambiental",
+      "nivelAyuda": "El nivel de las afirmaciones del producto.",
+      "nivelDesde": "Nivel {n} o más",
+      "cualquierNivel": "Cualquiera",
+      "precio": "Precio de referencia",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "aplicar": "Aplicar",
+      "orden": "Ordenar",
+      "ordenes": {
+        "relevancia": "Más relevantes",
+        "recomendados": "Recomendados",
+        "nuevos": "Más nuevos",
+        "precio_asc": "Menor precio de referencia",
+        "precio_desc": "Mayor precio de referencia",
+        "nivel": "Más evidencia"
+      },
+      "quitar": "Quitar {filtro}",
+      "limpiar": "Limpiar filtros",
+      "precioEntre": "Precio de referencia: {desde} a {hasta}",
+      "precioDesde": "Precio de referencia desde {desde}",
+      "precioHasta": "Precio de referencia hasta {hasta}",
+      "ver": "Ver {total}",
+      "actualizando": "Actualizando…"
+    },
+    "ficha2": {
+      "galeria": "galería",
+      "fotoDe": "Foto {i} de {n}",
+      "anterior": "Foto anterior",
+      "siguiente": "Foto siguiente",
+      "verFoto": "Ver foto {i}",
+      "compartir": "Compartir",
+      "copiado": "Enlace copiado",
+      "ctaWhatsapp": "Consultar por WhatsApp",
+      "ctaInstagram": "Escribir por Instagram",
+      "guardadoPor": "{n, plural, one {# persona lo guardó} other {# personas lo guardaron}}",
+      "envioA": "Envíos a {zonas}",
+      "envioPais": "Envíos a todo el país",
+      "retiroEn": "Retiro o local en {lugar}",
+      "laTienda": "la tienda",
+      "comoSeCompra": "La compra la hacés con {comercio}: Brote te lleva hasta ahí y no cobra nada.",
+      "descripcion": "Descripción",
+      "sinAfirmaciones": "Este producto no tiene afirmaciones ambientales con nivel. Lo que se sabe del compromiso de la tienda está en su tarjeta, arriba.",
+      "masDeLaTienda": "Más de {tienda}",
+      "parecidos": "También te puede interesar",
+      "deReferencia": "precio de referencia"
+    },
+    "preguntas": {
+      "titulo": "Preguntas a la tienda",
+      "placeholder": "Preguntale algo a {tienda}",
+      "enviando": "Enviando…",
+      "preguntar": "Preguntar",
+      "ayuda": "Las preguntas y sus respuestas se ven en público; tu nombre no.",
+      "vacio": "Todavía nadie preguntó nada. Si tenés una duda, preguntá: la respuesta le sirve a la próxima persona.",
+      "sinRespuesta": "Esperando respuesta de la tienda. Te avisamos cuando conteste.",
+      "verMas": "Ver {n, plural, one {# pregunta más} other {# preguntas más}}",
+      "enviada": "Listo, le llegó a {tienda}. Te avisamos cuando responda.",
+      "errores": {
+        "muy_corta": "Escribí un poco más.",
+        "muy_larga": "Es muy larga: hasta 300 caracteres.",
+        "texto_no_permitido": "Esa pregunta tiene palabras que no se pueden publicar.",
+        "demasiadas": "Llegaste al tope de preguntas por hoy.",
+        "propio": "No podés preguntarle a tu propia tienda.",
+        "no_disponible": "Este producto ya no está disponible.",
+        "error": "No pudimos enviarla. Probá de nuevo."
+      }
+    },
+    "tienda": {
+      "quienVende": "Quién vende",
+      "productos": "productos",
+      "seguidores": "seguidores",
+      "vendeDesde": "en Brote desde",
+      "mpVinculado": "Cuenta de Mercado Pago vinculada",
+      "mpAyuda": "Brote confirmó con Mercado Pago que esta tienda tiene una cuenta activa en Argentina, con su identidad cargada. No es una garantía sobre los productos.",
+      "compromiso": "Su compromiso",
+      "revisado": "Revisado por Brote",
+      "conFoto": "Declarado, con foto",
+      "declarado": "Declarado por la tienda",
+      "seguir": "Seguir",
+      "siguiendo": "Siguiendo",
+      "seguirToast": "Listo: te avisamos cuando publique algo nuevo.",
+      "seguirError": "No pudimos hacerlo. Probá de nuevo.",
+      "seguirPropia": "Es tu tienda.",
+      "volver": "Mercado",
+      "administrar": "Administrar",
+      "compromisoTitulo": "Su compromiso ambiental",
+      "compromisoAyuda": "Lo que esta tienda dice que hace, con las fotos que lo muestran. Cuando alguien de Brote revisó la foto, lo dice.",
+      "todoLoQuePublica": "Lo que publica",
+      "todo": "Todo"
+    },
+    "guardados": {
+      "volver": "Mercado",
+      "titulo": "Tus guardados",
+      "pestanas": {
+        "guardados": "Guardados ({n})",
+        "vistos": "Vistos hace poco",
+        "tiendas": "Tiendas ({n})"
+      },
+      "vacio": {
+        "guardadosTitulo": "Todavía no guardaste nada",
+        "guardados": "Tocá el corazón de un producto para guardarlo. Te avisamos si baja su precio de referencia.",
+        "vistosTitulo": "Nada por acá",
+        "vistos": "Los productos que mires van a aparecer acá.",
+        "tiendasTitulo": "No seguís ninguna tienda",
+        "tiendas": "Seguí una tienda y te avisamos cuando publique algo nuevo."
+      },
+      "noDisponible": "Ya no está publicado",
+      "bajoDesde": "Bajó desde que lo guardaste ({antes})",
+      "productosN": "{n, plural, one {# producto} other {# productos}}",
+      "nuevosN": "{n, plural, one {# nuevo} other {# nuevos}}"
+    },
+    "entrada": {
+      "titulo": "Mercado",
+      "bajada": "Tiendas con compromiso ambiental",
+      "practica": "Ponelo en práctica",
+      "practicaSub": "Productos del Mercado sobre este tema"
     }
   },
   "arbol": {

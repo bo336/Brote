@@ -60,6 +60,8 @@ export interface MiNegocio {
   role: BusinessRole;
   status: BusinessStatus;
   tier: EvidenceTier;
+  /** Mercado v2 (0114): 'vendedor' es el alta nueva; 'legacy', el flujo de empresas de 0105. */
+  modelo?: 'vendedor' | 'legacy';
 }
 
 /** Un método, tal como lo devuelve `negocio_detalle`. */
