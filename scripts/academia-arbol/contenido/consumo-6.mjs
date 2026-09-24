@@ -93,6 +93,14 @@ export default unidad({
         ['Trabajamos con nuestros 20 principales proveedores para medir sus emisiones.', false],
         ['El transporte que contratamos no cuenta, porque los camiones no son nuestros.', true, 'Cuenta como alcance 3.'],
       ], 'Un reporte serio muestra toda la cadena, no solo lo que queda cómodo.', { d: 2 }),
+      mult('¿Qué emisiones forman parte del alcance 3 de un banco? Marcá todas.', [
+        '+Las de las empresas a las que les presta dinero',
+        '+Los viajes de trabajo de su personal',
+        '+Los servidores que alquila a un proveedor de nube',
+        '+La fabricación del papel y los equipos que compra',
+        '-El gas que quema la caldera de su propia sede',
+      ], 'Para un banco, las emisiones que financia suelen ser muchísimo mayores que las de sus oficinas; la caldera propia es alcance 1.', { d: 3 }),
+      est('Estimá qué porcentaje de las empresas que informan a CDP tenía una meta para su alcance 3, según el informe de 2024.', 15, { min: 0, max: 100, paso: 1, unidad: '%' }, 'Apenas un 15 %, aunque el alcance 3 sea en promedio 26 veces mayor que las operaciones propias.', { d: 2 }),
       comp('Completá.', 'Las emisiones directas de la empresa son el alcance [1]; las de la electricidad comprada, el alcance [2]; y las de la cadena de valor, el alcance [3].', ['0', '4', '5'], 'Los tres alcances para leer cualquier huella empresarial.', { d: 1 }),
     ]),
 
@@ -336,6 +344,20 @@ export default unidad({
         'Empresa B': ['Una empresa con fines de lucro certificada por su impacto', 'Una marca que cambió su estatuto para considerar al ambiente'],
         'Empresa convencional': ['Una sociedad anónima que decide según el capital de cada accionista', 'Una empresa que solo busca maximizar ganancias'],
       }, 'Quién es dueño y cómo se decide cambia las prioridades de una empresa.', { d: 2 }),
+      cad('Armá la cadena de cómo una cooperativa eléctrica puede llevar servicios a un pueblo.', [
+        'Los vecinos forman una cooperativa para tener electricidad',
+        'Deciden en asamblea cómo usar los excedentes',
+        'Reinvierten en la red y en nuevos servicios',
+        'El servicio llega a zonas que una empresa no consideraba rentables',
+        'El pueblo gana acceso a energía y otros servicios',
+      ], ['La cooperativa reparte todo el excedente y no reinvierte nada'], 'Cuando los usuarios son dueños, la prioridad puede ser el servicio y no solo la ganancia.', { d: 2 }),
+      ord('Ordená los pasos para formar una cooperativa.', [
+        'Reunir a las personas interesadas y definir el objetivo',
+        'Preparar el proyecto de estatuto',
+        'Realizar la asamblea constitutiva',
+        'Tramitar la autorización y la matrícula ante el INAES',
+        'Funcionar con asambleas y balances periódicos',
+      ], 'Una cooperativa nace de un acuerdo colectivo y se sostiene con participación.', { d: 2 }),
       op('¿Qué distingue a una cooperativa de una sociedad anónima tradicional?', [ // e4
         'Sus integrantes deciden con un voto por persona',
         'Que no puede tener ingresos ni excedentes',
@@ -386,7 +408,7 @@ export default unidad({
       num('¿Qué porcentaje de la huella total de la marca es la cadena de suministro? Redondeá al entero.', 96, '%', '7.500 ÷ (300 + 7.500) × 100 ≈ 96 %: casi toda la huella está fuera de sus locales.', { ctx: '300 tCO₂e propias; 7.500 en la cadena.', tol: 1, d: 2 }),
       num('¿Cuántas veces más emite la cadena que las operaciones propias?', 25, 'veces', '7.500 ÷ 300 = 25 veces, muy cerca del promedio de 26 que informó CDP.', { ctx: '7.500 contra 300 tCO₂e.', d: 1 }),
       op('¿Qué problema tiene la frase "somos carbono neutrales"?', [ // e3
-        'Compensa solo el 4 % de su huella y deja afuera la cadena',
+        'Compensa solo el 4 % de su huella',
         'Que la marca no debería medir sus emisiones',
         ['Que los bonos siempre eliminan toda la huella', 'Además de su calidad, solo cubren sus 300 tCO₂e propias.'],
         'Que las marcas de ropa no emiten gases',
