@@ -363,6 +363,10 @@ begin
   return v;
 end $fn$;
 
+-- (La primera versión de esta migración no tenía `p_dominio`: se borra la
+-- firma vieja para no dejar dos funciones con el mismo nombre.)
+drop function if exists mercado_buscar(text, text, text, evidence_tier, text, text, text, numeric, numeric, text, uuid, int, int);
+
 create or replace function mercado_buscar(
   p_q            text default null,
   p_categoria    text default null,
@@ -376,7 +380,10 @@ create or replace function mercado_buscar(
   p_orden        text default null,
   p_negocio      uuid default null,
   p_offset       int default 0,
-  p_limit        int default 24)
+  p_limit        int default 24,
+  -- Un dominio de Brote ("residuos", "energia"…): lo usa la Academia para
+  -- "ponelo en práctica" y el puente de las acciones.
+  p_dominio      text default null)
 returns jsonb language plpgsql stable security definer set search_path = public, extensions as $fn$
 declare
   v_uid uuid := (select auth.uid());
@@ -414,6 +421,7 @@ begin
        and (v_cand is null or l.id = any(v_cand))
        and (cardinality(v_sens) = 0 or not (l.categoria = any(v_sens)))
        and (p_negocio is null or l.business_id = p_negocio)
+       and (p_dominio is null or p_dominio = any(l.dominios))
        and l.tier_efectivo >= coalesce(p_tier_min, 'e0')
        and (p_modalidad is null
             or (p_modalidad = 'online' and l.disponibilidad in ('online','ambas'))
@@ -795,6 +803,50 @@ begin
          where x.status = 'publicado' and x.categoria = l.categoria and x.id <> l.id
            and x.business_id <> b.id and not (x.categoria = any(v_sens))
          order by s desc limit 12) y), '[]'::jsonb));
+end $fn$;
+
+-- La ficha pública de la tienda. Lo de 0108 (que ve también quien llega sin
+-- cuenta, desde el sello del kit de marca) más lo que una vidriera necesita:
+-- compromisos, cuántos la siguen, cuántos productos tiene y de qué categorías,
+-- si la cuenta de Mercado Pago está vinculada y desde cuándo vende.
+create or replace function mercado_negocio(p_slug text)
+returns jsonb language plpgsql stable security definer set search_path = public as $fn$
+declare b businesses%rowtype; v_uid uuid := (select auth.uid()); v_sens text[];
+begin
+  if v_uid is not null and coalesce(brote_account_type(v_uid), 'adult') = 'kid' then return null; end if;
+  v_sens := case when v_uid is not null and brote_account_type(v_uid) = 'teen' then brote_mercado_sensibles()
+                 else array[]::text[] end;
+  select * into b from businesses where slug = p_slug and status = 'approved';
+  if b.id is null then return null; end if;
+  return jsonb_build_object(
+    'negocio', jsonb_build_object('id', b.id, 'slug', b.slug, 'nombre', b.nombre_comercial, 'rubro', b.rubro,
+                'descripcion', b.descripcion, 'logo', b.logo_url, 'portada', b.portada_url,
+                'provincia', b.provincia, 'ciudad', b.ciudad, 'sitio_web', brote_dominio(b.sitio_web),
+                'tier', b.tier, 'progreso_mejora', b.progreso_mejora,
+                'verificacion', brote_verificacion_fuerza(b.id),
+                'nota_correccion', b.nota_correccion, 'nota_correccion_at', b.nota_correccion_at,
+                'fundador', b.fundador,
+                'desde', coalesce(b.activa_at, b.revisado_at, b.created_at),
+                'tipo', b.tipo_vendedor, 'modelo', b.modelo,
+                'categoria_principal', b.categoria_principal,
+                'mp_vinculado', b.mp_vinculado_at is not null,
+                'compromisos', brote_tienda_compromisos_publicos(b.id),
+                'seguidores', (select count(*) from mercado_seguidos s where s.business_id = b.id),
+                'seguida', v_uid is not null and exists (select 1 from mercado_seguidos s
+                                                          where s.business_id = b.id and s.user_id = v_uid),
+                'propia', v_uid is not null and brote_is_member(b.id),
+                'productos', (select count(*) from listings l where l.business_id = b.id and l.status = 'publicado'
+                                and not (l.categoria = any(v_sens))),
+                'categorias', coalesce((select jsonb_object_agg(c, n) from (
+                                select l.categoria c, count(*) n from listings l
+                                 where l.business_id = b.id and l.status = 'publicado' and not (l.categoria = any(v_sens))
+                                 group by 1) x), '{}'::jsonb)),
+    'mejora', case when brote_negocio_permite(b.id, 'historial_publico') then coalesce((
+        select jsonb_agg(jsonb_build_object('titulo', g.titulo, 'dominio', g.dominio, 'unidad', g.unidad,
+                           'linea_base', g.linea_base, 'valor_final', g.valor_final, 'cerrado_at', g.cerrado_at)
+                         order by g.cerrado_at desc)
+        from improvement_goals g where g.business_id = b.id and g.es_publico and g.status = 'logrado'), '[]'::jsonb)
+      else '[]'::jsonb end);
 end $fn$;
 
 -- ── 8. Preguntas ────────────────────────────────────────────────────────────
@@ -1235,7 +1287,7 @@ revoke all on function brote_listado_destino(listings, businesses) from public, 
 revoke all on function brote_recalcular_tiers(uuid) from public, anon, authenticated;
 revoke all on function brote_mercado_limpieza() from public, anon, authenticated;
 
-revoke all on function mercado_buscar(text, text, text, evidence_tier, text, text, text, numeric, numeric, text, uuid, int, int) from public, anon;
+revoke all on function mercado_buscar(text, text, text, evidence_tier, text, text, text, numeric, numeric, text, uuid, int, int, text) from public, anon;
 revoke all on function mercado_sugerencias(text) from public, anon;
 revoke all on function mercado_inicio() from public, anon;
 revoke all on function mercado_listado(text) from public, anon;
@@ -1251,7 +1303,7 @@ revoke all on function mercado_guardados() from public, anon;
 revoke all on function mercado_salida(uuid) from public, anon;
 revoke all on function mercado_salir(uuid, text, text) from public, anon;
 
-grant execute on function mercado_buscar(text, text, text, evidence_tier, text, text, text, numeric, numeric, text, uuid, int, int) to authenticated;
+grant execute on function mercado_buscar(text, text, text, evidence_tier, text, text, text, numeric, numeric, text, uuid, int, int, text) to authenticated;
 grant execute on function mercado_sugerencias(text) to authenticated;
 grant execute on function mercado_inicio() to authenticated;
 grant execute on function mercado_listado(text) to authenticated;
@@ -1266,3 +1318,5 @@ grant execute on function mercado_visto(uuid) to authenticated;
 grant execute on function mercado_guardados() to authenticated;
 grant execute on function mercado_salida(uuid) to authenticated;
 grant execute on function mercado_salir(uuid, text, text) to authenticated;
+revoke all on function mercado_negocio(text) from public;
+grant execute on function mercado_negocio(text) to anon, authenticated;
