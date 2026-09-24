@@ -1517,6 +1517,68 @@ const NUEVAS = [
     organizacion: 'Collaboration for Environmental Evidence',
     url: 'https://environmentalevidence.org/',
   },
+  // ── Ciudades y movilidad ─────────────────────────────────────────────────────
+  {
+    slug: 'itdp-tod',
+    titulo: 'The TOD Standard 3.0',
+    organizacion: 'ITDP',
+    url: 'https://itdp.org/library/standards-and-guides/tod3-0/',
+    publicado: '2017',
+  },
+  {
+    slug: 'duranton-turner-2011',
+    titulo: 'The Fundamental Law of Road Congestion: Evidence from US Cities',
+    organizacion: 'American Economic Review',
+    url: 'https://www.aeaweb.org/articles?id=10.1257/aer.101.6.2616',
+    publicado: '2011',
+  },
+  {
+    slug: 'cheonggyecheon',
+    titulo: 'Cheonggyecheon Stream Restoration Project',
+    organizacion: 'Landscape Architecture Foundation',
+    url: 'https://www.landscapeperformance.org/case-study-briefs/cheonggyecheon-stream-restoration-project',
+  },
+  {
+    slug: 'shoup-estacionamiento',
+    titulo: 'The High Cost of Free Parking',
+    organizacion: 'Donald Shoup (Routledge)',
+    url: 'https://www.routledge.com/The-High-Cost-of-Free-Parking-Updated-Edition/Shoup/p/book/9781932364965',
+    publicado: '2011',
+  },
+  {
+    slug: 'borjesson-2012-estocolmo',
+    titulo: 'The Stockholm congestion charges—5 years on. Effects, acceptability and lessons learnt',
+    organizacion: 'Transport Policy',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0967070X11001284',
+    publicado: '2012',
+  },
+  {
+    slug: 'mta-congestion-2026',
+    titulo: 'Less Traffic, Better Transit: On Its First Anniversary, Governor Hochul Celebrates Transformational Success of Congestion Pricing',
+    organizacion: 'MTA',
+    url: 'https://www.mta.info/press-release/icymi-less-traffic-better-transit-its-first-anniversary-governor-hochul-celebrates',
+    publicado: '2026',
+  },
+  {
+    slug: 'mueller-2020-supermanzanas',
+    titulo: 'Changing the urban design of cities for health: The superblock model',
+    organizacion: 'Environment International',
+    url: 'https://www.sciencedirect.com/science/article/pii/S0160412019315223',
+    publicado: '2020',
+  },
+  {
+    slug: 'declaracion-estocolmo-2020',
+    titulo: 'Global consensus achieved for road safety (Declaración de Estocolmo)',
+    organizacion: 'Foro Internacional de Transporte (OCDE)',
+    url: 'https://www.itf-oecd.org/global-consensus-achieved-road-safety',
+    publicado: '2020',
+  },
+  {
+    slug: 'caf-movilidad-genero',
+    titulo: 'Movilidad cotidiana con perspectiva de género: guía metodológica para la planificación y el diseño del sistema de movilidad y transporte',
+    organizacion: 'CAF y Gobierno de la Ciudad de Buenos Aires',
+    url: 'https://scioteca.caf.com/handle/123456789/1725',
+  },
   // ── Residuos y materiales ───────────────────────────────────────────────────
   {
     slug: 'mst-bolsas-2018',
