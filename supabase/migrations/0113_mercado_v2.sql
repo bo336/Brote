@@ -323,7 +323,7 @@ $fn$;
 -- Los productos que coinciden con un texto, por índice. `null` = sin texto.
 create or replace function brote_mercado_candidatos(p_norm text, p_tsq tsquery)
 returns uuid[] language plpgsql stable security definer set search_path = public, extensions as $fn$
-declare v uuid[];
+declare v uuid[]; s uuid[]; fuzzy uuid[]; w text; q tsquery;
 begin
   if p_norm is null then return null; end if;
   -- Umbral de parecido por palabra: 0,5 tolera un error de tipeo en una
@@ -337,10 +337,21 @@ begin
   if cardinality(v) >= 12 then return v; end if;
   perform word_similarity('', '');
   perform set_config('pg_trgm.word_similarity_threshold', '0.5', true);
+  -- Parecidos PALABRA POR PALABRA, y todas tienen que aparecer: "jabom
+  -- solido" encuentra "Jabón sólido" y no todo lo que dice "sólido". Las
+  -- palabras vacías ("para", "con") no cuentan.
+  for w in select x from regexp_split_to_table(p_norm, '\s+') x where length(x) >= 3 loop
+    q := to_tsquery('spanish', w || ':*');
+    if numnode(q) = 0 then continue; end if;
+    select coalesce(array_agg(l.id), '{}') into s
+      from listings l
+     where l.status = 'publicado' and (l.busqueda @@ q or w <% lower(unaccent_safe(l.titulo)));
+    fuzzy := case when fuzzy is null then s else array(select unnest(fuzzy) intersect select unnest(s)) end;
+  end loop;
   select coalesce(array_agg(distinct id), '{}') into v from (
     select unnest(v) as id
     union all
-    select l.id from listings l where l.status = 'publicado' and p_norm <% lower(unaccent_safe(l.titulo))
+    select unnest(coalesce(fuzzy, '{}'))
     union all
     select l.id from businesses b join listings l on l.business_id = b.id and l.status = 'publicado'
      where b.status = 'approved' and p_norm <% lower(unaccent_safe(b.nombre_comercial))
