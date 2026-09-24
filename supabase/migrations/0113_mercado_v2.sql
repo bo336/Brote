@@ -326,8 +326,7 @@ create or replace function mercado_buscar(
   p_negocio      uuid default null,
   p_offset       int default 0,
   p_limit        int default 24)
-returns jsonb language plpgsql stable security definer
-set search_path = public, extensions set pg_trgm.word_similarity_threshold = 0.4 as $fn$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $fn$
 declare
   v_uid uuid := (select auth.uid());
   v_cuenta text; v_precios boolean; v_sens text[];
@@ -342,6 +341,14 @@ begin
   v_sens := case when v_cuenta = 'teen' then brote_mercado_sensibles() else array[]::text[] end;
   v_norm := brote_mercado_normalizar(p_q);
   v_tsq := brote_mercado_tsquery(v_norm);
+  -- Umbral de parecido por palabra: 0,4 tolera un error de tipeo en una
+  -- palabra corta ("bolzon" encuentra "bolsón"). Se fija acá y no en la
+  -- definición porque la base no deja fijar parámetros de una extensión ahí;
+  -- `word_similarity` primero carga la extensión para que el parámetro exista.
+  if v_norm is not null then
+    perform word_similarity('', '');
+    perform set_config('pg_trgm.word_similarity_threshold', '0.4', true);
+  end if;
   v_limit := least(greatest(coalesce(p_limit, 24), 1), 48);
   v_offset := least(greatest(coalesce(p_offset, 0), 0), 960);
   -- Un teen no ve precios: tampoco filtra ni ordena por ellos.
@@ -422,8 +429,7 @@ end $fn$;
 -- Autocompletar: títulos que empiezan o se parecen, categorías cuyo nombre
 -- coincide (lo resuelve la pantalla con la taxonomía) y tiendas por nombre.
 create or replace function mercado_sugerencias(p_q text)
-returns jsonb language plpgsql stable security definer
-set search_path = public, extensions set pg_trgm.word_similarity_threshold = 0.4 as $fn$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $fn$
 declare
   v_uid uuid := (select auth.uid()); v_cuenta text; v_sens text[]; v_norm text; v_tsq tsquery;
 begin
@@ -434,6 +440,8 @@ begin
   end if;
   v_sens := case when v_cuenta = 'teen' then brote_mercado_sensibles() else array[]::text[] end;
   v_tsq := brote_mercado_tsquery(v_norm);
+  perform word_similarity('', '');
+  perform set_config('pg_trgm.word_similarity_threshold', '0.4', true);
 
   return jsonb_build_object(
     'productos', coalesce((
