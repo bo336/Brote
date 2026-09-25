@@ -359,19 +359,19 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 
 ### F0 — Plan y arreglos urgentes
 - [x] Leer y analizar todo; este plan.
-- [ ] Póster: diagnosticar por qué sale negro, arreglar, no subir cuadros oscuros.
-- [ ] Pósters por defecto: capturas reales por nivel en `public/mundo/`.
-- [ ] `/mundo` sin redirección silenciosa; pantalla de "todavía no abrió" si la bandera está apagada.
-- [ ] *Tu mundo* en la navegación lateral y tarjeta en el inicio.
+- [x] Póster: diagnosticar por qué sale negro, arreglar, no subir cuadros oscuros. (`53326ca`)
+- [x] Pósters por defecto: capturas reales por nivel en `public/mundo/`. (provisorias: se re-capturan en F6)
+- [x] `/mundo` sin redirección silenciosa; pantalla de "todavía no abrió" si la bandera está apagada.
+- [x] *Tu mundo* en la navegación lateral y tarjeta en el inicio (fila con foto, ya no es el héroe de Hoy).
 
 ### F1 — Cimientos del juego nuevo
-- [ ] `lib/world/game/` puro: tipos del estado, estado inicial, reducer de acciones, reloj (día local), migración de versiones.
-- [ ] Catálogos: materiales, estaciones, tipos de parcela, plantables, tienda, herramientas.
-- [ ] Parcelas: generación determinística (Voronoi), región, disponibilidad por nivel.
+- [x] `lib/world/game/` puro: tipos del estado, estado inicial, reducer de acciones, reloj (día local), sanitizado. (`771ceef`)
+- [x] Catálogos: materiales, estaciones, tipos de parcela, plantables, tienda, herramientas.
+- [x] Parcelas: generación determinística (Voronoi), región, disponibilidad por nivel.
 - [ ] Guardado: `useGameStore` (zustand), persistencia local + servidor, cola offline.
 - [ ] Migración `0115_mundo_juego.sql` (+ partes): `world_game`, `world_items`, RPCs, bootstrap, sin semillas de la app. **No aplicar sin OK explícito.**
 - [ ] Separación: quitar `brote_grant_semillas` del juego; HUD muestra semillas del mundo.
-- [ ] Tests: reducer, topes, separación (grep), determinismo de parcelas.
+- [x] Tests: reducer, topes, separación (grep), determinismo de parcelas, simulación de 60 días (`game-core`, `game-sim`).
 
 ### F2 — El ciclo central
 - [ ] Recolectables: residuos (playa diaria + parcelas), hojas, ramas, piedras; recoger al pasar; animación de vuelo; mochila con capacidad.
@@ -438,6 +438,34 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ---
 
 ## 8. Registro de sesiones
+
+### 2026-09-25 — sesión 1 (cont.) — núcleo del juego
+- F0 hecho: póster (causa medida: leer el canvas desde `useFrame` = búfer ya
+  borrado, brillo 0), pósters por defecto reales, `/mundo` sin rebote, sección.
+- Núcleo `lib/world/game/` escrito y commiteado (`771ceef`). **Cambios de diseño
+  que forzó la simulación** (todos ya en el código y en esta sección):
+  1. El **Punto Limpio ya está construido** al llegar (es de Don Beto). Sin eso,
+     el día 1 se bloqueaba: mochila llena de residuos y sin lugar para las ramas.
+  2. **Mochila vs. galpón**: la mochila (con límite) es sólo lo que se junta del
+     piso (residuos, orgánicos, ramas, piedras, frutos); lo que se *hace*
+     (compost, reciclado, plantines) va al galpón, sin límite.
+  3. **Vender a Don Beto** lo que sobra (barato): la válvula que evita cualquier
+     mochila trabada. Los residuos no se venden: se separan.
+  4. **Crecer lleva días**: riegos en días distintos + días desde plantar, según
+     ambiente (pradera 2/2, bosque 3/4, humedal 0/2 — "el humedal no se riega").
+     Florecer pide 3 días viva + 3 especies + un hábitat.
+  5. **Cuidado diario** (~24% de las parcelas vivas: rebrote de invasora,
+     pulgones, basura del viento, sed). Nunca hace retroceder: sólo guarda la
+     fruta hasta que la atiendas.
+  6. **Estrellas de biodiversidad** (hasta 3 por parcela floreciente: 4.ª, 5.ª y
+     6.ª especie) y **plantas descubiertas por división** (16 nativas nuevas): el
+     eje real se nota cada ~10 días.
+  7. Frutos cada dos días por parcela, cosechar no paga semillas, venta barata:
+     antes se llegaba al tope de 400/día desde el día 15.
+- Resultado (bot, 30 min/día): 60–170 semillas/día; cada subida de nivel da
+  días de trabajo; un veterano de nivel 7 tiene semanas; nivel 11, meses.
+- **Próximo:** F1 resto — `useGameStore` + guardado local/servidor + migración
+  `0115`; después F2 escena (recolectables, plataformas, parcelas en el mapa).
 
 ### 2026-09-25 — sesión 1
 - Análisis completo del estado (sección 2). Póster del dueño verificado negro.
