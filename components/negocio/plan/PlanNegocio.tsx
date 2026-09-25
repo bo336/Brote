@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { Check, Minus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cancelarSuscripcion, iniciarSuscripcion } from '@/lib/negocio/plan-acciones';
-import { LIMITES, PLANES, diasHasta, situacion, textoTope, type BizPlan, type EstadoPlan } from '@/lib/negocio/plan';
+import { LIMITES, PLANES_LEGACY, diasHasta, situacion, textoTope, type BizPlan, type EstadoPlan } from '@/lib/negocio/plan';
 import { toast } from '@/stores/toast';
 import { cn } from '@/lib/utils/cn';
 
@@ -72,7 +72,7 @@ export function PlanNegocio({ estado, negocioId }: { estado: EstadoPlan; negocio
       <Situacion estado={estado} />
 
       <div className="grid gap-3 lg:grid-cols-3">
-        {PLANES.map((p) => {
+        {PLANES_LEGACY.map((p) => {
           const lim = LIMITES[p];
           const precio = estado.precios[p];
           const actual = estado.plan === p && (situacionActual === 'activa' || situacionActual === 'gracia');

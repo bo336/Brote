@@ -8,26 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Pip } from '@/components/pip/Pip';
 import { useSession } from '@/stores/session';
 import { BRAND } from '@/lib/brand';
-import type { SaviaEstado } from '@/lib/academia/types';
+import type { SaviaEstado } from '@/lib/academia/modelo';
 
 /**
- * Cuando no queda savia.
+ * Cuando no queda savia para una sesión nueva.
  *
- * El orden de esta pantalla es una decisión, no un accidente (12-economy §3):
- *
+ * El orden de la pantalla es una decisión:
  *   1. **Cuánto falta.** Un límite sin reloj se siente arbitrario.
- *   2. **Regar, que es gratis.** Lo que el límite nunca bloquea es repasar:
- *      la savia frena territorio nuevo, no la retención.
- *   3. **Una acción de verdad.** Es para lo que sirve todo esto. Si alguien se
- *      quedó sin hojas y hace algo en el mundo real, el día salió mejor.
- *   4. **Una línea de {plus}, calma y última.** Una, sin contador regresivo, sin
- *      "¡destrabá ahora!", sin botón más grande que los otros.
- *
- * No hay camino de anuncios acá, y en una cuenta `kid` tampoco hay línea de
- * suscripción: a un pibe no se le vende nada.
+ *   2. **Repasar, que es gratis.** El límite frena territorio nuevo, nunca la
+ *      memoria: repasar y rehacer sesiones hechas no cuestan nada.
+ *   3. **Una acción de verdad.** Si alguien se quedó sin sesiones y hace algo
+ *      en el mundo real, el día salió mejor.
+ *   4. **Una línea de {plus}, calma y última.** Sin contador, sin urgencia, sin
+ *      botón más grande que los otros. Y en una cuenta `kid`, ninguna: a un
+ *      pibe no se le vende nada.
  */
 export function SaviaVacia({ savia }: { savia: SaviaEstado | null }) {
-  const t = useTranslations('academia');
+  const t = useTranslations('arbol');
   const perfil = useSession((s) => s.profile);
   const esPibe = perfil?.accountType === 'kid';
   const restante = useCuentaRegresiva(savia?.reset_at ?? null);
@@ -40,24 +37,21 @@ export function SaviaVacia({ savia }: { savia: SaviaEstado | null }) {
           <h2 className="font-display text-h3 font-bold leading-tight">{t('saviaVaciaTitulo')}</h2>
           <p className="mt-1 text-small leading-relaxed text-muted-foreground">{t('saviaVaciaCuerpo')}</p>
           {restante ? (
-            <p className="tnum mt-2 text-small font-semibold text-brote-aqua">
-              {t('saviaVuelve', { tiempo: restante })}
-            </p>
+            <p className="tnum mt-2 text-small font-semibold text-brote-aqua">{t('saviaVuelve', { tiempo: restante })}</p>
           ) : null}
         </div>
       </div>
 
       <div className="mt-4 space-y-3 border-t border-hairline pt-4">
         <div>
-          <p className="text-small leading-relaxed">{t('saviaRegar')}</p>
+          <p className="text-small leading-relaxed">{t('saviaRepasar')}</p>
           <Button asChild block variant="secondary" className="mt-2">
-            <Link href="/aprender/riego">
+            <Link href="/aprender/repaso">
               <Droplets className="h-4 w-4" aria-hidden />
-              {t('regarCta')}
+              {t('repasoCta')}
             </Link>
           </Button>
         </div>
-
         <div>
           <p className="text-small leading-relaxed">{t('saviaAccion')}</p>
           <Button asChild block className="mt-2">
@@ -83,14 +77,12 @@ export function SaviaVacia({ savia }: { savia: SaviaEstado | null }) {
 }
 
 /**
- * Cuenta regresiva hasta la medianoche local, en `Xh Ym`.
- *
- * Refresca cada 30 s y no cada segundo: un reloj de segundos en una pantalla
- * que dice "volvé mañana" es exactamente la tensión que no se quiere generar.
+ * Cuenta regresiva hasta la medianoche local, en `Xh Ym`. Refresca cada 30 s y
+ * no cada segundo: un reloj de segundos en una pantalla que dice "volvé
+ * mañana" es exactamente la tensión que no se quiere generar.
  */
 function useCuentaRegresiva(resetAt: string | null): string | null {
   const [texto, setTexto] = useState<string | null>(null);
-
   useEffect(() => {
     if (!resetAt) {
       setTexto(null);
@@ -107,6 +99,5 @@ function useCuentaRegresiva(resetAt: string | null): string | null {
     const id = setInterval(calcular, 30_000);
     return () => clearInterval(id);
   }, [resetAt]);
-
   return texto;
 }

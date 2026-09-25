@@ -33,6 +33,11 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
           <Link href="/legal/privacidad" className="hover:text-foreground">
             Política de Privacidad
           </Link>
+          {/* Las fuentes de la Academia viven acá y en Ajustes, no dentro de
+              las lecciones: es una página de consulta. */}
+          <Link href="/legal/fuentes" className="hover:text-foreground">
+            Fuentes de la Academia
+          </Link>
           <span className="ml-auto">
             {BRAND.name} · {BRAND.contactEmail}
           </span>

@@ -57,7 +57,7 @@ export function DondeConseguirlo({ slugAccion }: { slugAccion: string }) {
         ))}
       </div>
       <Link
-        href={`/mercado?categoria=${datos.categoria}`}
+        href={`/mercado/buscar?categoria=${datos.categoria}`}
         prefetch={false}
         className="press mt-3 inline-flex items-center gap-1.5 text-small font-semibold text-primary"
       >

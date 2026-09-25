@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight, Bookmark , Store } from 'lucide-react';
+import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight, Bookmark, Heart, Store } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { RankBadge } from '@/components/brand/RankBadge';
 import { PointsBadge } from '@/components/brand/PointsBadge';
@@ -119,6 +119,19 @@ export default function PerfilPage() {
             <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         )}
+        {/* Lo guardado en el Mercado: productos, lo visto y las tiendas que
+            sigue. Kid no ve el Mercado (08 §9). */}
+        {!isKid && (
+          <Link
+            href="/mercado/guardados"
+            prefetch={false}
+            className="press group mt-2 flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
+          >
+            <Heart className="h-4 w-4" />
+            Guardados del Mercado
+            <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        )}
         {/* La puerta a Negocios. Antes existía sólo como un ícono sin nombre
             en la barra de arriba, y así no la encontraba nadie. Los menores no
             la ven: no pueden tener una empresa (08 §9). */}
@@ -129,7 +142,7 @@ export default function PerfilPage() {
             className="press group mt-2 flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
           >
             <Store className="h-4 w-4" />
-            Tu negocio en Brote
+            Tu tienda en Brote
             <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         )}

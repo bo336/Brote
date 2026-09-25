@@ -1,10 +1,10 @@
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import {
   LIMITES,
-  PLANES,
+  PLANES_LEGACY,
   SIN_TOPE,
   diasHasta,
   planQueDestraba,
@@ -23,22 +23,29 @@ import {
  */
 
 const RAIZ = process.cwd();
-const SQL = readFileSync(join(RAIZ, 'supabase/migrations/0108_negocios_cobro_e_integracion.sql'), 'utf8');
+// Todas las migraciones, en orden: vale la ÚLTIMA definición de cada función
+// (0114 redefinió brote_biz_limites para sumar el plan de vendedor).
+const DIR = join(RAIZ, 'supabase/migrations');
+const SQL = readdirSync(DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(join(DIR, f), 'utf8'))
+  .join('\n');
 
 test('LIMITES es idéntico a brote_biz_limites() en la migración', () => {
-  const cuerpo = SQL.slice(
-    SQL.indexOf('create or replace function brote_biz_limites('),
-    SQL.indexOf('$fn$;', SQL.indexOf('create or replace function brote_biz_limites(')),
-  );
+  let i = -1;
+  for (const m of SQL.matchAll(/create (or replace )?function brote_biz_limites\(/g)) i = m.index ?? i;
+  const cuerpo = SQL.slice(i, SQL.indexOf('$fn$;', i));
   assert.ok(cuerpo.length > 100, 'no se encontró brote_biz_limites');
 
-  // Cada `'{...}'::jsonb` del case, en el orden semilla, raiz, bosque.
+  // Cada `'{...}'::jsonb` del case, en el orden del case: semilla, raiz,
+  // vendedor y, por descarte, bosque.
   const bloques = [...cuerpo.matchAll(/'(\{[^']*\})'::jsonb/g)].map((m) =>
     JSON.parse(m[1]!.replace(/\s+/g, ' ')),
   );
-  assert.equal(bloques.length, 3, 'deberían ser tres planes');
+  assert.equal(bloques.length, 4, 'deberían ser cuatro planes');
 
-  PLANES.forEach((plan, i) => {
+  (['semilla', 'raiz', 'vendedor', 'bosque'] as const).forEach((plan, i) => {
     const sql = bloques[i]!;
     const ts = LIMITES[plan];
     assert.equal(sql.listados, ts.listados, `${plan}.listados`);
@@ -54,21 +61,30 @@ test('LIMITES es idéntico a brote_biz_limites() en la migración', () => {
 
 test('los topes son los de 09 §5, sin interpretación', () => {
   assert.deepEqual(
-    PLANES.map((p) => LIMITES[p].listados),
+    PLANES_LEGACY.map((p) => LIMITES[p].listados),
     [3, 15, SIN_TOPE],
   );
   assert.deepEqual(
-    PLANES.map((p) => LIMITES[p].objetivos),
+    PLANES_LEGACY.map((p) => LIMITES[p].objetivos),
     [2, 3, 3],
   );
   assert.deepEqual(
-    PLANES.map((p) => LIMITES[p].replanificaciones),
+    PLANES_LEGACY.map((p) => LIMITES[p].replanificaciones),
     [4, 8, 15],
   );
   assert.deepEqual(
-    PLANES.map((p) => LIMITES[p].miembros),
+    PLANES_LEGACY.map((p) => LIMITES[p].miembros),
     [1, 3, 10],
   );
+});
+
+test('el plan de vendedor (Mercado v2): 300 productos, equipo de 3, sin plan siguiente', () => {
+  assert.equal(LIMITES.vendedor.listados, 300);
+  assert.equal(LIMITES.vendedor.miembros, 3);
+  assert.equal(LIMITES.vendedor.analitica, 'completa');
+  assert.equal(puedePublicar('vendedor', 299), true);
+  assert.equal(puedePublicar('vendedor', 300), false);
+  assert.equal(planQueDestraba('vendedor', 'listados'), null);
 });
 
 test('los topes se aplican como "menor que", no "menor o igual"', () => {

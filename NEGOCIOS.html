@@ -168,11 +168,15 @@
 </div>
 
 <h2>7. MercadoPago</h2>
-<p>El cobro es por <strong>suscripción (preapproval)</strong> con débito automático, sin SDK. Tres lugares para configurar:</p>
+<p>El cobro es por <strong>suscripción (preapproval)</strong> con débito automático, sin SDK. Desde el Mercado v2 cobra
+también a las <strong>tiendas</strong> (USD 5 por mes, en pesos al dólar oficial del día), y cada tienda
+<strong>vincula su cuenta de Mercado Pago</strong> antes de pagar: es como se verifica quién vende. Sin estas credenciales
+ninguna tienda puede abrir. Cuatro lugares para configurar:</p>
 <table>
   <tr><th>Dónde</th><th>Qué</th><th>Para qué</th></tr>
-  <tr><td>Supabase → Edge Functions → Secrets</td><td><code>MP_ACCESS_TOKEN</code></td><td>Crear la suscripción (<code>mp-negocio</code>)</td></tr>
-  <tr><td>Vercel → Environment Variables</td><td><code>MP_ACCESS_TOKEN</code>, <code>MP_WEBHOOK_SECRET</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Recibir y aplicar los avisos de cobro</td></tr>
+  <tr><td>MercadoPago → Tus integraciones → tu aplicación</td><td>Redirect URI <code>https://&lt;dominio&gt;/api/pagos/mercadopago/vincular/vuelta</code></td><td>Que cada tienda vincule su cuenta (OAuth). El ID y el secreto de esa aplicación son <code>MP_CLIENT_ID</code> y <code>MP_CLIENT_SECRET</code></td></tr>
+  <tr><td>Supabase → Edge Functions → Secrets</td><td><code>MP_ACCESS_TOKEN</code></td><td>Crear la suscripción de empresas (<code>mp-negocio</code>)</td></tr>
+  <tr><td>Vercel → Environment Variables</td><td><code>MP_CLIENT_ID</code>, <code>MP_CLIENT_SECRET</code>, <code>MP_ACCESS_TOKEN</code>, <code>MP_WEBHOOK_SECRET</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>, <code>NEXT_PUBLIC_APP_URL</code></td><td>Vincular cuentas, crear la suscripción de tiendas, recibir y aplicar los avisos de cobro</td></tr>
   <tr><td>MercadoPago → Tus integraciones → Webhooks</td><td>URL <code>https://&lt;dominio&gt;/api/pagos/mercadopago/webhook</code>, temas <code>subscription_preapproval</code> y <code>subscription_authorized_payment</code></td><td>El secreto que te da esa pantalla es <code>MP_WEBHOOK_SECRET</code></td></tr>
 </table>
 <div class="card accent aqua">

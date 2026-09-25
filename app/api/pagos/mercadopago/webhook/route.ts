@@ -173,12 +173,39 @@ export async function procesar(
     p_raw: sub as never,
   });
   if (error) throw new Error(error.message);
-  return { destino: 'negocio', resultado: data };
+
+  // Mercado v2: la suscripción de vendedor es USD 5 cobrados en pesos. Con
+  // cada cobro aprobado se mira si el monto quedó más de 10% lejos del dólar
+  // oficial de hoy; si quedó, se ajusta el del mes siguiente y la tienda
+  // recibe un aviso. Si algo falla acá, el cobro ya quedó aplicado: el ajuste
+  // se reintenta con el próximo.
+  let ajuste: Record<string, unknown> | null = null;
+  if (plan === 'vendedor' && pago === 'approved') {
+    try {
+      const { data: c } = await supabase.rpc('vendedor_ajuste_consultar', { p_external_id: String(sub.id ?? preapprovalId) });
+      const consulta = c as { ajustar?: boolean; nuevo?: number } | null;
+      if (consulta?.ajustar && consulta.nuevo) {
+        const r = await fetch(`${MP_API}/preapproval/${String(sub.id ?? preapprovalId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ auto_recurring: { transaction_amount: consulta.nuevo, currency_id: 'ARS' } }),
+        });
+        if (r.ok) {
+          await supabase.rpc('vendedor_ajuste_aplicar', { p_external_id: String(sub.id ?? preapprovalId), p_monto: consulta.nuevo });
+          ajuste = { nuevo: consulta.nuevo };
+        }
+      }
+    } catch {
+      /* se reintenta con el próximo cobro */
+    }
+  }
+  return { destino: 'negocio', resultado: data, ...(ajuste ? { ajuste } : {}) };
 }
 
 /** El plan viaja en el `reason` que escribimos nosotros al crear la suscripción. */
-export function planDeRazon(reason: string | undefined): 'semilla' | 'raiz' | 'bosque' | null {
+export function planDeRazon(reason: string | undefined): 'semilla' | 'raiz' | 'bosque' | 'vendedor' | null {
   const r = (reason ?? '').toLowerCase();
+  if (r.includes('vendedor')) return 'vendedor';
   if (r.includes('bosque')) return 'bosque';
   if (r.includes('raíz') || r.includes('raiz')) return 'raiz';
   if (r.includes('semilla')) return 'semilla';

@@ -8,18 +8,20 @@ import { CLAIMS, alcanceDe, validarAfirmacion, type Afirmacion, type CertInfo, t
 import { verificarUrl, normalizarUrl } from '@/lib/mercado/url';
 import { validarListado, type ErrorListado } from '@/lib/mercado/validador';
 import {
+  buscar,
   getCatalogo,
   getCertificaciones,
   getCuentaMercado,
   getPuente,
   type Cursor,
+  type FiltrosBusqueda,
   type FiltrosCatalogo,
   type PaginaCatalogo,
   type Puente,
 } from '@/lib/mercado/servidor';
 import { nivelAfirmacion } from '@/lib/negocio/niveles';
 import { getNegocioDetalle } from '@/lib/negocio/context';
-import type { ListadoDetalle, ReportReason, TarjetaMercado } from '@/lib/supabase/rows-mercado';
+import type { Busqueda, ListadoDetalle, PreguntaPublica, ReportReason, Sugerencias, TarjetaMercado } from '@/lib/supabase/rows-mercado';
 
 /**
  * Server actions del Mercado. Cada escritura termina en una RPC que vuelve a
@@ -51,6 +53,10 @@ export interface DatosListado {
   url_destino?: string;
   disponibilidad?: 'online' | 'local' | 'ambas';
   zonas?: string[];
+  // Mercado v2
+  subcategoria?: string | null;
+  condicion?: 'nuevo' | 'usado' | 'reacondicionado';
+  contacto?: 'web' | 'whatsapp' | 'instagram';
 }
 
 export async function guardarListado(negocioId: string, listingId: string | null, datos: DatosListado): Promise<Resultado<{ id: string; slug: string }>> {
@@ -65,8 +71,16 @@ export async function guardarListado(negocioId: string, listingId: string | null
     p_datos: limpio as Record<string, unknown>,
   });
   const r = resultado(data, error);
-  if (!r.ok) return { ok: false, error: r.error ?? 'error' };
+  if (!r.ok) {
+    return {
+      ok: false,
+      error: r.error ?? 'error',
+      ...(r.termino ? { errores: [{ campo: 'descripcion', codigo: String(r.error), detalle: String(r.termino) }] } : {}),
+    };
+  }
   revalidatePath('/negocio/listados');
+  // Un publicado editado en vivo: la ficha pública cambia en el acto.
+  if (r.status === 'publicado') revalidatePath(`/mercado/${String(r.slug)}`);
   return { ok: true, id: String(r.id), slug: String(r.slug) };
 }
 
@@ -167,6 +181,8 @@ export async function enviarListado(listingId: string): Promise<Resultado<{ stat
   const l = detalle.listado;
 
   const certs = (await getCertificaciones()).map(certInfo);
+  const modelo = detalle.negocio?.modelo ?? 'legacy';
+  const contacto = modelo === 'vendedor' ? l.contacto ?? 'web' : 'web';
   const v = validarListado(
     {
       titulo: l.titulo,
@@ -176,6 +192,8 @@ export async function enviarListado(listingId: string): Promise<Resultado<{ stat
       precio_referencia: l.precio_referencia === null ? null : Number(l.precio_referencia),
       url_destino: l.url_destino,
       imagenes: l.imagenes.length,
+      tipo: l.tipo,
+      contacto,
       afirmaciones: detalle.afirmaciones.map((c) => ({
         kind: c.kind,
         alcance: c.alcance,
@@ -186,14 +204,18 @@ export async function enviarListado(listingId: string): Promise<Resultado<{ stat
         evidencia: c.evidencia,
       })),
     },
-    { certs },
+    { certs, modelo },
   );
   if (!v.ok) return { ok: false, error: 'validacion', errores: v.errores };
 
-  const negocio = await getNegocioDetalle(l.business_id);
-  const declarado = negocio?.sitio_web ? normalizarUrl(negocio.sitio_web) : null;
-  const url = await verificarUrl(l.url_destino, declarado ? [new URL(declarado).hostname] : []);
-  if (!url.ok) return { ok: false, error: url.codigo };
+  // La URL viva solo cuando el producto sale a un sitio: WhatsApp e Instagram
+  // se arman en el momento con el dato de la tienda.
+  if (contacto === 'web') {
+    const negocio = await getNegocioDetalle(l.business_id);
+    const declarado = negocio?.sitio_web ? normalizarUrl(negocio.sitio_web) : null;
+    const url = await verificarUrl(l.url_destino, declarado ? [new URL(declarado).hostname] : []);
+    if (!url.ok) return { ok: false, error: url.codigo };
+  }
 
   await supabase.functions.invoke('screen-listing', { body: { listing_id: listingId } }).catch(() => null);
 
@@ -272,16 +294,82 @@ export async function getPuenteAccion(slugAccion: string): Promise<Puente | null
   return getPuente(slugAccion);
 }
 
-/** Los mejores del momento, para la pestaña Mercado de la Plaza (02 §6.2). */
-export async function getMercadoDestacado(limite = 6): Promise<TarjetaMercado[]> {
+/**
+ * Los mejores del momento, para la pestaña Mercado de la Plaza (02 §6.2) y el
+ * módulo del inicio. Con `dominio`, los de un tema de Brote (la Academia).
+ */
+export async function getMercadoDestacado(limite = 6, dominio: string | null = null): Promise<TarjetaMercado[]> {
   const cuenta = await getCuentaMercado();
   if (!cuenta || cuenta.tipo === 'kid') return [];
-  const pagina = await getCatalogo(
-    { categoria: null, dominio: null, nivel: null, zona: null, modalidad: null, orden: 'recomendados' },
-    null,
+  const r = await buscar(
+    {
+      q: null, categoria: null, subcategoria: null, nivel: null, zona: null, modalidad: null, condicion: null,
+      precioMin: null, precioMax: null, orden: 'recomendados', dominio,
+    },
+    0,
     cuenta,
   );
-  return pagina.items.slice(0, limite);
+  return r.items.slice(0, limite);
+}
+
+// ── Mercado v2: buscar, guardar, seguir, preguntar ──────────────────────────
+
+/** La página siguiente de una búsqueda (scroll infinito). */
+export async function buscarPagina(f: FiltrosBusqueda, offset: number): Promise<Busqueda> {
+  const cuenta = await getCuentaMercado();
+  if (!cuenta || cuenta.tipo === 'kid') return { items: [], total: 0, offset: 0, orden: 'recomendados', facetas: {} };
+  return buscar(f, Math.max(0, Math.min(offset, 960)), cuenta);
+}
+
+export async function sugerir(q: string): Promise<Sugerencias> {
+  const texto = q.trim().slice(0, 80);
+  if (texto.length < 2) return { productos: [], tiendas: [] };
+  const { data, error } = await createClient().rpc('mercado_sugerencias', { p_q: texto });
+  if (error) return { productos: [], tiendas: [] };
+  return (data ?? { productos: [], tiendas: [] }) as Sugerencias;
+}
+
+export async function alternarFavorito(listingId: string, on: boolean): Promise<Resultado<{ favorito: boolean; favoritos: number }>> {
+  const { data, error } = await createClient().rpc('mercado_favorito', { p_listing: listingId, p_on: on });
+  const r = resultado(data, error);
+  if (!r.ok) return { ok: false, error: r.error ?? 'error' };
+  return { ok: true, favorito: !!r.favorito, favoritos: Number(r.favoritos ?? 0) };
+}
+
+export async function alternarSeguir(negocioId: string, on: boolean): Promise<Resultado<{ seguida: boolean; seguidores: number }>> {
+  const { data, error } = await createClient().rpc('mercado_seguir', { p_business: negocioId, p_on: on });
+  const r = resultado(data, error);
+  if (!r.ok) return { ok: false, error: r.error ?? 'error' };
+  return { ok: true, seguida: !!r.seguida, seguidores: Number(r.seguidores ?? 0) };
+}
+
+export async function preguntar(listingId: string, texto: string): Promise<Resultado<{ id: string }>> {
+  const { data, error } = await createClient().rpc('mercado_preguntar', { p_listing: listingId, p_texto: texto });
+  const r = resultado(data, error);
+  return r.ok ? { ok: true, id: String(r.id) } : { ok: false, error: r.error ?? 'error' };
+}
+
+export async function masPreguntas(listingId: string, offset: number): Promise<PreguntaPublica[]> {
+  const { data, error } = await createClient().rpc('mercado_preguntas', { p_listing: listingId, p_offset: offset });
+  if (error) return [];
+  return (data ?? []) as PreguntaPublica[];
+}
+
+/** La tienda responde. La base aplica la misma lista negra que a la descripción. */
+export async function responderPregunta(preguntaId: string, texto: string): Promise<Resultado> {
+  const { data, error } = await createClient().rpc('tienda_responder', { p_pregunta: preguntaId, p_texto: texto });
+  const r = resultado(data, error);
+  if (!r.ok) return { ok: false, error: r.error ?? 'error' };
+  revalidatePath('/negocio/preguntas');
+  return { ok: true };
+}
+
+export async function ocultarPregunta(preguntaId: string, ocultar: boolean): Promise<Resultado> {
+  const { data, error } = await createClient().rpc('tienda_pregunta_ocultar', { p_pregunta: preguntaId, p_ocultar: ocultar });
+  const r = resultado(data, error);
+  if (!r.ok) return { ok: false, error: r.error ?? 'error' };
+  revalidatePath('/negocio/preguntas');
+  return { ok: true };
 }
 
 export async function marcarVistas(ids: string[], origen: OrigenVista = 'catalogo'): Promise<void> {

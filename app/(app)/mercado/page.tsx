@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { CatalogoMercado } from '@/components/mercado/CatalogoMercado';
-import { esCategoria } from '@/lib/mercado/categorias';
-import { getCatalogo, getCuentaMercado, type FiltrosCatalogo } from '@/lib/mercado/servidor';
+import { InicioMercado } from '@/components/mercado/InicioMercado';
+import { urlBusqueda, leerFiltros } from '@/lib/mercado/busqueda';
+import { buscar, getCuentaMercado, getInicio, type FiltrosBusqueda } from '@/lib/mercado/servidor';
 import { PROVINCES } from '@/lib/data/cities';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,22 +11,27 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('eyebrow') };
 }
 
+const DESCUBRI: FiltrosBusqueda = {
+  q: null, categoria: null, subcategoria: null, nivel: null, zona: null, modalidad: null, condicion: null,
+  precioMin: null, precioMax: null, orden: 'recomendados',
+};
+
 /**
- * `/mercado`. Un `kid` recibe 404, no una pantalla vacía (fase 3 §8). El
- * filtro real está en la base (RPC y RLS); esto es solo la puerta.
+ * `/mercado`. Un `kid` recibe 404, no una pantalla vacía (fase 3 §8); el
+ * filtro real está en la base.
+ *
+ * Los enlaces viejos al catálogo con filtros (`/mercado?categoria=…`, de antes
+ * del Mercado v2, compartidos por WhatsApp) siguen andando: van a la búsqueda.
  */
 export default async function MercadoPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
   const cuenta = await getCuentaMercado();
   if (!cuenta || cuenta.tipo === 'kid') notFound();
 
-  const filtros: FiltrosCatalogo = {
-    categoria: esCategoria(searchParams.categoria) ? searchParams.categoria : null,
-    dominio: typeof searchParams.dominio === 'string' && /^[a-z_]{3,20}$/.test(searchParams.dominio) ? searchParams.dominio : null,
-    nivel: searchParams.nivel === 'e2' || searchParams.nivel === 'e3' ? searchParams.nivel : null,
-    zona: searchParams.zona && (PROVINCES as readonly string[]).includes(searchParams.zona) ? searchParams.zona : null,
-    modalidad: searchParams.modalidad === 'online' || searchParams.modalidad === 'local' ? searchParams.modalidad : null,
-    orden: searchParams.orden === 'nivel' ? 'nivel' : 'recomendados',
-  };
-  const pagina = await getCatalogo(filtros, null, cuenta);
-  return <CatalogoMercado inicial={pagina} filtros={filtros} esTeen={cuenta.tipo === 'teen'} />;
+  if (searchParams.categoria || searchParams.q || searchParams.zona || searchParams.modalidad || searchParams.nivel) {
+    redirect(urlBusqueda(leerFiltros(searchParams, PROVINCES)));
+  }
+
+  const [inicio, descubri] = await Promise.all([getInicio(), buscar(DESCUBRI, 0, cuenta)]);
+  if (!inicio) notFound();
+  return <InicioMercado inicio={inicio} descubri={descubri} filtrosDescubri={DESCUBRI} />;
 }
