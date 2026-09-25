@@ -29,10 +29,10 @@ test('rejects a locked region', () => {
   assert.deepEqual(r, { ok: false, reason: 'region_locked' });
 });
 
-test('rejects over the cap of 4 + tier × 3', () => {
+test('rejects over the cap of 8 + tier × 4', () => {
   const cfg = cumulativeState(2);
   const cap = placementCap(cfg.tier);
-  assert.equal(cap, 10);
+  assert.equal(cap, 16);
   assert.deepEqual(validatePlacement(placement(), cfg, OWNED, { existingCount: cap - 1 }), { ok: true });
   assert.deepEqual(validatePlacement(placement(), cfg, OWNED, { existingCount: cap }), {
     ok: false,

@@ -21,7 +21,7 @@ export const SPECIES: SpeciesRow[] = [
     blurb_es: 'Mueven semillas sin querer y así plantan medio campo. Trabajan mejor cuando no las mirás.' },
 
   // ── La Pradera — tier 2 ───────────────────────────────────────────────────
-  { slug: 'flechilla', name_es: 'Flechilla', kind: 'planta', region: 'pradera', min_tier: 2,
+  { slug: 'flechilla', name_es: 'Flechilla', kind: 'planta', region: 'claro', min_tier: 1,
     time_of_day: ['dia'], rarity: 1, domain_slug: 'plantas',
     blurb_es: 'Pasto de pampa. Sus semillas se enroscan solas en la tierra para enterrarse cuando llueve.' },
   { slug: 'cortadera', name_es: 'Cortadera', kind: 'planta', region: 'pradera', min_tier: 2,
@@ -47,7 +47,7 @@ export const SPECIES: SpeciesRow[] = [
     blurb_es: 'Agua que el aire deja caer sin llover. Muchas plantas del secano viven casi de esto.' },
 
   // ── El Jardín — tier 3 ────────────────────────────────────────────────────
-  { slug: 'margarita_pampa', name_es: 'Margarita de campo', kind: 'planta', region: 'jardin', min_tier: 3,
+  { slug: 'margarita_pampa', name_es: 'Margarita de campo', kind: 'planta', region: 'claro', min_tier: 1,
     time_of_day: ['dia'], rarity: 1, domain_slug: 'plantas',
     blurb_es: 'Abre con el sol y cierra al atardecer. Le lleva el mismo tiempo todos los días.' },
   { slug: 'verbena', name_es: 'Verbena', kind: 'planta', region: 'jardin', min_tier: 3,
@@ -97,7 +97,7 @@ export const SPECIES: SpeciesRow[] = [
   { slug: 'aguaribay', name_es: 'Aguaribay', kind: 'arbol', region: 'arboleda', min_tier: 5,
     time_of_day: ['dia'], rarity: 2, domain_slug: 'plantas',
     blurb_es: 'Da sombra y espanta insectos con su olor a pimienta. Por eso está en tantas plazas.' },
-  { slug: 'chilca', name_es: 'Chilca', kind: 'arbusto', region: 'arboleda', min_tier: 5,
+  { slug: 'chilca', name_es: 'Chilca', kind: 'arbusto', region: 'claro', min_tier: 1,
     time_of_day: ['dia'], rarity: 1, domain_slug: 'plantas',
     blurb_es: 'Arbusto pionero: es el primero en volver a un terreno pelado y prepara el suelo.' },
   { slug: 'mora_silvestre', name_es: 'Mora silvestre', kind: 'arbusto', region: 'arboleda', min_tier: 5,

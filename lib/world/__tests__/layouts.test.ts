@@ -48,7 +48,8 @@ test('saving picks the first empty slot, and says so when there is none', () => 
 
 test('loading takes what still fits instead of refusing the lot', () => {
   const cap = placementCap(CTX.tier);
-  const tooMany = saved(0, Array.from({ length: cap + 5 }, (_, i) => p({ x: i * 2 - 10 })));
+  // A grid well inside the island, so the only thing trimming it is the cap.
+  const tooMany = saved(0, Array.from({ length: cap + 5 }, (_, i) => p({ x: (i % 6) * 2 - 5, z: Math.floor(i / 6) * 2 - 5 })));
   const got = loadable(tooMany, CTX);
   assert.equal(got.length, cap);
 });

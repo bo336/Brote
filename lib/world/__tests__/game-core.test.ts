@@ -159,3 +159,13 @@ test('the game never writes to the app: no XP, no app semillas, no activity call
     }
   }
 });
+
+/** `world_items` (0115) is what the server checks a save's inventory against. */
+test('the SQL shop catalogue is exactly the TS one', () => {
+  const sql = readFileSync(join(__dirname, '..', '..', '..', '..', 'supabase', 'migrations', '0115_mundo_juego.sql'), 'utf8');
+  const rows = [...sql.matchAll(/\('([a-z_]+)', '(decor|habitat|sobre)', (\d+), (\d+), (\d+)\)/g)]
+    .map((m) => `${m[1]}|${m[2]}|${m[3]}|${m[4]}|${m[5]}`)
+    .sort();
+  const ts = SHOP.map((i) => `${i.slug}|${i.kind}|${i.price}|${i.tier}|${i.div ?? 1}`).sort();
+  assert.deepEqual(rows, ts);
+});

@@ -170,8 +170,8 @@ export const PLACEMENT = {
    * 0.35 m, so an exact test makes picking one back up a game of skill.
    */
   pickUpReachScale: 1.6,
-  capBase: 4, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
-  capPerTier: 3,
+  capBase: 8, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
+  capPerTier: 4, // (0115: raised with the shop — decor is bought, and bought things want a place)
   rotationStepDeg: 15, // free rotation, snapped
   defaultFootprintM: 0.6, // OURS — reserved radius when a prop declares none
   nudgeM: 0.35, // overlap is refused with a soft nudge, never an error message
