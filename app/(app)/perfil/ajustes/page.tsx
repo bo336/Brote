@@ -467,6 +467,12 @@ export default function AjustesPage() {
         <Link href="/legal/privacidad" className="link-underline hover:text-foreground">
           {t('privacy')}
         </Link>
+        <span aria-hidden>·</span>
+        {/* Las fuentes de la Academia se sacaron de las lecciones: se consultan
+            desde acá y desde el pie de las páginas legales. */}
+        <Link href="/legal/fuentes" className="link-underline hover:text-foreground">
+          {t('academySources')}
+        </Link>
       </nav>
 
       <p className="text-center text-caption text-muted-foreground">

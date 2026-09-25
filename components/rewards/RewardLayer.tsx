@@ -22,7 +22,7 @@ export function RewardLayer() {
   useEffect(() => {
     if (!event) return;
     haptic('success');
-    const ms = event.kind === 'rankUp' || event.kind === 'worldComplete' || event.kind === 'anilloUp' ? 4200 : 2600;
+    const ms = event.kind === 'rankUp' || event.kind === 'worldComplete' || event.kind === 'anilloUp' || event.kind === 'ramaCrece' ? 4200 : 2600;
     const id = setTimeout(next, ms);
     return () => clearTimeout(id);
   }, [event, next]);
@@ -40,7 +40,7 @@ export function RewardLayer() {
           role="dialog"
           aria-live="assertive"
         >
-          <Confetti count={event.kind === 'rankUp' || event.kind === 'worldComplete' || event.kind === 'anilloUp' ? 40 : 20} />
+          <Confetti count={event.kind === 'rankUp' || event.kind === 'worldComplete' || event.kind === 'anilloUp' || event.kind === 'ramaCrece' ? 40 : 20} />
           <RewardContent event={event} />
         </motion.div>
       )}
@@ -115,6 +115,17 @@ function RewardContent({ event }: { event: RewardEvent }) {
       glyph: '🌳',
       title: t('anilloUp', { n: event.kind === 'anilloUp' ? event.anillo : 0 }),
       sub: event.kind === 'anilloUp' ? event.nombre : '',
+    },
+    // El Árbol: una unidad completa hace crecer su rama.
+    ramaCrece: {
+      glyph: '🌳',
+      title:
+        event.kind === 'ramaCrece'
+          ? event.ramasAbiertas
+            ? t('ramasAbiertas')
+            : t('ramaCrece', { rama: event.rama })
+          : '',
+      sub: event.kind === 'ramaCrece' ? event.unidad : '',
     },
   } as const;
   const c = map[event.kind as keyof typeof map];

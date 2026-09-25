@@ -229,6 +229,70 @@ main:has(> [data-shell='wide']) {
   max-width: 72rem;
 }
 
+/*
+ * El Árbol de la Academia (components/academia/Arbol.tsx).
+ *
+ * Los colores del dibujo que dependen del tema viven acá y no en el SVG: el
+ * cielo, el pasto y el relleno de las píldoras abiertas tienen que cambiar con
+ * `.dark`, y las ramas y la copa no (la madera es madera y el verde es verde).
+ */
+.arbol-cielo {
+  background:
+    radial-gradient(1200px 700px at 50% 38%, rgb(255 244 214 / 0.55), transparent 70%),
+    linear-gradient(180deg, #e9f4ee 0%, #f4f1e6 62%, #efe7d4 100%);
+}
+.dark .arbol-cielo {
+  background:
+    radial-gradient(1200px 700px at 50% 38%, rgb(31 181 122 / 0.14), transparent 70%),
+    linear-gradient(180deg, #0f231a 0%, #0c1a13 70%, #0a150f 100%);
+}
+.arbol-pasto { fill: #b9d58d; }
+.dark .arbol-pasto { fill: #1f3a28; }
+.arbol-cartel { fill: rgb(255 255 255 / 0.94); }
+.dark .arbol-cartel { fill: rgb(22 38 29 / 0.94); }
+.arbol-pildora { fill: #ffffff; }
+.dark .arbol-pildora { fill: #16261d; }
+.arbol-pildora-cerrada { fill: #e3e0d6; }
+.dark .arbol-pildora-cerrada { fill: #25382d; }
+.arbol-texto { fill: #0c1a13; }
+.dark .arbol-texto { fill: #f7f5ef; }
+.arbol-eyebrow { fill: #525e56; }
+.dark .arbol-eyebrow { fill: #a5b6ac; }
+.arbol-texto-cerrado { fill: #6d766f; }
+.dark .arbol-texto-cerrado { fill: #8c9a91; }
+.arbol-candado { color: #6d766f; }
+.dark .arbol-candado { color: #8c9a91; }
+
+/* Hover, presión y foco de una unidad: el SVG no tiene :focus-visible
+   confiable en <g>, así que el aro es un rect propio que se prende. */
+.arbol-nodo { transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), filter 160ms linear; }
+.arbol-nodo:hover { filter: brightness(1.05) drop-shadow(0 6px 10px rgb(12 26 19 / 0.18)); }
+.arbol-nodo:active { filter: brightness(0.95); }
+.arbol-foco { stroke: transparent; stroke-width: 5; }
+.arbol-nodo:focus-visible .arbol-foco { stroke: rgb(var(--ring)); }
+
+/* La próxima sesión late. Una sola en todo el árbol. */
+@keyframes arbol-halo {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.2; }
+}
+.arbol-halo { animation: arbol-halo 2.2s ease-in-out infinite; }
+
+/* La vena de color crece desde la horqueta al abrir el árbol. */
+@keyframes arbol-crecer {
+  from { stroke-dashoffset: var(--largo); }
+  to { stroke-dashoffset: 0; }
+}
+.arbol-vena { animation: arbol-crecer 1.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Una unidad recién completada brota. */
+@keyframes arbol-brota {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.arbol-brota > * { transform-box: fill-box; transform-origin: center; animation: arbol-brota 700ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
 /* Respect reduced-motion: neutralize big animations (§2.5). Functionality stays. */
 @media (prefers-reduced-motion: reduce) {
   *,
