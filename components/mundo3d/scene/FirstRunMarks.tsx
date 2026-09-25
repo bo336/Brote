@@ -12,6 +12,9 @@ import type { IslandLayout } from '@/lib/world/layout';
 import type { BeatId } from '@/lib/world/onboarding';
 import { CLAY } from '@/lib/render/palette';
 
+/** Guidance is left out of the poster (`PosterShot`). */
+const POSTER_HIDDEN = { posterHidden: true };
+
 /**
  * The two things the first session draws in the world.
  *
@@ -86,7 +89,7 @@ export function FirstRunMarks({
   const [px, pz] = plantSpot(layout.spawn[0], layout.spawn[1]);
 
   return (
-    <group name="first-run">
+    <group name="first-run" userData={POSTER_HIDDEN}>
       {beat === 'plant' && (
         <mesh
           ref={mark}

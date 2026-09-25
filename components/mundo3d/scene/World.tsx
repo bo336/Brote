@@ -47,7 +47,7 @@ import { Lights } from './Lights';
 import { MistWall } from './MistWall';
 import { ProjectMarkers } from './ProjectMarkers';
 import { Wilting } from './Wilting';
-import { PosterShot } from './PosterShot';
+import { PosterShot, type PosterFrame } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
 import { Stickers } from './Stickers';
@@ -141,8 +141,8 @@ export function World({
   onCelebrated?: (script: CeremonyScript) => void;
   /** The ground colour of the world being left, for the palette wash. */
   previousBiome?: string;
-  /** Take the poster. Handed a canvas holding a frame that was just drawn. */
-  onPoster?: (canvas: HTMLCanvasElement) => void;
+  /** Take the poster. Handed a canvas holding a band that was just drawn; false if blank. */
+  onPoster?: (frame: PosterFrame) => boolean;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const invalidate = useThree((s) => s.invalidate);
@@ -370,7 +370,7 @@ export function World({
         previousBiome={previousBiome}
         onCelebrated={onCelebrated}
       />
-      {onPoster && <PosterShot onShoot={onPoster} />}
+      {onPoster && <PosterShot onShoot={onPoster} heightfield={heightfield} />}
       {/* Overdue reviews, as plants that want water. Never more than three,
           never blocking, and they come back on their own in a week. */}
       {dueReviews > 0 && (

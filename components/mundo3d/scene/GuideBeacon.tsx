@@ -11,6 +11,9 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import { playerTransform } from '../state/usePlayerStore';
 import { useSessionStore } from '../state/useSessionStore';
 
+/** Guidance is left out of the poster (`PosterShot`). */
+const POSTER_HIDDEN = { posterHidden: true };
+
 /**
  * Where the objective is, seen from anywhere.
  *
@@ -145,8 +148,8 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
   // re-rendered the component and switched both marks back off.
   return (
     <>
-      <mesh ref={beam} geometry={beamGeo} material={beamMat} renderOrder={6} frustumCulled={false} />
-      <mesh ref={arrow} geometry={arrowGeo} material={arrowMat} renderOrder={6} scale={GUIDE.arrowScale} />
+      <mesh ref={beam} geometry={beamGeo} material={beamMat} renderOrder={6} frustumCulled={false} userData={POSTER_HIDDEN} />
+      <mesh ref={arrow} geometry={arrowGeo} material={arrowMat} renderOrder={6} scale={GUIDE.arrowScale} userData={POSTER_HIDDEN} />
     </>
   );
 }

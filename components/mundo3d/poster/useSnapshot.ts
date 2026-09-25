@@ -6,55 +6,108 @@ import { createClient } from '@/lib/supabase/client';
 import { SNAPSHOT } from '@/lib/world/config';
 
 /**
- * The poster: one picture of this island, taken on the way out.
+ * The poster: one picture of this island, taken while playing.
  *
  * Every other screen in the app shows `<MundoPoster/>` rather than a second
- * WebGL context (`07-RENDER-ARCHITECTURE.md` §1), and until this exists that
- * card is a generated SVG of an island nobody owns. This is what makes it
- * **theirs** — the feed card, both profiles and onboarding all start showing
- * the actual world the player last stood in.
+ * WebGL context (`07-RENDER-ARCHITECTURE.md` §1). This is what makes that card
+ * **theirs** — the feed card and the profile show the world the player last
+ * stood in.
  *
- * Three things it must not do, all of them from `15-DATA-MODEL.md` §6:
+ * Three things it must not do:
  *
- *  1. **Never block leaving.** The capture and the upload happen after the
- *     player has already asked to go; a poster is not worth one frozen tap.
- *  2. **Never fail loudly.** If Storage is unavailable the card falls back to
- *     the SVG, forever, and the game is unchanged. There is nothing here for a
- *     player to fix, so there is nothing to tell them.
+ *  1. **Never block play.** The copy is synchronous (it has to be: the buffer
+ *     is gone a microtask later) but small; the upload is fire-and-forget.
+ *  2. **Never fail loudly.** If Storage is unavailable the card keeps showing
+ *     what it showed before. There is nothing here for a player to fix.
  *  3. **Never write when the world is not theirs.** `readOnly` means the
- *     bootstrap failed and the island on screen is a default; publishing a
- *     picture of it as somebody's own island would be a lie with a URL.
+ *     bootstrap failed, or it is a visit, or it is the account-less preview.
+ *
+ * And the one it now also refuses: **never upload a blank frame.** The owner's
+ * saved poster was pure black for a week, and the card showed it.
  */
+export interface PosterFrameInput {
+  canvas: HTMLCanvasElement;
+  crop: { x: number; y: number; w: number; h: number };
+}
+
 export function useSnapshot({
   userId,
   readOnly,
 }: {
   userId: string;
   readOnly: boolean;
-}): (canvas: HTMLCanvasElement | null) => void {
+}): (frame: PosterFrameInput) => boolean {
   /** How many this visit has uploaded. A poster is a souvenir, not a stream. */
   const taken = useRef(0);
 
   return useCallback(
-    (canvas: HTMLCanvasElement | null) => {
-      if (!canvas || readOnly || taken.current >= SNAPSHOT.maxPerVisit) return;
+    (frame: PosterFrameInput) => {
+      if (taken.current >= SNAPSHOT.maxPerVisit) return true;
+      const dataUrl = copyBand(frame);
+      if (!dataUrl) return false;
       taken.current += 1;
-
-      // Read the buffer **synchronously**, in the same tick the caller was
-      // handed a freshly drawn frame. There is no `preserveDrawingBuffer`, so
-      // waiting even one microtask leaves nothing to read
-      // (`07-RENDER-ARCHITECTURE.md` §5).
-      let dataUrl: string;
-      try {
-        dataUrl = canvas.toDataURL('image/jpeg', SNAPSHOT.quality);
-      } catch {
-        return;
-      }
-
-      void upload(userId, dataUrl);
+      // The account-less preview has nowhere to upload to; it hands the picture
+      // to whoever is reviewing it instead, so the capture can be checked.
+      const sink = (window as unknown as { __posterSink?: (u: string) => void }).__posterSink;
+      if (sink) sink(dataUrl);
+      if (!readOnly) void upload(userId, dataUrl);
+      return true;
     },
     [userId, readOnly],
   );
+}
+
+/**
+ * Copy the band out of the WebGL canvas **now**, scale it to the poster size,
+ * and check it is a picture. Returns null for a blank frame.
+ */
+function copyBand({ canvas, crop }: PosterFrameInput): string | null {
+  try {
+    const w = SNAPSHOT.width;
+    const h = Math.round(w / SNAPSHOT.aspect);
+    const out = document.createElement('canvas');
+    out.width = w;
+    out.height = h;
+    const ctx = out.getContext('2d');
+    if (!ctx || crop.w <= 0 || crop.h <= 0) return null;
+    // The WebGL canvas may carry alpha; JPEG has none, and would turn every
+    // translucent pixel toward black. Paint an opaque ground first.
+    ctx.fillStyle = '#9fb7c8';
+    ctx.fillRect(0, 0, w, h);
+    // Fill the poster: scale the band to cover, centred.
+    const scale = Math.max(w / crop.w, h / crop.h);
+    const sw = w / scale;
+    const sh = h / scale;
+    const sx = crop.x + (crop.w - sw) / 2;
+    const sy = crop.y + (crop.h - sh) / 2;
+    ctx.drawImage(canvas, sx, sy, sw, sh, 0, 0, w, h);
+    if (!looksLikeAPicture(ctx, w, h)) return null;
+    return out.toDataURL('image/jpeg', SNAPSHOT.quality);
+  } catch {
+    return null;
+  }
+}
+
+/** Mean brightness and spread on a coarse grid: a cleared buffer is flat and dark. */
+function looksLikeAPicture(ctx: CanvasRenderingContext2D, w: number, h: number): boolean {
+  const probe = document.createElement('canvas');
+  probe.width = 32;
+  probe.height = 16;
+  const p = probe.getContext('2d');
+  if (!p) return false;
+  p.drawImage(ctx.canvas, 0, 0, w, h, 0, 0, 32, 16);
+  const d = p.getImageData(0, 0, 32, 16).data;
+  let sum = 0;
+  let min = 255;
+  let max = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const l = (d[i]! + d[i + 1]! + d[i + 2]!) / 3;
+    sum += l;
+    if (l < min) min = l;
+    if (l > max) max = l;
+  }
+  const mean = sum / (d.length / 4);
+  return mean >= SNAPSHOT.minMean && max - min >= SNAPSHOT.minSpread;
 }
 
 /**

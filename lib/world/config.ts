@@ -300,3 +300,4 @@ export * from './config.events';
  * is consumed by `lib/render/**`, and nothing above it is.
  */
 export * from './config.render';
+export * from './config.poster';

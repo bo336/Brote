@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, Sparkles, AlertTriangle, Newspaper, Users } from 'lucide-react';
-import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
+import { EntradaMundo } from '@/components/mundo3d/poster/EntradaMundo';
 import { ImpactCard } from '@/components/impacto/ImpactCard';
 import { EntradaAcademia } from '@/components/academia/EntradaAcademia';
 import { RoutineSection } from '@/components/habitos/RoutineSection';
@@ -101,15 +101,6 @@ export default function HoyPage() {
         </div>
       </div>
 
-      {/* Tu Mundo hero — the one hero media per page, so it carries the
-          signature leaf notch (§4). */}
-      <MundoPoster
-        mundo={profile?.mundoState}
-        snapshotUrl={profile?.worldSnapshotUrl}
-        height={320}
-        className="leaf-clip shadow-soft-lg"
-      />
-
       {/* Streak at risk */}
       {atRisk && (
         <Card className="flex items-center gap-3 border-brote-coral/40 bg-brote-coral/[0.07] p-3.5">
@@ -199,6 +190,9 @@ export default function HoyPage() {
           anything functional, and tinted its tile with `bg-brote-aqua/15` — a
           colour that did not exist, so the tile rendered transparent. */}
       <section className="space-y-2.5">
+        {/* Tu mundo: one section among the others, not the hero of the page
+            (owner, 2026-09-25) — with a real picture of the island in it. */}
+        <EntradaMundo mundo={profile?.mundoState} snapshotUrl={profile?.worldSnapshotUrl} />
         <EntradaAcademia />
         {/* Always-present way into the feed (F15.19). The floating nudge below
             is the once-a-day prompt; this is the permanent door, so news access

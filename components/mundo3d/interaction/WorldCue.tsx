@@ -9,6 +9,9 @@ import { getOverlayMaterial } from '@/lib/render/materials';
 import { BRAND } from '@/lib/render/palette';
 import { useSessionStore } from '../state/useSessionStore';
 
+/** Guidance is left out of the poster (`PosterShot`). */
+const POSTER_HIDDEN = { posterHidden: true };
+
 /**
  * The world-space affordance: **what** you can use. The screen button says **how**.
  *
@@ -84,7 +87,7 @@ export function WorldCue() {
 
   if (!active) return null;
   return (
-    <group ref={group}>
+    <group ref={group} userData={POSTER_HIDDEN}>
       <mesh ref={ring} geometry={ringGeo} material={material} position={[0, 0.04, 0]} renderOrder={4} />
       <mesh ref={marker} geometry={markerGeo} material={material} renderOrder={4} />
     </group>

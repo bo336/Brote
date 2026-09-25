@@ -1,7 +1,7 @@
-import { Home, Leaf, MessagesSquare, Trophy, User, GraduationCap, Store, type LucideIcon } from 'lucide-react';
+import { Home, Leaf, MessagesSquare, Trophy, User, GraduationCap, Store, TreePine, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
-  key: 'hoy' | 'acciones' | 'plaza' | 'ranking' | 'perfil' | 'aprender' | 'mercado';
+  key: 'hoy' | 'acciones' | 'plaza' | 'ranking' | 'perfil' | 'aprender' | 'mercado' | 'mundo';
   href: string;
   icon: LucideIcon;
   /** The center action tab is visually elevated. */
@@ -35,6 +35,9 @@ export const SECONDARY_NAV: NavItem[] = [
   // El Mercado tenía una sola puerta —un ícono sin nombre en la barra
   // superior— y así no lo encontraba nadie. Acá tiene nombre.
   { key: 'mercado', href: '/mercado', icon: Store, soloAdultos: true },
+  // Tu mundo es una sección más, como la Academia y el Mercado: tiene nombre
+  // en la barra lateral y, en el celular, su tarjeta en Hoy.
+  { key: 'mundo', href: '/mundo', icon: TreePine },
 ];
 
 /** Active-state matcher: exact for '/', prefix for the rest. */

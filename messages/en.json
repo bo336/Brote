@@ -9,7 +9,8 @@
     "ranking": "Ranking",
     "perfil": "Profile",
     "aprender": "Learn",
-    "mercado": "Market"
+    "mercado": "Market",
+    "mundo": "Your world"
   },
   "common": {
     "loading": "Loading…",
@@ -644,6 +645,17 @@
     "typeMore": "Type at least two letters."
   },
   "mundo": {
+    "cerrado": {
+      "titulo": "Tu mundo todavía no abrió",
+      "cuerpo": "Estamos terminando de prepararlo. Cuando abra, vas a entrar desde acá mismo, con todo lo que ya hiciste de verdad.",
+      "volver": "Volver al inicio"
+    },
+    "entrada": {
+      "titulo": "Tu mundo",
+      "sub": "Tu isla: cuidala, construí, descubrí especies",
+      "subNivel": "Nivel {n} · {lugar}",
+      "entrar": "Entrar"
+    },
     "goal": {
       "eyebrow": "Now",
       "move": "Move around a little to start",
