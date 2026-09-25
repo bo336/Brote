@@ -13,7 +13,7 @@
 import { LAYOUT, MOORING, SCALE_REFERENCE, TERRAIN, WATER_LEVEL } from './config';
 import { bridgeCrossing } from './crossing';
 import { CACHE_SPOTS, REGION_SPECS, regionCentre, regionRadius } from './regions';
-import { islandRadius, tierForRegion } from './progression';
+import { cumulativeState, islandRadius, tierForRegion } from './progression';
 import { hashInt, mulberry32 } from './rng';
 import {
   fbm, isPlantable, isRockable, snapToLand, terrainHeight,
@@ -380,6 +380,19 @@ function buildCaches(regions: RegionAnchor[], verbs: readonly VerbId[]): Travers
     }
   }
   return out;
+}
+
+/**
+ * The terrain alone, as it stands at a rank tier — no scatter, no anchors.
+ *
+ * The game's parcels (`lib/world/game/parcels.ts`) need to know where land is
+ * at every tier, including tiers the player has not reached, so a parcel is
+ * never offered on ground a later tier floods: features only ever add, so
+ * whatever is water at tier 11 is never land worth restoring earlier.
+ */
+export function terrainForTier(seed: number, tier: number): WorldLayout {
+  const cfg = cumulativeState(tier);
+  return buildTerrainLayout(cfg.radius, seed, cfg.features);
 }
 
 // ── The entry point ─────────────────────────────────────────────────────────
