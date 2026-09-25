@@ -85,7 +85,7 @@ export default function NegociosLegalPage() {
             'completar los datos de la tienda y al menos un canal de contacto que funcione;',
             'declarar su compromiso ambiental (cláusula 4) y aprobar la prueba verde sobre cómo comunicar lo ambiental;',
             'vincular una cuenta de Mercado Pago de Argentina, activa y con la identidad cargada: es como confirmamos quién vende;',
-            'suscribirse (cláusula 9).',
+            'suscribirse (cláusula 10).',
           ]}
         />
         <p>
@@ -123,7 +123,7 @@ export default function NegociosLegalPage() {
         />
       </Section>
 
-      <Section n="5" title="Afirmaciones ambientales y niveles de evidencia">
+      <Section n="5" title="Afirmaciones ambientales: los niveles no son una certificación">
         <p>
           Una palabra ambiental en un producto («orgánico», «reciclable», «sin TACC», «compostable»…) necesita una{' '}
           <strong>afirmación tipificada</strong> que la respalde; sin ella, el producto no se publica. El nivel que
@@ -148,7 +148,7 @@ export default function NegociosLegalPage() {
             'un reporte fundado quede confirmado;',
             'venza la documentación que sostenía una afirmación y no se reemplace;',
             'el canal de contacto o el enlace de destino deje de funcionar;',
-            'deje de pagar, según la cláusula 9;',
+            'deje de pagar, según la cláusula 10;',
             'se ofrezca algo prohibido por la ley, o se afirme algo prohibido por la normativa de lealtad comercial, de publicidad o de salud;',
             'se compruebe que una práctica del compromiso es falsa.',
           ]}
@@ -164,26 +164,45 @@ export default function NegociosLegalPage() {
         </p>
       </Section>
 
-      <Section n="8" title="Contenido, preguntas y datos">
+      <Section n="8" title="Contenido y preguntas">
         <p>
           Todo lo que la tienda o empresa carga —textos, imágenes, logos, documentación— <strong>le
           pertenece</strong>. Al cargarlo nos otorga una licencia no exclusiva, gratuita y revocable para mostrarlo
-          dentro de {BRAND.name} y en comunicaciones de la plataforma. La licencia termina cuando lo da de baja o
-          cierra la cuenta.
+          dentro de {BRAND.name} y en comunicaciones de la plataforma sobre el Mercado y el programa. La licencia
+          termina cuando lo da de baja o cierra la cuenta.
         </p>
         <p>
           Las preguntas de la gente y las respuestas de la tienda son <strong>públicas</strong>; quién preguntó, no.
           La tienda puede ocultar una pregunta ofensiva o fuera de lugar, pero no editar lo que preguntó otra persona.
         </p>
+      </Section>
+
+      <Section n="9" title="Los datos del dossier y de Mercado Pago son confidenciales">
         <p>
-          De la cuenta de Mercado Pago vinculada guardamos solo su número, su alias, su correo, el país y el tipo de documento;{' '}
-          <strong>nunca</strong> el número de documento, la clave ni los medios de pago. El dossier de mejora de una
-          empresa es <strong>confidencial</strong>: no se publica, no se vende ni se cede, y no se usa para otra cosa
-          que sus objetivos. El detalle está en la <Link href="/legal/privacidad">Política de Privacidad</Link>.
+          El dossier de mejora de una empresa —consumos, procesos, restricciones, lo que ya hizo— es{' '}
+          <strong>confidencial</strong>. Concretamente:
+        </p>
+        <Bullets
+          items={[
+            'no se publica nunca, ni entero ni en partes, ni siquiera agregado o anonimizado, sin consentimiento expreso;',
+            'no se vende ni se cede a terceros;',
+            'no se usa para otra cosa que generar y ajustar los objetivos de esa empresa;',
+            'ninguna otra empresa ni persona usuaria puede leerlo.',
+          ]}
+        />
+        <p>
+          Cuando usamos un modelo de inteligencia artificial para proponer objetivos, le enviamos únicamente el
+          contenido operativo necesario. <strong>Nunca</strong> el CUIT, datos de contacto personales ni el nombre de
+          quien administra la cuenta.
+        </p>
+        <p>
+          De la cuenta de Mercado Pago que vincula una tienda guardamos solo su número, su alias, su correo, el país y
+          el tipo de documento; <strong>nunca</strong> el número de documento, la clave ni los medios de pago. El
+          detalle está en la <Link href="/legal/privacidad">Política de Privacidad</Link>.
         </p>
       </Section>
 
-      <Section n="9" title="Suscripción, cobro y falta de pago">
+      <Section n="10" title="Suscripción, cobro y falta de pago">
         <p>
           <strong>Tiendas.</strong> La suscripción es de <strong>USD 5 por mes</strong>, cobrados en pesos argentinos
           por Mercado Pago, a la cuenta que la tienda vincula. El monto en pesos se calcula con el dólar oficial del día
@@ -205,7 +224,7 @@ export default function NegociosLegalPage() {
         </p>
       </Section>
 
-      <Section n="10" title="Baja y conservación de datos">
+      <Section n="11" title="Baja y conservación de datos">
         <p>
           La tienda o empresa puede darse de baja cuando quiera. Al hacerlo se despublican sus productos, se corta el
           cobro y puede descargar lo que cargó. Los datos se conservan <strong>90 días</strong> por si decide volver,
@@ -214,11 +233,11 @@ export default function NegociosLegalPage() {
         </p>
       </Section>
 
-      <Section n="11" title="Cambios de precio y de estos Términos">
+      <Section n="12" title="Cambios de precio y de estos Términos">
         <p>
           Cualquier aumento del precio de una suscripción —en dólares para las tiendas, en pesos para los planes de
           empresa— se avisa con <strong>30 días</strong> de anticipación, dentro de la plataforma. El ajuste por tipo
-          de cambio de la cláusula 9 no es un aumento. Las empresas con precio de fundador lo mantienen durante los 12
+          de cambio de la cláusula 10 no es un aumento. Las empresas con precio de fundador lo mantienen durante los 12
           meses comprometidos.
         </p>
         <p>
@@ -226,7 +245,7 @@ export default function NegociosLegalPage() {
         </p>
       </Section>
 
-      <Section n="12" title="Ley aplicable y jurisdicción">
+      <Section n="13" title="Ley aplicable y jurisdicción">
         <p>
           Estos Términos se rigen por las leyes de la República Argentina. Para cualquier controversia, las partes se
           someten a los tribunales ordinarios de la Ciudad Autónoma de Buenos Aires, sin perjuicio de los derechos que
