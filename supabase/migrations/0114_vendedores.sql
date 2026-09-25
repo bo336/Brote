@@ -70,6 +70,18 @@ returns boolean language sql stable security definer set search_path = public as
   select brote_ajuste_bool('mercado_vendedor_mp_requerido', true);
 $fn$;
 
+-- Los términos ahora cubren a las tiendas (quién puede vender, el compromiso,
+-- USD 5 por mes y el ajuste por tipo de cambio): /legal/negocios pasa a la
+-- versión 2026-09-24 y quien ya los había aceptado los acepta de nuevo antes de
+-- seguir. Solo avanza: si alguien ya puso una versión posterior, no se toca.
+create or replace function brote_terminos_version()
+returns text language sql stable security definer set search_path = public as $fn$
+  select coalesce((select value #>> '{}' from app_settings where key = 'negocios_terminos_version'), '2026-09-24');
+$fn$;
+
+update app_settings set value = '"2026-09-24"'::jsonb
+ where key = 'negocios_terminos_version' and coalesce(value #>> '{}', '') < '2026-09-24';
+
 -- ── 2. El dólar oficial ─────────────────────────────────────────────────────
 -- Se pide una vez por día a dolarapi.com (el valor de venta del dólar oficial
 -- que publica el BCRA a través de los bancos) con `pg_net`, en dos pasos como

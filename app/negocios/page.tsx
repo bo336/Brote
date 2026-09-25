@@ -186,7 +186,7 @@ export default function NegociosPage() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-3xl flex-wrap gap-x-5 gap-y-2 px-5 py-6 text-caption text-muted-foreground">
-          <Link href="/legal/negocios" className="hover:text-foreground">Términos para empresas</Link>
+          <Link href="/legal/negocios" className="hover:text-foreground">Términos para tiendas y empresas</Link>
           <Link href="/legal/privacidad" className="hover:text-foreground">Privacidad</Link>
           <Link href="/legal/niveles" className="hover:text-foreground">Los niveles</Link>
           <span className="ml-auto">{BRAND.name}</span>

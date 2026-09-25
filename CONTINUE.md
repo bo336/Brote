@@ -1229,6 +1229,135 @@ en una misma categoría. Hoy aparece en las cuatro acciones de granel.
 
 ---
 
+# EL MERCADO v2 + TIENDAS ABIERTAS · ENTREGADO EN RAMA · FALTA APLICAR 0113/0114 Y EL MERGE
+
+> Rama `claude/mercado` (sale de `claude/academia-arbol`). Rehace el Mercado del
+> lado de quien compra (inicio con estantes, búsqueda con facetas, ficha,
+> tiendas, guardados) y abre la venta a cualquiera: una persona abre su tienda
+> en cuatro pasos y paga USD 5 por mes por Mercado Pago.
+
+## ▶ NEXT EXACT TASK (Mercado)
+
+> 1. **Aplicar `0113_mercado_v2.sql` (versión final) y `0114_vendedores.sql` en
+>    vivo, con el OK del dueño.** Procedimiento de siempre: `net.http_get` al
+>    archivo en el SHA empujado → comparar md5 → `execute`. Justo antes, correr
+>    el ensayo en seco (0113 + 0114 + `supabase/qa/mercado-v2.sql`, que termina
+>    en `raise exception 'QA_RESULT …'`) y `supabase/qa/mercado-v2-perf.sql`.
+>    El clasificador del modo automático negó el ensayo en seco del contenido
+>    final (lo leyó como despliegue a producción): hace falta que el dueño lo
+>    autorice. **Sin 0113/0114 en vivo, la app de esta rama no funciona**: el
+>    inicio del Mercado llama a `mercado_inicio`, que no existe en la base.
+> 2. Mergear `claude/academia-arbol` y `claude/mercado` a `main` y desplegar.
+> 3. Cargar las credenciales de Mercado Pago (owner action items) y abrir una
+>    tienda de verdad de punta a punta en un teléfono.
+
+## Qué pidió el pedido, y dónde quedó cada punto
+
+| Pedido | Dónde quedó |
+|---|---|
+| Arreglar cómo se muestran los productos | La tarjeta nueva (`TarjetaListado`): foto cuadrada, corazón, precio de referencia con el anterior tachado si bajó, "Bajó", condición, envío/retiro, sello de nivel solo si hay afirmación. En producción, `/mercado` parecía vacío en un teléfono: la explicación y los filtros ocupaban la primera pantalla entera y los productos (17 publicados, de las tiendas DEMO) quedaban debajo del pliegue. El inicio nuevo pone el buscador, las categorías y el primer estante arriba, y la explicación plegada en una línea. Además, un producto sin afirmación (nivel e0) ahora es válido y se muestra sin sello. |
+| Arquitectura profunda, miles de productos, públicos distintos | Taxonomía de 12 categorías × subcategorías (`SUBCATEGORIAS`, espejo en la base), búsqueda de texto completo en español con prefijos + parecidos por palabra, facetas, orden por relevancia/recomendados/nuevos/precio/nivel, paginación infinita. Medido con 5.000 productos de 50 tiendas: todo por debajo de 50 ms. Teen sin precios ni categorías sensibles; kid no ve el Mercado. |
+| Interactivo y que enganche (inspirado en Mercado Libre, sin copiar) | Inicio con estantes que salen de lo que la persona hace en Brote: seguí viendo, para vos, porque hiciste (acciones), lo que estás aprendiendo (Academia), cerca tuyo, bajaron, nuevos, segunda vida, documentados; tiendas para conocer; "Descubrí más" infinito. Guardar, seguir tiendas, preguntas públicas, compartir, avisos de baja de precio y de novedades de tiendas seguidas. |
+| Filtros, categorías, zonas sugeridas, módulos de descubrimiento, feeds personalizados | `PanelFiltros` (barra lateral / hoja), `CategoriasRail`, `BuscadorMercado` con sugerencias de productos y tiendas, `mercado_inicio` (estantes), `mercado_buscar` con `p_dominio`. |
+| Integración con el resto de la app (crítico) | Entrada del Mercado en el inicio, "En el Mercado" en cada unidad de la Academia (por rama), el estante "porque hiciste" desde las acciones, guardados en el perfil, avisos en la campana, "Dónde conseguirlo" en las acciones apunta a la búsqueda. |
+| Alta de vendedores: simple, abierta, verificación ambiental única | Cuatro pasos (`AltaVendedor`): tienda (nombre, qué vende, dónde, canales) → compromiso (2 a 6 prácticas que ya hace + una foto real, revisada por el equipo después) → prueba verde (5 respuestas bien sobre cómo hablar de ambiente; 3 errores y empieza de nuevo; 16 preguntas) → Mercado Pago. Se guarda cada paso. |
+| Suscripción USD 5 o equivalente, cobrada cuando la cuenta está verificada con MP | Vincular Mercado Pago por OAuth (cuenta de Argentina, activa, con identidad) y recién ahí suscribirse: preapproval de MP por USD 5 × dólar oficial del día, redondeado a la centena. La tienda abre cuando el webhook dice `authorized`. Si el dólar se mueve más de 10%, el monto del mes siguiente se ajusta y se avisa. |
+| Lógica lista para configurar MP de inmediato | Todo está: rutas `/api/pagos/mercadopago/vincular` y `/vuelta`, `mp-servidor.ts`, webhook con plan `vendedor`. Falta solo cargar las credenciales (owner action items). |
+
+## Qué quedó
+
+**Migraciones** (ninguna aplicada en su versión final — ver NEXT):
+
+| | |
+|---|---|
+| `0113_mercado_v2.sql` | Comprador: taxonomía, columnas nuevas de listados y tiendas, búsqueda (`mercado_buscar` 14 parámetros, `mercado_sugerencias`), `mercado_inicio`, `mercado_listado` v2, `mercado_negocio` v2 (público), preguntas, favoritos, seguir, vistos, avisos de precio y novedades, salida por canal (WhatsApp/Instagram/web), limpieza. Una versión anterior (v1) está aplicada en vivo. |
+| `0114_vendedores.sql` | Vendedor: ajustes, dólar oficial diario (`pg_net` a dolarapi, crons `brote-dolar` 13:00 y `brote-dolar-leer` 13:10 UTC), plan `vendedor` (300 productos), alta, prueba verde, vínculo MP (solo service_role), abrir, cotizar/aplicar/ajustar el cobro, publicar en el acto, revisión de compromisos, términos 2026-09-24. |
+
+**Pantallas nuevas:** `/mercado` (inicio), `/mercado/buscar`, `/mercado/[slug]` (ficha), `/mercado/tienda/[slug]` (pública, también sin cuenta), `/mercado/guardados`, `/vender` (página pública para vender), `/negocio/alta` (alta en 4 pasos), `/negocio/preguntas`, `/negocio/tienda`, `/panel/compromisos`. `/mercado/negocio/[slug]` redirige a la tienda.
+
+## Verificado
+
+- **Ensayo en seco contra la base viva** (versión anterior a los últimos
+  ajustes de 0113/0114): QA completo aprobado, incluidos `edicion_cura =
+  texto_prohibido` y `buscar_typo = 1`. Perf con 5.000 productos: vacío 18 ms,
+  texto 18, con error de tipeo 28, filtros 14, precio 26, página 21 26,
+  sugerencias 17, inicio 43, ficha 11.
+- **Tests:** 515/515 (`npm test`), typecheck y lint limpios, `next build` limpio.
+  Nuevos: `mercado-v2.test.ts` (taxonomía, prácticas y palabras ambientales
+  iguales en TS y en SQL; la búsqueda en la URL ida y vuelta), `vendedor.test.ts`
+  (WhatsApp argentino, paso del alta), `vincular.test.ts` (qué cuenta de MP
+  alcanza, `state` del OAuth), `servidor-cliente.test.ts` (ver abajo).
+- **Pantallas** con datos de ejemplo en una ruta temporal (`/offline/mercado-preview`,
+  borrada antes del commit), capturadas con Chrome sin cabeza a 390 px dentro
+  de iframes (Chrome no baja la ventana de ~500 px) y a 1366 px: inicio,
+  búsqueda, ficha, guardados, los cuatro pasos del alta, el pago, el inicio de
+  la tienda y el formulario de producto.
+
+**Lo que encontraron las capturas, y se arregló:**
+- **La ficha de cualquier producto y el inicio de la tienda caían en el
+  servidor**: llamaban a `buttonVariants()`, exportada por un módulo `'use
+  client'`. Build y typecheck pasaban. Ahora vive en
+  `components/ui/button-variants.ts` y un test recorre todo el repo buscando
+  módulos de servidor que llamen funciones de módulos de cliente.
+- **`cn()` tiraba los tamaños de letra propios** (`text-caption`, `text-small`,
+  `text-h1`…) cuando venían junto a un color: tailwind-merge los tomaba por
+  colores. Afectaba textos de ayuda en toda la app. Se registraron en
+  `extendTailwindMerge`.
+- Estantes con el primer producto pegado al borde (scroll-snap sin
+  scroll-padding), el filtro de precio que se salía de la barra lateral
+  (`<fieldset>` tiene `min-width: min-content`), el renglón de resultados que
+  empujaba los botones fuera de la pantalla, el botón de WhatsApp blanco sobre
+  amarillo, el sello "Nivel 2 · Documentación revisada" partido en dos.
+
+## Desviaciones — qué se hizo distinto, y por qué
+
+- **El precio se cobra en pesos.** Mercado Pago Argentina suscribe en ARS; el
+  precio está fijado en USD y se convierte con el dólar oficial (venta) del
+  día. Sin cotización ni precio de respaldo (`mercado_vendedor_ars`), nadie
+  puede suscribirse: no se cobra con un número inventado.
+- **La verificación ambiental no es un certificado:** es una declaración
+  jurada de prácticas con foto + la prueba verde. El nivel sigue siendo de
+  cada afirmación de producto, nunca de la tienda (antihalo).
+- **Publicar en el acto:** una tienda nueva publica sin revisión previa si el
+  validador está limpio y no hay afirmaciones pendientes. Para que eso no abra
+  un hueco, la base repite las reglas del validador de TypeScript
+  (`brote_termino_sin_afirmacion`, lista negra de salud con conjugaciones).
+- **Los términos se reescribieron** para tiendas y empresas (`/legal/negocios`,
+  versión 2026-09-24; 0114 sube `negocios_terminos_version`). El ajuste por
+  tipo de cambio quedó explícito como "no es un aumento".
+- Los cuatro comercios DEMO quedan como `modelo = 'legacy'` con sus reglas de
+  siempre.
+
+## Lo que NO se pudo verificar
+
+- **El contenido final de 0113/0114 contra la base** (el clasificador negó el
+  ensayo en seco; ver NEXT).
+- **Mercado Pago de verdad:** OAuth, preapproval y webhook se probaron con
+  la lógica y la base, no contra MP (hacen falta credenciales).
+- **Una sesión real:** las pantallas con cuenta se vieron con datos de ejemplo;
+  nadie caminó el alta ni una compra logueado en un teléfono.
+
+## Owner action items (Mercado)
+
+1. **Aprobar** el ensayo en seco y la aplicación de 0113 + 0114 en vivo.
+2. **Mercado Pago → Tus integraciones → tu aplicación:**
+   - Redirect URI: `https://<dominio>/api/pagos/mercadopago/vincular/vuelta`.
+   - Webhooks: `https://<dominio>/api/pagos/mercadopago/webhook`, temas
+     `subscription_preapproval` y `subscription_authorized_payment`.
+3. **Vercel → Environment Variables:** `MP_CLIENT_ID`, `MP_CLIENT_SECRET`,
+   `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`,
+   `NEXT_PUBLIC_APP_URL` (el dominio real: arma la redirect URI).
+4. **Mientras MP no esté configurado, ninguna tienda puede abrir**
+   (`mercado_cobro_vendedores` y `mercado_vendedor_mp_requerido` valen `true`
+   por defecto). Para probar sin cobro, ponerlos en `false` desde `/panel`.
+5. **Borrar los cuatro comercios DEMO** antes de la primera tienda real (las
+   dos líneas de la sección de datos de demostración).
+6. **Abogado de consumo** sobre `/legal/negocios` antes de cobrarle a la
+   primera tienda.
+7. Revisar las fotos de compromiso que lleguen en `/panel/compromisos`.
+
+---
+
 # LA ACADEMIA — EL ÁRBOL (segunda versión) · ENTREGADA EN RAMA · FALTA EL MERGE
 
 > Reemplaza al Bosque en `/aprender`. `docs/ACADEMIA.md` es el mapa completo

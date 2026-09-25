@@ -227,6 +227,34 @@ user-visible, elements that only change on `:active`.
   - Feedback stays calm: green when right, coral when not, the explanation in both cases, no
     shake, no red wash, no sound. Pip appears three times per session at most.
 
+- **El Mercado v2** — 2026-09-24. The marketplace rebuilt around browsing: a home of shelves, search
+  with facets, a two-column product page, public store pages, saved items, and an open seller
+  onboarding (`/negocio/alta`). Notes for anyone extending it:
+  - **Products first on a phone.** Search box, category rail and the first shelf fit in the first
+    740 px; the "what is this" explanation is folded into one line. The first version put the
+    explanation and filters on top and every product fell below the fold.
+  - **Shelves are native horizontal scrollers** (`<Estante>`): `snap-x snap-mandatory` **plus
+    `scroll-px-4`** — without scroll-padding the snap pulls the first card flush to the screen edge
+    while the headings keep their 16 px gutter. Cards are 44% of the width on a phone so the next one
+    always peeks.
+  - **The card** (`<TarjetaListado>`): square photo, heart top-right, price with "precio de
+    referencia" under it and the old one struck through when it dropped, "Bajó" chip, delivery tags,
+    and the level seal only when the product carries a claim. In a card the seal reads just "Nivel 2"
+    (the full phrase is the `title`); the full phrase broke into two lines at 390 px.
+  - **A button never lives inside a card link.** The follow button on a store card is a sibling,
+    absolutely placed over the photo strip.
+  - **Server components build button-shaped links with `buttonVariants()` from
+    `components/ui/button-variants.ts`**, never from `button.tsx` (a `'use client'` module: on the
+    server its exports are references, and calling one crashes the page).
+    `lib/mercado/__tests__/servidor-cliente.test.ts` enforces it repo-wide.
+  - **`cn()` knows the type scale.** `text-caption`, `text-small`, `text-h1`… are registered in
+    `extendTailwindMerge`; before, a colour class after them silently dropped the size.
+  - **Forms:** every `<fieldset>` that holds flexible inputs gets `min-w-0` (its UA default is
+    `min-width: min-content`, which pushed the price filter out of the sidebar).
+  - The mobile CTA bar on the product page is solid primary, one line, above the tab bar
+    (`bottom-[calc(4.4rem+env(safe-area-inset-bottom))]`); white on the brand gradient's yellow end
+    did not pass contrast.
+
 ### Primitives added in the Academia pass
 
 The Bosque-era rows are kept for history; the ones marked *removed* no longer exist since the
