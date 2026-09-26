@@ -3,6 +3,7 @@
 import { JOYSTICK } from '@/lib/world/config';
 import { useSessionStore } from '../../state/useSessionStore';
 import { useCeiboGreeting } from '../useCeiboGreeting';
+import { useDiscoveryGreeting } from '../useDiscoveryGreeting';
 import { useGameFeedback } from '../useGameFeedback';
 import { DialogCard } from './DialogCard';
 import { IslaSheet } from './IslaSheet';
@@ -21,6 +22,7 @@ import { Gains, Toasts } from './Toasts';
 export function GameHud() {
   useGameFeedback();
   useCeiboGreeting();
+  useDiscoveryGreeting();
   const hud = useSessionStore((s) => s.hud);
   const playing = hud === 'play';
   const top = `calc(max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px) + 56px)`;

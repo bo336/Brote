@@ -795,7 +795,9 @@
       "t8": "El monte se levantó con {acciones} acciones tuyas.",
       "t9": "Llegó la nieve. El aire de tu isla está más limpio.",
       "t10": "Se despejó el horizonte. Hay otra orilla.",
-      "t11": "Gaia. Tu isla ya puede sembrar otras."
+      "t11": "Gaia. Tu isla ya puede sembrar otras.",
+      "descubriste": "You discovered",
+      "descubristeLine": "They are on your island now, waiting for you to restore them by playing."
     },
     "world": {
       "complete": "Completaste un mundo. Tu isla cambió de color."
@@ -1498,7 +1500,8 @@
           "3": "Now it needs water and a few days.",
           "4": "It bears fruit and the bugs start arriving.",
           "5": "Diversity and shelter: the wildlife stays."
-        }
+        },
+        "division": "Your level in Brote discovered something new"
       },
       "no": {
         "llena": "Your backpack is full: take what you have to a station, or sell something to Don Beto.",

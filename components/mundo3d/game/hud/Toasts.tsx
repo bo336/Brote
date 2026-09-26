@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { BookOpen, Gift, Hammer, Sparkles, Sprout, Star, Sun, ShoppingBag } from 'lucide-react';
+import { Compass, BookOpen, Gift, Hammer, Sparkles, Sprout, Star, Sun, ShoppingBag } from 'lucide-react';
 
 import { castName } from '@/lib/world/game/texto/guia';
 import { useFeedback, type Toast, type ToastTone } from '../useGameFeedback';
@@ -18,9 +18,11 @@ import { useGains } from '../gains';
  */
 const ICON: Record<ToastTone, typeof Sprout> = {
   mission: Sparkles, daily: Sun, stage: Sprout, build: Hammer, card: BookOpen, gift: Gift, star: Star, buy: ShoppingBag,
+  discover: Compass,
 };
 const LIFE_MS: Record<ToastTone, number> = {
   mission: 7000, daily: 3800, stage: 3800, build: 4800, card: 6500, gift: 5200, star: 4000, buy: 2600,
+  discover: 8000,
 };
 
 function ToastCard({ toast }: { toast: Toast }) {

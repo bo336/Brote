@@ -795,7 +795,9 @@
       "t8": "El monte se levantó con {acciones} acciones tuyas.",
       "t9": "Llegó la nieve. El aire de tu isla está más limpio.",
       "t10": "Se despejó el horizonte. Hay otra orilla.",
-      "t11": "Gaia. Tu isla ya puede sembrar otras."
+      "t11": "Gaia. Tu isla ya puede sembrar otras.",
+      "descubriste": "Descubriste",
+      "descubristeLine": "Ya están en tu isla, esperando que los restaures jugando."
     },
     "world": {
       "complete": "Completaste un mundo. Tu isla cambió de color."
@@ -1498,7 +1500,8 @@
           "3": "Ahora necesita agua y unos días.",
           "4": "Ya da frutos y empiezan a llegar los bichos.",
           "5": "Diversidad y refugio: la fauna se queda."
-        }
+        },
+        "division": "Tu nivel en Brote descubrió algo nuevo"
       },
       "no": {
         "llena": "La mochila está llena: llevá lo que tenés a una estación, o vendele algo a Don Beto.",

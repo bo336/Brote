@@ -29,7 +29,7 @@ import { useGameStore } from './useGameStore';
  * parcel alive, a station built, a card learned), and a **line** for a refusal
  * — which always says why and what to do, never just "no".
  */
-export type ToastTone = 'mission' | 'daily' | 'stage' | 'build' | 'card' | 'gift' | 'star' | 'buy';
+export type ToastTone = 'mission' | 'daily' | 'stage' | 'build' | 'card' | 'gift' | 'star' | 'buy' | 'discover';
 
 export interface Toast {
   id: number;
