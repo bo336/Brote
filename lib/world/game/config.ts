@@ -75,6 +75,8 @@ export const SEMILLAS = {
   dailyBonus: 30,
   /** Logging a species in the Bitácora for the first time. */
   census: 5,
+  /** A whole region restored (every parcel the rank has revealed there alive). Once each. */
+  region: 80,
   /** Pulling an invasive. */
   pull: 2,
   /**

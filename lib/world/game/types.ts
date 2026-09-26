@@ -224,6 +224,8 @@ export type GameEvent =
   | { type: 'gift'; from: string; what: string }
   | { type: 'cared'; parcel: string; kind: string }
   | { type: 'star'; parcel: string; stars: number }
+  /** Every parcel of a region the rank has revealed is alive: once per region. */
+  | { type: 'region'; region: RegionId }
   | { type: 'refused'; why: RefusalReason; need?: Partial<Record<MaterialId | 'agua' | 'semillas', number>> };
 
 /** Why an action did nothing. The UI turns each into one short line. */

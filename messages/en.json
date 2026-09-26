@@ -1502,7 +1502,9 @@
           "4": "It bears fruit and the bugs start arriving.",
           "5": "Diversity and shelter: the wildlife stays."
         },
-        "division": "Your level in Brote discovered something new"
+        "division": "Your level in Brote discovered something new",
+        "region": "You restored {name}!",
+        "regionBody": "Every plot your level revealed here is alive. Whatever your next level brings can be too."
       },
       "no": {
         "llena": "Your backpack is full: take what you have to a station, or sell something to Don Beto.",

@@ -11,6 +11,7 @@ import type { RegionId } from '../types';
 import { SPAWNS, SEMILLAS } from './config';
 import { buildOpen, drawDailies, advanceMissions, talk, type MissionWorld } from './missions';
 import { flourish, growAll, harvest, pickParcelLitter, plant, pull, soil, water } from './parcel-actions';
+import { parcelRegion, parcelsAt } from './parcels';
 import { collect, deliverOne, feed, stationOf, tickAll, tryBuild } from './production';
 import { SORT_YIELD, TOOLS, WASTE } from './materials';
 import { discoveredAt, PARCEL_TYPES, PLANTS, progressOf } from './plants';
@@ -325,9 +326,35 @@ export function reduce(prev: GameState, action: GameAction, ctx: GameContext, wo
   }
 
   lessons(s, events);
+  regionsRestored(s, world, ctx, events);
   if (action.t !== 'talk') advanceMissions(s, events, world, ctx);
   s.savedAt = ctx.now;
   return { state: s, events };
+}
+
+/**
+ * A region is restored when every parcel of it the rank has revealed is alive.
+ * It pays once and says so; a later rank that reveals more of the region does
+ * not take it back (the new parcels are simply more to do).
+ */
+function regionsRestored(s: GameState, world: MissionWorld, ctx: GameContext, events: GameEvent[]): void {
+  if (!events.some((e) => e.type === 'stage')) return;
+  const byRegion = new Map<RegionId, { alive: number; all: number }>();
+  for (const p of parcelsAt(world.field, ctx.tier)) {
+    const ps = s.parcels[p.id];
+    const r = parcelRegion(p, ps, ctx.tier);
+    const e = byRegion.get(r) ?? { alive: 0, all: 0 };
+    e.all += 1;
+    if ((ps?.s ?? 0) >= 4) e.alive += 1;
+    byRegion.set(r, e);
+  }
+  for (const [r, e] of byRegion) {
+    const key = `region:${r}`;
+    if (e.all === 0 || e.alive < e.all || s.stats[key]) continue;
+    s.stats[key] = 1;
+    events.push({ type: 'region', region: r });
+    earn(s, SEMILLAS.region, key, events);
+  }
 }
 
 /** Is a station on this island yet? (Discovered by rank, and not necessarily built.) */

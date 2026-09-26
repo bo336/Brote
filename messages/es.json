@@ -1502,7 +1502,9 @@
           "4": "Ya da frutos y empiezan a llegar los bichos.",
           "5": "Diversidad y refugio: la fauna se queda."
         },
-        "division": "Tu nivel en Brote descubrió algo nuevo"
+        "division": "Tu nivel en Brote descubrió algo nuevo",
+        "region": "¡Restauraste {name}!",
+        "regionBody": "Cada parcela que tu nivel descubrió acá está viva. Lo que venga con tu próximo nivel, también se va a poder."
       },
       "no": {
         "llena": "La mochila está llena: llevá lo que tenés a una estación, o vendele algo a Don Beto.",

@@ -6,6 +6,7 @@ import { create } from 'zustand';
 
 import { SEMILLAS } from '@/lib/world/game/config';
 
+import { PLACE_NAME } from '@/lib/world/game/discoveries';
 import { MATERIALS } from '@/lib/world/game/materials';
 import { DAILY_BY_ID } from '@/lib/world/game/missions';
 import { PLANTS } from '@/lib/world/game/plants';
@@ -120,6 +121,12 @@ function react(t: T, events: GameEvent[], at: readonly [number, number, number] 
           const k = String(ev.stage) as '1' | '2' | '3' | '4' | '5';
           fb.push({ tone: 'stage', title: t(`toast.etapa.${k}`), body: t(`toast.etapaBody.${k}`) });
         }
+        break;
+      case 'region':
+        fb.push({ tone: 'mission', title: t('toast.region', { name: PLACE_NAME[ev.region] }), body: t('toast.regionBody'), semillas: SEMILLAS.region });
+        playSfx('reward');
+        haptic('success');
+        emitFx('stars', playerTransform.x, playerTransform.y + 0.8, playerTransform.z);
         break;
       case 'star':
         fb.push({ tone: 'star', title: t('toast.estrella', { stars: '★'.repeat(ev.stars) }), body: t('toast.estrellaBody') });
