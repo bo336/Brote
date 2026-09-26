@@ -51,10 +51,10 @@ export interface CameraShot {
   orbit: number;
 }
 
-export type RevealMode = 'none' | 'uplift' | 'snowline' | 'grow' | 'channel' | 'repaint';
+export type RevealMode = 'none' | 'uplift' | 'snowline' | 'grow' | 'channel' | 'repaint' | 'bloom';
 
 const MODE_INDEX: Record<RevealMode, number> = {
-  none: 0, uplift: 1, snowline: 2, grow: 3, channel: 4, repaint: 5,
+  none: 0, uplift: 1, snowline: 2, grow: 3, channel: 4, repaint: 5, bloom: 6,
 };
 
 export interface RevealState {

@@ -31,6 +31,8 @@ export const GRASS_VERT_HEAD = /* glsl */ `
   uniform vec2 uWindDir;
   uniform sampler2D uPathMap;
   uniform vec4 uPathInfo;
+  uniform sampler2D uRestTex;
+  varying float vGrassVital;
   varying float vGrassT;
   varying float vGrassGust;
   varying vec3 vGrassTone;
@@ -58,7 +60,10 @@ export const GRASS_VERT_BLADE = /* glsl */ `
   float bhRing = smoothstep(uInner - uRingFade, uInner, bhDist) * (1.0 - smoothstep(uOuter - uRingFade, uOuter, bhDist));
   // The mask's density is a likelihood; a meadow at half of it should still be a
   // full meadow, and only a clearing's edge should thin out.
-  float bhDensity = smoothstep(0.0, 0.45, bhMask.a);
+  // Restoration: how much of the potential grows here, how alive it is, how tall.
+  vec4 bhRest = texture2D(uRestTex, bhUV);
+  float bhDensity = smoothstep(0.0, 0.45, bhMask.a * bhRest.g);
+  vGrassVital = bhRest.r;
   // …and stops at the worn edge of a path, the same line the ground draws.
   vec4 bhPathTex = texture2D(uPathMap, (bhRoot + uPathInfo.x) / (2.0 * uPathInfo.x));
   float bhPathHalf = uPathInfo.z * mix(0.3, 1.0, bhPathTex.g) * smoothstep(0.0, 0.35, bhPathTex.g);
@@ -66,7 +71,9 @@ export const GRASS_VERT_BLADE = /* glsl */ `
     * smoothstep(bhPathHalf - 0.02, bhPathHalf + 0.3, bhPathTex.r * uPathInfo.y + (bhR.x - 0.5) * 0.25);
   // Lush patches grow tall; clearings stay short and dry.
   float bhPatch = bhNoise(bhRoot * 0.09);
-  float bhH = uBladeH * (0.55 + 0.8 * bhR.w) * mix(0.55, 1.3, bhPatch) * (0.45 + 0.55 * bhDensity) * bhKeep;
+  float bhH = uBladeH * (0.55 + 0.8 * bhR.w) * mix(0.55, 1.3, bhPatch) * (0.45 + 0.55 * bhDensity) * bhKeep
+    // Wild ground grows short, tired tufts; a restored pastizal stands tall.
+    * mix(0.62, 1.0, bhRest.r) * (1.0 + bhRest.a * 0.75);
   float bhAng = bhHash(bhCell + 9.7) * 6.2831853;
   vec2 bhFacing = vec2(cos(bhAng), sin(bhAng));
   vec2 bhSide = vec2(-bhFacing.y, bhFacing.x);
@@ -117,6 +124,7 @@ export const GRASS_FRAG_HEAD = /* glsl */ `
   varying vec3 vGrassTone;
   varying vec3 vGrassBase;
   varying vec3 vGrassWorld;
+  varying float vGrassVital;
 `;
 
 /** After `color_fragment`: several greens, some straw, the biome's tint, and shade at the root. */
@@ -134,6 +142,9 @@ export const GRASS_FRAG_COLOR = /* glsl */ `
   // Tips dry toward a warm light green; roots sink into the ground's root shade.
   bhC = mix(bhC, bhC * vec3(1.3, 1.15, 0.6) + vec3(0.02, 0.012, 0.0), smoothstep(0.6, 1.0, vGrassT) * 0.55);
   float bhRootShade = mix(0.42, 1.0, smoothstep(0.0, 0.7, vGrassT));
+  // Wild ground: the same blades gone to straw — pale, dry, a little grey.
+  vec3 bhDryC = mix(vec3(0.36, 0.3, 0.14), vec3(0.46, 0.39, 0.2), vGrassTone.x) * (0.85 + 0.3 * vGrassTone.y);
+  bhC = mix(bhDryC, bhC, smoothstep(0.05, 0.85, vGrassVital));
   diffuseColor.rgb = bhC * bhRootShade;
 `;
 

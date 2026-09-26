@@ -27,7 +27,7 @@ import type { Interactable, PropId, QualityTier, RegionId, TimeOfDay, VerbId } f
 import type { Objective } from '@/lib/world/objectives';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
-export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon';
+export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon' | 'juego';
 
 /**
  * Session ephemera: the things that change during play and that React genuinely

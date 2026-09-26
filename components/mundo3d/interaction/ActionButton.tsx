@@ -30,7 +30,7 @@ export function ActionButton() {
   // A verb-less interactable labels itself. El Mojón is not "plantar"; it is
   // "leer", and the registry is what knows which.
   const Icon = (active.verb ? ICONS[active.verb] : undefined) ?? Sprout;
-  const label = active.verb ? t(`verb.${active.verb}`) : t(active.labelKey);
+  const label = active.label ?? (active.verb ? t(`verb.${active.verb}`) : t(active.labelKey));
   return (
     <button
       type="button"

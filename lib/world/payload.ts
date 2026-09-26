@@ -21,6 +21,7 @@ import { parseMundoState } from '../mundo';
 import { pendingCeremonies as pendingFrom } from './ceremony';
 import type { RawMarker } from './markers';
 import { MAX_TIER, MIN_TIER, PROP_IDS } from './progression';
+import { isPlaceable } from './game/shop';
 import { REGION_IDS, TIME_OF_DAY_IDS } from './types';
 import type {
   ImpactTotals, JournalEntry, Placement, PropId, RegionId, SpeciesId, TimeOfDay,
@@ -92,8 +93,11 @@ function region(v: unknown): RegionId | null {
   return typeof v === 'string' && (REGION_IDS as readonly string[]).includes(v) ? (v as RegionId) : null;
 }
 
+/** A placeable: one of the island's first ten props, or anything decor/habitat from the Tienda. */
 function prop(v: unknown): PropId | null {
-  return typeof v === 'string' && (PROP_IDS as readonly string[]).includes(v) ? (v as PropId) : null;
+  if (typeof v !== 'string') return null;
+  if ((PROP_IDS as readonly string[]).includes(v) || isPlaceable(v)) return v as PropId;
+  return null;
 }
 
 function timeOfDay(v: unknown): TimeOfDay {
@@ -229,6 +233,8 @@ export function parseWorldPayload(raw: unknown, fallbackUserId: string): WorldPa
     // Overdue Academia reviews, which manifest as wilting plants
     // (`12-LEARNING.md` §3.3). Zero until the bootstrap supplies it.
     dueReviews: Math.max(0, int(o.dueReviews, 0)),
+    game: isObject(o.game) ? { state: o.game.state ?? null, rev: Math.max(0, int(o.game.rev, 0)) } : null,
+    division: clamp(int(isObject(o.progress) ? o.progress.div : 1, 1), 1, 5),
   };
 }
 

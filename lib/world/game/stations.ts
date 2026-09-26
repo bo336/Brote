@@ -23,6 +23,8 @@ export interface StationLevel {
 export interface StationDef {
   id: StationId;
   name: string;
+  /** "la compostera", "el vivero": for sentences that name it. */
+  article: 'el' | 'la';
   /** Rank tier that discovers it. */
   tier: number;
   /** The one-line lesson, shown in its panel. */
@@ -36,7 +38,7 @@ export interface StationDef {
 
 export const STATIONS: Record<StationId, StationDef> = {
   punto_limpio: {
-    id: 'punto_limpio', name: 'Punto Limpio', tier: 1,
+    id: 'punto_limpio', name: 'Punto Limpio', article: 'el', tier: 1,
     does: 'Separás los residuos: lo reciclable vuelve como material, lo orgánico va a compost.',
     teaches: 'Separar en casa es lo que hace posible reciclar: mezclado, casi nada se recupera.',
     levels: [
@@ -46,7 +48,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   compostera: {
-    id: 'compostera', name: 'Compostera', tier: 1,
+    id: 'compostera', name: 'Compostera', article: 'la', tier: 1,
     does: 'Los orgánicos se vuelven compost con el tiempo, aunque no estés.',
     teaches: 'Lo orgánico compostado vuelve a la tierra; en un relleno sanitario, se pudre y larga metano.',
     makes: { input: 'hojas', per: 4, output: 'compost' },
@@ -57,7 +59,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   tanque: {
-    id: 'tanque', name: 'Tanque de lluvia', tier: 1,
+    id: 'tanque', name: 'Tanque de lluvia', article: 'el', tier: 1,
     does: 'Junta el agua de lluvia del techo. Con ella cargás la regadera.',
     teaches: 'El agua de lluvia sirve para regar y no gasta agua potable.',
     makes: { input: 'hojas', per: 0, output: 'agua' },
@@ -68,7 +70,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   vivero: {
-    id: 'vivero', name: 'Vivero', tier: 1,
+    id: 'vivero', name: 'Vivero', article: 'el', tier: 1,
     does: 'Con frutos y semillas criás plantines de la especie que elijas.',
     teaches: 'Un vivero de nativas guarda las plantas del lugar: se reproducen de semilla y no hay que traerlas de lejos.',
     makes: { input: 'frutos', per: 3, output: 'plantines' },
@@ -79,7 +81,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   hotel_insectos: {
-    id: 'hotel_insectos', name: 'Hotel de insectos', tier: 3,
+    id: 'hotel_insectos', name: 'Hotel de insectos', article: 'el', tier: 3,
     does: 'Refugio para abejas nativas y otros polinizadores. Las parcelas cercanas dan más frutos.',
     teaches: 'Muchas abejas nativas viven solas en huecos de cañas y maderas: un hotel les da dónde anidar.',
     levels: [
@@ -89,7 +91,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   puente: {
-    id: 'puente', name: 'Puente', tier: 7,
+    id: 'puente', name: 'Puente', article: 'el', tier: 7,
     does: 'Reparar el puente viejo para cruzar el río sin mojarse.',
     teaches: 'Un puente bien hecho deja pasar el agua y a los peces por debajo.',
     levels: [
@@ -99,7 +101,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   muelle: {
-    id: 'muelle', name: 'Muelle', tier: 7,
+    id: 'muelle', name: 'Muelle', article: 'el', tier: 7,
     does: 'Un muelle para pescar mejor. Más adelante, para el bote al islote.',
     teaches: 'Pescar lo justo y devolver lo chico deja peces para el año que viene.',
     levels: [
@@ -109,7 +111,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   refugio: {
-    id: 'refugio', name: 'Refugio de montaña', tier: 8,
+    id: 'refugio', name: 'Refugio de montaña', article: 'el', tier: 8,
     does: 'Un refugio de piedra en El Monte: descanso y mirador.',
     teaches: 'En la montaña, dejar el sendero marcado evita la erosión de la ladera.',
     levels: [
@@ -119,7 +121,7 @@ export const STATIONS: Record<StationId, StationDef> = {
     ],
   },
   faro: {
-    id: 'faro', name: 'Faro', tier: 10,
+    id: 'faro', name: 'Faro', article: 'el', tier: 10,
     does: 'El faro de Don Beto, prendido otra vez. Con energía del sol y del viento.',
     teaches: 'Una luz que usa sol y viento no gasta nada que se acabe.',
     levels: [
@@ -138,6 +140,11 @@ export const STATION_ORDER: StationId[] = [
 export function levelDef(id: StationId, lvl: number): StationLevel | null {
   if (lvl < 1) return null;
   return STATIONS[id].levels[Math.min(lvl, STATIONS[id].levels.length) - 1] ?? null;
+}
+
+/** "la compostera", "el tanque de lluvia". */
+export function named(id: StationId): string {
+  return `${STATIONS[id].article} ${STATIONS[id].name.charAt(0).toLowerCase()}${STATIONS[id].name.slice(1)}`;
 }
 
 /** What the next build or upgrade costs, or null at the top level. */

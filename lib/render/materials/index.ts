@@ -62,6 +62,20 @@ export function setGroundGrass(tex: THREE.Texture, res: number, step: number, ex
   for (const mat of clayCache.values()) applyGroundGrass(mat);
 }
 
+/** The game's restoration map in force, for the ground (`restoration.ts`). */
+let groundRest: THREE.Texture | null = null;
+
+function applyGroundRest(mat: ClayMaterial): void {
+  const u = mat.clayUniforms;
+  if (!groundRest || !u.uRestTex) return;
+  u.uRestTex.value = groundRest;
+}
+
+export function setGroundRestoration(tex: THREE.Texture): void {
+  groundRest = tex;
+  for (const mat of clayCache.values()) applyGroundRest(mat);
+}
+
 /** The mood in force, read back — the grass takes its fog from it. */
 export function currentMood(): WorldMood | null {
   return lastMood;
@@ -107,6 +121,7 @@ export function getClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if (lastMood) applyMood(mat, lastMood);
   applySun(mat, lastSunDir, lastSunColor);
   applyGroundGrass(mat);
+  applyGroundRest(mat);
   applyReveal(mat, lastReveal);
   clayCache.set(key, mat);
   return mat;

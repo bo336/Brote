@@ -23,9 +23,8 @@ import * as THREE from 'three';
 
 import { GRASS, WATER_LEVEL } from '@/lib/world/config';
 import type { BiomeConfig } from '@/lib/world/biome';
-import { coastRadiusAt, regionAt, type IslandLayout } from '@/lib/world/layout';
+import { coastRadiusAt, type IslandLayout } from '@/lib/world/layout';
 import { pathsFor, pathWeight } from '@/lib/world/paths';
-import { REGION_CHARACTER } from '@/lib/world/regions';
 import { fbm, sampleSlope, type Heightfield } from '@/lib/world/terrain';
 import type { QualityTier } from '@/lib/world/types';
 import { groundColor, moistureAt, patchAt, primeRamp, scratch } from './geometry/ground-paint';
@@ -36,6 +35,7 @@ import {
   GRASS_VERT_POSITION,
 } from './grass-shader';
 import type { WorldPalette } from './palette';
+import { neutralRestoration } from './restoration';
 
 export interface GrassTextures {
   heightTex: THREE.DataTexture;
@@ -80,15 +80,19 @@ export function bakeGrassTextures(
       groundColor(scratch, x, z, h, slope, moisture, patch, layout.snowLine, path);
 
       let density = 0;
-      // Tier 1 is bare warm earth by design (`08-WORLD-AND-PROGRESSION.md` §3).
-      if (worldTier >= 2 && h > WATER_LEVEL + 0.08 && slope < GRASS.maxSlope) {
+      // The mask is the ground's *potential*: where grass could grow at all, and
+      // how much the biome allows. How much of it actually grows — the region's
+      // character outside parcels, the parcel's restoration inside them — is the
+      // restoration map's job (`restoration.ts`). Tier 1 is no longer bare by
+      // rule: El Claro greens as you restore it.
+      void worldTier;
+      if (h > WATER_LEVEL + 0.08 && slope < GRASS.maxSlope) {
         const onIslet = islet !== null && Math.hypot(x - islet.x, z - islet.z) < islet.r * 0.9;
         const coast = coastRadiusAt(layout.coastline, Math.atan2(z, x));
         const inside = onIslet || Math.hypot(x, z) < coast - GRASS.coastClearM;
         const snowy = layout.snowLine !== null && h > layout.snowLine - 0.3;
         if (inside && !snowy) {
-          const character = REGION_CHARACTER[regionAt(x, z, layout.regions)];
-          density = Math.min(1, (character.grass / 1.2) * biome.mix.grassDensity);
+          density = Math.min(1, biome.mix.grassDensity);
           density *= 1 - path;
           const clearing = fbm(x * GRASS.clearingFreq + seed, z * GRASS.clearingFreq - seed, 3);
           density *= Math.min(1, Math.max(0, (clearing - 0.28) / 0.22));
@@ -174,6 +178,8 @@ export function createGrassSystem(textures: GrassTextures, hf: Heightfield, path
   const common: Record<string, THREE.IUniform> = {
     uHeightTex: { value: textures.heightTex },
     uMaskTex: { value: textures.maskTex },
+    // Restoration (`restoration.ts`): neutral until the game hands its map over.
+    uRestTex: { value: neutralRestoration() },
     uPathMap: { value: pathMap },
     uPathInfo: { value: pathInfo(hf.extent, new THREE.Vector4()) },
     uRes: { value: hf.res },
@@ -239,6 +245,11 @@ export function tickGrass(
     u.uFogDensity!.value = fog.density;
     u.uWindAmp!.value = fog.windOn ? GRASS.windAmp : 0;
   }
+}
+
+/** The game's restoration map, once it exists. The grass reads it every blade. */
+export function setGrassRestoration(system: GrassSystem, tex: THREE.Texture): void {
+  system.common.uRestTex!.value = tex;
 }
 
 export function disposeGrass(system: GrassSystem): void {

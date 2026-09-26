@@ -57,6 +57,11 @@ export interface VisitPayload {
   stickers: Sticker[];
   /** How many this visitor has left here today, against `VISIT.stickersPerDay`. */
   leftToday: number;
+  /**
+   * What the host's play has built — parcels and stations, nothing else
+   * (`world_snapshot_for`, 0115). The visitor sees the island as it is.
+   */
+  game: { parcels: unknown; stations: unknown } | null;
 }
 
 export function isStickerId(v: unknown): v is StickerId {
@@ -137,7 +142,7 @@ export function parseVisitPayload(raw: unknown, username: string): VisitPayload 
   const o = isObject(raw) ? raw : {};
   const empty: VisitPayload = {
     ok: false, reason: 'not_found', username, displayName: '', seed: 0, tier: 1,
-    worldIndex: 1, palette: 'default', pip: {}, placements: [], stickers: [], leftToday: 0,
+    worldIndex: 1, palette: 'default', pip: {}, placements: [], stickers: [], leftToday: 0, game: null,
   };
   if (o.ok !== true) {
     return { ...empty, reason: o.reason === 'no_world' ? 'no_world' : 'not_found' };
@@ -159,6 +164,7 @@ export function parseVisitPayload(raw: unknown, username: string): VisitPayload 
       .map(sticker)
       .filter((s): s is Sticker => s !== null),
     leftToday: Math.max(0, Math.trunc(num(o.leftToday, 0))),
+    game: isObject(o.game) ? { parcels: o.game.parcels ?? {}, stations: o.game.stations ?? {} } : null,
   };
 }
 
@@ -202,5 +208,9 @@ export function payloadForVisit(v: VisitPayload, myPip: unknown = null): WorldPa
     snapshotUrl: null,
     projectMarkers: [],
     dueReviews: 0,
+    // Only what shows: a save with the host's parcels and stations and nothing
+    // of theirs besides. The visitor's store never writes it anywhere.
+    game: v.game ? { state: { v: 1, parcels: v.game.parcels, stations: v.game.stations }, rev: 0 } : null,
+    division: 1,
   };
 }

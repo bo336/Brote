@@ -14,7 +14,17 @@ import { audioContext, master } from './engine';
  * Silent until the context is unlocked and unmuted, and never an error: audio
  * is the one part of the world allowed to simply not be there.
  */
-export type SfxKind = 'reward' | 'jump' | 'land' | 'splash' | 'pop';
+export type SfxKind =
+  | 'reward' | 'jump' | 'land' | 'splash' | 'pop'
+  | 'pickup' | 'deliver' | 'build' | 'right' | 'wrong' | 'grow' | 'coin' | 'talk';
+
+/**
+ * Consecutive pickups climb a little in pitch, like a combo. It is the cheapest
+ * "this feels good" in games and it tells you, without a word, that the run of
+ * things you are picking up is one run.
+ */
+let comboAt = 0;
+let combo = 0;
 
 /** A bright major arpeggio for a job done. */
 const CHIME_HZ = [784, 988, 1175, 1568];
@@ -80,6 +90,40 @@ export function playSfx(kind: SfxKind): void {
       break;
     case 'pop':
       tone(ctx, out, 880, t, 0.09, 'sine', 0.07, 420);
+      break;
+    case 'pickup': {
+      combo = t - comboAt < 0.9 ? Math.min(combo + 1, 10) : 0;
+      comboAt = t;
+      const hz = 620 * Math.pow(2, combo / 12);
+      tone(ctx, out, hz, t, 0.1, 'sine', 0.06, hz * 1.5);
+      break;
+    }
+    case 'deliver':
+      burst(ctx, out, t, 0.05, 0.07, 1400, 'bandpass');
+      tone(ctx, out, 220, t, 0.06, 'triangle', 0.04);
+      break;
+    case 'build':
+      [0, 0.12, 0.24].forEach((d) => burst(ctx, out, t + d, 0.06, 0.09, 1100, 'bandpass'));
+      CHIME_HZ.forEach((hz, i) => tone(ctx, out, hz, t + 0.34 + i * CHIME_STEP_S, 0.5, 'sine', 0.09));
+      break;
+    case 'right':
+      tone(ctx, out, 988, t, 0.16, 'sine', 0.08);
+      tone(ctx, out, 1319, t + 0.07, 0.22, 'sine', 0.07);
+      break;
+    case 'wrong':
+      tone(ctx, out, 294, t, 0.18, 'triangle', 0.05, 262);
+      break;
+    case 'grow':
+      burst(ctx, out, t, 0.5, 0.05, 900, 'lowpass');
+      [523, 659, 784, 1047].forEach((hz, i) => tone(ctx, out, hz, t + 0.1 + i * 0.09, 0.55, 'sine', 0.07));
+      break;
+    case 'coin':
+      tone(ctx, out, 1568, t, 0.08, 'square', 0.025);
+      tone(ctx, out, 2093, t + 0.06, 0.18, 'sine', 0.05);
+      break;
+    case 'talk':
+      tone(ctx, out, 523, t, 0.07, 'triangle', 0.04, 587);
+      tone(ctx, out, 659, t + 0.08, 0.09, 'triangle', 0.035);
       break;
   }
 }

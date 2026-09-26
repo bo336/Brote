@@ -19,6 +19,7 @@
  * the whole scene by changing numbers — never by rebuilding a material.
  */
 import * as THREE from 'three';
+import { neutralRestoration } from '../restoration';
 
 import { CLAY, FOG, GROUND, LOOK, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
@@ -131,6 +132,8 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uGroundNormal: { value: blankTexture() },
     uGrassMask: { value: blankTexture() },
     uGrassMaskInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    // The game's restoration map; the neutral texel means "as it always was".
+    uRestTex: { value: neutralRestoration() },
     uGroundScales: { value: new THREE.Vector4(GROUND.detailScale, GROUND.broadScale, GROUND.underGrass, GROUND.normalStrength) },
     // The paths' distance map (`geometry/path-map.ts`); the blank reads as "no path anywhere".
     uPathMap: { value: blankTexture() },

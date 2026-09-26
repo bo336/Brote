@@ -222,8 +222,14 @@ export interface Interactable {
   id: string;
   position: [number, number, number];
   radius: number;
-  /** i18n key, never a literal string. */
+  /** i18n key, never a literal string… */
   labelKey: string;
+  /**
+   * …except for the game layer (`lib/world/game`), whose copy lives in TS and
+   * ships only with the world chunk (`docs/MUNDO_JUEGO.md` D6). When present it
+   * wins over `labelKey`.
+   */
+  label?: string;
   /**
    * The verb this needs, when it needs one.
    *
@@ -308,4 +314,8 @@ export interface WorldPayload {
   /** Straight from the server, before the island decides where each one goes. */
   projectMarkers: { id: string; title: string; place: string | null; date: string }[];
   dueReviews: number;
+  /** The game's save (`world_game`, 0115), or null the first time. Sanitised by the game store. */
+  game: { state: unknown; rev: number } | null;
+  /** The division inside the rank tier, 1..5 — the Descubrir axis between rank-ups. */
+  division: number;
 }

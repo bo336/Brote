@@ -103,7 +103,8 @@ const fragmentShader = /* glsl */ `
   }
 
   void main() {
-    if (uRevealMode > 3.5) {
+    // Only the channel cuts water; a repaint or a parcel's bloom leaves it be.
+    if (uRevealMode > 3.5 && uRevealMode < 4.5) {
       float bhD = length(vWorld.xz - uRevealCentre.xz);
       float bhFront = uRevealAmount * uRevealRadius;
       if (bhD > bhFront + bhNoise(vWorld.xz * 3.0 + vec2(uTime * 0.9, 0.0)) * 0.9) discard;

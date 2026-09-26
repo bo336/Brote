@@ -33,8 +33,19 @@ const CARE_KINDS = Object.keys(CARE) as CareKind[];
 const CARE_SHARE = 0.24;
 const CARE_MAX = 8;
 
+/** Per state object and day: the state is immutable per action, so this is exact. */
+const memo = new WeakMap<GameState, { day: string; map: Map<string, CareKind> }>();
+
 /** Today's care, deterministic from the island and the date: the same on every device. */
 export function careToday(s: GameState, field: ParcelField, ctx: GameContext): Map<string, CareKind> {
+  const hit = memo.get(s);
+  if (hit && hit.day === ctx.day) return hit.map;
+  const out = computeCare(s, field, ctx);
+  memo.set(s, { day: ctx.day, map: out });
+  return out;
+}
+
+function computeCare(s: GameState, field: ParcelField, ctx: GameContext): Map<string, CareKind> {
   const out = new Map<string, CareKind>();
   const living = Object.entries(s.parcels)
     .filter(([id, ps]) => ps.s >= 4 && field.byId.has(id) && dayOf(ctx.day) > (ps.d ?? 0))
