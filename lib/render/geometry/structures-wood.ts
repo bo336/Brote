@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { BRIDGE, SCALE_REFERENCE } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical, post } from './build';
+import { bevelBox, mergePainted, paintFlat, paintVertical, post, surface } from './build';
 import { beamBetween, between, board, doubleSided, logBetween, nail, rope, v3, weather } from './carpentry';
 
 const METAL = PIP_PARTS.metal;
@@ -39,7 +39,7 @@ export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry
     const x1 = -half + t1 * span;
     const y0 = y + lift(t0);
     const y1 = y + lift(t1);
-    const b = bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9);
+    const b = surface(bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9), 'wood', [1, 0, 0]);
     b.rotateZ(Math.atan2(y1 - y0, x1 - x0));
     b.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
     return b;
@@ -58,7 +58,8 @@ export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry
     const t = (i + 0.5) / planks;
     const tone = rng();
     const hex = tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
-    const plank = bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94);
+    // Laid across the span: the grain runs from rail to rail.
+    const plank = surface(bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94), 'wood', [0, 0, 1]);
     plank.rotateY((rng() - 0.5) * 0.06);
     plank.rotateZ(tilt(t));
     plank.translate(-half + t * span, plankY + lift(t) + (rng() - 0.5) * 0.015, (rng() - 0.5) * 0.06);
@@ -95,7 +96,7 @@ export function compost(): THREE.BufferGeometry {
   const sides: [number, number, number, number][] = [[0, -r, 0, 4], [-r, 0, Math.PI / 2, 4], [r, 0, Math.PI / 2, 4], [0, r, 0, 2]];
   for (const [x, z, yaw, count] of sides) {
     for (let k = 0; k < count; k++) {
-      const slat = bevelBox(r * 2 - 0.06, 0.12, 0.025, weather(CLAY.bark, rng), 0.93);
+      const slat = surface(bevelBox(r * 2 - 0.06, 0.12, 0.025, weather(CLAY.bark, rng), 0.93), 'wood', [1, 0, 0]);
       slat.rotateY(yaw);
       slat.translate(x, 0.09 + k * 0.17, z);
       parts.push(slat);
@@ -259,7 +260,7 @@ export function boat(): THREE.BufferGeometry {
     const a = v3(side * 0.16, sheer(-0.32) - 0.06, -0.72);
     const b = v3(side * 0.05, sheer(0.5) - 0.03, 0.85);
     parts.push(...logBetween(a, b, 0.018, 0.016, CLAY.barkRoof, SAWN, rng, 6));
-    const blade = bevelBox(0.11, 0.012, 0.34, weather(CLAY.barkRoof, rng), 0.93);
+    const blade = surface(bevelBox(0.11, 0.012, 0.34, weather(CLAY.barkRoof, rng), 0.93), 'wood', [0, 0, 1]);
     blade.rotateY(Math.atan2(b.x - a.x, b.z - a.z));
     blade.translate(b.x + (b.x - a.x) * 0.12, b.y + 0.01, b.z + 0.14);
     parts.push(blade);

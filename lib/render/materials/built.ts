@@ -87,23 +87,28 @@ export const BUILT_FRAG = /* glsl */ `
         bhAcross = dot(bhAcross, bhAcross) > 1e-4 ? normalize(bhAcross) : vec3(0.0, 1.0, 0.0);
         float bhW = dot(bhP, bhAcross);
         float bhWob = bhNoise3(vec3(bhAlong * 1.3, bhW * 4.0, 0.3));
-        float bhLines = sin(bhW * 150.0 + bhWob * 7.0 + bhAlong * 0.8);
+        // Thin dark grain lines, bunched and spread by the wobble, running along the board.
+        float bhRing = fract(bhW * 22.0 + bhWob * 2.2 + bhAlong * 0.12);
+        float bhLine = smoothstep(0.0, 0.08, bhRing) * (1.0 - smoothstep(0.14, 0.3, bhRing));
         float bhStreak = bhNoise3(vec3(bhAlong * 2.2, bhW * 70.0, 1.7));
-        float bhKnot = smoothstep(0.86, 0.97, bhNoise3(vec3(bhAlong * 3.0, bhW * 9.0, 4.2)));
-        float bhTone = bhNoise3(bhP * 0.9 + 3.1);
+        float bhKnot = smoothstep(0.88, 0.97, bhNoise3(vec3(bhAlong * 3.0, bhW * 9.0, 4.2)));
+        // Board to board: each piece its own shade (the tone field is coarse, a board is small).
+        float bhTone = bhNoise3(bhP * 1.7 + 3.1);
         float bhFine = 1.0 - smoothstep(0.004, 0.02, bhPix);
         float k = 1.0
-          + (0.06 * bhLines * (0.55 + 0.45 * bhStreak) - 0.07 * smoothstep(0.6, 0.95, bhStreak) - 0.12 * bhKnot) * bhFine
-          + 0.1 * (bhTone - 0.5);
+          + (-0.2 * bhLine + 0.1 * (bhStreak - 0.5) - 0.28 * bhKnot) * bhFine
+          + 0.2 * (bhTone - 0.5);
         diffuseColor.rgb *= k;
+        // Sun-bleached where it faces the sky: tops of boards are paler than their sides.
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 1.1, 1.05), clamp(bhN.y, 0.0, 1.0) * 0.6);
       } else if (bhCls < 2.5) {
         // Stone: grain, a few pits, lichen-pale where it faces the sky.
         float bhFine = 1.0 - smoothstep(0.006, 0.03, bhPix);
         float g = bhNoise3(bhP * 16.0) * 0.6 + bhNoise3(bhP * 43.0) * 0.4;
-        float pits = smoothstep(0.8, 0.95, bhNoise3(bhP * 8.0 + 5.0));
-        float lichen = smoothstep(0.62, 0.8, bhNoise3(bhP * 5.0 + 11.0)) * clamp(bhN.y, 0.0, 1.0);
-        diffuseColor.rgb *= 1.0 + ((g - 0.5) * 0.22 - pits * 0.2) * bhFine;
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.78, 0.8, 0.62), lichen * 0.25);
+        float pits = smoothstep(0.78, 0.94, bhNoise3(bhP * 8.0 + 5.0));
+        float lichen = smoothstep(0.6, 0.78, bhNoise3(bhP * 5.0 + 11.0)) * clamp(bhN.y, 0.0, 1.0);
+        diffuseColor.rgb *= 1.0 + ((g - 0.5) * 0.36 - pits * 0.3) * bhFine;
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.74, 0.78, 0.56), lichen * 0.35);
       } else if (bhCls < 3.5) {
         // Metal: brushed along its length, and smoother, so the sun catches it.
         vec3 bhAx = dot(vSurf.xyz, vSurf.xyz) > 0.5 ? vSurf.xyz : vec3(0.0, 1.0, 0.0);

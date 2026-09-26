@@ -960,7 +960,24 @@
       "mundo_hamaca": "Hamaca paraguaya",
       "mundo_huerta": "Huerta",
       "mundo_molino": "Molino de viento",
-      "mundo_totem": "Tótem de piedra"
+      "mundo_totem": "Tótem de piedra",
+      "banco_reciclado": "Banco reciclado",
+      "maceta": "Maceta de barro",
+      "cartel": "Cartel de madera",
+      "sendero_piedra": "Piedras de paso",
+      "cerco": "Cerco de palos",
+      "mesa_picnic": "Mesa de picnic",
+      "farol_solar": "Farol solar",
+      "hamaca_arbol": "Hamaca de rama",
+      "pergola": "Pérgola",
+      "estanque": "Estanque",
+      "mirador": "Mirador",
+      "posadero": "Posadero",
+      "bebedero": "Bebedero",
+      "hotel_chico": "Refugio de abejas",
+      "caja_nido": "Caja nido",
+      "refugio_ranas": "Refugio de ranas",
+      "pirca": "Pirca"
     },
     "placement": {
       "remaining": "Te quedan {n}",
@@ -1321,7 +1338,10 @@
       "skip": "Saltar"
     },
     "juego": {
-      "ceibo": {"primera": "Cada flor de tu ceibo es una acción real tuya en Brote.", "nuevas": "{n, plural, one {# acción real nueva floreció} other {# acciones reales nuevas florecieron}} en tu ceibo."},
+      "ceibo": {
+        "primera": "Cada flor de tu ceibo es una acción real tuya en Brote.",
+        "nuevas": "{n, plural, one {# acción real nueva floreció} other {# acciones reales nuevas florecieron}} en tu ceibo."
+      },
       "mision": "Misión: {title}",
       "cerrar": "Cerrar",
       "isla": {

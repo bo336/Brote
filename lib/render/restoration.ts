@@ -55,8 +55,9 @@ const TALL: Partial<Record<RegionId, number>> = { pradera: 1, rio: 0.8, islote: 
 function lookFor(l: ParcelLook): [number, number, number, number] {
   const full = COVER[l.region];
   switch (l.stage) {
-    case 0: return [0, 0.3, 0, 0];
-    case 1: return [0.12, 0.16, 0.15, 0];
+    // Wild: a tired, fairly full pasture (thin dry blades, see the grass shader).
+    case 0: return [0, 0.55, 0, 0];
+    case 1: return [0.12, 0.3, 0.15, 0];
     case 2: return [0.25, 0.08, 1, 0];
     case 3: return [0.5, 0.3, 0.75, 0];
     case 4: return [0.88, full, 0.25, (TALL[l.region] ?? 0) * 0.8];

@@ -12,7 +12,7 @@ import * as THREE from 'three';
 
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, NATIVE, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
+import { bevelBox, mergePainted, paintFlat, paintVertical, surface } from './build';
 import { beamBetween, board, logBetween, nail, rope, v3, weather } from './carpentry';
 import { smoothRock } from './scatter';
 
@@ -29,8 +29,8 @@ function bin(x: number, z: number, color: string, rng: Rng, h = 0.62): THREE.Buf
   const body = new THREE.CylinderGeometry(0.2, 0.17, h, 14, 2);
   body.scale(1, 1, 0.82);
   body.translate(x, h / 2 + 0.02, z);
-  out.push(paintVertical(body, weather(color, rng, 0.6), color, 1));
-  const lid = bevelBox(0.44, 0.05, 0.36, weather(color, rng, 0.4), 0.85);
+  out.push(surface(paintVertical(body, weather(color, rng, 0.6), color, 1), 'plastic', [0, 1, 0]));
+  const lid = surface(bevelBox(0.44, 0.05, 0.36, weather(color, rng, 0.4), 0.85), 'plastic', [1, 0, 0]);
   lid.rotateX(-0.08);
   lid.translate(x, h + 0.045, z - 0.01);
   out.push(lid);
@@ -39,7 +39,7 @@ function bin(x: number, z: number, color: string, rng: Rng, h = 0.62): THREE.Buf
   out.push(paintFlat(label, '#EDEBE3'));
   const handle = new THREE.TorusGeometry(0.06, 0.012, 5, 10, Math.PI);
   handle.translate(x, h + 0.02, z - 0.19);
-  out.push(paintFlat(handle, METAL));
+  out.push(surface(paintFlat(handle, METAL), 'metal', [1, 0, 0]));
   for (const sx of [-0.13, 0.13]) {
     const wheel = new THREE.CylinderGeometry(0.045, 0.045, 0.03, 10);
     wheel.rotateZ(Math.PI / 2);
@@ -92,7 +92,7 @@ export function puntoLimpio(lvl: number): THREE.BufferGeometry {
   });
   if (lvl >= 3) {
     // A baling press: a steel box with a lever, the recycling centre's workhorse.
-    const press = bevelBox(0.5, 0.8, 0.45, '#5E7A8C', 0.92);
+    const press = surface(bevelBox(0.5, 0.8, 0.45, '#5E7A8C', 0.92), 'metal', [0, 1, 0]);
     press.translate(w / 2 - 0.2, 0.42, -0.1);
     parts.push(press);
     parts.push(beamBetween(v3(w / 2 - 0.2, 0.84, -0.1), v3(w / 2 + 0.25, 1.15, -0.1), 0.035, 0.035, METAL, rng));
@@ -127,7 +127,7 @@ function compostBay(x: number, rng: Rng, fill: number, lid: boolean): THREE.Buff
     out.push(paintFlat(leaf, rng() < 0.5 ? '#B7792F' : '#8BA35A'));
   }
   if (lid) {
-    const top = bevelBox(s + 0.1, 0.04, s + 0.1, weather(CLAY.barkRoof, rng), 0.9);
+    const top = surface(bevelBox(s + 0.1, 0.04, s + 0.1, weather(CLAY.barkRoof, rng), 0.9), 'wood', [1, 0, 0]);
     top.rotateX(-0.5);
     top.translate(x, h + 0.2, -s / 2 - 0.05);
     out.push(top);
@@ -158,7 +158,7 @@ export function tanque(lvl: number): THREE.BufferGeometry {
   const barrels = lvl >= 2 ? 2 : 1;
   for (let b = 0; b < barrels; b++) {
     const x = (b - (barrels - 1) / 2) * 0.62;
-    const base = bevelBox(0.56, 0.22, 0.56, weather(CLAY.stone, rng), 0.85);
+    const base = surface(bevelBox(0.56, 0.22, 0.56, weather(CLAY.stone, rng), 0.85), 'stone', [1, 0, 0]);
     base.translate(x, 0.11, 0);
     parts.push(base);
     const barrel = new THREE.CylinderGeometry(0.26, 0.26, 0.82, 18, 3);
@@ -171,17 +171,17 @@ export function tanque(lvl: number): THREE.BufferGeometry {
     }
     barrel.computeVertexNormals();
     barrel.translate(x, 0.63, 0);
-    parts.push(paintVertical(barrel, '#2F6E8C', '#3F8FB0', 1));
+    parts.push(surface(paintVertical(barrel, '#2F6E8C', '#3F8FB0', 1), 'plastic', [0, 1, 0]));
     for (const y of [0.35, 0.9]) {
       const band = new THREE.TorusGeometry(0.275, 0.014, 5, 20);
       band.rotateX(Math.PI / 2);
       band.translate(x, y, 0);
-      parts.push(paintFlat(band, '#26485A'));
+      parts.push(surface(paintFlat(band, '#26485A'), 'metal', [1, 0, 0]));
     }
     const tap = new THREE.CylinderGeometry(0.02, 0.02, 0.1, 8);
     tap.rotateX(Math.PI / 2);
     tap.translate(x, 0.34, 0.3);
-    parts.push(paintFlat(tap, METAL));
+    parts.push(surface(paintFlat(tap, METAL), 'metal', [0, 0, 1]));
   }
   const roofW = lvl >= 3 ? 2 : 1.4;
   parts.push(...shelter(roofW, 0.9, 1.65, 1.45, rng).map((g) => g.translate(0, 0, -0.55)));
@@ -243,7 +243,7 @@ export function vivero(lvl: number): THREE.BufferGeometry {
     }
     for (let k = 0; k < Math.round((w - 0.4) / 0.36); k++) {
       const x = -(w - 0.6) / 2 + k * 0.36;
-      const tray = bevelBox(0.32, 0.05, 0.3, '#2B2B2B', 0.95);
+      const tray = surface(bevelBox(0.32, 0.05, 0.3, '#2B2B2B', 0.95), 'plastic', [1, 0, 0]);
       tray.translate(x, 0.765, tz);
       parts.push(tray);
       for (let s = 0; s < 6; s++) {
@@ -256,7 +256,7 @@ export function vivero(lvl: number): THREE.BufferGeometry {
   // A watering can on the ground: this is a place where plants are looked after.
   const can = new THREE.CylinderGeometry(0.1, 0.12, 0.2, 12);
   can.translate(w / 2 + 0.25, 0.1, 0.4);
-  parts.push(paintFlat(can, '#3F8FB0'));
+  parts.push(surface(paintFlat(can, '#3F8FB0'), 'metal', [0, 1, 0]));
   parts.push(beamBetween(v3(w / 2 + 0.33, 0.12, 0.4), v3(w / 2 + 0.52, 0.26, 0.4), 0.02, 0.02, '#3F8FB0', rng));
   return mergePainted(parts);
 }
@@ -283,23 +283,23 @@ export function hotelInsectos(lvl: number): THREE.BufferGeometry {
         const cane = new THREE.CylinderGeometry(0.035, 0.035, 0.26, 8, 1, true);
         cane.rotateX(Math.PI / 2);
         cane.translate(x, y - 0.06 + (k % 2) * 0.07, 0.01);
-        parts.push(paintFlat(cane, '#C9B27A'));
+        parts.push(surface(paintFlat(cane, '#C9B27A'), 'wood', [0, 0, 1]));
         const hole = new THREE.CircleGeometry(0.02, 8);
         hole.translate(x, y - 0.06 + (k % 2) * 0.07, 0.141);
         parts.push(paintFlat(hole, '#2A2118'));
       } else if (kind === 1) {
-        const brick = bevelBox(0.1, 0.12, 0.26, '#B5533A', 0.9);
+        const brick = surface(bevelBox(0.1, 0.12, 0.26, '#B5533A', 0.9), 'stone', [0, 0, 1]);
         brick.translate(x, y, 0);
         parts.push(brick);
       } else {
         const log = new THREE.CylinderGeometry(0.055, 0.055, 0.26, 10);
         log.rotateX(Math.PI / 2);
         log.translate(x, y, 0);
-        parts.push(paintFlat(log, NATIVE.bark));
+        parts.push(surface(paintFlat(log, NATIVE.bark), 'wood', [0, 0, 1]));
       }
     }
   }
-  const roof = bevelBox(w + 0.3, 0.05, 0.45, weather(CLAY.barkRoof, rng), 0.9);
+  const roof = surface(bevelBox(w + 0.3, 0.05, 0.45, weather(CLAY.barkRoof, rng), 0.9), 'wood', [1, 0, 0]);
   roof.rotateZ(0.08);
   roof.translate(0, 0.4 + floors * fh + 0.12, 0);
   parts.push(roof);

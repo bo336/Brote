@@ -31,6 +31,8 @@ const SWAY_HZ = WIND.hz * 0.6;
 const SWAY_AMPLITUDE = 0.06;
 /** Where the demo set is laid out, in metres from the spawn. */
 const DEMO_RING_M = 4.2;
+const DEMO_PER_RING = 12;
+const DEMO_RING_STEP_M = 4.5;
 /** Blob footprint for a fixed structure, in metres. Props use their own. */
 const STRUCTURE_SHADOW = 0.55;
 /** Where along its height an ombú forks, as a fraction — the treehouse deck sits there. */
@@ -133,11 +135,15 @@ export function Props({
   const placed = useMemo<Placed[]>(() => {
     const source: { slug: PropId; x: number; z: number; rotY: number }[] = demo
       ? PROP_IDS.map((slug, i) => {
-          const a = (i / PROP_IDS.length) * Math.PI * 2;
+          // Rings of a dozen, each further out, so the shop's whole catalogue fits.
+          const ring = Math.floor(i / DEMO_PER_RING);
+          const inRing = Math.min(DEMO_PER_RING, PROP_IDS.length - ring * DEMO_PER_RING);
+          const a = ((i % DEMO_PER_RING) / inRing) * Math.PI * 2 + ring * 0.4;
+          const r = DEMO_RING_M + ring * DEMO_RING_STEP_M;
           return {
             slug,
-            x: layout.spawn[0] + Math.cos(a) * DEMO_RING_M,
-            z: layout.spawn[1] + Math.sin(a) * DEMO_RING_M,
+            x: layout.spawn[0] + Math.cos(a) * r,
+            z: layout.spawn[1] + Math.sin(a) * r,
             rotY: -a,
           };
         })
@@ -215,6 +221,7 @@ export function Props({
       {structures.map((s, i) => (
         <group
           key={s.key}
+          name={s.key}
           position={s.position}
           rotation={[0, s.rotY, 0]}
           ref={(node) => {
@@ -238,7 +245,7 @@ export function Props({
       ))}
 
       {placed.map((p, i) => (
-        <group key={p.key} position={p.position} rotation={[0, p.rotY, 0]}>
+        <group key={p.key} name={p.slug} position={p.position} rotation={[0, p.rotY, 0]}>
           <mesh geometry={p.geometry} material={solid} castShadow receiveShadow />
           {p.moving && (
             <group

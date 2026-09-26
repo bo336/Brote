@@ -960,7 +960,24 @@
       "mundo_hamaca": "Hamaca paraguaya",
       "mundo_huerta": "Huerta",
       "mundo_molino": "Molino de viento",
-      "mundo_totem": "Tótem de piedra"
+      "mundo_totem": "Tótem de piedra",
+      "banco_reciclado": "Recycled bench",
+      "maceta": "Clay pot",
+      "cartel": "Wooden sign",
+      "sendero_piedra": "Stepping stones",
+      "cerco": "Stick fence",
+      "mesa_picnic": "Picnic table",
+      "farol_solar": "Solar lamp",
+      "hamaca_arbol": "Rope swing",
+      "pergola": "Pergola",
+      "estanque": "Pond",
+      "mirador": "Lookout",
+      "posadero": "Bird perch",
+      "bebedero": "Birdbath",
+      "hotel_chico": "Bee shelter",
+      "caja_nido": "Nest box",
+      "refugio_ranas": "Frog shelter",
+      "pirca": "Dry stone wall"
     },
     "placement": {
       "remaining": "{n} left",
@@ -1321,7 +1338,10 @@
       "skip": "Skip"
     },
     "juego": {
-      "ceibo": {"primera": "Every flower on your ceibo is a real action of yours in Brote.", "nuevas": "{n, plural, one {# new real action bloomed} other {# new real actions bloomed}} on your ceibo."},
+      "ceibo": {
+        "primera": "Every flower on your ceibo is a real action of yours in Brote.",
+        "nuevas": "{n, plural, one {# new real action bloomed} other {# new real actions bloomed}} on your ceibo."
+      },
       "mision": "Mission: {title}",
       "cerrar": "Close",
       "isla": {

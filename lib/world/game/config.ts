@@ -116,6 +116,8 @@ export const GAME = {
     innerM: 1.0,
     outerM: 3.1,
     growMs: 1500,
+    /** Where a flourishing parcel's habitat stands, from the stake. */
+    habitatM: 1.5,
   },
   /** Starting kit: enough to learn every verb in the first minutes. */
   startBag: { ramas: 0, piedras: 0, hojas: 0, frutos: 0, compost: 0, reciclado: 0 },

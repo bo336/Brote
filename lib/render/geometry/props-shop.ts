@@ -14,6 +14,7 @@ import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, NATIVE, PIP_PARTS } from '../palette';
 import { bevelBox, mergePainted, paintFlat, paintVertical, surface } from './build';
 import { beamBetween, board, logBetween, nail, rope, v3, weather } from './carpentry';
+import { wallStone } from './props-habitat';
 import { flower, reed, smoothRock } from './scatter';
 
 const METAL = PIP_PARTS.metal;
@@ -145,10 +146,10 @@ export function senderoPiedra(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 5; i++) {
     const t = i / 4 - 0.5;
-    const s = smoothRock(0.2 + (i % 2) * 0.04, 300 + i);
-    s.scale(1.25, 0.28, 1);
+    // Flat on top, a finger's height proud of the ground: you see where to step.
+    const s = wallStone(0.36 + (i % 2) * 0.06, 0.07, 0.3 + (i % 3) * 0.03, 300 + i);
     s.rotateY(i * 1.3);
-    s.translate(t * 1.4, 0.0, Math.sin(t * 2.4) * 0.28);
+    s.translate(t * 1.4, 0.035, Math.sin(t * 2.4) * 0.28);
     parts.push(s);
   }
   return mergePainted(parts);

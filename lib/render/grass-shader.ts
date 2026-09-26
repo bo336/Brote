@@ -105,7 +105,8 @@ export const GRASS_VERT_POSITION = /* glsl */ `
   float bhTaper = 1.0 - pow(bhT, 1.4);
   float bhTwist = (bhR.x - 0.5) * 1.3 * bhT;
   vec2 bhSideT = bhSide * cos(bhTwist) - bhFacing * sin(bhTwist);
-  transformed.xz = bhRoot + bhSideT * position.x * uBladeW * (0.3 + 0.7 * bhTaper) * (0.7 + 0.6 * bhR.w)
+  // Dry blades are thin: wild ground reads as a tired pasture, not as a field of paper spikes.
+  transformed.xz = bhRoot + bhSideT * position.x * uBladeW * (0.3 + 0.7 * bhTaper) * (0.7 + 0.6 * bhR.w) * mix(0.55, 1.0, vGrassVital)
     + bhBend * bhCurve * bhH;
   transformed.y = bhGroundY + bhT * bhH * (1.0 - 0.4 * bhBendLen * bhCurve);
   vGrassWorld = transformed;
@@ -143,7 +144,9 @@ export const GRASS_FRAG_COLOR = /* glsl */ `
   bhC = mix(bhC, bhC * vec3(1.3, 1.15, 0.6) + vec3(0.02, 0.012, 0.0), smoothstep(0.6, 1.0, vGrassT) * 0.55);
   float bhRootShade = mix(0.42, 1.0, smoothstep(0.0, 0.7, vGrassT));
   // Wild ground: the same blades gone to straw — pale, dry, a little grey.
-  vec3 bhDryC = mix(vec3(0.36, 0.3, 0.14), vec3(0.46, 0.39, 0.2), vGrassTone.x) * (0.85 + 0.3 * vGrassTone.y);
+  // Wild ground: tired pasture — still green low down, gone to golden straw at the tips.
+  vec3 bhStrawC = mix(vec3(0.27, 0.2, 0.07), vec3(0.42, 0.32, 0.12), vGrassTone.x) * (0.88 + 0.24 * vGrassTone.y);
+  vec3 bhDryC = mix(bhC * vec3(0.8, 0.85, 0.6), bhStrawC, smoothstep(0.05, 0.55, vGrassT));
   bhC = mix(bhDryC, bhC, smoothstep(0.05, 0.85, vGrassVital));
   diffuseColor.rgb = bhC * bhRootShade;
 `;

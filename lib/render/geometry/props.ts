@@ -20,6 +20,10 @@ import { PLACEMENT } from '@/lib/world/config';
 import type { PropId } from '@/lib/world/types';
 import { banco, carpa, farolitos, hamaca, HEAD_Y, molinoBlades, molinoTower } from './props-build';
 import { arco, colmena, comedero, huerta, totem } from './props-garden';
+import { bebedero, cajaNido, hotelChico, pirca, posadero, refugioRanas } from './props-habitat';
+import {
+  bancoReciclado, cartel, cerco, estanque, farolSolar, hamacaArbol, maceta, mesaPicnic, mirador, pergola, senderoPiedra,
+} from './props-shop';
 
 /**
  * What a prop needs from the world beyond its geometry: how much ground it
@@ -49,6 +53,24 @@ export const PROP_SPECS: Record<PropId, PropSpec> = {
   // The tent now has its fire pit in front of it, inside the same footprint.
   mundo_carpa: { footprint: 1.3, animates: null },
   mundo_molino: { footprint: 0.8, animates: 'windmill' },
+  // What the world's shop sells (`lib/world/game/shop.ts`).
+  banco_reciclado: { footprint: 0.7, animates: null, rest: true },
+  maceta: { footprint: 0.3, animates: null },
+  cartel: { footprint: 0.55, animates: null },
+  sendero_piedra: { footprint: 0.5, animates: null },
+  cerco: { footprint: 0.9, animates: null },
+  mesa_picnic: { footprint: 0.9, animates: null, rest: true },
+  farol_solar: { footprint: 0.3, animates: 'lantern' },
+  hamaca_arbol: { footprint: 0.9, animates: null, rest: true },
+  pergola: { footprint: 1.3, animates: null },
+  estanque: { footprint: 1.0, animates: null },
+  mirador: { footprint: 1.2, animates: null },
+  posadero: { footprint: 0.3, animates: null },
+  bebedero: { footprint: 0.4, animates: null },
+  hotel_chico: { footprint: 0.3, animates: null },
+  caja_nido: { footprint: 0.3, animates: null },
+  refugio_ranas: { footprint: 0.5, animates: null },
+  pirca: { footprint: 0.8, animates: null },
 };
 
 /** The footprint a prop reserves, falling back to the default. */
@@ -77,6 +99,23 @@ const BUILDERS: Record<PropId, () => THREE.BufferGeometry> = {
   mundo_totem: totem,
   mundo_carpa: carpa,
   mundo_molino: molinoTower,
+  banco_reciclado: bancoReciclado,
+  maceta,
+  cartel,
+  sendero_piedra: senderoPiedra,
+  cerco,
+  mesa_picnic: mesaPicnic,
+  farol_solar: farolSolar,
+  hamaca_arbol: hamacaArbol,
+  pergola,
+  estanque,
+  mirador,
+  posadero,
+  bebedero,
+  hotel_chico: hotelChico,
+  caja_nido: cajaNido,
+  refugio_ranas: refugioRanas,
+  pirca,
 };
 
 const cache = new Map<string, THREE.BufferGeometry>();

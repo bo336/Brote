@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 
 import { forageRipe, maturation } from '@/lib/world/growth';
-import { beatForDay } from '@/lib/world/cast';
 import { returnLine, returnLineKey } from '@/lib/world/returns';
 import { isPlantable, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -26,7 +25,6 @@ import { useSessionStore } from '../state/useSessionStore';
  * How long the greeting keeps the slot before the day's beat takes it. Longer
  * than the note's own lifetime, so the two never overlap. OURS.
  */
-const CAST_BEAT_DELAY_MS = 6000;
 
 export function useIslandLife({
   layout,
@@ -54,7 +52,6 @@ export function useIslandLife({
   projectMarkers: readonly RawMarker[];
 }): ProjectMarker[] {
   const setNote = useSessionStore((s) => s.setNote);
-  const setCastBeat = useSessionStore((s) => s.setCastBeat);
 
   /** The same test the scatter plants with, so a thing lands where grass does. */
   const isGround = useMemo(
@@ -98,18 +95,10 @@ export function useIslandLife({
    * is actually true, because a game whose premise is that the world reflects
    * something real cannot afford small lies about the world.
    */
-  /**
-   * The day's beat, after the greeting has had its turn.
-   *
-   * One a day, in order per character (`14-CONTENT.md` §6). It waits for the
-   * return line to clear because the island saying two things at once is the
-   * same clutter the HUD rule exists to prevent.
-   */
-  useEffect(() => {
-    if (!layout || !heightfield) return;
-    const id = window.setTimeout(() => setCastBeat(beatForDay(localDate)), CAST_BEAT_DELAY_MS);
-    return () => window.clearTimeout(id);
-  }, [layout, heightfield, localDate, setCastBeat]);
+  // The old day's-beat line ("Mila: …" on arrival) is retired: the characters
+  // now stand on the island and speak when you walk up to them
+  // (`game/scene/Cast.tsx`), so a disembodied line from one of them was a
+  // second voice saying unrelated things (`docs/MUNDO_JUEGO.md` D4).
 
   const greeted = useRef(false);
   useEffect(() => {

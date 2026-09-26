@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '@/lib/world/rng';
 import type { FeatureId } from '@/lib/world/types';
 import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
+import { bevelBox, mergePainted, paintFlat, paintVertical, surface } from './build';
 import { weather } from './carpentry';
 import { banco, hamaca } from './props-build';
 import { smoothRock } from './scatter';
@@ -52,7 +52,7 @@ function mojon(): THREE.BufferGeometry {
   }
   shaft.computeVertexNormals();
   shaft.translate(0, 0.72, 0);
-  parts.push(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone, 0.9));
+  parts.push(surface(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone, 0.9), 'stone', [0, 1, 0]));
   const frame = bevelBox(0.38, 0.44, 0.05, weather(CLAY.stoneDeep, rng, 0.5), 0.9);
   const face = bevelBox(0.31, 0.37, 0.04, CLAY.sand, 0.94);
   face.translate(0, 0, 0.018);
@@ -120,7 +120,7 @@ function monument(): THREE.BufferGeometry {
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2 + (y > 0.3 ? 0.14 : 0);
       const w = ((Math.PI * 2 * radius) / count) * 0.97;
-      const block = bevelBox(w, h, 0.34, weather(CLAY.stone, rng, 0.7), 0.9);
+      const block = surface(bevelBox(w, h, 0.34, weather(CLAY.stone, rng, 0.7), 0.9), 'stone', [1, 0, 0]);
       block.rotateY(-a + Math.PI / 2);
       block.translate(Math.cos(a) * radius, y, Math.sin(a) * radius);
       parts.push(block);

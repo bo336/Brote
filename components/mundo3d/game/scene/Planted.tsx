@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import { getGeometry } from '@/lib/render/geometry';
+import { buildProp, getGeometry } from '@/lib/render/geometry';
 import { buildLeafAtlas } from '@/lib/render/geometry/leaf-atlas';
 import { plantedGeometry, plantedScale, PLANTED_PER_PARCEL, type PlantedBuild } from '@/lib/render/geometry/planted';
 import { InstancePool } from '@/lib/render/instancing';
@@ -64,6 +64,7 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
   const materials = useMemo(() => ({
     swaying: getClayMaterial({ vertexColors: true, wind: true, wobble: false }),
     still: getClayMaterial({ vertexColors: true, wind: false, wobble: false }),
+    built: getClayMaterial({ vertexColors: true, wind: false, wobble: false, built: true }),
     leaves: getClayMaterial({
       vertexColors: true, wind: true, wobble: false, side: THREE.DoubleSide, alphaTest: 0.5,
       map: getTexture('leaf-atlas', buildLeafAtlas),
@@ -71,6 +72,8 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
   }), []);
 
   const pools = useRef(new Map<string, Pools>());
+  /** One pool per habitat kind: the shelter a flourishing parcel was given. */
+  const habPools = useRef(new Map<string, InstancePool>());
   const group = useRef<THREE.Group>(null);
   useEffect(() => () => {
     for (const p of pools.current.values()) {
@@ -78,7 +81,22 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
       p.leaves?.dispose();
     }
     pools.current.clear();
+    for (const p of habPools.current.values()) p.dispose();
+    habPools.current.clear();
   }, []);
+
+  /** The pool for one habitat kind, made the first time a parcel gets one. */
+  const habPoolFor = (slug: string): InstancePool | null => {
+    const hit = habPools.current.get(slug);
+    if (hit) return hit;
+    const geo = buildProp(slug);
+    if (!geo || !group.current) return null;
+    const pool = new InstancePool(geo, materials.built, Math.max(4, maxPerSpecies), { name: `habitat-${slug}` });
+    pool.mesh.castShadow = true;
+    group.current.add(pool.mesh);
+    habPools.current.set(slug, pool);
+    return pool;
+  };
 
   const found = useMemo(() => (field ? parcelsAt(field, tier) : []), [field, tier]);
   const maxPerSpecies = found.length;
@@ -115,7 +133,7 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
   const key = parcels
     ? found.map((p) => {
       const ps = parcels[p.id];
-      return ps && ps.s >= 3 ? `${p.id}:${ps.s}:${ps.plants.join('.')}` : '';
+      return ps && ps.s >= 3 ? `${p.id}:${ps.s}:${ps.plants.join('.')}:${ps.hab ?? ''}` : '';
     }).join('|')
     : '';
   useEffect(() => {
@@ -125,6 +143,7 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
       p.solid.reset();
       p.leaves?.reset();
     }
+    for (const p of habPools.current.values()) p.reset();
     const next: Slot[] = [];
     let grew = false;
     for (const spec of found) {
@@ -133,6 +152,17 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
       const before = lastStage.current.get(spec.id);
       if (before !== undefined && before < ps.s) grew = true;
       lastStage.current.set(spec.id, ps.s);
+      // The habitat stands just behind the stake, facing out: the thing that made it flourish.
+      if (ps.hab) {
+        const pool = habPoolFor(ps.hab);
+        const i = pool ? pool.alloc() : -1;
+        if (pool && i >= 0) {
+          const a = spec.i * 0.7 + spec.j * 1.3 + Math.PI;
+          const hx = spec.x + Math.cos(a) * GAME.planted.habitatM;
+          const hz = spec.z + Math.sin(a) * GAME.planted.habitatM;
+          pool.place(i, hx, sampleHeight(heightfield, hx, hz), hz, -a + Math.PI / 2, 1);
+        }
+      }
       const species = [...new Set(ps.plants)].slice(0, 6);
       species.forEach((id, k) => {
         const def = PLANTS[id];
@@ -172,6 +202,10 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
       const scale = Math.max(0.001, (s.from + (s.to - s.from) * e) * s.jitter);
       s.pool.place(s.i, s.x, s.y, s.z, s.rot, scale);
       if (s.leaves && s.j >= 0) s.leaves.place(s.j, s.x, s.y, s.z, s.rot, scale);
+    }
+    for (const p of habPools.current.values()) {
+      p.resize(p.count);
+      p.commit();
     }
     for (const p of pools.current.values()) {
       p.solid.resize(p.solid.count);
