@@ -381,27 +381,27 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 
 ### F3 — Misiones y aprendizaje
 - [x] Motor de misiones (objetivos por evento del reducer) y tarjeta de objetivo nueva; si faltan materiales el faro lleva a buscarlos y la tarjeta dice qué falta.
-- [~] Cadenas de historia: escritas todas. Probado con input real: Claro 1–9. **Falta** jugar el resto.
+- [x] Cadenas de historia: escritas todas. Probado con input real el Claro de punta a punta hasta "Mañana, otra vez" (espera de un día real). Test: toda misión se puede terminar al nivel que la abre (verbos, especies, plantas, tienda, estaciones). El faro apunta a la especie a registrar, al lugar de pesca y a la parcela más avanzada.
 - [x] Diarias (pool ≥25) + bonus.
 - [x] Guía de campo (fichas) y los momentos que las dan; los personajes cuentan una ficha cuando no tienen capítulo.
-- [~] Censo paga semillas del mundo (hecho). **Falta:** premio por región completa.
+- [x] Censo paga semillas del mundo; premio y aviso por región entera restaurada (una vez).
 
 ### F4 — Tienda, decoración y arte
-- [ ] Tienda (hoja) + herramientas + sobres; colocar lo comprado (placement con inventario del juego).
-- [ ] Material de objetos construidos (madera/metal/piedra/tela/plástico) + AO.
-- [ ] Rehacer props y estructuras; modelos de estaciones; estudio de props (`?studio=`).
-- [ ] Revisión de cerca de cada objeto (capturas).
+- [x] Tienda (hoja, con ícono por objeto) + herramientas + sobres; colocar lo comprado con su cuenta (probado con clics reales: comprar → Colocar → Poner).
+- [x] Superficies de lo construido en el shader (`materials/built.ts`): veta a lo largo de cada tabla, piedra con grano y liquen, metal, soga/tela, plástico reciclado. Etiquetado por vértice en `tangent` (lo rota `applyMatrix4`).
+- [x] 17 modelos nuevos de la tienda (`props-shop.ts`, `props-habitat.ts`); estaciones lejanas (`stations-far.ts`: puente reparado, muelle, refugio, faro, 3 niveles); puente viejo roto hasta repararlo; hábitat visible en la parcela floreciente. Revisión con `?props=1` + `scratchpad/props.mjs`.
+- [x] Revisión de cerca de cada objeto (capturas en el scratchpad; pirca, bebedero y sendero rehechos tras verlos).
 
 ### F5 — Nivel e impacto
-- [ ] Descubrimientos por nivel y división; tarjeta "Descubriste" en la ceremonia.
+- [x] Descubrimientos por nivel y división; tarjeta "Descubriste" en la ceremonia (beat `discover`); aviso cuando una división descubre algo entre niveles.
 - [x] El Ceibo (impacto real) + pétalos al entrar + El Mojón desde el Ceibo.
 - [x] *Tu isla*: barras Descubierto / Cuidado; *Tu camino* por nivel y división.
-- [ ] Retirar costuras que sobran (marchitas de Academia, sugerencia de dominio, basura-según-residuos-reales).
+- [x] Retiradas: marchitas de Academia, sugerencia de dominio de la Bitácora, basura según residuos reales, línea diaria vieja de los personajes.
 
 ### F6 — Pulido y prueba
 - [~] Simulación de 60 días × jugadores (activo, casual, veterano 7, gaia): en tests (`game-sim`). El bot espera timers cortos como una persona.
 - [~] Bot con input real (`scratchpad/playgame.mjs`: WASD relativo a la cámara, E, clics en paneles). Juega el Claro. **Falta:** táctil y un día entero.
-- [ ] Rendimiento en escritorio y teléfono emulado; memoria.
+- [~] Rendimiento: capa del juego aliviada para teléfono (bayas 117k→13k triángulos, basura lejana sin dibujar, estacas livianas, sin sombras de lo diminuto). **Queda:** árboles del mundo a T1 (≈67k, previo) y texturas/materiales por encima del techo del overlay (previo en parte).
 - [ ] Capturas finales; póster; docs (este archivo, CONTINUE.md, sistema de diseño).
 - [ ] PR; pedir OK para migración, bandera y merge.
 
@@ -451,6 +451,20 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 
 ## 8. Registro de sesiones
 
+### 2026-09-26 — sesión 3 — arte, tienda, estaciones lejanas, ceremonia, teléfono
+- Commits `9400435` … `2cbec2d` (ver `git log`).
+- Hecho: superficies de lo construido; 17 modelos de tienda; estaciones lejanas;
+  puente roto → reparado; hábitat en parcela floreciente; pasto silvestre como
+  pastura cansada (verde abajo, paja arriba); sin árboles sobre estaciones;
+  colocar con inventario; íconos de tienda; "Descubriste" + aviso de división;
+  premio por región; guía a lo que falta (compost, agua, plantines, especie,
+  pesca, parcela más avanzada); E prefiere lo que pide la tarjeta; La Pradera 6
+  ya no pide registrar antes del nivel 3; retirado lo viejo; phone: pestañas,
+  guía, encuadre de estación verificados a 390×844; triángulos para teléfono.
+- **Próximo:** pósters por defecto nuevos (`public/mundo/poster-t*.jpg`) con la
+  isla actual; CONTINUE.md; PR; pedir al dueño OK para aplicar 0115/0116 y
+  para el merge (no hacerlo sin ese OK en el momento).
+
 ### 2026-09-26 — sesión 2 — la capa del juego en escena, jugada con input real
 - Commits `8c0fe7e` (escena), `5a40092` (HUD, rig propio de personajes, fuentes de
   agua), `dcadcac` (obras atadas a la historia, strings a messages, tanque antes).
@@ -468,7 +482,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
   caminar cierra); ids de agua unificados; Escape cierra panel de estación y
   hoja de la isla (el bot quedaba trabado ahí: era la causa del "atascado en la
   compostera"). Tanque probado con bot: ordena → ramas → construye → "Suelo vivo".
-- **A MEDIAS (retomar acá):**
+- **(Superado por la sesión 3, ver arriba.)**
   1. `lib/render/materials/built.ts` + `surface()` en `build.ts`/`carpentry.ts`/
      `smoothRock`: veta de madera, piedra, metal, tela, plástico reciclado en el
      shader (`built: true` en Props, Stations, Ceibo). **Compila; falta verlo**:
