@@ -12,6 +12,7 @@ import type { RegionId } from '@/lib/world/types';
 import { hasVisited } from '@/lib/world/objectives';
 import { playerTransform } from '../../state/usePlayerStore';
 import { useSessionStore } from '../../state/useSessionStore';
+import { listInteractables } from '../../interaction/InteractableRegistry';
 import { useGameStore } from '../useGameStore';
 import { waterSources } from './WaterSources';
 
@@ -32,6 +33,13 @@ export const useMissionView = create<{ view: MissionView | null; set: (v: Missio
 export const castPositions = new Map<string, { x: number; z: number }>();
 
 const EVERY_S = 0.4;
+
+/** Census and fishing spots, by the prefix of their interactable id (`verbs/register.ts`). */
+function findSpots(prefix: string): { x: number; z: number; id: string }[] {
+  return listInteractables()
+    .filter((i) => i.enabled && i.id.startsWith(prefix))
+    .map((i) => ({ x: i.position[0], z: i.position[2], id: i.id }));
+}
 
 export function MissionGuide({
   layout,
@@ -73,7 +81,7 @@ export function MissionGuide({
     const water: { x: number; z: number; id: string }[] = [...waterSources(layout)];
     const tank = spots.stations.tanque;
     if (tank && (s.stations.tanque?.lvl ?? 0) >= 1) water.push({ x: tank.x, z: tank.z, id: 'game-station-tanque' });
-    const view = missionView(s, { field }, ctx, { pip: p, spawns, spots, cast: castPositions, water });
+    const view = missionView(s, { field }, ctx, { pip: p, spawns, spots, cast: castPositions, water, find: findSpots });
     const prev = useMissionView.getState().view;
     if (!prev || prev.id !== view.id || prev.title !== view.title || prev.progress?.done !== view.progress?.done || prev.need !== view.need ||
       prev.target?.id !== view.target?.id || Math.abs((prev.target?.x ?? 0) - (view.target?.x ?? 0)) > 0.5) {

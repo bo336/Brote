@@ -97,7 +97,8 @@ const claro: ChainDef = {
       id: 'claro.12', who: 'don_beto', title: 'Regar',
       ask: 'Cargá la regadera en el tanque y regá lo que plantaste.',
       done: 'Agua que cae del cielo y no sale de ninguna canilla. La mejor.',
-      goal: { k: 'event', match: { type: 'watered' }, n: 1 }, target: { to: 'station', id: 'tanque' },
+      // The plot, not the tank: with an empty can the guide goes to the water first.
+      goal: { k: 'event', match: { type: 'watered' }, n: 1 }, target: { to: 'parcel', stage: 3 },
       reward: { sem: 20 },
     },
     {
@@ -125,7 +126,7 @@ const claro: ChainDef = {
       id: 'claro.16', who: 'don_beto', title: 'El claro entero',
       ask: 'Dejá 4 parcelas vivas.',
       done: 'Esto no lo veía así desde que era pibe. Y recién empieza.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 4 } }, target: { to: 'parcel', stage: 0 },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 4 } }, target: { to: 'grow', stage: 4 },
       reward: { sem: 80, inv: { posadero: 1 } },
     },
     {
@@ -153,7 +154,7 @@ const pradera: ChainDef = {
       id: 'pradera.2', who: 'mila', title: 'El pastizal',
       ask: 'Llevá una parcela de La Pradera hasta que esté viva.',
       done: 'Inés dice que el pastizal pampeano es de los ambientes que más se perdieron. ¡Y lo estamos trayendo!',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 1, region: 'pradera' } }, target: { to: 'parcel', stage: 0, region: 'pradera' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 1, region: 'pradera' } }, target: { to: 'grow', stage: 4, region: 'pradera' },
       reward: { sem: 40, card: 'k:pastizal' },
     },
     {
@@ -179,10 +180,12 @@ const pradera: ChainDef = {
       reward: { sem: 30, card: 'k:bebedero' },
     },
     {
+      // Registering species opens at rank 3 (the Bitácora's verb), so the
+      // hornero waits for El Jardín; here the pastizal is made ready for it.
       id: 'pradera.6', who: 'mila', title: 'Casa de hornero',
-      ask: 'Buscá un hornero y registralo en la Bitácora.',
-      done: '¡La puerta del nido está del lado contrario al viento! Te lo dije.',
-      goal: { k: 'event', match: { type: 'logged', species: 'hornero' }, n: 1 }, target: { to: 'region', id: 'pradera' },
+      ask: 'Plantá 4 plantines más en La Pradera: pasto alto para esconder el nido, flores para los bichos que come.',
+      done: 'Con esto el hornero vuelve. Hace el nido de barro con la puerta del lado contrario al viento, mirá.',
+      goal: { k: 'event', match: { type: 'planted', region: 'pradera' }, n: 4 }, target: { to: 'parcel', stage: 2, region: 'pradera' },
       reward: { sem: 25 },
     },
     {
@@ -196,7 +199,7 @@ const pradera: ChainDef = {
       id: 'pradera.8', who: 'mila', title: 'Toda la pradera',
       ask: 'Dejá 6 parcelas de La Pradera vivas.',
       done: 'Mañana traigo a mi hermano. No me va a creer.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'pradera' } }, target: { to: 'parcel', stage: 0, region: 'pradera' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'pradera' } }, target: { to: 'grow', stage: 4, region: 'pradera' },
       reward: { sem: 100, inv: { mesa_picnic: 1 } },
     },
   ],
@@ -232,14 +235,14 @@ const jardin: ChainDef = {
       id: 'jardin.4', who: 'mila', title: 'Abejas sin aguijón',
       ask: 'Registrá una abeja nativa en la Bitácora.',
       done: '¡No pica! Y poliniza mejor que la europea un montón de plantas de acá.',
-      goal: { k: 'event', match: { type: 'logged', species: 'abeja_nativa' }, n: 1 }, target: { to: 'region', id: 'jardin' },
+      goal: { k: 'event', match: { type: 'logged', species: 'abeja_nativa' }, n: 1 }, target: { to: 'species', slug: 'abeja_nativa', region: 'jardin' },
       reward: { sem: 25 },
     },
     {
       id: 'jardin.5', who: 'ines', title: 'Un jardín vivo',
       ask: 'Dejá 3 parcelas de El Jardín vivas.',
       done: 'Mezclado y variado: un cantero así se enferma menos.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 3, region: 'jardin' } }, target: { to: 'parcel', stage: 0, region: 'jardin' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 3, region: 'jardin' } }, target: { to: 'grow', stage: 4, region: 'jardin' },
       reward: { sem: 60 },
     },
     {
@@ -253,14 +256,14 @@ const jardin: ChainDef = {
       id: 'jardin.7', who: 'mila', title: 'La mariposa bandera',
       ask: 'Registrá una mariposa bandera argentina.',
       done: 'Sus orugas comen una sola planta. Si esa planta no está, la mariposa tampoco.',
-      goal: { k: 'event', match: { type: 'logged', species: 'mariposa_bandera' }, n: 1 }, target: { to: 'region', id: 'jardin' },
+      goal: { k: 'event', match: { type: 'logged', species: 'mariposa_bandera' }, n: 1 }, target: { to: 'species', slug: 'mariposa_bandera', region: 'jardin' },
       reward: { sem: 30, card: 'k:especialistas' },
     },
     {
       id: 'jardin.8', who: 'ines', title: 'El jardín entero',
       ask: 'Dejá 6 parcelas de El Jardín vivas.',
       done: 'Treinta años mirando flores y todavía me emociona un jardín así.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'jardin' } }, target: { to: 'parcel', stage: 0, region: 'jardin' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'jardin' } }, target: { to: 'grow', stage: 4, region: 'jardin' },
       reward: { sem: 100, inv: { mundo_arco: 1 } },
     },
   ],
@@ -289,7 +292,7 @@ const arboleda: ChainDef = {
       id: 'arboleda.3', who: 'don_beto', title: 'Un bosquecito',
       ask: 'Dejá 3 parcelas de La Arboleda vivas.',
       done: 'Ya da sombra. Y la sombra es otro clima, más fresco y más húmedo.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 3, region: 'arboleda' } }, target: { to: 'parcel', stage: 0, region: 'arboleda' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 3, region: 'arboleda' } }, target: { to: 'grow', stage: 4, region: 'arboleda' },
       reward: { sem: 60, card: 'k:sombra' },
     },
     {
@@ -303,14 +306,14 @@ const arboleda: ChainDef = {
       id: 'arboleda.5', who: 'mila', title: 'El zorzal',
       ask: 'Registrá un zorzal colorado.',
       done: 'Canta antes de que salga el sol. ¡Y cada uno tiene su canción!',
-      goal: { k: 'event', match: { type: 'logged', species: 'zorzal' }, n: 1 }, target: { to: 'region', id: 'arboleda' },
+      goal: { k: 'event', match: { type: 'logged', species: 'zorzal' }, n: 1 }, target: { to: 'species', slug: 'zorzal', region: 'arboleda' },
       reward: { sem: 25 },
     },
     {
       id: 'arboleda.6', who: 'don_beto', title: 'Bosque nativo',
       ask: 'Dejá 6 parcelas de La Arboleda vivas.',
       done: 'Un monte que vuelve. Mi viejo no lo hubiera creído.',
-      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'arboleda' } }, target: { to: 'parcel', stage: 0, region: 'arboleda' },
+      goal: { k: 'state', test: { t: 'parcels', stage: 4, n: 6, region: 'arboleda' } }, target: { to: 'grow', stage: 4, region: 'arboleda' },
       reward: { sem: 100, inv: { hamaca_arbol: 1 } },
     },
   ],

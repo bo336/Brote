@@ -148,7 +148,9 @@ export function Stations({
         radius: RADIUS[v.id] + 1.6,
         labelKey: 'accion.mojon',
         label: v.id === 'punto_limpio' ? 'Separar residuos' : `Usar ${named(v.id)}`,
-        priority: PRIORITY.chore,
+        // Ordinary business: a station two metres from the plot the card points
+        // at must not steal the E meant for the plot.
+        priority: PRIORITY.normal,
         enabled: true,
         onInteract: () => {
           if (v.id === 'punto_limpio') useGameUi.getState().open({ kind: 'separar' });

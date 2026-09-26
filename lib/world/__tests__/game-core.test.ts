@@ -13,11 +13,13 @@ import { newGame, sanitize, balance, bagCount } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
 import { buildLayout } from '../layout';
-import { cumulativeState } from '../progression';
+import { cumulativeState, unlocksFor } from '../progression';
 import { hashInt } from '../rng';
 import { SHOP } from '../game/shop';
 import { PLANTS, PARCEL_TYPES, INVASIVES } from '../game/plants';
-import { CHAINS } from '../game/texto/cadenas';
+import { CHAINS, CHAIN_ORDER } from '../game/texto/cadenas';
+import { STATIONS } from '../game/stations';
+import { SPECIES_BY_SLUG } from '../species';
 import { DAILIES } from '../game/texto/diarias';
 import { CARD_BY_ID } from '../game/texto/guia';
 import type { GameContext } from '../game/types';
@@ -190,4 +192,33 @@ test('El Ceibo grows only with real impact: a pure function of the totals, out o
     const src = readFileSync(join(__dirname, '..', 'game', `${f}.js`), 'utf8');
     assert.ok(!/ceibo'|ceibo"|\/ceibo/.test(src), `${f} imports the ceibo`);
   }
+});
+
+test('every chapter can be finished at the rank that opens it', () => {
+  const verbsAt = (t: number) => new Set(Array.from({ length: t }, (_, i) => unlocksFor(i + 1).verbs).flat());
+  const problems: string[] = [];
+  for (const id of CHAIN_ORDER) {
+    const chain = CHAINS[id]!;
+    const verbs = verbsAt(chain.tier);
+    for (const m of chain.missions) {
+      const g = m.goal;
+      if (g.k === 'event' && g.match.type === 'logged') {
+        if (!verbs.has('log')) problems.push(`${m.id}: registrar se abre después`);
+        const sp = SPECIES_BY_SLUG.get(String(g.match.species));
+        if (!sp || sp.min_tier > chain.tier) problems.push(`${m.id}: ${String(g.match.species)} no está a este nivel`);
+      }
+      if (g.k === 'event' && g.match.type === 'fished' && !verbs.has('fish')) problems.push(`${m.id}: pescar se abre después`);
+      if (g.k === 'event' && g.match.type === 'planted' && g.match.plant) {
+        for (const pl of ([] as string[]).concat(g.match.plant as string | string[])) {
+          if (!PLANTS[pl] || PLANTS[pl]!.tier > chain.tier) problems.push(`${m.id}: ${pl} no está a este nivel`);
+        }
+      }
+      if (g.k === 'event' && g.match.type === 'bought' && g.match.item) {
+        const item = SHOP.find((x) => x.slug === g.match.item);
+        if (!item || item.tier > chain.tier) problems.push(`${m.id}: ${String(g.match.item)} no se vende a este nivel`);
+      }
+      if (g.k === 'state' && g.test.t === 'station' && STATIONS[g.test.id].tier > chain.tier) problems.push(`${m.id}: ${g.test.id} no existe a este nivel`);
+    }
+  }
+  assert.deepEqual(problems, []);
 });

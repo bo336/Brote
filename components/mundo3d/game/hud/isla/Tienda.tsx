@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Sprout } from 'lucide-react';
+import {
+  Armchair, Binoculars, Bird, BrickWall, Carrot, Droplets, Fence, Flower, Flower2, Footprints, Hexagon, House, Lamp,
+  LampFloor, Lock, Mountain, Signpost, Sprout, Tent, TreeDeciduous, Utensils, Waves, Wind, type LucideIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { MATERIALS, TOOLS, TOOL_ORDER, toolValue } from '@/lib/world/game/materials';
@@ -23,6 +26,15 @@ import { useSessionStore } from '../../../state/useSessionStore';
  */
 type Section = 'herramientas' | ShopKind;
 const SECTIONS: Section[] = ['herramientas', 'sobre', 'habitat', 'decor'];
+
+/** What each thing looks like in the list. Seedlings keep the sprout, in their plant's colour. */
+const ICON: Partial<Record<string, LucideIcon>> = {
+  mundo_comedero: Bird, mundo_banco: Armchair, banco_reciclado: Armchair, mundo_hamaca: Armchair, hamaca_arbol: Armchair,
+  maceta: Flower2, cartel: Signpost, sendero_piedra: Footprints, mundo_colmena: Hexagon, mundo_farolitos: Lamp,
+  mundo_arco: Flower, cerco: Fence, mesa_picnic: Utensils, mundo_huerta: Carrot, mundo_totem: Mountain, mundo_carpa: Tent,
+  farol_solar: LampFloor, mundo_molino: Wind, pergola: TreeDeciduous, estanque: Droplets, mirador: Binoculars,
+  posadero: Bird, bebedero: Droplets, hotel_chico: Hexagon, caja_nido: House, refugio_ranas: Waves, pirca: BrickWall,
+};
 
 function mats(item: ShopItem): string {
   return Object.entries(item.mats ?? {}).map(([k, n]) => `${n} ${MATERIALS[k as MaterialId].short.toLowerCase()}`).join(' · ');
@@ -97,11 +109,12 @@ export function Tienda() {
             const owned = state.inv[item.slug] ?? 0;
             const plant = item.plant ? PLANTS[item.plant] : null;
             const missing = Object.entries(item.mats ?? {}).some(([k, n]) => (state.bag[k as 'ramas'] ?? 0) < (n ?? 0));
+            const Icon = ICON[item.slug] ?? Sprout;
             return (
               <li key={item.slug} className={`rounded-2xl p-3.5 ${locked ? 'bg-white/[0.03]' : 'bg-white/5'}`}>
                 <div className="flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: locked ? 'rgba(255,255,255,0.06)' : `${plant?.color ?? '#C9A45C'}33` }}>
-                    {locked ? <Lock className="h-4 w-4 text-brote-cream/40" aria-hidden /> : <Sprout className="h-4 w-4" style={{ color: plant?.color ?? '#C9A45C' }} aria-hidden />}
+                    {locked ? <Lock className="h-4 w-4 text-brote-cream/40" aria-hidden /> : <Icon className="h-4 w-4" style={{ color: plant?.color ?? '#C9A45C' }} aria-hidden />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className={`font-display text-[14.5px] font-semibold ${locked ? 'text-brote-cream/45' : 'text-brote-cream'}`}>{item.name}</p>

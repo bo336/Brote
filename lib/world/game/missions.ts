@@ -52,6 +52,12 @@ export type Target =
   | { to: 'cast'; who: string }
   | { to: 'water' }
   | { to: 'region'; id: RegionId }
+  /** A census spot of this species (`log-<slug>`), or its region if none is standing. */
+  | { to: 'species'; slug: string; region: RegionId }
+  /** The nearest fishing spot. */
+  | { to: 'fish' }
+  /** The most advanced parcel still short of `stage` — finish what you started first. */
+  | { to: 'grow'; stage: number; region?: RegionId }
   | { to: 'none' };
 
 export interface Reward {

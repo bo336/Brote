@@ -11,8 +11,8 @@ import { regionCentre } from '../regions';
 import type { RegionId } from '../types';
 import { careOf } from './care';
 import { currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
-import { parcelNext, ripe } from './parcel-actions';
-import { parcelRegion, parcelsAt } from './parcels';
+import { fittingPlantines, parcelNext, ripe } from './parcel-actions';
+import { parcelRegion, parcelsAt, soilMaterial, wildParcel, type ParcelSpec } from './parcels';
 import { INVASIVES, PARCEL_TYPES } from './plants';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
@@ -45,6 +45,8 @@ interface Where {
   cast: ReadonlyMap<string, { x: number; z: number }>;
   /** Where water can be taken (the tanque, the charco, the lagoon), by interactable id. */
   water: readonly { x: number; z: number; id: string }[];
+  /** Interactables whose id starts with this, for census and fishing spots. */
+  find?: (prefix: string) => readonly { x: number; z: number; id: string }[];
 }
 
 function nearest<T extends { x: number; z: number }>(list: readonly T[], p: { x: number; z: number }): T | null {
@@ -86,26 +88,31 @@ export function resolveTarget(
       const [x, z] = regionCentre(t.id);
       return { x, z, id: `region-${t.id}` };
     }
-    case 'parcel': {
-      const list = parcelsAt(w.field, ctx.tier).filter((p) => {
-        const ps = s.parcels[p.id];
-        if ((ps?.s ?? 0) !== t.stage) return false;
-        if (t.region && parcelRegion(p, ps, ctx.tier) !== t.region) return false;
-        if (t.stage === 3) {
-          const n = parcelNext(s, p, ctx);
-          return n.step === 'water' && n.left > 0 && !n.today;
-        }
-        return true;
-      });
-      const hit = nearest(list, at.pip) ?? nearest(parcelsAt(w.field, ctx.tier).filter((p) => (s.parcels[p.id]?.s ?? 0) === t.stage), at.pip);
+    case 'species': {
+      const hit = nearest(at.find?.(`log-${t.slug}`) ?? [], at.pip);
+      if (hit) return hit;
+      const [x, z] = regionCentre(t.region);
+      return { x, z, id: `region-${t.region}` };
+    }
+    case 'fish': {
+      const hit = nearest(at.find?.('fish-') ?? [], at.pip);
+      if (hit) return hit;
+      const [x, z] = regionCentre('rio');
+      return { x, z, id: 'region-rio' };
+    }
+    case 'parcel':
+    case 'grow': {
+      const hit = pickParcel(t, s, w, ctx, at);
       if (!hit) return null;
+      const stage = s.parcels[hit.id]?.s ?? 0;
       // A wild parcel is worked at its litter and its invasive, not its stake.
-      if (t.stage === 0) {
+      if (stage === 0) {
         const piece = hit.litter.find((_, i) => !((s.parcels[hit.id]?.lit ?? 0) & (1 << i)));
         if (piece) return { x: piece[0], z: piece[1], id: `game-parcel-${hit.id}` };
         if (hit.invasive && !s.parcels[hit.id]?.inv) return { x: hit.invasive[0], z: hit.invasive[1], id: `game-invasive-${hit.id}` };
       }
-      return { x: hit.x, z: hit.z, id: `game-parcel-${hit.id}` };
+      // Nothing to do there yet: first go and get what it needs.
+      return parcelDetour(s, w, ctx, hit, at)?.target ?? { x: hit.x, z: hit.z, id: `game-parcel-${hit.id}` };
     }
     case 'none':
       return null;
@@ -113,6 +120,35 @@ export function resolveTarget(
 }
 
 type Place = { x: number; z: number; id: string };
+
+/** A planted parcel already watered today waits for tomorrow; everything else has something to do. */
+function actionable(s: GameState, p: ParcelSpec, ctx: GameContext): boolean {
+  if ((s.parcels[p.id]?.s ?? 0) !== 3) return true;
+  const n = parcelNext(s, p, ctx);
+  return n.step === 'water' && n.left > 0 && !n.today;
+}
+
+/**
+ * Which parcel a parcel mission means. `parcel`: the nearest at that stage
+ * with something to do (any at that stage, if none has). `grow`: the most
+ * advanced one still short of the goal — finish what you started before
+ * clearing more wild ground.
+ */
+function pickParcel(t: Extract<Target, { to: 'parcel' | 'grow' }>, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): ParcelSpec | null {
+  const inRegion = (p: ParcelSpec) => !t.region || parcelRegion(p, s.parcels[p.id], ctx.tier) === t.region;
+  const stageOf = (p: ParcelSpec) => s.parcels[p.id]?.s ?? 0;
+  const all = parcelsAt(w.field, ctx.tier).filter(inRegion);
+  if (t.to === 'parcel') {
+    const at0 = all.filter((p) => stageOf(p) === t.stage);
+    return nearest(at0.filter((p) => actionable(s, p, ctx)), at.pip) ?? nearest(at0, at.pip);
+  }
+  const short = all.filter((p) => stageOf(p) < t.stage);
+  for (let stage = t.stage - 1; stage >= 0; stage--) {
+    const hit = nearest(short.filter((p) => stageOf(p) === stage && actionable(s, p, ctx)), at.pip);
+    if (hit) return hit;
+  }
+  return nearest(short, at.pip);
+}
 
 /** Where the nearest `k` can be had: off the ground, or from the station that makes it. */
 function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): Place | null {
@@ -176,6 +212,41 @@ function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationI
   return null;
 }
 
+/**
+ * A parcel mission the bag cannot do yet sends Pip to what it lacks: compost
+ * from the compostera (or stones off the ground, on the mountain), seedlings
+ * from the vivero, water for the can. The same rule as a build's.
+ */
+function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: ParcelSpec, at: Where): { target: Place; need: string } | null {
+  const ps = s.parcels[p.id] ?? wildParcel();
+  if (ps.s === 1) {
+    const m = soilMaterial(parcelRegion(p, ps, ctx.tier));
+    if ((s.bag[m] ?? 0) > 0) return null;
+    const route = m === 'compost' && (s.stations.compostera?.lvl ?? 0) < 1 ? null : sourceOf(m, s, w, ctx, at);
+    return route ? { target: route, need: m === 'compost' ? 'Primero, compost de la compostera' : 'Primero, piedras del suelo' } : null;
+  }
+  if (ps.s === 2 && fittingPlantines(s, p, ps, ctx).length === 0) {
+    const v = at.spots.stations.vivero;
+    if (v && (s.stations.vivero?.lvl ?? 0) >= 1) return { target: { x: v.x, z: v.z, id: 'game-station-vivero' }, need: 'Primero, plantines del vivero' };
+    return null;
+  }
+  if (ps.s === 3 && s.agua <= 0) {
+    const hit = nearest(at.water, at.pip);
+    return hit ? { target: { x: hit.x, z: hit.z, id: hit.id }, need: 'Primero, cargá la regadera' } : null;
+  }
+  return null;
+}
+
+/** The card's "what is missing" line for a mission's target. */
+function needFor(t: Target, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): string | null {
+  if (t.to === 'station') return detourFor(s, w, ctx, t.id, at)?.need ?? null;
+  if (t.to === 'parcel' || t.to === 'grow') {
+    const p = pickParcel(t, s, w, ctx, at);
+    return p ? parcelDetour(s, w, ctx, p, at)?.need ?? null : null;
+  }
+  return null;
+}
+
 /** The one thing the card shows. */
 export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView {
   for (const chain of openChains(s, ctx.tier)) {
@@ -189,7 +260,7 @@ export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at:
       title: m.title, ask: m.ask,
       progress: total > 1 ? { done, total } : null,
       target: resolveTarget(m.target, s, w, ctx, at),
-      need: m.target.to === 'station' ? detourFor(s, w, ctx, m.target.id, at)?.need ?? null : null,
+      need: needFor(m.target, s, w, ctx, at),
     };
   }
   const d = s.missions.daily;
