@@ -125,7 +125,9 @@ export function berryBush(seed = 1): BerryBush {
     onDome(rng(), 0.25 + rng() * 0.65, -0.04, p);
     for (let j = 0; j < BERRIES_PER_CLUSTER; j++) {
       const r = BERRY_M * (0.8 + rng() * 0.4);
-      const berry = new THREE.IcosahedronGeometry(r, 2);
+      // Twenty faces: at 1.7 cm a berry is a few pixels, and 320 faces each
+      // (108 per bush) made the berries alone a third of a phone's budget.
+      const berry = new THREE.IcosahedronGeometry(r, 0);
       berry.translate(p.x + (rng() - 0.5) * 0.07, p.y + (rng() - 0.5) * 0.05, p.z + (rng() - 0.5) * 0.07);
       // Dark body, the dusty bloom on top: the look of a real calafate berry.
       parts.push(paintVertical(berry, NATIVE.calafateBerry, NATIVE.calafateBerryBloom, 1.8));

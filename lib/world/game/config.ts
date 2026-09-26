@@ -95,6 +95,8 @@ export const GAME = {
   padDropMs: 90,
   /** Below this speed (m/s) Pip counts as stopped on a pad, and the drain starts. */
   padStillSpeed: 0.5,
+  /** Litter further than this from Pip is not drawn (it is still there). */
+  pickupDrawM: 34,
   /**
    * The camera while a game screen is open (`Framing`). A station's sheet
    * covers the lower two thirds, so the lens looks at a point under the station

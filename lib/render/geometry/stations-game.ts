@@ -346,13 +346,13 @@ export function constructionSite(size = 1.8): THREE.BufferGeometry {
  * parcel by its stage.
  */
 export function parcelStake(): THREE.BufferGeometry {
-  const rng = mulberry32(1101);
+  // Low-poly on purpose: there is one per parcel, a hundred and more on a big
+  // island, and at a stake's size a six-sided post reads the same as a round one.
   const parts: THREE.BufferGeometry[] = [];
-  parts.push(beamBetween(v3(0, -0.1, 0), v3(0, 0.78, 0), 0.045, 0.045, CLAY.bark, rng));
-  const sign = board(0.34, 0.2, 0.025, '#E8DCC2', rng);
-  sign.rotateY(Math.PI / 2);
-  sign.rotateZ(Math.PI / 2);
-  sign.rotateX(Math.PI / 2);
+  const post = new THREE.CylinderGeometry(0.026, 0.032, 0.88, 6, 1);
+  post.translate(0, 0.34, 0);
+  parts.push(surface(paintVertical(post, CLAY.barkDeep, CLAY.bark, 1), 'wood', [0, 1, 0]));
+  const sign = surface(bevelBox(0.2, 0.34, 0.025, '#E8DCC2', 0.75), 'wood', [0, 1, 0]);
   sign.translate(0, 0.62, 0.035);
   parts.push(sign);
   return mergePainted(parts);

@@ -1403,7 +1403,8 @@
           "fauna": "Fauna",
           "invasoras": "Invasoras",
           "energia": "Energía"
-        }
+        },
+        "porDescubrirN": "{n, plural, one {# ficha más} other {# fichas más}} por descubrir acá, jugando."
       },
       "camino": {
         "dosFormas": "<b>Tu isla crece de dos formas.</b> Tu nivel en Brote —acciones reales— <em>descubre</em> lugares, especies y estaciones.",

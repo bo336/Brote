@@ -22,18 +22,20 @@ import { doubleSided } from './carpentry';
 export type PickupShape = 'botella' | 'lata' | 'papel' | 'bolsa' | 'organico' | 'hojas' | 'ramas' | 'piedras';
 
 const cache = new Map<string, THREE.BufferGeometry>();
+// Everything here is ankle-high and there can be a hundred of it near Pip: a few
+// hundred triangles each, never more (`docs/MUNDO_JUEGO.md` §6, phone budget).
 
 function bottle(): THREE.BufferGeometry {
-  const body = new THREE.CapsuleGeometry(0.06, 0.2, 4, 10);
+  const body = new THREE.CapsuleGeometry(0.06, 0.2, 2, 8);
   body.rotateZ(Math.PI / 2);
   body.translate(0, 0.06, 0);
-  const neck = new THREE.CylinderGeometry(0.028, 0.05, 0.06, 10);
+  const neck = new THREE.CylinderGeometry(0.028, 0.05, 0.06, 7);
   neck.rotateZ(Math.PI / 2);
   neck.translate(0.15, 0.06, 0);
-  const cap = new THREE.CylinderGeometry(0.03, 0.03, 0.035, 10);
+  const cap = new THREE.CylinderGeometry(0.03, 0.03, 0.035, 7);
   cap.rotateZ(Math.PI / 2);
   cap.translate(0.195, 0.06, 0);
-  const label = new THREE.CylinderGeometry(0.063, 0.063, 0.09, 12, 1, true);
+  const label = new THREE.CylinderGeometry(0.063, 0.063, 0.09, 8, 1, true);
   label.rotateZ(Math.PI / 2);
   label.translate(-0.01, 0.06, 0);
   return mergePainted([
@@ -42,11 +44,11 @@ function bottle(): THREE.BufferGeometry {
 }
 
 function can(): THREE.BufferGeometry {
-  const body = new THREE.CylinderGeometry(0.05, 0.052, 0.15, 12);
+  const body = new THREE.CylinderGeometry(0.05, 0.052, 0.15, 9);
   body.rotateZ(Math.PI / 2.1);
   body.scale(1, 0.88, 1);
   body.translate(0, 0.05, 0);
-  const rim = new THREE.TorusGeometry(0.048, 0.008, 5, 12);
+  const rim = new THREE.TorusGeometry(0.048, 0.008, 4, 9);
   rim.rotateY(Math.PI / 2);
   rim.translate(0.075, 0.05, 0);
   return mergePainted([paintVertical(body, '#8E9AA3', '#D84A3A', 0.6), paintFlat(rim, '#C9D0D4')]);
@@ -63,7 +65,7 @@ function paper(): THREE.BufferGeometry {
   }
   ball.computeVertexNormals();
   ball.translate(-0.06, 0.065, 0);
-  const box = bevelBox(0.16, 0.035, 0.12, '#C49A6C', 0.9);
+  const box = bevelBox(0.16, 0.035, 0.12, '#C49A6C', 0.8);
   box.rotateY(0.5);
   box.translate(0.07, 0.018, 0.02);
   return mergePainted([paintFlat(ball, '#F2EFE6'), box]);
@@ -79,7 +81,7 @@ function bag(): THREE.BufferGeometry {
   }
   lump.computeVertexNormals();
   lump.translate(0, 0.05, 0);
-  const handle = new THREE.TorusGeometry(0.045, 0.012, 5, 10, Math.PI);
+  const handle = new THREE.TorusGeometry(0.045, 0.012, 4, 7, Math.PI);
   handle.rotateX(-0.3);
   handle.translate(0.05, 0.09, 0);
   return mergePainted([paintFlat(lump, '#F4F6F2'), paintFlat(handle, '#F4F6F2')]);
@@ -89,13 +91,13 @@ function bag(): THREE.BufferGeometry {
 function organic(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let k = 0; k < 3; k++) {
-    const strip = new THREE.CapsuleGeometry(0.022, 0.12, 3, 6);
+    const strip = new THREE.CapsuleGeometry(0.022, 0.12, 2, 5);
     strip.rotateZ(Math.PI / 2 - 0.2);
     strip.translate(0.06, 0.025, 0);
     strip.rotateY((k / 3) * Math.PI * 2 + 0.4);
     parts.push(paintVertical(strip, '#6E5A1E', '#F1CE3E', 0.5));
   }
-  const mound = new THREE.SphereGeometry(0.065, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2);
+  const mound = new THREE.SphereGeometry(0.065, 7, 3, 0, Math.PI * 2, 0, Math.PI / 2);
   mound.scale(1, 0.55, 1);
   mound.translate(-0.07, 0, 0.05);
   parts.push(paintFlat(mound, '#6F7A3A'));
@@ -175,11 +177,12 @@ export function invasiveGeometry(): THREE.BufferGeometry {
   if (hit) return hit;
   const rng = mulberry32(67);
   const parts: THREE.BufferGeometry[] = [];
-  const stem = new THREE.CylinderGeometry(0.015, 0.025, 0.55, 6);
+  const stem = new THREE.CylinderGeometry(0.015, 0.025, 0.55, 5);
   stem.translate(0, 0.275, 0);
   parts.push(paintFlat(stem, '#5A4632'));
-  for (let k = 0; k < 16; k++) {
-    const leaf = new THREE.SphereGeometry(0.06, 6, 4);
+  // Twelve leaves of 24 triangles: one per wild parcel, so it has to be cheap.
+  for (let k = 0; k < 12; k++) {
+    const leaf = new THREE.SphereGeometry(0.066, 5, 3);
     leaf.scale(1.5, 0.35, 0.8);
     const y = 0.2 + rng() * 0.38;
     const a = rng() * Math.PI * 2;

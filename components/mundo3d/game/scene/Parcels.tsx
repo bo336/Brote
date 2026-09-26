@@ -47,9 +47,8 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
   const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false }), []);
   const foliage = useMemo(() => getClayMaterial({ vertexColors: true, wind: true, wobble: true }), []);
   const stakes = useMemo(() => {
-    const pool = new InstancePool(getGeometry('game:stake', parcelStake), material, MAX_PARCELS, { name: 'parcel-stakes' });
-    pool.mesh.castShadow = true;
-    return pool;
+    // No shadow: a thin stake's shadow is a line nobody sees, drawn a hundred times.
+    return new InstancePool(getGeometry('game:stake', parcelStake), material, MAX_PARCELS, { name: 'parcel-stakes' });
   }, [material]);
   const ribbons = useMemo(
     () => new InstancePool(getGeometry('game:ribbon', parcelRibbon), foliage, MAX_PARCELS, { name: 'parcel-ribbons', colors: true }),

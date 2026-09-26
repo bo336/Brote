@@ -1403,7 +1403,8 @@
           "fauna": "Wildlife",
           "invasoras": "Invasives",
           "energia": "Energy"
-        }
+        },
+        "porDescubrirN": "{n, plural, one {# more card} other {# more cards}} to discover here, by playing."
       },
       "camino": {
         "dosFormas": "<b>Your island grows in two ways.</b> Your level in Brote —real actions— <em>discovers</em> places, species and stations.",

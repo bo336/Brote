@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { pickupGeometry, type PickupShape } from '@/lib/render/geometry/pickups';
 import { InstancePool } from '@/lib/render/instancing';
 import { getClayMaterial } from '@/lib/render/materials';
+import { GAME } from '@/lib/world/game/config';
 import { toolValue } from '@/lib/world/game/materials';
 import type { Spawn } from '@/lib/world/game/spawns';
 import type { WasteKind } from '@/lib/world/game/types';
@@ -77,7 +78,7 @@ export function Pickups({
         name: `pickup-${shape}`,
         disableCullingBecause: 'instances bob and fly every frame; bounds would be recomputed each frame for nothing',
       });
-      pool.mesh.castShadow = true;
+      // Litter is ankle-high: a shadow pass for a hundred of them buys nothing.
       pool.mesh.receiveShadow = true;
       out.set(shape, pool);
     }
@@ -127,6 +128,8 @@ export function Pickups({
           continue;
         }
       }
+      // Past this it is a speck: not drawn, and still there when Pip comes near.
+      if (d2 > GAME.pickupDrawM * GAME.pickupDrawM) continue;
       const pool = pools.get(item.shape)!;
       const i = counts.get(item.shape)!;
       if (i >= MAX_PER_SHAPE) continue;

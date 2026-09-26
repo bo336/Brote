@@ -67,14 +67,14 @@ export function IslaSheet() {
           </button>
         </div>
       </header>
-      <nav className="flex gap-1 overflow-x-auto px-4 pb-3" aria-label={t('isla.secciones')}>
+      <nav className="flex gap-0.5 overflow-x-auto px-3 pb-3 sm:gap-1 sm:px-4" aria-label={t('isla.secciones')}>
         {TABS.map((id) => (
           <button
             key={id}
             type="button"
             onClick={() => open({ kind: 'isla', tab: id })}
             aria-current={tab === id ? 'page' : undefined}
-            className={`shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${tab === id ? 'bg-brote-green text-white' : 'text-brote-cream/75 hover:bg-white/10'}`}
+            className={`shrink-0 rounded-full px-3 py-2 text-[13px] font-semibold transition-colors sm:px-4 ${tab === id ? 'bg-brote-green text-white' : 'text-brote-cream/75 hover:bg-white/10'}`}
           >
             {t(`isla.tabs.${id}`)}
           </button>

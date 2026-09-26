@@ -53,18 +53,18 @@ export function Guia() {
         })}
       </div>
       <ul className="space-y-2">
-        {cards.map((c) =>
-          learned.has(c.id) ? (
-            <li key={c.id} className="rounded-2xl bg-white/5 p-3.5">
-              <p className="font-display text-[14.5px] font-semibold text-brote-cream">{c.title}</p>
-              <p className="mt-0.5 text-[13px] leading-snug text-brote-cream/80">{c.text}</p>
-              <p className="mt-1 text-[11px] text-brote-cream/45">{t('conto', { who: castName(c.who) })}</p>
-            </li>
-          ) : (
-            <li key={c.id} className="rounded-2xl border border-dashed border-white/10 px-3.5 py-3 text-[12.5px] text-brote-cream/35">
-              {t('porDescubrir')}
-            </li>
-          ),
+        {cards.filter((c) => learned.has(c.id)).map((c) => (
+          <li key={c.id} className="rounded-2xl bg-white/5 p-3.5">
+            <p className="font-display text-[14.5px] font-semibold text-brote-cream">{c.title}</p>
+            <p className="mt-0.5 text-[13px] leading-snug text-brote-cream/80">{c.text}</p>
+            <p className="mt-1 text-[11px] text-brote-cream/45">{t('conto', { who: castName(c.who) })}</p>
+          </li>
+        ))}
+        {/* What is still to learn, as one line: a list of blanks is a wall, a count is a promise. */}
+        {cards.some((c) => !learned.has(c.id)) && (
+          <li className="rounded-2xl border border-dashed border-white/10 px-3.5 py-3 text-[12.5px] text-brote-cream/45">
+            {t('porDescubrirN', { n: cards.filter((c) => !learned.has(c.id)).length })}
+          </li>
         )}
       </ul>
     </div>

@@ -292,6 +292,9 @@ function Preview() {
     };
     (w as unknown as { __act?: (a: unknown) => unknown }).__act = (a: unknown) =>
       useGameStore.getState().dispatch(a as Parameters<ReturnType<typeof useGameStore.getState>['dispatch']>[0]);
+    // Open any of the game's screens, for reviewing them at phone size.
+    (w as unknown as { __ui?: (screen: unknown) => void }).__ui = (screen: unknown) =>
+      useGameUi.getState().open(screen as Parameters<ReturnType<typeof useGameUi.getState>['open']>[0]);
     // Replace the save (sanitized like a server copy), for staging a close-up review.
     (w as unknown as { __adopt?: (st: unknown) => void }).__adopt = (st: unknown) =>
       useGameStore.getState().adopt(st, (useGameStore.getState().rev ?? 0) + 1);
