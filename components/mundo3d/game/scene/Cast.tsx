@@ -177,7 +177,11 @@ export function Cast({
           const known = CARDS.filter((c) => c.who === b.def.who);
           const n = facts.current.get(b.def.who) ?? Math.floor(Math.random() * Math.max(1, known.length));
           facts.current.set(b.def.who, n + 1);
-          const fact = known.length ? known[n % known.length]! : null;
+          const card = known.length ? known[n % known.length]! : null;
+          // A plant's or a station's card is a line about its title; said aloud it needs the name.
+          const fact = card && !card.id.startsWith('k:')
+            ? { text: `${card.title}: ${card.text.charAt(0).toLowerCase()}${card.text.slice(1)}` }
+            : card;
           useGameUi.getState().open({
             kind: 'dialogo',
             dialog: {

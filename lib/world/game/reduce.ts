@@ -9,7 +9,7 @@
  */
 import type { RegionId } from '../types';
 import { SPAWNS, SEMILLAS } from './config';
-import { drawDailies, advanceMissions, talk, type MissionWorld } from './missions';
+import { buildOpen, drawDailies, advanceMissions, talk, type MissionWorld } from './missions';
 import { flourish, growAll, harvest, pickParcelLitter, plant, pull, soil, water } from './parcel-actions';
 import { collect, deliverOne, feed, stationOf, tickAll, tryBuild } from './production';
 import { SORT_YIELD, TOOLS, WASTE } from './materials';
@@ -216,6 +216,7 @@ export function reduce(prev: GameState, action: GameAction, ctx: GameContext, wo
       sort(s, action.bin, events);
       break;
     case 'deliver': {
+      if (!buildOpen(s, action.station)) break;
       const m = deliverOne(s, action.station, ctx, events);
       if (m) events.push({ type: 'delivered', station: action.station, material: m });
       tryBuild(s, action.station, ctx, events);
@@ -223,6 +224,10 @@ export function reduce(prev: GameState, action: GameAction, ctx: GameContext, wo
     }
     case 'deliverAll': {
       // Everything the bag has that the next level needs, then one try at building.
+      if (!buildOpen(s, action.station)) {
+        events.push({ type: 'refused', why: 'later' });
+        break;
+      }
       for (let k = 0; k < 400; k++) {
         const m = deliverOne(s, action.station, ctx, events);
         if (!m) break;

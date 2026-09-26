@@ -12,7 +12,7 @@
 import { buildLayout, type IslandLayout } from '../layout';
 import { cumulativeState } from '../progression';
 import { hashInt } from '../rng';
-import { currentOf, openChains } from './missions';
+import { buildOpen, currentOf, openChains } from './missions';
 import { fittingHabitats, fittingPlantines, parcelNext, ripe } from './parcel-actions';
 import { buildParcels, parcelRegion, parcelsAt, type ParcelField } from './parcels';
 import { plantsFor, PARCEL_TYPES, progressOf } from './plants';
@@ -22,7 +22,7 @@ import { SHOP } from './shop';
 import { dailySpawns, parcelLitter, type Spawn } from './spawns';
 import { gameSpots, type GameSpots } from './spots';
 import { nextCost, STATIONS, STATION_ORDER } from './stations';
-import { rate } from './production';
+import { rate, secondsToNext } from './production';
 import { balance, bagFree, newGame, waterCap } from './state';
 import { TOOLS, WASTE } from './materials';
 import type { GameContext, GameState, StationId } from './types';
@@ -102,7 +102,16 @@ export function simulate(who: string, days: number, tierOn: (day: number) => num
     const budget = minutes * 60;
     while (t < budget) {
       const step: Step | null = choose(s, ctxAt(t), field, spots, daily, px, pz);
-      if (!step) break;
+      if (!step) {
+        // A person waits out a short timer instead of leaving: the compost is minutes away.
+        const wait = shortestWait(s, ctxAt(t).now);
+        if (wait !== null && wait <= WAIT_MAX_S && t + wait < budget) {
+          t += wait + 1;
+          s = reduce(s, { t: 'tick' }, ctxAt(t), world).state;
+          continue;
+        }
+        break;
+      }
       const travel = Math.hypot(step.x - px, step.z - pz) / SPEED;
       t += travel + step.cost;
       busy += travel + step.cost;
@@ -126,6 +135,21 @@ export function simulate(who: string, days: number, tierOn: (day: number) => num
     });
   }
   return out;
+}
+
+/** How long a player stands around for a producer before calling it a day. */
+const WAIT_MAX_S = 300;
+
+/** Seconds until the next thing a loaded producer makes, if any. */
+function shortestWait(s: GameState, now: number): number | null {
+  let best: number | null = null;
+  for (const id of ['compostera', 'vivero'] as StationId[]) {
+    const st = s.stations[id];
+    if (!st || st.lvl < 1 || st.queue <= 0) continue;
+    const w = secondsToNext(st, id, now);
+    if (w !== null && (best === null || w < best)) best = w;
+  }
+  return best;
 }
 
 function stageUps(s: GameState): number {
@@ -181,7 +205,7 @@ function choose(s: GameState, ctx: GameContext, field: ParcelField, spots: GameS
   // 4. A build or upgrade that the bag can feed right now.
   for (const id of STATION_ORDER) {
     const where = spot(id);
-    if (!where || STATIONS[id].tier > ctx.tier) continue;
+    if (!where || STATIONS[id].tier > ctx.tier || !buildOpen(s, id)) continue;
     const lvl = st(id)?.lvl ?? 0;
     const cost = nextCost(id, lvl);
     if (!cost || (lvl >= 1 && balance(s) < (cost.semillas ?? 0) + 60)) continue;

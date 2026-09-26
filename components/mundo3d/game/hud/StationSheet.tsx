@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { MATERIALS } from '@/lib/world/game/materials';
 import { costLine, missingFor, rate, secondsToNext, tickStation } from '@/lib/world/game/production';
@@ -19,13 +20,16 @@ import { useGameUi } from '../useGameUi';
  * A bottom card rather than a full sheet: the station stays visible above it,
  * which is where the eye should be — you are standing at it.
  */
-function mmss(s: number): string {
+type T = ReturnType<typeof useTranslations<'mundo.juego'>>;
+
+function mmss(s: number, t: T): string {
   const m = Math.floor(s / 60);
   const r = Math.floor(s % 60);
-  return m > 0 ? `${m} min ${r.toString().padStart(2, '0')} s` : `${r} s`;
+  return m > 0 ? t('estacion.min', { m, s: r.toString().padStart(2, '0') }) : t('estacion.seg', { s: r });
 }
 
 export function StationSheet() {
+  const t = useTranslations('mundo.juego');
   const screen = useGameUi((s) => s.screen);
   const close = useGameUi((s) => s.close);
   const state = useGameStore((s) => s.state);
@@ -47,7 +51,7 @@ export function StationSheet() {
   const ctx = useGameStore.getState().ctx();
   const prog = ctx ? progressOf(ctx.tier, ctx.div) : 1;
   const inputName = makes && makes.per > 0 ? MATERIALS[makes.input].short.toLowerCase() : '';
-  const outputName = makes ? (makes.output === 'agua' ? 'agua' : MATERIALS[makes.output].short.toLowerCase()) : '';
+  const outputName = makes ? (makes.output === 'agua' ? t('estacion.agua') : MATERIALS[makes.output].short.toLowerCase()) : '';
   const canFeed = makes && makes.per > 0 && r ? state.bag[makes.input as 'hojas'] > 0 && (r.cap - st.out) * makes.per - st.queue > 0 : false;
   const plants = Object.values(PLANTS).filter((p) => discoveredAt(p) <= prog + 1e-9);
   const missing = cost ? missingFor(st, cost) : {};
@@ -58,10 +62,10 @@ export function StationSheet() {
       <div className="mx-auto max-w-xl">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brote-sun">Nivel {st.lvl} de 3</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brote-sun">{t('estacion.nivelDe', { lvl: st.lvl })}</p>
             <h2 className="font-display text-[22px] font-bold">{def.name}</h2>
           </div>
-          <button type="button" onClick={close} aria-label="Cerrar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+          <button type="button" onClick={close} aria-label={t('cerrar')} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
@@ -72,7 +76,7 @@ export function StationSheet() {
             <div className="flex items-center justify-between">
               <p className="text-[13.5px]">
                 <span className="tnum text-[22px] font-bold text-brote-sun">{st.out}</span>
-                <span className="text-brote-cream/70"> de {r.cap} {outputName} listo</span>
+                <span className="text-brote-cream/70">{t('estacion.listo', { cap: r.cap, what: outputName })}</span>
               </p>
               <button
                 type="button"
@@ -80,15 +84,17 @@ export function StationSheet() {
                 onClick={() => dispatch({ t: 'collect', station: id })}
                 className="rounded-full bg-brote-sun px-4 py-2 text-[13px] font-bold text-brote-ink disabled:bg-white/10 disabled:text-brote-cream/40"
               >
-                {makes.output === 'agua' ? 'Cargar la regadera' : 'Retirar'}
+                {makes.output === 'agua' ? t('estacion.cargarRegadera') : t('estacion.retirar')}
               </button>
             </div>
             {makes.per > 0 && (
               <>
                 <p className="mt-2 text-[12.5px] text-brote-cream/65">
                   {st.queue > 0
-                    ? `Trabajando: ${Math.floor(st.queue / makes.per)} más en camino${next !== null ? ` · el próximo en ${mmss(next)}` : ''}.`
-                    : `Vacía. Cada ${makes.per} de ${inputName} dan 1 de ${outputName}.`}
+                    ? next !== null
+                      ? t('estacion.trabajandoProx', { n: Math.floor(st.queue / makes.per), t: mmss(next, t) })
+                      : t('estacion.trabajando', { n: Math.floor(st.queue / makes.per) })
+                    : t('estacion.vacia', { per: makes.per, input: inputName, output: outputName })}
                 </p>
                 <button
                   type="button"
@@ -96,19 +102,19 @@ export function StationSheet() {
                   onClick={() => dispatch({ t: 'feed', station: id })}
                   className="mt-2 w-full rounded-full bg-brote-green px-4 py-2 text-[13px] font-bold text-white disabled:bg-white/10 disabled:text-brote-cream/40"
                 >
-                  Cargar {inputName} ({state.bag[makes.input as 'hojas']} en la mochila)
+                  {t('estacion.cargar', { input: inputName, n: state.bag[makes.input as 'hojas'] })}
                 </button>
               </>
             )}
             {makes.per === 0 && next !== null && (
-              <p className="mt-2 text-[12.5px] text-brote-cream/65">Junta agua de lluvia sola: la próxima en {mmss(next)}.</p>
+              <p className="mt-2 text-[12.5px] text-brote-cream/65">{t('estacion.lluvia', { t: mmss(next, t) })}</p>
             )}
           </section>
         )}
 
         {id === 'vivero' && st.lvl >= 1 && (
           <section className="mt-3">
-            <p className="mb-2 text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">¿Qué criás?</p>
+            <p className="mb-2 text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">{t('estacion.queCrias')}</p>
             <div className="flex flex-wrap gap-1.5">
               {plants.map((p) => (
                 <button
@@ -129,12 +135,12 @@ export function StationSheet() {
 
         {cost ? (
           <section className="mt-4 rounded-2xl bg-white/5 p-4">
-            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">Nivel {st.lvl + 1}</p>
+            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">{t('estacion.nivel', { n: st.lvl + 1 })}</p>
             <p className="mt-0.5 text-[13px] text-brote-cream/80">{def.levels[st.lvl]?.gain}</p>
             <p className="mt-1 text-[12.5px] text-brote-cream/60">{costLine(cost)}</p>
             {Object.keys(missing).length > 0 && (
               <p className="mt-1 text-[12px] text-brote-cream/50">
-                Falta: {Object.entries(missing).map(([k, n]) => `${n} ${MATERIALS[k as MaterialId].short.toLowerCase()}`).join(' · ')}
+                {t('estacion.falta', { what: Object.entries(missing).map(([k, n]) => `${n} ${MATERIALS[k as MaterialId].short.toLowerCase()}`).join(' · ') })}
               </p>
             )}
             <div className="mt-2 flex gap-2">
@@ -143,7 +149,7 @@ export function StationSheet() {
                 onClick={() => dispatch({ t: 'deliverAll', station: id })}
                 className="flex-1 rounded-full bg-white/10 px-4 py-2 text-[13px] font-semibold"
               >
-                Entregar materiales
+                {t('estacion.entregar')}
               </button>
               <button
                 type="button"
@@ -151,12 +157,12 @@ export function StationSheet() {
                 onClick={() => dispatch({ t: 'deliverAll', station: id })}
                 className="flex-1 rounded-full bg-brote-sun px-4 py-2 text-[13px] font-bold text-brote-ink disabled:bg-white/10 disabled:text-brote-cream/40"
               >
-                Mejorar
+                {t('estacion.mejorar')}
               </button>
             </div>
           </section>
         ) : (
-          <p className="mt-4 text-[12.5px] text-brote-green">Al máximo.</p>
+          <p className="mt-4 text-[12.5px] text-brote-green">{t('estacion.maximo')}</p>
         )}
       </div>
     </div>

@@ -44,7 +44,7 @@ export function TagProjector() {
       // Nearer tags draw over farther ones.
       el.style.zIndex = String(1000 - Math.round(d * 10));
       el.style.visibility = 'visible';
-      el.style.opacity = fade.toFixed(3);
+      el.style.opacity = String(Math.round(fade * 100) / 100);
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
     }
   });

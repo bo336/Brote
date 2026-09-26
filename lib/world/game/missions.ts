@@ -168,6 +168,22 @@ export function progressOf(m: MissionDef, s: GameState, w: MissionWorld, tier: n
   return [Math.min(need, stateValue(g.test, s, w, tier)), need];
 }
 
+/**
+ * Whether a station's first build has been opened by the story. A site you
+ * walk past before anybody asked for it keeps its hands off your bag: the
+ * first time the compostera took the ramas meant for the vivero, the player
+ * had no idea why nothing could be built. After the first level, always.
+ */
+export function buildOpen(s: GameState, id: StationId): boolean {
+  if ((s.stations[id]?.lvl ?? 0) >= 1) return true;
+  for (const chain of CHAIN_ORDER) {
+    const at = CHAINS[chain]!.missions.findIndex((m) => m.target.to === 'station' && m.target.id === id);
+    if (at < 0) continue;
+    return (s.missions.chain[chain] ?? 0) >= at;
+  }
+  return true;
+}
+
 /** Open chains, lowest tier first: what the card shows, in order. */
 export function openChains(s: GameState, tier: number): string[] {
   return CHAIN_ORDER.filter((c) => CHAINS[c]!.tier <= tier && currentOf(s, c) !== null);

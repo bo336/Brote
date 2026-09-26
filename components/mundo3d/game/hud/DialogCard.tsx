@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 import { castName } from '@/lib/world/game/texto/guia';
 import { useGameUi } from '../useGameUi';
@@ -16,6 +17,7 @@ import { useGameUi } from '../useGameUi';
 const COLOR: Record<string, string> = { don_beto: '#8CC4D8', ines: '#3E8C5C', mila: '#E86A5A', tuco: '#E8875A' };
 
 export function DialogCard() {
+  const t = useTranslations('mundo.juego.dialogo');
   const screen = useGameUi((s) => s.screen);
   const close = useGameUi((s) => s.close);
   const [i, setI] = useState(0);
@@ -60,7 +62,7 @@ export function DialogCard() {
           {lines[i]}
         </motion.p>
         <p className="mt-2 text-right text-[12px] font-semibold text-brote-green-deep">
-          {last ? (dialog.close ?? 'Seguir') : 'Siguiente'} ›
+          {last ? (dialog.close ?? t('seguir')) : t('siguiente')} ›
         </p>
       </motion.button>
     </div>

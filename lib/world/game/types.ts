@@ -231,6 +231,8 @@ export type RefusalReason =
   | 'bag_full'
   | 'missing'
   | 'not_now'
+  /** A build the story has not asked for yet. */
+  | 'later'
   | 'locked'
   | 'nothing_ready'
   | 'already_today'

@@ -1,7 +1,10 @@
 'use client';
 
 import { Check, Sun } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
+import { SEMILLAS } from '@/lib/world/game/config';
+import { PLACE_NAME } from '@/lib/world/game/discoveries';
 import { currentOf, DAILY_BY_ID, openChains, progressOf } from '@/lib/world/game/missions';
 import { parcelsAt } from '@/lib/world/game/parcels';
 import { CHAINS, CHAIN_ORDER } from '@/lib/world/game/texto/cadenas';
@@ -16,18 +19,15 @@ import { useGameStore } from '../../useGameStore';
  * how much of the island your real rank has revealed; *Cuidado* is how much of
  * that your play has restored. One alone never fills the other.
  */
-const REGION: Record<string, string> = {
-  claro: 'El Claro', pradera: 'La Pradera', jardin: 'El Jardín', arboleda: 'La Arboleda', rio: 'El Río',
-  monte: 'El Monte', cumbre: 'La Cumbre', islote: 'El Islote', monumento: 'El Monumento',
-};
-
-function Bar({ label, value, total, hint, color }: { label: string; value: number; total: number; hint: string; color: string }) {
+function Bar({ label, amount, value, total, hint, color }: {
+  label: string; amount: string; value: number; total: number; hint: string; color: string;
+}) {
   const pct = total ? Math.round((value / total) * 100) : 0;
   return (
     <div>
       <div className="flex items-baseline justify-between text-[12px] text-brote-cream/80">
         <span className="font-semibold text-brote-cream">{label}</span>
-        <span className="tnum">{value} de {total}</span>
+        <span className="tnum">{amount}</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
         <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: color }} />
@@ -38,6 +38,7 @@ function Bar({ label, value, total, hint, color }: { label: string; value: numbe
 }
 
 export function Misiones() {
+  const t = useTranslations('mundo.juego.misiones');
   const state = useGameStore((s) => s.state);
   const field = useGameStore((s) => s.field);
   const ctx = useGameStore.getState().ctx();
@@ -48,27 +49,24 @@ export function Misiones() {
   const alive = found.filter((p) => (state.parcels[p.id]?.s ?? 0) >= 4).length;
   const open = openChains(state, ctx.tier);
   const daily = state.missions.daily;
+  const later = CHAIN_ORDER.filter((c) => CHAINS[c]!.tier > ctx.tier).length;
 
   return (
     <div className="space-y-5">
       <section className="space-y-3 rounded-2xl bg-white/5 p-4">
         <Bar
-          label="Descubierto" value={found.length} total={all} color="#5B6CF0"
-          hint="Lo abre tu nivel en Brote, con acciones reales: lugares, especies, estaciones."
+          label={t('descubierto')} amount={t('deTotal', { value: found.length, total: all })}
+          value={found.length} total={all} color="#5B6CF0" hint={t('descubiertoHint')}
         />
         <Bar
-          label="Cuidado" value={alive} total={found.length} color="#1FB57A"
-          hint="Lo hace crecer jugar: parcelas vivas de todo lo que ya descubriste."
+          label={t('cuidado')} amount={t('deTotal', { value: alive, total: found.length })}
+          value={alive} total={found.length} color="#1FB57A" hint={t('cuidadoHint')}
         />
       </section>
 
       <section>
-        <h3 className="mb-2 text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">La historia</h3>
-        {open.length === 0 && (
-          <p className="text-[13px] text-brote-cream/70">
-            Terminaste todos los capítulos que tu nivel abrió. El próximo llega con tu próximo nivel en Brote.
-          </p>
-        )}
+        <h3 className="mb-2 text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">{t('historia')}</h3>
+        {open.length === 0 && <p className="text-[13px] text-brote-cream/70">{t('historiaFin')}</p>}
         <ul className="space-y-2">
           {open.map((chain) => {
             const m = currentOf(state, chain)!;
@@ -77,7 +75,9 @@ export function Misiones() {
             return (
               <li key={chain} className="rounded-2xl bg-white/5 p-3.5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brote-cream/55">
-                  {REGION[CHAINS[chain]!.region]} · capítulo {index + 1} de {CHAINS[chain]!.missions.length} · {castName(m.who)}
+                  {t('capitulo', {
+                    region: PLACE_NAME[CHAINS[chain]!.region], n: index + 1, total: CHAINS[chain]!.missions.length, who: castName(m.who),
+                  })}
                 </p>
                 <p className="mt-0.5 font-display text-[15px] font-semibold text-brote-cream">{m.title}</p>
                 <p className="mt-0.5 text-[13px] leading-snug text-brote-cream/75">{m.ask}</p>
@@ -89,21 +89,19 @@ export function Misiones() {
                     <span className="tnum text-[11px] text-brote-cream/60">{done}/{total}</span>
                   </div>
                 )}
-                {m.reward.sem > 0 && <p className="mt-1.5 text-[11.5px] text-brote-sun">Recompensa: {m.reward.sem} semillas</p>}
+                {m.reward.sem > 0 && <p className="mt-1.5 text-[11.5px] text-brote-sun">{t('recompensa', { n: m.reward.sem })}</p>}
               </li>
             );
           })}
         </ul>
         <p className="mt-2 text-[11.5px] text-brote-cream/50">
-          {CHAIN_ORDER.filter((c) => CHAINS[c]!.tier > ctx.tier).length > 0
-            ? `${CHAIN_ORDER.filter((c) => CHAINS[c]!.tier > ctx.tier).length} capítulos más se abren con tu nivel en Brote.`
-            : 'Todos los lugares de la isla están descubiertos.'}
+          {later > 0 ? t('masCapitulos', { n: later }) : t('todoDescubierto')}
         </p>
       </section>
 
       <section>
         <h3 className="mb-2 flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-brote-sun">
-          <Sun className="h-3.5 w-3.5" aria-hidden /> Las de hoy
+          <Sun className="h-3.5 w-3.5" aria-hidden /> {t('hoy')}
         </h3>
         <ul className="space-y-2">
           {daily.ids.map((id, i) => {
@@ -121,13 +119,13 @@ export function Misiones() {
                   {def.title.replace('{n}', String(n))}
                 </span>
                 {!doneIt && n > 1 && <span className="tnum text-[12px] text-brote-cream/60">{got}/{n}</span>}
-                <span className="tnum text-[12px] font-semibold text-brote-sun">+12</span>
+                <span className="tnum text-[12px] font-semibold text-brote-sun">+{SEMILLAS.daily}</span>
               </li>
             );
           })}
         </ul>
         <p className="mt-2 text-[11.5px] text-brote-cream/55">
-          {daily.bonus ? 'Hiciste las tres. Mañana hay nuevas.' : 'Las tres juntas dan 30 semillas más. Cambian cada día.'}
+          {daily.bonus ? t('hoyHechas') : t('hoyBonus', { n: SEMILLAS.dailyBonus })}
         </p>
       </section>
     </div>

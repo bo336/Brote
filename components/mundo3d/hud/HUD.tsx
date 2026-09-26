@@ -57,6 +57,7 @@ export function HUD({ onOpenBitacora }: {
 }) {
   const t = useTranslations('mundo');
   const tBitacora = useTranslations('mundo.bitacora');
+  const tJuego = useTranslations('mundo.juego');
   const router = useRouter();
   // The WORLD's semillas and backpack — never the app's balance (`docs/MUNDO_JUEGO.md` §3.11).
   const game = useGameStore((s) => s.state);
@@ -176,7 +177,7 @@ export function HUD({ onOpenBitacora }: {
         <button
           type="button"
           onClick={openIsla}
-          aria-label="Tu isla: misiones, mochila, tienda"
+          aria-label={tJuego('isla.abrir')}
           className="tnum pointer-events-auto flex items-center gap-2.5 rounded-pill bg-brote-ink/45 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
         >
           <span className="flex items-center gap-1 text-brote-sun">

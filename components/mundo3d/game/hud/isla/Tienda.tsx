@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Lock, Sprout } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { MATERIALS, TOOLS, TOOL_ORDER, toolValue } from '@/lib/world/game/materials';
 import { discoveredAt, PLANTS, progressOf } from '@/lib/world/game/plants';
@@ -21,22 +22,16 @@ import { useSessionStore } from '../../../state/useSessionStore';
  * coming. Nothing rotates, nothing expires, nothing is random.
  */
 type Section = 'herramientas' | ShopKind;
-const SECTIONS: { id: Section; label: string }[] = [
-  { id: 'herramientas', label: 'Herramientas' },
-  { id: 'sobre', label: 'Plantines' },
-  { id: 'habitat', label: 'Refugios' },
-  { id: 'decor', label: 'Decoración' },
-];
-
-function when(tier: number, div: number | undefined): string {
-  return div && div > 1 ? `Se descubre en nivel ${tier}, división ${div}` : `Se descubre en nivel ${tier}`;
-}
+const SECTIONS: Section[] = ['herramientas', 'sobre', 'habitat', 'decor'];
 
 function mats(item: ShopItem): string {
   return Object.entries(item.mats ?? {}).map(([k, n]) => `${n} ${MATERIALS[k as MaterialId].short.toLowerCase()}`).join(' · ');
 }
 
 export function Tienda() {
+  const t = useTranslations('mundo.juego.tienda');
+  const when = (tier: number, div: number | undefined) =>
+    div && div > 1 ? t('seDescubreDiv', { tier, div }) : t('seDescubre', { tier });
   const state = useGameStore((s) => s.state);
   const dispatch = useGameStore((s) => s.dispatch);
   const ctx = useGameStore.getState().ctx();
@@ -49,47 +44,46 @@ export function Tienda() {
   return (
     <div className="space-y-4">
       <p className="text-[12.5px] leading-snug text-brote-cream/65">
-        Tenés <span className="tnum font-bold text-brote-sun">{money} semillas</span>. Se ganan jugando: misiones, diarias,
-        parcelas que avanzan, separar bien.
+        {t.rich('saldo', { n: money, b: (chunks) => <span className="tnum font-bold text-brote-sun">{chunks}</span> })}
       </p>
       <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {SECTIONS.map((s) => (
+        {SECTIONS.map((id) => (
           <button
-            key={s.id}
+            key={id}
             type="button"
-            onClick={() => setSection(s.id)}
-            className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ${section === s.id ? 'bg-brote-cream text-brote-ink' : 'bg-white/10 text-brote-cream/80'}`}
+            onClick={() => setSection(id)}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ${section === id ? 'bg-brote-cream text-brote-ink' : 'bg-white/10 text-brote-cream/80'}`}
           >
-            {s.label}
+            {t(`secciones.${id}`)}
           </button>
         ))}
       </div>
 
       {section === 'herramientas' ? (
         <ul className="space-y-2">
-          {TOOL_ORDER.map((t) => {
-            const def = TOOLS[t];
-            const lvl = state.tools[t];
+          {TOOL_ORDER.map((tool) => {
+            const def = TOOLS[tool];
+            const lvl = state.tools[tool];
             const price = def.prices[lvl - 1];
             const tier = def.tiers[lvl - 1];
             const locked = tier !== undefined && tier > ctx.tier;
             return (
-              <li key={t} className="rounded-2xl bg-white/5 p-3.5">
+              <li key={tool} className="rounded-2xl bg-white/5 p-3.5">
                 <div className="flex items-baseline justify-between">
                   <p className="font-display text-[15px] font-semibold text-brote-cream">{def.name}</p>
-                  <p className="tnum text-[12px] text-brote-cream/60">nivel {lvl} · {toolValue(t, lvl)} {def.unit}</p>
+                  <p className="tnum text-[12px] text-brote-cream/60">{t('nivel', { lvl, value: toolValue(tool, lvl), unit: def.unit })}</p>
                 </div>
                 <p className="mt-0.5 text-[12.5px] text-brote-cream/65">{def.what}</p>
                 {price === undefined ? (
-                  <p className="mt-2 text-[12px] text-brote-green">Al máximo.</p>
+                  <p className="mt-2 text-[12px] text-brote-green">{t('maximo')}</p>
                 ) : (
                   <button
                     type="button"
                     disabled={locked || money < price}
-                    onClick={() => dispatch({ t: 'tool', tool: t })}
+                    onClick={() => dispatch({ t: 'tool', tool })}
                     className="mt-2 w-full rounded-full bg-brote-sun px-4 py-2 text-[13px] font-bold text-brote-ink disabled:bg-white/10 disabled:text-brote-cream/40"
                   >
-                    {locked ? when(tier!, 1) : `Mejorar a ${toolValue(t, lvl + 1)} ${def.unit} · ${price} semillas`}
+                    {locked ? when(tier!, 1) : t('mejorar', { value: toolValue(tool, lvl + 1), unit: def.unit, price })}
                   </button>
                 )}
               </li>
@@ -112,11 +106,11 @@ export function Tienda() {
                   <div className="min-w-0 flex-1">
                     <p className={`font-display text-[14.5px] font-semibold ${locked ? 'text-brote-cream/45' : 'text-brote-cream'}`}>{item.name}</p>
                     <p className="text-[12px] leading-snug text-brote-cream/60">{plant ? plant.role : item.desc}</p>
-                    {owned > 0 && <p className="mt-0.5 text-[11.5px] text-brote-green">Tenés {owned}</p>}
+                    {owned > 0 && <p className="mt-0.5 text-[11.5px] text-brote-green">{t('tenes', { n: owned })}</p>}
                   </div>
                 </div>
                 {locked ? (
-                  <p className="mt-2 text-[11.5px] text-brote-cream/45">{when(item.tier, item.div)} (con acciones reales)</p>
+                  <p className="mt-2 text-[11.5px] text-brote-cream/45">{when(item.tier, item.div)} {t('conAcciones')}</p>
                 ) : (
                   <div className="mt-2 flex items-center gap-2">
                     <button
@@ -125,7 +119,7 @@ export function Tienda() {
                       onClick={() => dispatch({ t: 'buy', slug: item.slug })}
                       className="flex-1 rounded-full bg-brote-sun px-3 py-1.5 text-[12.5px] font-bold text-brote-ink disabled:bg-white/10 disabled:text-brote-cream/40"
                     >
-                      {item.price} semillas{item.mats ? ` + ${mats(item)}` : ''}
+                      {item.mats ? t('precioMats', { price: item.price, mats: mats(item) }) : t('precio', { price: item.price })}
                     </button>
                     {owned > 0 && item.kind !== 'sobre' && (
                       <button
@@ -136,7 +130,7 @@ export function Tienda() {
                         }}
                         className="rounded-full bg-white/10 px-3 py-1.5 text-[12.5px] font-semibold text-brote-cream"
                       >
-                        Colocar
+                        {t('colocar')}
                       </button>
                     )}
                   </div>

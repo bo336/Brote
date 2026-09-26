@@ -1319,6 +1319,180 @@
       "log": "Log something",
       "later": "Later",
       "skip": "Skip"
+    },
+    "juego": {
+      "cerrar": "Close",
+      "isla": {
+        "titulo": "Your island",
+        "saldo": "{n} world seeds",
+        "abrir": "Your island: missions, backpack, shop",
+        "bitacora": "Logbook",
+        "acomodar": "Arrange",
+        "ajustes": "Settings",
+        "secciones": "Sections",
+        "tabs": {
+          "misiones": "Missions",
+          "mochila": "Backpack",
+          "tienda": "Shop",
+          "guia": "Guide",
+          "camino": "Path"
+        }
+      },
+      "misiones": {
+        "descubierto": "Discovered",
+        "descubiertoHint": "Your level in Brote opens it, with real actions: places, species, stations.",
+        "cuidado": "Cared for",
+        "cuidadoHint": "Playing makes it grow: living plots out of everything you already discovered.",
+        "deTotal": "{value} of {total}",
+        "historia": "The story",
+        "historiaFin": "You finished every chapter your level opened. The next one comes with your next level in Brote.",
+        "capitulo": "{region} · chapter {n} of {total} · {who}",
+        "recompensa": "Prize: {n} seeds",
+        "masCapitulos": "{n, plural, one {# more chapter opens} other {# more chapters open}} with your level in Brote.",
+        "todoDescubierto": "Every place on the island is discovered.",
+        "hoy": "Today's three",
+        "hoyHechas": "You did all three. New ones tomorrow.",
+        "hoyBonus": "All three together give {n} more seeds. They change every day."
+      },
+      "mochila": {
+        "titulo": "Backpack",
+        "deTotal": "{used} of {cap}",
+        "residuos": "Waste to sort",
+        "vender": "Sell",
+        "venderHint": "Don Beto pays {n} seed per unit",
+        "separarEn": "Sort them at the Recycling Point.",
+        "galpon": "Shed",
+        "plantin": "{name} seedling",
+        "herramientas": "Tools",
+        "agua": "Water in the can",
+        "herramienta": "{name} · level {n}"
+      },
+      "guia": {
+        "fichas": "{got} of {total} cards",
+        "conto": "{who} told you",
+        "porDescubrir": "A card still to discover, by playing.",
+        "cats": {
+          "residuos": "Waste",
+          "suelo": "Soil and compost",
+          "agua": "Water",
+          "plantas": "Native plants",
+          "fauna": "Wildlife",
+          "invasoras": "Invasives",
+          "energia": "Energy"
+        }
+      },
+      "camino": {
+        "dosFormas": "<b>Your island grows in two ways.</b> Your level in Brote —real actions— <em>discovers</em> places, species and stations.",
+        "dosFormas2": "By playing, what you discovered is <em>restored</em>: living plots, better stations, wildlife arriving.",
+        "nivel": "You are at level <b>{tier} · {rank}</b>, division <b>{div}</b> of 5. Every division discovers something; every level, a place.",
+        "irAcciones": "Go to Actions",
+        "estasAca": "You are here",
+        "division": "division {n}",
+        "kind": {
+          "lugar": "Place",
+          "planta": "Plant",
+          "estacion": "Station",
+          "objeto": "Shop",
+          "especie": "Logbook"
+        }
+      },
+      "tienda": {
+        "saldo": "You have <b>{n} seeds</b>. They are earned by playing: missions, dailies, plots that advance, sorting right.",
+        "secciones": {
+          "herramientas": "Tools",
+          "sobre": "Seedlings",
+          "habitat": "Shelters",
+          "decor": "Decoration"
+        },
+        "nivel": "level {lvl} · {value} {unit}",
+        "maximo": "Maxed out.",
+        "mejorar": "Upgrade to {value} {unit} · {price} seeds",
+        "seDescubre": "Discovered at level {tier}",
+        "seDescubreDiv": "Discovered at level {tier}, division {div}",
+        "conAcciones": "(with real actions)",
+        "tenes": "You have {n}",
+        "precio": "{price} seeds",
+        "precioMats": "{price} seeds + {mats}",
+        "colocar": "Place"
+      },
+      "separar": {
+        "titulo": "Recycling Point",
+        "quedan": "{n} to sort",
+        "nada": "Nothing to sort",
+        "racha": "{n} right in a row",
+        "vacio": "There is no waste in your backpack. The sea brings some every day: pick it up on the beach and on the wild plots.",
+        "bien": "Nice!",
+        "vaEn": "It goes in {bin}"
+      },
+      "estacion": {
+        "nivelDe": "Level {lvl} of 3",
+        "listo": " of {cap} {what} ready",
+        "agua": "water",
+        "cargarRegadera": "Fill the watering can",
+        "retirar": "Collect",
+        "trabajando": "Working: {n} more on the way.",
+        "trabajandoProx": "Working: {n} more on the way · the next in {t}.",
+        "vacia": "Empty. Every {per} {input} make 1 {output}.",
+        "cargar": "Load {input} ({n} in the backpack)",
+        "lluvia": "It collects rain on its own: the next in {t}.",
+        "queCrias": "What are you growing?",
+        "nivel": "Level {n}",
+        "falta": "Missing: {what}",
+        "entregar": "Hand in materials",
+        "mejorar": "Upgrade",
+        "maximo": "Maxed out.",
+        "min": "{m} min {s} s",
+        "seg": "{s} s"
+      },
+      "dialogo": {
+        "siguiente": "Next",
+        "seguir": "Go on"
+      },
+      "toast": {
+        "cumplida": "Mission complete",
+        "tresDelDia": "All three for today!",
+        "tresDelDiaBody": "New ones tomorrow.",
+        "diaria": "Daily mission complete",
+        "estrella": "{stars} Biodiversity",
+        "estrellaBody": "One more native species on that plot.",
+        "construida": "{name} is ready!",
+        "nivelNuevo": "{name}: level {n}",
+        "ficha": "Field guide: {title}",
+        "regalo": "{who} gave you seedlings",
+        "regaloBody": "{list}. They are in the shed.",
+        "compraste": "You bought {name}",
+        "herramienta": "Tool upgraded",
+        "etapa": {
+          "1": "Clean plot",
+          "2": "Living soil",
+          "3": "Planted",
+          "4": "Living plot!",
+          "5": "Flourishing!"
+        },
+        "etapaBody": {
+          "1": "No litter and no invasives. Now it needs living soil.",
+          "2": "Dark, loose soil: ready to plant.",
+          "3": "Now it needs water and a few days.",
+          "4": "It bears fruit and the bugs start arriving.",
+          "5": "Diversity and shelter: the wildlife stays."
+        }
+      },
+      "no": {
+        "llena": "Your backpack is full: take what you have to a station, or sell something to Don Beto.",
+        "falta": "You need {what}.",
+        "faltaAlgo": "Something is missing for that.",
+        "y": " and ",
+        "faltaAgua": "water in the can: fill it at the tank",
+        "faltaSemillas": "{n} seeds",
+        "faltaMat": "{n} {name}",
+        "pobre": "You need {n} more seeds. Missions and dailies give some.",
+        "pobreSin": "You need more seeds.",
+        "bloqueado": "Not discovered yet: it opens with your level in Brote.",
+        "nadaListo": "Nothing is ready yet.",
+        "hoyYa": "That was done today. Again tomorrow.",
+        "todavia": "Not yet.",
+        "masAdelante": "That build comes later in the story."
+      }
     }
   },
   "negocio": {

@@ -124,7 +124,8 @@ export function gameSpots(userId: string, layout: IslandLayout): GameSpots {
     s ? place(s.x + dx, s.z + dz, tier) : place(sx + dx, sz + dz, tier);
   const cast: Record<string, Spot> = {
     don_beto: near(stations.punto_limpio, 2.2, 1.6, 1),
-    ines: near(stations.vivero, -2, 1.8, 1),
+    // Far enough from the vivero's pad that walking up to her never steps on it.
+    ines: near(stations.vivero, -2.6, 2.3, 1),
     mila: place(...regionCentre('pradera').map((v) => v * 0.9) as [number, number], 2),
     tuco: place(lagoonEdge[0] + 2.5, lagoonEdge[1] - 1.5, 7),
   };

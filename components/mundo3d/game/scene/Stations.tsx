@@ -12,6 +12,7 @@ import { getClayMaterial } from '@/lib/render/materials';
 import type { BlobShadowPool } from '@/lib/render/shadows';
 import { GAME } from '@/lib/world/game/config';
 import { MATERIALS } from '@/lib/world/game/materials';
+import { buildOpen } from '@/lib/world/game/missions';
 import { missingFor, tickStation } from '@/lib/world/game/production';
 import { named, nextCost, STATIONS } from '@/lib/world/game/stations';
 import type { GameSpots } from '@/lib/world/game/spots';
@@ -31,10 +32,12 @@ import { useTags } from '../tags';
  * The stations: a construction site until you build it, then the thing itself
  * at its level (`lib/world/game/stations.ts`).
  *
- * **Building is walking.** Stand on a site and what it needs flies out of the
+ * **Building is walking.** Stop on a site and what it needs flies out of the
  * backpack onto it, one piece at a time, each with its knock — the pad is the
  * whole interface. A built station is used with E / the action button, which
- * opens its panel.
+ * opens its panel. It has to be a stop, not a pass: walking across a pad on the
+ * way to somewhere else must never empty the bag into it, and a site the story
+ * has not asked for yet takes nothing at all (`buildOpen`).
  */
 type Buildable = 'punto_limpio' | 'compostera' | 'tanque' | 'vivero' | 'hotel_insectos';
 const BUILDERS: Record<Buildable, (lvl: number) => THREE.BufferGeometry> = {
@@ -72,6 +75,8 @@ export function Stations({
 }) {
   const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false }), []);
   const stations = useGameStore((s) => s.state?.stations);
+  // The tags need the story too: a site nobody asked for yet says so.
+  const game = useGameStore((s) => s.state);
   const setTag = useTags((s) => s.set);
   const removeTag = useTags((s) => s.remove);
 
@@ -138,6 +143,10 @@ export function Stations({
       const lvl = st?.lvl ?? 0;
       const id = `st:${v.id}`;
       const def = STATIONS[v.id];
+      if (lvl < 1 && game && !buildOpen(game, v.id)) {
+        setTag({ id, x: v.spot.x, y: v.y + 1.1, z: v.spot.z, tone: 'site', within: 7, title: def.name, lines: ['Más adelante'] });
+        continue;
+      }
       if (lvl < 1) {
         setTag({
           id, x: v.spot.x, y: v.y + 1.1, z: v.spot.z, tone: 'site', within: 16,
@@ -158,7 +167,7 @@ export function Stations({
     return () => {
       for (const v of visible) removeTag(`st:${v.id}`);
     };
-  }, [visible, stations, setTag, removeTag]);
+  }, [visible, stations, game, setTag, removeTag]);
 
   // Standing on a site: one piece every beat, until nothing in the bag is needed.
   const lastDrop = useRef(0);
@@ -186,9 +195,13 @@ export function Stations({
     }
     if (now - lastDrop.current < GAME.padDropMs) return;
     const p = playerTransform;
+    // A drain starts only once Pip has stopped; then it keeps going while they stay.
+    const draining = now - lastDrop.current < GAME.padDropMs * 4;
+    if (!draining && p.speed > GAME.padStillSpeed) return;
     for (const v of visible) {
       if ((store.state?.stations[v.id]?.lvl ?? 0) >= 1) continue;
       if (Math.hypot(v.spot.x - p.x, v.spot.z - p.z) > GAME.padRadiusM + 0.6) continue;
+      if (store.state && !buildOpen(store.state, v.id)) continue;
       const events = store.dispatch({ t: 'deliver', station: v.id }, [v.spot.x, v.y, v.spot.z]);
       if (events.some((e) => e.type === 'delivered')) {
         lastDrop.current = now;

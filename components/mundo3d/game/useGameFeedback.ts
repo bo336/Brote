@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { create } from 'zustand';
+
+import { SEMILLAS } from '@/lib/world/game/config';
 
 import { MATERIALS } from '@/lib/world/game/materials';
 import { DAILY_BY_ID } from '@/lib/world/game/missions';
@@ -57,43 +60,37 @@ export const useFeedback = create<FeedbackStore>((set, get) => ({
   clearLine: () => set({ line: null }),
 }));
 
-const STAGE_TITLE = ['', 'Parcela limpia', 'Suelo vivo', 'Plantada', '¡Parcela viva!', '¡Floreciente!'];
-const STAGE_BODY = [
-  '',
-  'Sin basura y sin invasoras. Ahora le hace falta tierra viva.',
-  'Tierra oscura y suelta: lista para plantar.',
-  'Ahora necesita agua y unos días.',
-  'Ya da frutos y empiezan a llegar los bichos.',
-  'Diversidad y refugio: la fauna se queda.',
-];
+type T = ReturnType<typeof useTranslations<'mundo.juego'>>;
 
-function refusalText(why: RefusalReason, need?: Partial<Record<MaterialId | 'agua' | 'semillas', number>>): string {
+function refusalText(t: T, why: RefusalReason, need?: Partial<Record<MaterialId | 'agua' | 'semillas', number>>): string {
   switch (why) {
     case 'bag_full':
-      return 'La mochila está llena: llevá lo que tenés a una estación, o vendele algo a Don Beto.';
+      return t('no.llena');
     case 'missing': {
       const parts = Object.entries(need ?? {}).map(([k, n]) => {
-        if (k === 'agua') return 'agua en la regadera: cargala en el tanque';
-        if (k === 'semillas') return `${n} semillas`;
-        return `${n} de ${MATERIALS[k as MaterialId]?.short.toLowerCase() ?? k}`;
+        if (k === 'agua') return t('no.faltaAgua');
+        if (k === 'semillas') return t('no.faltaSemillas', { n: n ?? 0 });
+        return t('no.faltaMat', { n: n ?? 0, name: MATERIALS[k as MaterialId]?.short.toLowerCase() ?? k });
       });
-      return parts.length ? `Te falta ${parts.join(' y ')}.` : 'Te falta algo para eso.';
+      return parts.length ? t('no.falta', { what: parts.join(t('no.y')) }) : t('no.faltaAlgo');
     }
     case 'poor':
-      return need?.semillas ? `Te faltan ${need.semillas} semillas. Las misiones y las diarias dan.` : 'Te faltan semillas.';
+      return need?.semillas ? t('no.pobre', { n: need.semillas }) : t('no.pobreSin');
     case 'locked':
-      return 'Todavía no lo descubriste: se abre con tu nivel en Brote.';
+      return t('no.bloqueado');
     case 'nothing_ready':
-      return 'Todavía no hay nada listo.';
+      return t('no.nadaListo');
     case 'already_today':
-      return 'Eso ya se hizo hoy. Mañana, otra vez.';
+      return t('no.hoyYa');
+    case 'later':
+      return t('no.masAdelante');
     case 'not_now':
     default:
-      return 'Todavía no.';
+      return t('no.todavia');
   }
 }
 
-function react(events: GameEvent[], at: readonly [number, number, number] | null): void {
+function react(t: T, events: GameEvent[], at: readonly [number, number, number] | null): void {
   const fb = useFeedback.getState();
   const p = at ?? [playerTransform.x, playerTransform.y, playerTransform.z];
   let chapter = false;
@@ -109,26 +106,29 @@ function react(events: GameEvent[], at: readonly [number, number, number] | null
           haptic('success');
           emitFx('stars', playerTransform.x, playerTransform.y + 0.8, playerTransform.z);
         } else if (ev.id === 'daily:bonus') {
-          fb.push({ tone: 'daily', title: '¡Las tres del día!', body: 'Mañana hay nuevas.', semillas: 30 });
+          fb.push({ tone: 'daily', title: t('toast.tresDelDia'), body: t('toast.tresDelDiaBody'), semillas: SEMILLAS.dailyBonus });
           playSfx('reward');
         } else {
           const d = DAILY_BY_ID.get(ev.id.replace('daily:', ''));
-          fb.push({ tone: 'daily', title: 'Misión del día cumplida', body: d?.title.replace('{n}', '').replace('  ', ' ').trim(), semillas: 12 });
+          fb.push({ tone: 'daily', title: t('toast.diaria'), body: d?.title.replace('{n}', '').replace('  ', ' ').trim(), semillas: SEMILLAS.daily });
           playSfx('coin');
         }
         break;
       }
       case 'stage':
-        if (ev.stage >= 1) fb.push({ tone: 'stage', title: STAGE_TITLE[ev.stage]!, body: STAGE_BODY[ev.stage] });
+        if (ev.stage >= 1 && ev.stage <= 5) {
+          const k = String(ev.stage) as '1' | '2' | '3' | '4' | '5';
+          fb.push({ tone: 'stage', title: t(`toast.etapa.${k}`), body: t(`toast.etapaBody.${k}`) });
+        }
         break;
       case 'star':
-        fb.push({ tone: 'star', title: `${'★'.repeat(ev.stars)} Biodiversidad`, body: 'Una especie nativa más en esa parcela.' });
+        fb.push({ tone: 'star', title: t('toast.estrella', { stars: '★'.repeat(ev.stars) }), body: t('toast.estrellaBody') });
         break;
       case 'built': {
         const def = STATIONS[ev.station];
         fb.push({
           tone: 'build',
-          title: ev.lvl === 1 ? `¡Listo ${named(ev.station)}!` : `${def.name}: nivel ${ev.lvl}`,
+          title: ev.lvl === 1 ? t('toast.construida', { name: named(ev.station) }) : t('toast.nivelNuevo', { name: def.name, n: ev.lvl }),
           body: def.levels[ev.lvl - 1]?.gain,
         });
         playSfx('build');
@@ -138,18 +138,18 @@ function react(events: GameEvent[], at: readonly [number, number, number] | null
       }
       case 'learned': {
         const card = CARD_BY_ID.get(ev.card);
-        if (card) fb.push({ tone: 'card', title: `Guía de campo: ${card.title}`, body: card.text, who: card.who });
+        if (card) fb.push({ tone: 'card', title: t('toast.ficha', { title: card.title }), body: card.text, who: card.who });
         break;
       }
       case 'gift': {
         const m = Object.values(CHAINS).flatMap((c) => c.missions).find((x) => x.id === ev.what);
         const plants = Object.entries(m?.gift?.plantines ?? {}).map(([k, n]) => `${n} ${PLANTS[k]?.name.toLowerCase() ?? k}`);
-        if (plants.length) fb.push({ tone: 'gift', title: `${castName(ev.from)} te dio plantines`, body: plants.join(', ') + '. Están en el galpón.' });
+        if (plants.length) fb.push({ tone: 'gift', title: t('toast.regalo', { who: castName(ev.from) }), body: t('toast.regaloBody', { list: plants.join(', ') }) });
         break;
       }
       case 'bought':
-        if (!ev.item.startsWith('tool:')) fb.push({ tone: 'buy', title: `Compraste ${SHOP_BY_SLUG.get(ev.item)?.name.toLowerCase() ?? ev.item}` });
-        else fb.push({ tone: 'buy', title: 'Herramienta mejorada' });
+        if (!ev.item.startsWith('tool:')) fb.push({ tone: 'buy', title: t('toast.compraste', { name: SHOP_BY_SLUG.get(ev.item)?.name.toLowerCase() ?? ev.item }) });
+        else fb.push({ tone: 'buy', title: t('toast.herramienta') });
         playSfx('coin');
         break;
       case 'earned':
@@ -181,7 +181,7 @@ function react(events: GameEvent[], at: readonly [number, number, number] | null
         playSfx('pop');
         break;
       case 'refused':
-        fb.say(refusalText(ev.why, ev.need));
+        fb.say(refusalText(t, ev.why, ev.need));
         playSfx('wrong');
         break;
       default:
@@ -192,12 +192,15 @@ function react(events: GameEvent[], at: readonly [number, number, number] | null
 
 /** Mounted once by the HUD: every batch of events, once. */
 export function useGameFeedback(): void {
+  const t = useTranslations('mundo.juego');
+  const tRef = useRef(t);
+  tRef.current = t;
   useEffect(() => {
     let seen = useGameStore.getState().seq;
     return useGameStore.subscribe((st) => {
       if (st.seq === seen) return;
       seen = st.seq;
-      if (st.events.length) react(st.events, st.at);
+      if (st.events.length) react(tRef.current, st.events, st.at);
     });
   }, []);
 }

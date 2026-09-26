@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { BookOpen, Gift, Hammer, Sparkles, Sprout, Star, Sun, ShoppingBag } from 'lucide-react';
 
 import { castName } from '@/lib/world/game/texto/guia';
@@ -23,6 +24,7 @@ const LIFE_MS: Record<ToastTone, number> = {
 };
 
 function ToastCard({ toast }: { toast: Toast }) {
+  const t = useTranslations('mundo.juego.toast');
   const drop = useFeedback((s) => s.drop);
   useEffect(() => {
     const id = setTimeout(() => drop(toast.id), LIFE_MS[toast.tone]);
@@ -48,7 +50,7 @@ function ToastCard({ toast }: { toast: Toast }) {
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          {big && <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-brote-green-deep">Misión cumplida</p>}
+          {big && <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-brote-green-deep">{t('cumplida')}</p>}
           <p className="font-display text-[14px] font-semibold leading-snug">{toast.title}</p>
           {toast.body && (
             <p className={`mt-0.5 text-[12.5px] leading-snug ${big ? 'text-brote-ink/80' : 'text-white/80'}`}>

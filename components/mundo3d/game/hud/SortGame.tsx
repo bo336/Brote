@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { BINS, WASTE } from '@/lib/world/game/materials';
 import type { BinId, WasteKind } from '@/lib/world/game/types';
@@ -59,6 +60,7 @@ interface Verdict {
 }
 
 export function SortGame() {
+  const t = useTranslations('mundo.juego');
   const screen = useGameUi((s) => s.screen);
   const close = useGameUi((s) => s.close);
   const bag = useGameStore((s) => s.state?.bag.residuos ?? []);
@@ -107,12 +109,12 @@ export function SortGame() {
     <div className="pointer-events-auto absolute inset-0 z-20 flex flex-col bg-brote-ink/92 px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-[max(env(safe-area-inset-top),20px)] text-brote-cream backdrop-blur-sm">
       <header className="mx-auto flex w-full max-w-xl items-center justify-between">
         <div>
-          <h2 className="font-display text-[22px] font-bold">Punto Limpio</h2>
+          <h2 className="font-display text-[22px] font-bold">{t('separar.titulo')}</h2>
           <p className="text-caption text-brote-cream/65">
-            {bag.length > 0 ? `${bag.length} para separar` : 'Nada para separar'}{streak >= 3 ? ` · ${streak} seguidas bien` : ''}
+            {bag.length > 0 ? t('separar.quedan', { n: bag.length }) : t('separar.nada')}{streak >= 3 ? ` · ${t('separar.racha', { n: streak })}` : ''}
           </p>
         </div>
-        <button type="button" onClick={close} aria-label="Cerrar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+        <button type="button" onClick={close} aria-label={t('cerrar')} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
           <X className="h-5 w-5" aria-hidden />
         </button>
       </header>
@@ -120,7 +122,7 @@ export function SortGame() {
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center">
         {!shown ? (
           <p className="max-w-xs text-center text-[14px] leading-relaxed text-brote-cream/75">
-            No tenés residuos en la mochila. El mar trae cada día: juntalos en la playa y en las parcelas silvestres.
+            {t('separar.vacio')}
           </p>
         ) : (
           <AnimatePresence mode="wait">
@@ -139,7 +141,7 @@ export function SortGame() {
                 <div className="mt-2 max-w-sm">
                   <p className={`flex items-center justify-center gap-1.5 text-[14px] font-bold ${verdict.right ? 'text-brote-green' : 'text-brote-sun'}`}>
                     {verdict.right ? <Check className="h-4 w-4" aria-hidden /> : null}
-                    {verdict.right ? '¡Bien!' : `Va en ${BINS[WASTE[verdict.waste].bin].name.toLowerCase()}`}
+                    {verdict.right ? t('separar.bien') : t('separar.vaEn', { bin: BINS[WASTE[verdict.waste].bin].name.toLowerCase() })}
                   </p>
                   <p className="mt-1 text-[13.5px] leading-snug text-brote-cream/85">{WASTE[verdict.waste].why}</p>
                 </div>

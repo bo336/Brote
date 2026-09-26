@@ -1319,6 +1319,180 @@
       "log": "Registrar algo",
       "later": "Después",
       "skip": "Saltar"
+    },
+    "juego": {
+      "cerrar": "Cerrar",
+      "isla": {
+        "titulo": "Tu isla",
+        "saldo": "{n} semillas del mundo",
+        "abrir": "Tu isla: misiones, mochila, tienda",
+        "bitacora": "Bitácora",
+        "acomodar": "Acomodar",
+        "ajustes": "Ajustes",
+        "secciones": "Secciones",
+        "tabs": {
+          "misiones": "Misiones",
+          "mochila": "Mochila",
+          "tienda": "Tienda",
+          "guia": "Guía",
+          "camino": "Camino"
+        }
+      },
+      "misiones": {
+        "descubierto": "Descubierto",
+        "descubiertoHint": "Lo abre tu nivel en Brote, con acciones reales: lugares, especies, estaciones.",
+        "cuidado": "Cuidado",
+        "cuidadoHint": "Lo hace crecer jugar: parcelas vivas de todo lo que ya descubriste.",
+        "deTotal": "{value} de {total}",
+        "historia": "La historia",
+        "historiaFin": "Terminaste todos los capítulos que tu nivel abrió. El próximo llega con tu próximo nivel en Brote.",
+        "capitulo": "{region} · capítulo {n} de {total} · {who}",
+        "recompensa": "Premio: {n} semillas",
+        "masCapitulos": "{n, plural, one {# capítulo más se abre} other {# capítulos más se abren}} con tu nivel en Brote.",
+        "todoDescubierto": "Todos los lugares de la isla están descubiertos.",
+        "hoy": "Las de hoy",
+        "hoyHechas": "Hiciste las tres. Mañana hay nuevas.",
+        "hoyBonus": "Las tres juntas dan {n} semillas más. Cambian cada día."
+      },
+      "mochila": {
+        "titulo": "Mochila",
+        "deTotal": "{used} de {cap}",
+        "residuos": "Residuos para separar",
+        "vender": "Vender",
+        "venderHint": "Don Beto paga {n} semilla por unidad",
+        "separarEn": "Se separan en el Punto Limpio.",
+        "galpon": "Galpón",
+        "plantin": "Plantín de {name}",
+        "herramientas": "Herramientas",
+        "agua": "Agua en la regadera",
+        "herramienta": "{name} · nivel {n}"
+      },
+      "guia": {
+        "fichas": "{got} de {total} fichas",
+        "conto": "Te lo contó {who}",
+        "porDescubrir": "Una ficha por descubrir, jugando.",
+        "cats": {
+          "residuos": "Residuos",
+          "suelo": "Suelo y compost",
+          "agua": "Agua",
+          "plantas": "Plantas nativas",
+          "fauna": "Fauna",
+          "invasoras": "Invasoras",
+          "energia": "Energía"
+        }
+      },
+      "camino": {
+        "dosFormas": "<b>Tu isla crece de dos formas.</b> Tu nivel en Brote —acciones reales— <em>descubre</em> lugares, especies y estaciones.",
+        "dosFormas2": "Jugando, lo descubierto se <em>restaura</em>: parcelas vivas, estaciones mejores, fauna que llega.",
+        "nivel": "Estás en nivel <b>{tier} · {rank}</b>, división <b>{div}</b> de 5. Cada división descubre algo; cada nivel, un lugar.",
+        "irAcciones": "Ir a Acciones",
+        "estasAca": "Estás acá",
+        "division": "división {n}",
+        "kind": {
+          "lugar": "Lugar",
+          "planta": "Planta",
+          "estacion": "Estación",
+          "objeto": "Tienda",
+          "especie": "Bitácora"
+        }
+      },
+      "tienda": {
+        "saldo": "Tenés <b>{n} semillas</b>. Se ganan jugando: misiones, diarias, parcelas que avanzan, separar bien.",
+        "secciones": {
+          "herramientas": "Herramientas",
+          "sobre": "Plantines",
+          "habitat": "Refugios",
+          "decor": "Decoración"
+        },
+        "nivel": "nivel {lvl} · {value} {unit}",
+        "maximo": "Al máximo.",
+        "mejorar": "Mejorar a {value} {unit} · {price} semillas",
+        "seDescubre": "Se descubre en nivel {tier}",
+        "seDescubreDiv": "Se descubre en nivel {tier}, división {div}",
+        "conAcciones": "(con acciones reales)",
+        "tenes": "Tenés {n}",
+        "precio": "{price} semillas",
+        "precioMats": "{price} semillas + {mats}",
+        "colocar": "Colocar"
+      },
+      "separar": {
+        "titulo": "Punto Limpio",
+        "quedan": "{n} para separar",
+        "nada": "Nada para separar",
+        "racha": "{n} seguidas bien",
+        "vacio": "No tenés residuos en la mochila. El mar trae cada día: juntalos en la playa y en las parcelas silvestres.",
+        "bien": "¡Bien!",
+        "vaEn": "Va en {bin}"
+      },
+      "estacion": {
+        "nivelDe": "Nivel {lvl} de 3",
+        "listo": " de {cap} {what} listo",
+        "agua": "agua",
+        "cargarRegadera": "Cargar la regadera",
+        "retirar": "Retirar",
+        "trabajando": "Trabajando: {n} más en camino.",
+        "trabajandoProx": "Trabajando: {n} más en camino · el próximo en {t}.",
+        "vacia": "Vacía. Cada {per} de {input} dan 1 de {output}.",
+        "cargar": "Cargar {input} ({n} en la mochila)",
+        "lluvia": "Junta agua de lluvia sola: la próxima en {t}.",
+        "queCrias": "¿Qué criás?",
+        "nivel": "Nivel {n}",
+        "falta": "Falta: {what}",
+        "entregar": "Entregar materiales",
+        "mejorar": "Mejorar",
+        "maximo": "Al máximo.",
+        "min": "{m} min {s} s",
+        "seg": "{s} s"
+      },
+      "dialogo": {
+        "siguiente": "Siguiente",
+        "seguir": "Seguir"
+      },
+      "toast": {
+        "cumplida": "Misión cumplida",
+        "tresDelDia": "¡Las tres del día!",
+        "tresDelDiaBody": "Mañana hay nuevas.",
+        "diaria": "Misión del día cumplida",
+        "estrella": "{stars} Biodiversidad",
+        "estrellaBody": "Una especie nativa más en esa parcela.",
+        "construida": "¡Listo {name}!",
+        "nivelNuevo": "{name}: nivel {n}",
+        "ficha": "Guía de campo: {title}",
+        "regalo": "{who} te dio plantines",
+        "regaloBody": "{list}. Están en el galpón.",
+        "compraste": "Compraste {name}",
+        "herramienta": "Herramienta mejorada",
+        "etapa": {
+          "1": "Parcela limpia",
+          "2": "Suelo vivo",
+          "3": "Plantada",
+          "4": "¡Parcela viva!",
+          "5": "¡Floreciente!"
+        },
+        "etapaBody": {
+          "1": "Sin basura y sin invasoras. Ahora le hace falta tierra viva.",
+          "2": "Tierra oscura y suelta: lista para plantar.",
+          "3": "Ahora necesita agua y unos días.",
+          "4": "Ya da frutos y empiezan a llegar los bichos.",
+          "5": "Diversidad y refugio: la fauna se queda."
+        }
+      },
+      "no": {
+        "llena": "La mochila está llena: llevá lo que tenés a una estación, o vendele algo a Don Beto.",
+        "falta": "Te falta {what}.",
+        "faltaAlgo": "Te falta algo para eso.",
+        "y": " y ",
+        "faltaAgua": "agua en la regadera: cargala en el tanque",
+        "faltaSemillas": "{n} semillas",
+        "faltaMat": "{n} de {name}",
+        "pobre": "Te faltan {n} semillas. Las misiones y las diarias dan.",
+        "pobreSin": "Te faltan semillas.",
+        "bloqueado": "Todavía no lo descubriste: se abre con tu nivel en Brote.",
+        "nadaListo": "Todavía no hay nada listo.",
+        "hoyYa": "Eso ya se hizo hoy. Mañana, otra vez.",
+        "todavia": "Todavía no.",
+        "masAdelante": "Esa obra viene más adelante en la historia."
+      }
     }
   },
   "negocio": {

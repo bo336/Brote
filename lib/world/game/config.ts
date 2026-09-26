@@ -93,6 +93,8 @@ export const GAME = {
   padRadiusM: 1.6,
   /** One piece every this often while standing on a pad. */
   padDropMs: 90,
+  /** Below this speed (m/s) Pip counts as stopped on a pad, and the drain starts. */
+  padStillSpeed: 0.5,
   /** Starting kit: enough to learn every verb in the first minutes. */
   startBag: { ramas: 0, piedras: 0, hojas: 0, frutos: 0, compost: 0, reciclado: 0 },
   startAgua: 0,
