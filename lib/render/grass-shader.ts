@@ -73,7 +73,7 @@ export const GRASS_VERT_BLADE = /* glsl */ `
   float bhPatch = bhNoise(bhRoot * 0.09);
   float bhH = uBladeH * (0.55 + 0.8 * bhR.w) * mix(0.55, 1.3, bhPatch) * (0.45 + 0.55 * bhDensity) * bhKeep
     // Wild ground grows short, tired tufts; a restored pastizal stands tall.
-    * mix(0.62, 1.0, bhRest.r) * (1.0 + bhRest.a * 0.75);
+    * mix(0.55, 1.0, bhRest.r) * (1.0 + bhRest.a * 0.75);
   float bhAng = bhHash(bhCell + 9.7) * 6.2831853;
   vec2 bhFacing = vec2(cos(bhAng), sin(bhAng));
   vec2 bhSide = vec2(-bhFacing.y, bhFacing.x);
@@ -81,6 +81,8 @@ export const GRASS_VERT_BLADE = /* glsl */ `
   float bhGust = smoothstep(0.35, 0.85, bhNoise(bhRoot * 0.055 - uWindDir * uTime * 0.6));
   float bhFlutter = sin(uTime * 3.1 + bhR.x * 12.0 + bhRoot.x * 0.7) * 0.08;
   vec2 bhBend = bhFacing * (0.12 + 0.38 * bhR.z) + uWindDir * (bhGust * 0.9 + 0.15) * uWindAmp + bhSide * bhFlutter;
+  // Dry blades lie over: tired pasture is flattened, not a field of upright spikes.
+  bhBend += bhFacing * (1.0 - bhRest.r) * (0.55 + 0.35 * bhR.x);
   vec2 bhAway = bhRoot - uPip.xz;
   float bhPD = length(bhAway);
   float bhPush = (1.0 - smoothstep(0.05, uPushR, bhPD)) * (1.0 - step(1.2, abs(uPip.y - bhGroundY)));
