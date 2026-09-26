@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Compass, Sun } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { JOYSTICK } from '@/lib/world/config';
 import { useSessionStore } from '../../state/useSessionStore';
@@ -20,6 +21,7 @@ const SPRING = { type: 'spring', stiffness: 420, damping: 32 } as const;
 const BELOW_BACK_PX = 60;
 
 export function MissionCard() {
+  const t = useTranslations('mundo.juego');
   const view = useMissionView((s) => s.view);
   const distance = useSessionStore((s) => s.objective?.distanceM ?? null);
   if (!view) return null;
@@ -41,7 +43,7 @@ export function MissionCard() {
           exit={{ opacity: 0, x: -14 }}
           transition={SPRING}
           className="block w-full rounded-2xl bg-brote-ink/65 px-3.5 py-2.5 text-left text-white shadow-soft-lg backdrop-blur-md active:scale-[0.99]"
-          aria-label={`Misión: ${view.title}`}
+          aria-label={t('mision', { title: view.title })}
         >
           <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-brote-sun">
             <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -49,6 +51,7 @@ export function MissionCard() {
           </p>
           <p className="mt-0.5 font-display text-[15px] font-semibold leading-snug">{view.title}</p>
           {view.ask && <p className="mt-0.5 text-[12.5px] leading-snug text-white/80">{view.ask}</p>}
+          {view.need && <p className="mt-1 text-[12px] font-semibold leading-snug text-brote-sun">{view.need}</p>}
           {(pct !== null || (distance ?? 0) > 6) && (
             <div className="mt-1.5 flex items-center gap-2.5">
               {pct !== null && (

@@ -1321,6 +1321,8 @@
       "skip": "Saltar"
     },
     "juego": {
+      "ceibo": {"primera": "Cada flor de tu ceibo es una acción real tuya en Brote.", "nuevas": "{n, plural, one {# acción real nueva floreció} other {# acciones reales nuevas florecieron}} en tu ceibo."},
+      "mision": "Misión: {title}",
       "cerrar": "Cerrar",
       "isla": {
         "titulo": "Tu isla",
@@ -1431,6 +1433,7 @@
         "cargarRegadera": "Cargar la regadera",
         "retirar": "Retirar",
         "trabajando": "Trabajando: {n} más en camino.",
+        "espera": "Hay {have} de {input} esperando: faltan {n} para el próximo.",
         "trabajandoProx": "Trabajando: {n} más en camino · el próximo en {t}.",
         "vacia": "Vacía. Cada {per} de {input} dan 1 de {output}.",
         "cargar": "Cargar {input} ({n} en la mochila)",

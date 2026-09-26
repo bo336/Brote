@@ -95,6 +95,28 @@ export const GAME = {
   padDropMs: 90,
   /** Below this speed (m/s) Pip counts as stopped on a pad, and the drain starts. */
   padStillSpeed: 0.5,
+  /**
+   * The camera while a game screen is open (`Framing`). A station's sheet
+   * covers the lower two thirds, so the lens looks at a point under the station
+   * and the station sits high in the frame; a conversation is side-on.
+   */
+  framing: {
+    stationDistanceM: 7.5,
+    stationPitchDeg: 30,
+    stationDropM: 2.4,
+    talkDistanceM: 4.6,
+    talkPitchDeg: 12,
+    talkLookUpM: 0.55,
+    talkSideRad: 1.25,
+    /** Movement held when a screen opens is the walk that got there, not a walk away. */
+    walkAwayGraceMs: 700,
+  },
+  /** Where planted species stand around the stake, and how long they take to grow into a new stage. */
+  planted: {
+    innerM: 1.0,
+    outerM: 3.1,
+    growMs: 1500,
+  },
   /** Starting kit: enough to learn every verb in the first minutes. */
   startBag: { ramas: 0, piedras: 0, hojas: 0, frutos: 0, compost: 0, reciclado: 0 },
   startAgua: 0,

@@ -8,6 +8,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { buildParcels, parcelAt, parcelsAt } from '../game/parcels';
+import { ceiboShape } from '../game/ceibo';
 import { newGame, sanitize, balance, bagCount } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
@@ -168,4 +169,25 @@ test('the SQL shop catalogue is exactly the TS one', () => {
     .sort();
   const ts = SHOP.map((i) => `${i.slug}|${i.kind}|${i.price}|${i.tier}|${i.div ?? 1}`).sort();
   assert.deepEqual(rows, ts);
+});
+
+test('El Ceibo grows only with real impact: a pure function of the totals, out of the game\'s reach', () => {
+  const zero = ceiboShape({ water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0, actions: 0 });
+  assert.equal(zero.flowers, 0);
+  assert.equal(zero.springM, 0);
+  assert.equal(zero.bedFlowers, 0);
+  assert.equal(zero.lanterns, 0);
+  let prev = zero;
+  for (const n of [1, 3, 10, 40, 86, 300, 4120]) {
+    const s = ceiboShape({ water_l: n * 15, co2_kg: n / 10, waste_kg: n / 20, energy_kwh: n / 5, actions: n });
+    assert.ok(s.scale >= prev.scale && s.flowers >= prev.flowers && s.springM >= prev.springM, `shrank at ${n}`);
+    assert.ok(s.bedFlowers >= prev.bedFlowers && s.lanterns >= prev.lanterns, `shrank at ${n}`);
+    prev = s;
+  }
+  assert.equal(ceiboShape({ water_l: 0, co2_kg: 0, waste_kg: 0, energy_kwh: 0, actions: 12 }).flowers, 12, 'one flower per action');
+  // Nothing in the game's rules can reach it: the reducer and the state never import it.
+  for (const f of ['reduce', 'state', 'missions', 'production', 'parcel-actions']) {
+    const src = readFileSync(join(__dirname, '..', 'game', `${f}.js`), 'utf8');
+    assert.ok(!/ceibo'|ceibo"|\/ceibo/.test(src), `${f} imports the ceibo`);
+  }
 });

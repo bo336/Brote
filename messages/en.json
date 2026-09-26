@@ -1321,6 +1321,8 @@
       "skip": "Skip"
     },
     "juego": {
+      "ceibo": {"primera": "Every flower on your ceibo is a real action of yours in Brote.", "nuevas": "{n, plural, one {# new real action bloomed} other {# new real actions bloomed}} on your ceibo."},
+      "mision": "Mission: {title}",
       "cerrar": "Close",
       "isla": {
         "titulo": "Your island",
@@ -1431,6 +1433,7 @@
         "cargarRegadera": "Fill the watering can",
         "retirar": "Collect",
         "trabajando": "Working: {n} more on the way.",
+        "espera": "{have} {input} waiting: {n} more for the next one.",
         "trabajandoProx": "Working: {n} more on the way · the next in {t}.",
         "vacia": "Empty. Every {per} {input} make 1 {output}.",
         "cargar": "Load {input} ({n} in the backpack)",

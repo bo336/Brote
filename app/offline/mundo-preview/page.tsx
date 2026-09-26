@@ -11,6 +11,7 @@ import { regionCentre } from '@/lib/world/regions';
 import { isWater, snapToLand, terrainHeight } from '@/lib/world/terrain';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
 import { useGameStore } from '@/components/mundo3d/game/useGameStore';
+import { parcelsAt } from '@/lib/world/game/parcels';
 import { useGameUi } from '@/components/mundo3d/game/useGameUi';
 import { useMissionView } from '@/components/mundo3d/game/scene/MissionGuide';
 import { mulberry32 } from '@/lib/world/rng';
@@ -286,10 +287,14 @@ function Preview() {
     // the play harness, which walks with real keys and checks what happened.
     (w as unknown as { __game?: () => unknown }).__game = () => {
       const g = useGameStore.getState();
-      return { state: g.state, rev: g.rev, status: g.status, mission: useMissionView.getState().view, ui: useGameUi.getState().screen };
+      const found = g.field && g.base ? parcelsAt(g.field, g.base.tier).map((p) => ({ id: p.id, x: p.x, z: p.z })) : [];
+      return { state: g.state, rev: g.rev, status: g.status, mission: useMissionView.getState().view, ui: useGameUi.getState().screen, found };
     };
     (w as unknown as { __act?: (a: unknown) => unknown }).__act = (a: unknown) =>
       useGameStore.getState().dispatch(a as Parameters<ReturnType<typeof useGameStore.getState>['dispatch']>[0]);
+    // Replace the save (sanitized like a server copy), for staging a close-up review.
+    (w as unknown as { __adopt?: (st: unknown) => void }).__adopt = (st: unknown) =>
+      useGameStore.getState().adopt(st, (useGameStore.getState().rev ?? 0) + 1);
     w.__pip = () => ({
       x: playerTransform.x, y: playerTransform.y, z: playerTransform.z,
       airborne: playerTransform.airborne, speed: playerTransform.speed,

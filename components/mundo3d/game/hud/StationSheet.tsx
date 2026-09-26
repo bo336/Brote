@@ -90,7 +90,9 @@ export function StationSheet() {
             {makes.per > 0 && (
               <>
                 <p className="mt-2 text-[12.5px] text-brote-cream/65">
-                  {st.queue > 0
+                  {st.queue > 0 && st.queue < makes.per && next === null
+                    ? t('estacion.espera', { n: makes.per - st.queue, have: st.queue, input: inputName })
+                    : st.queue > 0
                     ? next !== null
                       ? t('estacion.trabajandoProx', { n: Math.floor(st.queue / makes.per), t: mmss(next, t) })
                       : t('estacion.trabajando', { n: Math.floor(st.queue / makes.per) })

@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 
-export type FxKind = 'sparkle' | 'leaves' | 'water' | 'dust' | 'berries' | 'stars';
+export type FxKind = 'sparkle' | 'leaves' | 'water' | 'dust' | 'berries' | 'stars' | 'petals';
 
 interface Spec {
   count: number;
@@ -37,6 +37,8 @@ const SPECS: Record<FxKind, Spec> = {
   dust: { count: 10, speed: 0.8, up: 0.45, gravity: -0.25, lifeS: 0.65, sizeM: 0.17, glow: 1, colors: ['#C9A27A', '#B08A63', '#D9C9A8'] },
   berries: { count: 14, speed: 1.0, up: 2.4, gravity: 6.5, lifeS: 0.9, sizeM: 0.08, glow: 1.2, colors: ['#D7263D', '#8E3FB0', '#F2C230'] },
   stars: { count: 26, speed: 0.7, up: 1.1, gravity: -0.45, lifeS: 1.6, sizeM: 0.08, glow: 2.4, colors: ['#FFF6D0', '#AFCBE0', '#FFFFFF'] },
+  // El Ceibo's: slow red and gold petals drifting down out of the crown.
+  petals: { count: 30, speed: 0.9, up: 0.35, gravity: 0.7, lifeS: 2.6, sizeM: 0.075, glow: 1.3, colors: ['#D7263D', '#F2C230', '#E8574B'] },
 };
 
 /** Particles alive at once across every burst. The oldest are reused first. */

@@ -29,7 +29,7 @@ import { mergePainted, paintFlat, paintVertical } from './build';
  * twenty-six thousand triangles — a sixth of the whole T2 budget, spent on
  * geometry facing away from every camera the game has.
  */
-function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
+export function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
   const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, true);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {

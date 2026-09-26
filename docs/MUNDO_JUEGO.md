@@ -368,23 +368,23 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 - [x] `lib/world/game/` puro: tipos del estado, estado inicial, reducer de acciones, reloj (día local), sanitizado. (`771ceef`)
 - [x] Catálogos: materiales, estaciones, tipos de parcela, plantables, tienda, herramientas.
 - [x] Parcelas: generación determinística (Voronoi), región, disponibilidad por nivel.
-- [ ] Guardado: `useGameStore` (zustand), persistencia local + servidor, cola offline.
-- [ ] Migración `0115_mundo_juego.sql` (+ partes): `world_game`, `world_items`, RPCs, bootstrap, sin semillas de la app. **No aplicar sin OK explícito.**
-- [ ] Separación: quitar `brote_grant_semillas` del juego; HUD muestra semillas del mundo.
+- [x] Guardado: `useGameStore` (zustand), persistencia local + servidor (`world_game_save`), reintento; `useGameSession` guarda al ocultar la pestaña.
+- [x] Migración `0115_mundo_juego.sql` + `0116_mundo_abierto.sql` escritas (`33ded78`). **Sin aplicar: necesitan OK explícito del dueño.**
+- [x] Separación: el juego no llama a nada de la app; censo/pesca/recolección pagan semillas del mundo por el reducer; el HUD muestra el saldo del mundo.
 - [x] Tests: reducer, topes, separación (grep), determinismo de parcelas, simulación de 60 días (`game-core`, `game-sim`).
 
 ### F2 — El ciclo central
-- [ ] Recolectables: residuos (playa diaria + parcelas), hojas, ramas, piedras; recoger al pasar; animación de vuelo; mochila con capacidad.
-- [ ] Estaciones: plataformas de obra con depósito automático; Punto Limpio (+ minijuego de separar), Compostera, Tanque, Vivero; producción con tiempo real; panel de estación.
-- [ ] Parcelas en escena: mapa de restauración → pasto, suelo, flores, vegetación; marcador de parcela con el próximo paso; ola al completar.
-- [ ] Regar (regadera con carga), plantar, cosechar frutos, sacar invasoras.
+- [x] Recolectables: residuos (playa diaria + parcelas), hojas, ramas, piedras; recoger al pasar; mochila con capacidad. Las invasoras leñosas dan ramas.
+- [x] Estaciones: plataformas de obra con depósito automático (sólo si Pip se para y la historia ya pidió esa obra); Punto Limpio (+ minijuego de separar), Compostera, Tanque, Vivero; producción con tiempo real; panel de estación con cámara que la encuadra.
+- [~] Parcelas en escena: mapa de restauración → pasto y suelo (hecho), estacas + cintas + etiqueta con el próximo paso (hecho), ola al completar (hecho). **Falta:** flora plantada por parcela (las especies que pusiste, visibles) y fauna.
+- [x] Regar (regadera con carga; tanque, charco y laguna), plantar, cosechar frutos, sacar invasoras.
 
 ### F3 — Misiones y aprendizaje
-- [ ] Motor de misiones (objetivos por evento del reducer) y tarjeta de objetivo nueva.
-- [ ] Cadenas de historia: Claro, Pradera, Jardín, Arboleda, Río, Monte, Cumbre, Islote, Monumento.
-- [ ] Diarias (pool ≥25) + bonus.
-- [ ] Guía de campo (fichas) y los momentos que las dan.
-- [ ] Censo paga semillas del mundo; premio por región completa.
+- [x] Motor de misiones (objetivos por evento del reducer) y tarjeta de objetivo nueva; si faltan materiales el faro lleva a buscarlos y la tarjeta dice qué falta.
+- [~] Cadenas de historia: escritas todas. Probado con input real: Claro 1–9. **Falta** jugar el resto.
+- [x] Diarias (pool ≥25) + bonus.
+- [x] Guía de campo (fichas) y los momentos que las dan; los personajes cuentan una ficha cuando no tienen capítulo.
+- [~] Censo paga semillas del mundo (hecho). **Falta:** premio por región completa.
 
 ### F4 — Tienda, decoración y arte
 - [ ] Tienda (hoja) + herramientas + sobres; colocar lo comprado (placement con inventario del juego).
@@ -395,12 +395,12 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ### F5 — Nivel e impacto
 - [ ] Descubrimientos por nivel y división; tarjeta "Descubriste" en la ceremonia.
 - [ ] El Ceibo (impacto real) + pétalos al entrar + El Mojón desde el Ceibo.
-- [ ] *Tu isla*: barras Descubierto / Cuidado; *Tu camino* actualizado.
+- [x] *Tu isla*: barras Descubierto / Cuidado; *Tu camino* por nivel y división.
 - [ ] Retirar costuras que sobran (marchitas de Academia, sugerencia de dominio, basura-según-residuos-reales).
 
 ### F6 — Pulido y prueba
-- [ ] Simulación de 60 días × jugadores de nivel 1, 4, 7, 11 (30 min/día): nunca se quedan sin qué hacer, nunca terminan todo, siempre ven progreso.
-- [ ] Bot con input real que juega un día entero (teclado y táctil).
+- [~] Simulación de 60 días × jugadores (activo, casual, veterano 7, gaia): en tests (`game-sim`). El bot espera timers cortos como una persona.
+- [~] Bot con input real (`scratchpad/playgame.mjs`: WASD relativo a la cámara, E, clics en paneles). Juega el Claro. **Falta:** táctil y un día entero.
 - [ ] Rendimiento en escritorio y teléfono emulado; memoria.
 - [ ] Capturas finales; póster; docs (este archivo, CONTINUE.md, sistema de diseño).
 - [ ] PR; pedir OK para migración, bandera y merge.
@@ -434,10 +434,36 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 - **D4 — Se retiran las costuras de Academia y del censo-por-dominio** del juego,
   por R12 ("lo único que los une es el nivel").
 - **D5 — El revert de #29 se respeta.** Sólo se rehace el póster.
+- **D6 — Contenido del juego en TS, cromo del HUD en `messages`.** Misiones,
+  fichas, estaciones y diálogos viven en `lib/world/game/texto` (español, son
+  contenido y se prueban con el reducer). Todo lo que es interfaz del HUD del
+  juego (botones, títulos, avisos, rechazos) está en `mundo.juego.*` de
+  `messages/es.json` y `en.json`, como pide el test de strings del mundo.
+- **D7 — Una obra sólo toma materiales cuando la historia la pidió y Pip se
+  para en ella** (`buildOpen`, `GAME.padStillSpeed`). La prueba con input real
+  mostró que caminar hasta Inés pasaba por la plataforma del vivero y le vaciaba
+  la mochila: nada se podía construir y no se entendía por qué.
+- **D8 — El tanque se construye mientras el compost trabaja** (Claro 9). Con la
+  obra atada a la historia, el día 1 se quedaba sin nada que hacer esperando el
+  compost.
 
 ---
 
 ## 8. Registro de sesiones
+
+### 2026-09-26 — sesión 2 — la capa del juego en escena, jugada con input real
+- Commits `8c0fe7e` (escena), `5a40092` (HUD, rig propio de personajes, fuentes de
+  agua), `dcadcac` (obras atadas a la historia, strings a messages, tanque antes).
+- Bot con input real (`playgame.mjs`): habla con Don Beto, junta, separa, habla
+  con Inés, construye la compostera parándose en la plataforma, la carga.
+- Arreglado por lo que mostró el bot: `-0` que CDP no serializa (harness); la
+  plataforma del vivero se comía los materiales (D7); Inés parada sobre esa
+  plataforma (movida); faltaban ramas el día 1 (invasoras leñosas dan ramas; el
+  faro lleva a lo que falta); fichas sin sujeto en la voz de los personajes; 4
+  avisos a la vez (ahora 2 y el resto en cola); el panel de estación tapaba la
+  estación (`Framing`: cámara que la encuadra arriba; caminar cierra el panel).
+- **Próximo:** terminar el Claro con el bot (tanque, suelo, plantar, regar),
+  revisar capturas de cerca; después F2 flora plantada por parcela, F4 arte.
 
 ### 2026-09-25 — sesión 1 (cont.) — núcleo del juego
 - F0 hecho: póster (causa medida: leer el canvas desde `useFrame` = búfer ya

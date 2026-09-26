@@ -11,9 +11,13 @@ import type { Heightfield } from '@/lib/world/terrain';
 import type { PropCollider } from '../../control/CharacterController';
 import type { Colliders } from '../../scene/useColliders';
 import { useGameStore } from '../useGameStore';
+import type { FollowCamera } from '../../control/FollowCamera';
 import { Cast } from './Cast';
+import { Ceibo } from './Ceibo';
+import { Framing } from './Framing';
 import { MissionGuide } from './MissionGuide';
 import { Parcels } from './Parcels';
+import { Planted } from './Planted';
 import { Pickups } from './Pickups';
 import { Restoration } from './Restoration';
 import { Stations } from './Stations';
@@ -34,6 +38,9 @@ export function GameLayer({
   shadows,
   colliders,
   interactive,
+  cameraRef,
+  reducedMotion,
+  night,
 }: {
   layout: IslandLayout;
   heightfield: Heightfield;
@@ -41,6 +48,10 @@ export function GameLayer({
   colliders: Colliders;
   /** False on a visit: the host's island is looked at, not played. */
   interactive: boolean;
+  cameraRef: React.MutableRefObject<FollowCamera | null>;
+  reducedMotion: boolean;
+  /** Lanterns light at night. */
+  night: boolean;
 }) {
   const base = useGameStore((s) => s.base);
   const field = useGameStore((s) => s.field);
@@ -72,14 +83,22 @@ export function GameLayer({
   // Stations and characters both stand in the way; one list for the controller.
   const fromStations = useRef<PropCollider[]>([]);
   const fromCast = useRef<PropCollider[]>([]);
+  const fromCeibo = useRef<PropCollider[]>([]);
+  const publish = useCallback(() => {
+    colliders.onGame([...fromStations.current, ...fromCast.current, ...fromCeibo.current]);
+  }, [colliders]);
   const onStations = useCallback((c: PropCollider[]) => {
     fromStations.current = c;
-    colliders.onGame([...fromStations.current, ...fromCast.current]);
-  }, [colliders]);
+    publish();
+  }, [publish]);
   const onCast = useCallback((c: PropCollider[]) => {
     fromCast.current = c;
-    colliders.onGame([...fromStations.current, ...fromCast.current]);
-  }, [colliders]);
+    publish();
+  }, [publish]);
+  const onCeibo = useCallback((c: PropCollider[]) => {
+    fromCeibo.current = c;
+    publish();
+  }, [publish]);
 
   if (!base || !field) return null;
   return (
@@ -87,10 +106,13 @@ export function GameLayer({
       <Restoration layout={layout} heightfield={heightfield} />
       {interactive && <Pickups spawns={spawns} heightfield={heightfield} enabled={interactive} />}
       {interactive && <Parcels heightfield={heightfield} />}
+      <Planted heightfield={heightfield} />
+      <Ceibo spots={spots} heightfield={heightfield} night={night} interactive={interactive} onColliders={onCeibo} />
       <Stations spots={spots} heightfield={heightfield} tier={tier} shadows={shadows} onColliders={onStations} enabled={interactive} />
       {interactive && <Cast spots={spots} heightfield={heightfield} terrain={layout.terrain} tier={tier} onColliders={onCast} />}
       {interactive && <MissionGuide layout={layout} spots={spots} spawns={spawns} />}
       {interactive && <WaterSources layout={layout} heightfield={heightfield} />}
+      {interactive && <Framing cameraRef={cameraRef} spots={spots} heightfield={heightfield} reducedMotion={reducedMotion} />}
       <TagProjector />
     </>
   );

@@ -69,6 +69,8 @@ function ToastCard({ toast }: { toast: Toast }) {
   );
 }
 
+const VISIBLE = 2;
+
 export function Toasts({ top }: { top: string }) {
   const toasts = useFeedback((s) => s.toasts);
   const line = useFeedback((s) => s.line);
@@ -83,7 +85,8 @@ export function Toasts({ top }: { top: string }) {
     <>
       <div className="pointer-events-none absolute right-3 flex w-[min(20rem,78vw)] flex-col gap-2" style={{ top }}>
         <AnimatePresence initial={false}>
-          {toasts.map((t) => <ToastCard key={t.id} toast={t} />)}
+          {/* Two at a time: the rest wait their turn, each with its full time once shown. */}
+          {toasts.slice(0, VISIBLE).map((t) => <ToastCard key={t.id} toast={t} />)}
         </AnimatePresence>
       </div>
       <AnimatePresence>

@@ -111,7 +111,7 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
     arrowGeo.dispose();
   }, [beamGeo, beamMat, arrowGeo]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const target = objective?.target;
     const b = beam.current;
     const a = arrow.current;
@@ -129,7 +129,9 @@ export function GuideBeacon({ heightfield }: { heightfield: Heightfield }) {
     b.visible = true;
     b.position.set(target.x, sampleHeight(heightfield, target.x, target.z), target.z);
     const near = THREE.MathUtils.smoothstep(dist, GUIDE.beamFadeNearM, GUIDE.beamFadeFarM);
-    beamMat.uniforms.uOpacity!.value = near * GUIDE.beamOpacity;
+    // A lens standing in the beam sees a wall of orange: it thins out close to the camera too.
+    const lens = THREE.MathUtils.smoothstep(Math.hypot(camera.position.x - target.x, camera.position.z - target.z), 2.5, 7);
+    beamMat.uniforms.uOpacity!.value = near * lens * GUIDE.beamOpacity;
     beamMat.uniforms.uTime!.value = reducedMotion ? 0 : clock.elapsedTime;
 
     a.visible = dist > GUIDE.arrowMinM;

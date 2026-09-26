@@ -13,12 +13,15 @@ import { careOf } from './care';
 import { currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
 import { parcelNext, ripe } from './parcel-actions';
 import { parcelRegion, parcelsAt } from './parcels';
+import { INVASIVES, PARCEL_TYPES } from './plants';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
-import { STATIONS } from './stations';
+import { MATERIALS, WASTE } from './materials';
+import { missingFor } from './production';
+import { nextCost, STATIONS } from './stations';
 import { CHAINS } from './texto/cadenas';
 import { castName } from './texto/guia';
-import type { GameContext, GameState } from './types';
+import type { BulkMaterial, GameContext, GameState, MaterialId, StationId } from './types';
 
 export interface MissionView {
   /** Chain mission id, `daily:<id>`, or `free`. */
@@ -30,6 +33,8 @@ export interface MissionView {
   ask: string;
   progress: { done: number; total: number } | null;
   target: { x: number; z: number; id: string } | null;
+  /** What is missing for it, when the bag cannot do it yet: "Te faltan 2 ramas". */
+  need?: string | null;
 }
 
 interface Where {
@@ -65,7 +70,9 @@ export function resolveTarget(
     }
     case 'station': {
       const spot = at.spots.stations[t.id];
-      return spot && STATIONS[t.id].tier <= ctx.tier ? { x: spot.x, z: spot.z, id: `game-station-${t.id}` } : null;
+      if (!spot || STATIONS[t.id].tier > ctx.tier) return null;
+      // Nothing to bring yet: the beacon goes to what is missing, not to the empty pad.
+      return detourFor(s, w, ctx, t.id, at)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
     }
     case 'cast': {
       const c = at.cast.get(t.who);
@@ -105,6 +112,70 @@ export function resolveTarget(
   }
 }
 
+type Place = { x: number; z: number; id: string };
+
+/** Where the nearest `k` can be had: off the ground, or from the station that makes it. */
+function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): Place | null {
+  const station = (id: StationId): Place | null => {
+    const spot = at.spots.stations[id];
+    return spot ? { x: spot.x, z: spot.z, id: `game-station-${id}` } : null;
+  };
+  const ground = (kind: Spawn['kind']): Place | null => {
+    const hit = nearest(at.spawns.filter((sp) => sp.kind === kind), at.pip);
+    return hit ? { x: hit.x, z: hit.z, id: hit.id } : null;
+  };
+  switch (k) {
+    case 'ramas': {
+      // Off the ground, or out of a woody invasive still standing in a wild parcel.
+      const hit = ground('ramas');
+      if (hit) return hit;
+      const woody = parcelsAt(w.field, ctx.tier).filter((p) => p.invasive && !s.parcels[p.id]?.inv
+        && (s.parcels[p.id]?.s ?? 0) === 0 && INVASIVES[PARCEL_TYPES[parcelRegion(p, s.parcels[p.id], ctx.tier)].invasive]?.woody);
+      const tree = nearest(woody.map((p) => ({ x: p.invasive![0], z: p.invasive![1], id: `game-invasive-${p.id}` })), at.pip);
+      return tree;
+    }
+    case 'piedras':
+    case 'hojas':
+    case 'residuos':
+      return ground(k);
+    case 'reciclado':
+      // Recycled material comes out of sorting: sort what you carry, or pick some up first.
+      return s.bag.residuos.some((w) => WASTE[w].bin === 'reciclable') ? station('punto_limpio') : ground('residuos');
+    case 'compost':
+      return station('compostera');
+    default:
+      return null;
+  }
+}
+
+/**
+ * A station mission the bag cannot do yet — a build short of materials, a
+ * producer with nothing to load — sends Pip to the first missing thing, and
+ * the card says what it is. Without it the beacon points at an empty pad and
+ * the player stands on it wondering why nothing happens.
+ */
+function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationId, at: Where): { target: Place; need: string } | null {
+  const st = s.stations[id] ?? { lvl: 0, paid: {}, queue: 0, since: 0, out: 0 };
+  const cost = nextCost(id, st.lvl);
+  if (st.lvl < 1 && cost) {
+    for (const [k, n] of Object.entries(missingFor(st, cost)) as [MaterialId, number][]) {
+      const have = k === 'residuos' ? s.bag.residuos.length : k === 'plantines' ? 0 : s.bag[k as BulkMaterial] ?? 0;
+      if (have >= n) continue;
+      const route = sourceOf(k, s, w, ctx, at);
+      if (!route) continue;
+      const short = n - have;
+      return { target: route, need: `Te ${short === 1 ? 'falta' : 'faltan'} ${short} ${MATERIALS[k].short.toLowerCase()}` };
+    }
+    return null;
+  }
+  const makes = STATIONS[id].makes;
+  if (st.lvl >= 1 && makes && makes.per > 0 && st.out <= 0 && st.queue <= 0 && (s.bag[makes.input as BulkMaterial] ?? 0) === 0) {
+    const route = sourceOf(makes.input, s, w, ctx, at);
+    if (route) return { target: route, need: `Juntá ${MATERIALS[makes.input].short.toLowerCase()}` };
+  }
+  return null;
+}
+
 /** The one thing the card shows. */
 export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView {
   for (const chain of openChains(s, ctx.tier)) {
@@ -118,6 +189,7 @@ export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at:
       title: m.title, ask: m.ask,
       progress: total > 1 ? { done, total } : null,
       target: resolveTarget(m.target, s, w, ctx, at),
+      need: m.target.to === 'station' ? detourFor(s, w, ctx, m.target.id, at)?.need ?? null : null,
     };
   }
   const d = s.missions.daily;

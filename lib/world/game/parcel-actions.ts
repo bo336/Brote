@@ -16,7 +16,7 @@ import { dayOf, earn, bump, bagFree } from './state';
 import { hashInt } from '../rng';
 import { PARCEL, SEMILLAS } from './config';
 import { parcelRegion, soilMaterial, stageNeed, wildParcel, type ParcelField, type ParcelSpec } from './parcels';
-import { PARCEL_TYPES, plantsFor, progressOf } from './plants';
+import { INVASIVES, PARCEL_TYPES, plantsFor, progressOf } from './plants';
 import { careOf, MAX_SPECIES, starEarned, starsOf } from './care';
 import { SHOP_BY_SLUG } from './shop';
 import type { GameContext, GameEvent, GameState, ParcelStage, ParcelState, WasteKind } from './types';
@@ -73,7 +73,11 @@ export function pickParcelLitter(
   return true;
 }
 
-/** Pull the invasive. It goes to the compost pile — it is organic like anything else. */
+/**
+ * Pull the invasive. A woody one leaves its wood — ramas for building, which is
+ * also where the first days' wood comes from once the beach is picked clean;
+ * the iris is only leaves, for the compost.
+ */
 export function pull(s: GameState, field: ParcelField, id: string, ctx: GameContext, events: GameEvent[]): boolean {
   const p = spec(field, id, ctx);
   if (!p?.invasive) return false;
@@ -81,10 +85,12 @@ export function pull(s: GameState, field: ParcelField, id: string, ctx: GameCont
   if (ps.inv || ps.s > 0) return false;
   claim(ps, p, ctx);
   ps.inv = true;
+  const woody = INVASIVES[PARCEL_TYPES[parcelRegion(p, ps, ctx.tier)].invasive]?.woody ?? false;
+  const material = woody ? 'ramas' : 'hojas';
   const got = Math.min(2, bagFree(s));
-  s.bag.hojas += got;
+  s.bag[material] += got;
   events.push({ type: 'pulled', parcel: id });
-  if (got > 0) events.push({ type: 'pickup', material: 'hojas', n: got });
+  if (got > 0) events.push({ type: 'pickup', material, n: got });
   bump(s, 'pulled');
   bump(s, `pulled:${ps.r}`);
   earn(s, SEMILLAS.pull, 'pull', events);

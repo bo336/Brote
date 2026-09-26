@@ -203,6 +203,8 @@ export interface InvasiveDef {
   name: string;
   why: string;
   color: string;
+  /** A shrub or a tree: pulled out, its wood is building material. The iris is only leaves. */
+  woody?: boolean;
 }
 
 /**
@@ -211,11 +213,11 @@ export interface InvasiveDef {
  */
 export const INVASIVES: Record<string, InvasiveDef> = {
   ligustro: {
-    id: 'ligustro', name: 'Ligustro', color: '#2F5D3A',
+    id: 'ligustro', name: 'Ligustro', color: '#2F5D3A', woody: true,
     why: 'Crece rápido, cierra la sombra y no deja brotar a las nativas. Los pájaros esparcen sus semillas.',
   },
   acacia_negra: {
-    id: 'acacia_negra', name: 'Acacia negra', color: '#4B5A2E',
+    id: 'acacia_negra', name: 'Acacia negra', color: '#4B5A2E', woody: true,
     why: 'Invade el pastizal con espinas enormes. De chica sale fácil; de grande cuesta años.',
   },
   iris_amarillo: {
@@ -223,11 +225,11 @@ export const INVASIVES: Record<string, InvasiveDef> = {
     why: 'Es lindo, pero en nuestros humedales es invasor y le quita el lugar al junco.',
   },
   pino: {
-    id: 'pino', name: 'Pino', color: '#34533B',
+    id: 'pino', name: 'Pino', color: '#34533B', woody: true,
     why: 'Los pinos se escapan a las sierras, secan el pastizal y cambian el agua del suelo.',
   },
   tamarisco: {
-    id: 'tamarisco', name: 'Tamarisco', color: '#8A8F6A',
+    id: 'tamarisco', name: 'Tamarisco', color: '#8A8F6A', woody: true,
     why: 'Tolera la sal y avanza sobre la costa, donde deberían estar las plantas que fijan la duna.',
   },
 };

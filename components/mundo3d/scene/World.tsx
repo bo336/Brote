@@ -351,6 +351,9 @@ export function World({
         shadows={shadows}
         colliders={colliders}
         interactive={!visit}
+        cameraRef={cameraRef}
+        reducedMotion={reducedMotion}
+        night={timeOfDay === 'noche'}
       />
       <Guidance layout={layout} heightfield={heightfield} />
       {/* The tier-up ceremony's clock and marker; its cards are in the HUD. */}

@@ -54,7 +54,7 @@ let nextId = 1;
 export const useFeedback = create<FeedbackStore>((set, get) => ({
   toasts: [],
   line: null,
-  push: (t) => set({ toasts: [...get().toasts, { ...t, id: nextId++ }].slice(-4) }),
+  push: (t) => set({ toasts: [...get().toasts, { ...t, id: nextId++ }].slice(-8) }),
   drop: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   say: (text) => set({ line: { id: nextId++, text } }),
   clearLine: () => set({ line: null }),

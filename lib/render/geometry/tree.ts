@@ -81,7 +81,7 @@ export function mergePieces(pieces: Piece[]): THREE.BufferGeometry {
 
 type Crown = 'umbrella' | 'whorl' | 'airy' | 'shrub';
 
-interface SpeciesSpec {
+export interface SpeciesSpec {
   trunkH: number;
   trunkR: number;
   /** How much wider the base is than the trunk. The ombú's buttress. */
@@ -187,11 +187,13 @@ function crownPoints(spec: SpeciesSpec, top: THREE.Vector3, count: number, rng: 
 
 /**
  * Grow one tree. Deterministic from `(species, seed, lod)` — the same seed gives
- * the same tree on every device.
+ * the same tree on every device. `look` overrides the species' colours and
+ * proportions: a planted lapacho is the airy crown in pink, a tala the umbrella
+ * in its own green (`planted.ts`).
  */
-export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0): TreeBuild {
+export function growTree(species: TreeSpecies, seed: number, lod: TreeLod = 0, look?: Partial<SpeciesSpec>): TreeBuild {
   const rng = mulberry32(seed * 7919 + species.length);
-  const spec = SPECIES[species];
+  const spec: SpeciesSpec = look ? { ...SPECIES[species], ...look } : SPECIES[species];
   const detail = LOD[lod];
   const wood: Piece[] = [];
 
