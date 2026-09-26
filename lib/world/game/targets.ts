@@ -43,8 +43,8 @@ interface Where {
   spots: GameSpots;
   /** Where each character is standing right now. */
   cast: ReadonlyMap<string, { x: number; z: number }>;
-  /** Where water can be taken (the tanque, the charco, the lagoon). */
-  water: readonly { x: number; z: number }[];
+  /** Where water can be taken (the tanque, the charco, the lagoon), by interactable id. */
+  water: readonly { x: number; z: number; id: string }[];
 }
 
 function nearest<T extends { x: number; z: number }>(list: readonly T[], p: { x: number; z: number }): T | null {
@@ -80,7 +80,7 @@ export function resolveTarget(
     }
     case 'water': {
       const hit = nearest(at.water, at.pip);
-      return hit ? { x: hit.x, z: hit.z, id: 'game-water' } : null;
+      return hit ? { x: hit.x, z: hit.z, id: hit.id } : null;
     }
     case 'region': {
       const [x, z] = regionCentre(t.id);

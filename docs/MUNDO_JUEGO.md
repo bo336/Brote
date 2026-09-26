@@ -376,7 +376,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ### F2 — El ciclo central
 - [x] Recolectables: residuos (playa diaria + parcelas), hojas, ramas, piedras; recoger al pasar; mochila con capacidad. Las invasoras leñosas dan ramas.
 - [x] Estaciones: plataformas de obra con depósito automático (sólo si Pip se para y la historia ya pidió esa obra); Punto Limpio (+ minijuego de separar), Compostera, Tanque, Vivero; producción con tiempo real; panel de estación con cámara que la encuadra.
-- [~] Parcelas en escena: mapa de restauración → pasto y suelo (hecho), estacas + cintas + etiqueta con el próximo paso (hecho), ola al completar (hecho). **Falta:** flora plantada por parcela (las especies que pusiste, visibles) y fauna.
+- [x] Parcelas en escena: restauración, estacas, etiqueta, ola, y flora plantada por especie y etapa. (Fauna por parcela: pendiente menor.)
 - [x] Regar (regadera con carga; tanque, charco y laguna), plantar, cosechar frutos, sacar invasoras.
 
 ### F3 — Misiones y aprendizaje
@@ -394,7 +394,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 
 ### F5 — Nivel e impacto
 - [ ] Descubrimientos por nivel y división; tarjeta "Descubriste" en la ceremonia.
-- [ ] El Ceibo (impacto real) + pétalos al entrar + El Mojón desde el Ceibo.
+- [x] El Ceibo (impacto real) + pétalos al entrar + El Mojón desde el Ceibo.
 - [x] *Tu isla*: barras Descubierto / Cuidado; *Tu camino* por nivel y división.
 - [ ] Retirar costuras que sobran (marchitas de Academia, sugerencia de dominio, basura-según-residuos-reales).
 
@@ -462,8 +462,28 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
   faro lleva a lo que falta); fichas sin sujeto en la voz de los personajes; 4
   avisos a la vez (ahora 2 y el resto en cola); el panel de estación tapaba la
   estación (`Framing`: cámara que la encuadra arriba; caminar cierra el panel).
-- **Próximo:** terminar el Claro con el bot (tanque, suelo, plantar, regar),
-  revisar capturas de cerca; después F2 flora plantada por parcela, F4 arte.
+- Después (`ecf1c6b` + commit siguiente): flora plantada por especie y etapa
+  (`planted.ts`, `Planted.tsx`) — HECHO y visto de cerca; El Ceibo (`ceibo.ts`,
+  `Ceibo.tsx`, `useCeiboGreeting`) — HECHO; `Framing` (cámara en paneles/charlas,
+  caminar cierra); ids de agua unificados; Escape cierra panel de estación y
+  hoja de la isla (el bot quedaba trabado ahí: era la causa del "atascado en la
+  compostera"). Tanque probado con bot: ordena → ramas → construye → "Suelo vivo".
+- **A MEDIAS (retomar acá):**
+  1. `lib/render/materials/built.ts` + `surface()` en `build.ts`/`carpentry.ts`/
+     `smoothRock`: veta de madera, piedra, metal, tela, plástico reciclado en el
+     shader (`built: true` en Props, Stations, Ceibo). **Compila; falta verlo**:
+     rebuild + `scratchpad/props.mjs 11 props1` (usa `?props=1` y `__frame`).
+  2. `lib/render/geometry/props-shop.ts`: 11 modelos de decoración nuevos
+     escritos, **sin registrar**: falta sumarlos a `BUILDERS`/`PROP_SPECS` en
+     `props.ts` (footprints; `farol_solar` animates 'lantern'), mensajes
+     `mundo.props.<slug>` en es/en, y revisarlos de cerca.
+  3. Falta `props-habitat.ts`: posadero, bebedero, hotel_chico, caja_nido,
+     refugio_ranas, pirca — y dibujar el hábitat de cada parcela floreciente (`ps.hab`).
+  4. Colocación con inventario del juego: HECHA en código (`limits`, `none_left`,
+     bandeja con ×n) — probar cuando existan los modelos.
+  5. Revisar texturas 32–34 / materiales 15 en el overlay (techo 12/20 y 8).
+  6. Luego: F3 jugar el resto de cadenas con el bot; F5 tarjeta "Descubriste";
+     F6 móvil, pósters, PR, pedir OK para 0115/0116 y merge.
 
 ### 2026-09-25 — sesión 1 (cont.) — núcleo del juego
 - F0 hecho: póster (causa medida: leer el canvas desde `useFrame` = búfer ya

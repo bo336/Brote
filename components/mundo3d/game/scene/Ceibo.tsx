@@ -63,7 +63,7 @@ export function Ceibo({
   }, [tree]);
 
   const materials = useMemo(() => ({
-    wood: getClayMaterial({ vertexColors: true, wind: false, wobble: false }),
+    wood: getClayMaterial({ vertexColors: true, wind: false, wobble: false, built: true }),
     leaves: getClayMaterial({
       vertexColors: true, wind: true, wobble: false, side: THREE.DoubleSide, alphaTest: 0.5,
       map: getTexture('leaf-atlas', buildLeafAtlas),

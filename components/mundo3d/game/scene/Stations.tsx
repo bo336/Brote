@@ -73,7 +73,7 @@ export function Stations({
   onColliders: (c: PropCollider[]) => void;
   enabled: boolean;
 }) {
-  const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false }), []);
+  const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false, built: true }), []);
   const stations = useGameStore((s) => s.state?.stations);
   // The tags need the story too: a site nobody asked for yet says so.
   const game = useGameStore((s) => s.state);

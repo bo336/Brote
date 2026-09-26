@@ -106,6 +106,7 @@ function clayKey(o: ClayOptions): string {
     o.alphaTest ?? 0,
     o.translucent ? 'sss' : '-',
     o.fauna ? 'fauna' : '-',
+    o.built ? 'built' : '-',
   ].join(':');
 }
 

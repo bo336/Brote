@@ -21,6 +21,8 @@ export type PlaceRejection =
   | 'region_locked'
   | 'off_island'
   | 'not_owned'
+  /** Bought in the world's shop, and every copy is already down. */
+  | 'none_left'
   | 'no_ground';
 
 /**
@@ -109,10 +111,20 @@ export function checkPlacement(
     placedCount: number;
     /** Whether the ground there can hold something. The renderer knows. */
     isGround?: (x: number, z: number) => boolean;
+    /**
+     * How many of each the player has, for things bought in the world's shop
+     * (the game's inventory). Absent means "as many as you like" — an old
+     * cosmetic from the app. The server counts the same way (0115).
+     */
+    limits?: Readonly<Record<string, number>>;
+    /** How many of this one are already down, not counting the one being placed. */
+    placedOf?: number;
   },
 ): PlaceRejection | null {
   if (ctx.placedCount >= placementCap(ctx.tier)) return 'over_cap';
   if (!ctx.owned.includes(placement.prop_slug)) return 'not_owned';
+  const limit = ctx.limits?.[placement.prop_slug];
+  if (limit !== undefined && (ctx.placedOf ?? 0) >= limit) return 'none_left';
   if (tierForRegion(placement.region) > ctx.tier) return 'region_locked';
   if (Math.hypot(placement.x, placement.z) > islandRadius(ctx.tier)) return 'off_island';
   if (ctx.isGround && !ctx.isGround(placement.x, placement.z)) return 'no_ground';
@@ -128,13 +140,19 @@ export function checkPlacement(
  */
 export function checkBatch(
   placements: readonly Placement[],
-  ctx: { tier: number; owned: readonly string[] },
+  ctx: { tier: number; owned: readonly string[]; limits?: Readonly<Record<string, number>> },
 ): PlaceRejection | null {
   if (placements.length > placementCap(ctx.tier)) return 'over_cap';
+  const seen = new Map<string, number>();
   for (let i = 0; i < placements.length; i++) {
+    const slug = placements[i]!.prop_slug;
+    const placedOf = seen.get(slug) ?? 0;
+    seen.set(slug, placedOf + 1);
     const reason = checkPlacement(placements[i]!, {
       tier: ctx.tier,
       owned: ctx.owned,
+      limits: ctx.limits,
+      placedOf,
       // The cap was checked against the whole batch above; per item, only the
       // items before it count, or the last one would always look over.
       placedCount: i,

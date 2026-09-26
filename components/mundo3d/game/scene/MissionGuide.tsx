@@ -13,6 +13,7 @@ import { hasVisited } from '@/lib/world/objectives';
 import { playerTransform } from '../../state/usePlayerStore';
 import { useSessionStore } from '../../state/useSessionStore';
 import { useGameStore } from '../useGameStore';
+import { waterSources } from './WaterSources';
 
 /**
  * Keeps the mission card and the golden beacon pointed at the one next thing
@@ -69,13 +70,12 @@ export function MissionGuide({
       }
     }
 
-    const water: { x: number; z: number }[] = [];
+    const water: { x: number; z: number; id: string }[] = [...waterSources(layout)];
     const tank = spots.stations.tanque;
-    if (tank && (s.stations.tanque?.lvl ?? 0) >= 1) water.push(tank);
-    for (const a of layout.anchors) if (a.feature === 'puddle') water.push({ x: a.x, z: a.z });
+    if (tank && (s.stations.tanque?.lvl ?? 0) >= 1) water.push({ x: tank.x, z: tank.z, id: 'game-station-tanque' });
     const view = missionView(s, { field }, ctx, { pip: p, spawns, spots, cast: castPositions, water });
     const prev = useMissionView.getState().view;
-    if (!prev || prev.id !== view.id || prev.title !== view.title || prev.progress?.done !== view.progress?.done ||
+    if (!prev || prev.id !== view.id || prev.title !== view.title || prev.progress?.done !== view.progress?.done || prev.need !== view.need ||
       prev.target?.id !== view.target?.id || Math.abs((prev.target?.x ?? 0) - (view.target?.x ?? 0)) > 0.5) {
       useMissionView.getState().set(view);
     }

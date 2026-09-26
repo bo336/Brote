@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { BookMarked, LayoutGrid, Settings2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -27,6 +28,16 @@ export function IslaSheet() {
   const open = useGameUi((s) => s.open);
   const close = useGameUi((s) => s.close);
   const state = useGameStore((s) => s.state);
+  const isOpen = screen?.kind === 'isla';
+  // Escape closes it, like every other screen of the game.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, close]);
   if (screen?.kind !== 'isla' || !state) return null;
   const tab = screen.tab;
   const go = (hud: 'bitacora' | 'placement' | 'settings') => {

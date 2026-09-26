@@ -38,12 +38,15 @@ export function usePlacementEditor({
   layout,
   tier,
   owned,
+  limits,
   initial,
   isGround,
 }: {
   layout: IslandLayout | null;
   tier: number;
   owned: readonly string[];
+  /** Copies owned of what the world's shop sold (`checkPlacement`). */
+  limits?: Readonly<Record<string, number>>;
   initial: readonly Placement[];
   /** The renderer's answer to "can something stand here". */
   isGround?: (x: number, z: number) => boolean;
@@ -93,12 +96,15 @@ export function usePlacementEditor({
           nudged: at.moved,
           rejection: checkPlacement(
             { prop_slug: current.slug, region, x: at.x, z: at.z },
-            { tier, owned, placedCount: placements.length, isGround },
+            {
+              tier, owned, placedCount: placements.length, isGround, limits,
+              placedOf: placements.filter((p) => p.prop_slug === current.slug).length,
+            },
           ),
         };
       });
     },
-    [layout, obstacles, tier, owned, placements.length, isGround],
+    [layout, obstacles, tier, owned, placements, isGround, limits],
   );
 
   /** One tap, one step. Free rotation would need a second thumb. */

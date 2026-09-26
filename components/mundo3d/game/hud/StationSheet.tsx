@@ -39,6 +39,16 @@ export function StationSheet() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  const isOpen = screen?.kind === 'estacion';
+  // Escape closes it, like every other screen of the game.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, close]);
   if (screen?.kind !== 'estacion' || !state) return null;
   const id: StationId = screen.station;
   const def = STATIONS[id];

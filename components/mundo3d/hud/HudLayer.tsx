@@ -131,6 +131,7 @@ export function HudLayer({
       {hud === 'placement' && placementActions && (
         <PlacementBar
           props={placement.props}
+          left={placement.left}
           hasGhost={placement.hasGhost}
           rejected={placement.rejected}
           remaining={placement.remaining}

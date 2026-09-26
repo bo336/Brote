@@ -73,7 +73,7 @@ export function Props({
   heightfield, layout, mirror, timeOfDay, placements, demo = false, onColliders, shadows,
 }: PropsProps) {
   // Wood, stone and cloth all sit still: they take the wobble, never the wind.
-  const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
+  const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true, built: true }), []);
   const movingRefs = useRef<(THREE.Object3D | null)[]>([]);
   const swayRefs = useRef<(THREE.Object3D | null)[]>([]);
   /** The same leaf material and shadow cut-out as the island's trees (`Vegetation.tsx`). */

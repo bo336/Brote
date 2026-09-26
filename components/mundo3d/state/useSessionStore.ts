@@ -54,6 +54,8 @@ export interface PlacementSummary {
   remaining: number;
   canUndo: boolean;
   props: PropId[];
+  /** Copies still to place, for things bought in the world's shop; absent = unlimited. */
+  left?: Readonly<Record<string, number>>;
   /** Which saved-layout slots hold something. Length is how many are drawn. */
   slots: boolean[];
 }

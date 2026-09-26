@@ -29,6 +29,8 @@ interface PlacementBarProps {
    * sixty times a second to change nothing on screen.
    */
   hasGhost: boolean;
+  /** Copies still to place of what the world's shop sold. */
+  left?: Readonly<Record<string, number>>;
   rejected: boolean;
   remaining: number;
   canUndo: boolean;
@@ -74,7 +76,7 @@ function Round({
 }
 
 export function PlacementBar({
-  props, hasGhost, rejected, remaining, canUndo, slots, saveState,
+  props, left, hasGhost, rejected, remaining, canUndo, slots, saveState,
   onPick, onRotate, onCommit, onCancel, onUndo, onUseSlot, onExit,
 }: PlacementBarProps) {
   const t = useTranslations('mundo');
@@ -147,6 +149,7 @@ export function PlacementBar({
                 )}
               >
                 {t(`props.${slug}`)}
+                {left?.[slug] !== undefined && <span className="tnum ml-1.5 opacity-60">×{left[slug]}</span>}
               </button>
             ))
           )}
