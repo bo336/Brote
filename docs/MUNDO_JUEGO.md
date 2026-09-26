@@ -34,21 +34,21 @@
 
 | # | Pedido | Dónde se resuelve | Estado |
 |---|---|---|---|
-| R1 | Los objetos (bancos, compostera, puente…) se ven "hechos en Paint": llevarlos al nivel del resto | §3.12, fase F4 | ⬜ |
-| R2 | El mundo no es la prioridad de la app: es una sección más, como el Mercado, la Plaza y la Academia, donde la gente quiera pasar horas | §3.13, fase F0/F6 | ⬜ |
-| R3 | Muchas actividades/tareas de videojuego; ni infinito ni difícil; 30 min por día sin quedarse sin cosas que hacer | §3.2, §3.4–3.7, simulación §6 | ⬜ |
-| R4 | Ver mejoras en el mundo: que se vuelva un entorno mejor y más desarrollado cuanto más se juega | §3.3 (parcelas), §3.5 | ⬜ |
-| R5 | Calidad de videojuego profesional + enseñar jugando sin ser intrusivo | §3.9, §3.12 | ⬜ |
-| R6 | Desconectado de la app pero conectado: el nivel (tier) define cómo se ve; dos formas de mejorar (jugar / subir de nivel), cada una hace crecer algo distinto, una sola no alcanza | §3.1 | ⬜ |
-| R7 | El cambio de nivel tiene que ser MUY notorio | §3.8 | ⬜ |
-| R8 | Jugabilidad mucho más profunda: acciones, tareas, misiones y más | §3.4–3.7 | ⬜ |
-| R9 | Mejorar la idea: jugando se hacen crecer bosques, ambientes y bloques del mundo (tipo *My Little Universe*); con el nivel se descubren especies nuevas (montañas, animales, árboles) y después se trabajan jugando | §3.1, §3.3, §3.8 | ⬜ |
-| R10 | Bug: en el teléfono el juego no abre, "vuelve arriba de la página" | §3.13, fase F0 | ⬜ |
-| R11 | Bug: no se ve la vista previa del mundo en la app; hace falta una representación real | §3.13, fase F0 | ⬜ |
-| R12 | Nada de lo que se hace en el mundo suma puntos ni premios relevantes en la app; lo único que los une es el nivel | §3.11 | ⬜ |
-| R13 | Representar el impacto real del usuario en el juego, claro pero sin molestar | §3.10 | ⬜ |
-| R14 | Semillas como monedas que se ganan jugando, y una tienda para comprar objetos para el mundo | §3.7 | ⬜ |
-| R15 | Tomarse el tiempo, dejarlo perfecto, cumplir todo | todo el plan | ⬜ |
+| R1 | Los objetos (bancos, compostera, puente…) se ven "hechos en Paint": llevarlos al nivel del resto | §3.12, fase F4 | ✅ superficies de madera/piedra/metal/tela/plástico en shader; 17 modelos nuevos; estaciones rehechas y lejanas |
+| R2 | El mundo no es la prioridad de la app: es una sección más, como el Mercado, la Plaza y la Academia, donde la gente quiera pasar horas | §3.13, fase F0/F6 | ✅ sección en la navegación y fila en Inicio con póster real |
+| R3 | Muchas actividades/tareas de videojuego; ni infinito ni difícil; 30 min por día sin quedarse sin cosas que hacer | §3.2, §3.4–3.7, simulación §6 | ✅ simulación: sin días muertos, ~30 min/día, semanas de contenido por nivel (`game-sim`) |
+| R4 | Ver mejoras en el mundo: que se vuelva un entorno mejor y más desarrollado cuanto más se juega | §3.3 (parcelas), §3.5 | ✅ parcelas que pasan de silvestre a floreciente, con flora, hábitat y pasto restaurado |
+| R5 | Calidad de videojuego profesional + enseñar jugando sin ser intrusivo | §3.9, §3.12 | ✅ fichas de guía en el momento justo, diálogos cortos opcionales, cámara que encuadra |
+| R6 | Desconectado de la app pero conectado: el nivel (tier) define cómo se ve; dos formas de mejorar (jugar / subir de nivel), cada una hace crecer algo distinto, una sola no alcanza | §3.1 | ✅ Descubrir (nivel real) vs Cultivar (jugar); barras Descubierto/Cuidado |
+| R7 | El cambio de nivel tiene que ser MUY notorio | §3.8 | ✅ ceremonia + tarjeta "Descubriste" + aviso por división |
+| R8 | Jugabilidad mucho más profunda: acciones, tareas, misiones y más | §3.4–3.7 | ✅ 11 cadenas, diarias, estaciones, tienda, censo, pesca, premio por región |
+| R9 | Mejorar la idea: jugando se hacen crecer bosques, ambientes y bloques del mundo (tipo *My Little Universe*); con el nivel se descubren especies nuevas (montañas, animales, árboles) y después se trabajan jugando | §3.1, §3.3, §3.8 | ✅ se restauran bloques (parcelas) por región; el nivel descubre lugares, especies y estaciones |
+| R10 | Bug: en el teléfono el juego no abre, "vuelve arriba de la página" | §3.13, fase F0 | ◐ ya no rebota: pantalla "todavía no abrió". Abrir a todos = migración 0116 (**necesita OK del dueño**) |
+| R11 | Bug: no se ve la vista previa del mundo en la app; hace falta una representación real | §3.13, fase F0 | ✅ póster real (capturado por el propio juego) y pósters por defecto nuevos |
+| R12 | Nada de lo que se hace en el mundo suma puntos ni premios relevantes en la app; lo único que los une es el nivel | §3.11 | ✅ el juego no toca la app (tests de grep + SQL); semillas del mundo aparte |
+| R13 | Representar el impacto real del usuario en el juego, claro pero sin molestar | §3.10 | ✅ El Ceibo: una flor por acción real, agua/residuos/energía a sus pies, abre El Mojón |
+| R14 | Semillas como monedas que se ganan jugando, y una tienda para comprar objetos para el mundo | §3.7 | ✅ semillas del mundo + tienda + colocar lo comprado |
+| R15 | Tomarse el tiempo, dejarlo perfecto, cumplir todo | todo el plan | ◐ ver §5; pendiente sólo lo que necesita al dueño |
 | R16 | Planificar y anotar cosa por cosa lo hecho y lo que falta, porque las sesiones se cortan | este archivo | ✅ |
 
 ---
