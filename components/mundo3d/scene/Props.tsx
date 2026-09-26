@@ -17,6 +17,7 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { MirrorParams, Placement, PropId, TimeOfDay } from '@/lib/world/types';
 import type { BlobShadowPool } from '@/lib/render/shadows';
 import type { PropCollider } from '../control/CharacterController';
+import { useGameStore } from '../game/useGameStore';
 
 /**
  * The fixed structures the ladder puts on the island, and the props the player
@@ -102,11 +103,14 @@ export function Props({
     return { ...built, scale: (SCALE_REFERENCE.fullTreeM * 0.62) / (height * TREEHOUSE_FORK) };
   }, []);
 
+  // The old bridge stays broken until the game's repair is built (`game/scene/Stations`).
+  const bridgeBroken = useGameStore((s) => !!s.state && (s.state.stations.puente?.lvl ?? 0) < 1);
+
   /** The fixed structures: one per feature the tier has actually granted. */
   const structures = useMemo(() => {
     return layout.anchors
       .map((anchor) => {
-        const geometry = buildStructure(anchor.feature, anchor.span);
+        const geometry = buildStructure(anchor.feature, anchor.span, anchor.feature === 'bridge' && bridgeBroken);
         if (!geometry) return null;
         const walkable = anchor.feature === 'bridge';
         const ground = sampleHeight(heightfield, anchor.x, anchor.z);
@@ -129,7 +133,7 @@ export function Props({
         };
       })
       .filter((s): s is NonNullable<typeof s> => s !== null);
-  }, [layout, heightfield, treehouseTree]);
+  }, [layout, heightfield, treehouseTree, bridgeBroken]);
 
   /** The placed props — the player's, or the demo ring while there are none. */
   const placed = useMemo<Placed[]>(() => {

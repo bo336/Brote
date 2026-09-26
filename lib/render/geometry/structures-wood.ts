@@ -25,9 +25,12 @@ const Y = new THREE.Vector3(0, 1, 0);
  * deck's top is `BRIDGE.deckTopM` plus the camber, which is exactly the floor
  * `lib/world/decks.ts` stands Pip on.
  */
-export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry {
+export function bridge(span: number = BRIDGE.defaultSpanM, broken = false): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const rng = mulberry32(Math.round(span * 1000));
+  // "El puente viejo": before the game's repair, a third of the planks are gone,
+  // some sag, the wood is grey, and one side's rails have fallen in the river.
+  const gone = (i: number) => broken && (i % 3 === 1 || (i * 7919) % 11 === 4);
   const half = span / 2;
   const deckHalf = BRIDGE.deckWidthM / 2;
   const plankY = BRIDGE.deckTopM - 0.035;
@@ -57,11 +60,12 @@ export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry
   for (let i = 0; i < planks; i++) {
     const t = (i + 0.5) / planks;
     const tone = rng();
-    const hex = tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
+    const hex = broken ? (tone < 0.5 ? '#7E7468' : '#6A6158') : tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
+    if (gone(i)) continue;
     // Laid across the span: the grain runs from rail to rail.
     const plank = surface(bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94), 'wood', [0, 0, 1]);
-    plank.rotateY((rng() - 0.5) * 0.06);
-    plank.rotateZ(tilt(t));
+    plank.rotateY((rng() - 0.5) * (broken ? 0.3 : 0.06));
+    plank.rotateZ(tilt(t) + (broken && i % 4 === 0 ? 0.12 : 0));
     plank.translate(-half + t * span, plankY + lift(t) + (rng() - 0.5) * 0.015, (rng() - 0.5) * 0.06);
     parts.push(plank);
   }
@@ -76,8 +80,9 @@ export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry
       parts.push(p);
     }
     for (let i = 0; i < posts - 1; i++) {
-      parts.push(beam(at(i), at(i + 1), plankY + 0.62, side * railZ, 0.07, 0.08, CLAY.bark));
-      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, CLAY.barkRoof));
+      if (broken && (side > 0 || i % 2 === 1)) continue;
+      parts.push(beam(at(i), at(i + 1), plankY + 0.62, side * railZ, 0.07, 0.08, broken ? '#6A6158' : CLAY.bark));
+      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, broken ? '#7E7468' : CLAY.barkRoof));
     }
   }
   return mergePainted(parts);

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {
   compostera, constructionSite, hotelInsectos, puntoLimpio, tanque, vivero,
 } from '@/lib/render/geometry/stations-game';
+import { faro, muelle, puenteExtras, refugio } from '@/lib/render/geometry/stations-far';
 import { getGeometry } from '@/lib/render/geometry';
 import { getClayMaterial } from '@/lib/render/materials';
 import type { BlobShadowPool } from '@/lib/render/shadows';
@@ -39,15 +40,38 @@ import { useTags } from '../tags';
  * way to somewhere else must never empty the bag into it, and a site the story
  * has not asked for yet takes nothing at all (`buildOpen`).
  */
-type Buildable = 'punto_limpio' | 'compostera' | 'tanque' | 'vivero' | 'hotel_insectos';
+type Buildable = 'punto_limpio' | 'compostera' | 'tanque' | 'vivero' | 'hotel_insectos' | 'puente' | 'muelle' | 'refugio' | 'faro';
 const BUILDERS: Record<Buildable, (lvl: number) => THREE.BufferGeometry> = {
   punto_limpio: puntoLimpio, compostera, tanque, vivero, hotel_insectos: hotelInsectos,
+  // The far island's. The bridge itself is the world's, drawn broken until repaired (`Props`).
+  puente: puenteExtras, muelle, refugio, faro,
 };
 const ORDER = Object.keys(BUILDERS) as Buildable[];
 /** How wide each built thing is to Pip and to the camera. */
 const RADIUS: Record<Buildable, number> = {
   punto_limpio: 1.1, compostera: 0.9, tanque: 0.9, vivero: 1.3, hotel_insectos: 0.6,
+  puente: 0.4, muelle: 0.5, refugio: 1.5, faro: 1.2,
 };
+
+/**
+ * The dock is built along +Z and has to point out over the water, whatever its
+ * spot's own turn: the direction where the ground three metres out is lowest.
+ */
+function yawFor(id: Buildable, spot: { x: number; z: number; rotY: number }, hf: Heightfield): number {
+  if (id !== 'muelle') return spot.rotY;
+  let best = spot.rotY;
+  let low = Infinity;
+  for (let k = 0; k < 24; k++) {
+    const a = (k / 24) * Math.PI * 2;
+    const h = sampleHeight(hf, spot.x + Math.sin(a) * 3, spot.z + Math.cos(a) * 3)
+      + sampleHeight(hf, spot.x + Math.sin(a) * 1.5, spot.z + Math.cos(a) * 1.5);
+    if (h < low) {
+      low = h;
+      best = a;
+    }
+  }
+  return best;
+}
 
 function missingLines(id: StationId, lvl: number, paid: Partial<Record<MaterialId, number>>): string[] {
   const cost = nextCost(id, lvl);
@@ -226,7 +250,7 @@ export function Stations({
             geometry={geo}
             material={material}
             position={[v.spot.x, v.y, v.spot.z]}
-            rotation={[0, v.spot.rotY, 0]}
+            rotation={[0, yawFor(v.id, v.spot, heightfield), 0]}
             castShadow
             receiveShadow
           />

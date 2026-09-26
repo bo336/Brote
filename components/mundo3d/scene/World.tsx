@@ -49,6 +49,7 @@ import { Props } from './Props';
 import { Sky } from './Sky';
 import { Stickers } from './Stickers';
 import { Vegetation } from './Vegetation';
+import { useGameClearings } from '../game/useGameClearings';
 import { Water } from './Water';
 
 /**
@@ -185,6 +186,8 @@ export function World({
   );
 
   const colliders = useColliders(controller, cameraRef);
+  // Where the game builds and its people stand: no tree grows there.
+  const clearings = useGameClearings(userId, layout);
 
   useEffect(() => {
     if (!layout || !heightfield) return;
@@ -309,6 +312,7 @@ export function World({
         shadows={shadows}
         createdAt={createdAt}
         onColliders={colliders.onTrees}
+        clearings={clearings}
       />
       {/* The calafates you forage from. Only once the tier has granted the verb. */}
       {config.verbs.includes('forage') && <ForageBushes />}

@@ -174,11 +174,16 @@ const cache = new Map<string, THREE.BufferGeometry>();
  * Built on first use and cached. A feature the tier has not granted costs
  * nothing. `size` is for a structure sized to where it stands — the bridge's span.
  */
-export function buildStructure(feature: FeatureId, size?: number): THREE.BufferGeometry | null {
+export function buildStructure(feature: FeatureId, size?: number, broken = false): THREE.BufferGeometry | null {
   // Centimetres, as an integer: close enough to share a cached shape.
-  const key = size === undefined ? feature : `${feature}:${Math.round(size * 100)}`;
+  const key = `${size === undefined ? feature : `${feature}:${Math.round(size * 100)}`}${broken ? ':broken' : ''}`;
   const hit = cache.get(key);
   if (hit) return hit;
+  if (broken && feature === 'bridge') {
+    const geo = bridge(size, true);
+    cache.set(key, geo);
+    return geo;
+  }
   const build = BUILDERS[feature];
   if (!build) return null;
   const geo = build(size);

@@ -36,6 +36,7 @@ import type { QualityTier, WorldConfig } from '@/lib/world/types';
  * warm earth, and the frame still has to read as composed.
  */
 const MAX_TIER: QualityTier = 3;
+const NO_CLEARINGS: readonly { x: number; z: number; r: number }[] = [];
 /** Accents for the flower mix — the one place a saturated hue belongs. */
 const FLOWER_ACCENTS = [DOMAIN_COLORS.animales, DOMAIN_COLORS.energia, DOMAIN_COLORS.consumo];
 /**
@@ -93,6 +94,7 @@ export function Vegetation({
   shadows,
   createdAt = 0,
   onColliders,
+  clearings = NO_CLEARINGS,
 }: {
   heightfield: Heightfield;
   layout: IslandLayout;
@@ -101,6 +103,8 @@ export function Vegetation({
   biome: BiomeConfig;
   /** Trees and rocks take a static blob so they sit on the ground, not over it. */
   shadows?: BlobShadowPool;
+  /** Circles no tree may stand in: the game's station pads, its people, the ceibo. */
+  clearings?: readonly { x: number; z: number; r: number }[];
   /**
    * When the island was made, epoch ms, for idle maturation. Zero means it has
    * grown nothing on its own — which is what a world nobody owns should look
@@ -332,7 +336,8 @@ export function Vegetation({
     );
     if (config.tier >= 4) {
       pools.trees.forEach(({ wood, leaves }, v) => {
-        const list = forRegion(pick(points, BANDS.trees, v, variants), 'trees');
+        const list = forRegion(pick(points, BANDS.trees, v, variants), 'trees')
+          .filter((p) => !clearings.some((c) => (p.x - c.x) ** 2 + (p.z - c.z) ** 2 < c.r * c.r));
         for (const p of list) {
           const wi = wood.alloc();
           const li = leaves.alloc();
@@ -364,7 +369,7 @@ export function Vegetation({
       canopyRef.current = [];
       for (const slot of placedShadows) shadows?.releaseStatic(slot);
     };
-  }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders]);
+  }, [pools, layout, heightfield, config, biome, shadows, createdAt, variants, onColliders, clearings]);
 
   /** The counts for the session's tier: one integer per pool, set once. */
   useEffect(() => {
