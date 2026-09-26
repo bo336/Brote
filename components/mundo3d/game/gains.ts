@@ -57,6 +57,11 @@ export function pushGain(material: MaterialId, n: number, waste?: WasteKind): vo
   useGains.getState().push(material, one, many, def.color, n);
 }
 
+export function pushWater(n: number): void {
+  if (n <= 0) return;
+  useGains.getState().push('agua', 'de agua', 'de agua', '#2DB4D4', n);
+}
+
 export function pushSemillas(n: number): void {
   if (n <= 0) return;
   useGains.getState().push('semillas', 'semilla', 'semillas', '#F2B53A', n);

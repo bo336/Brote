@@ -4,7 +4,7 @@ import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 
 import { invasiveGeometry } from '@/lib/render/geometry/pickups';
-import { parcelStake } from '@/lib/render/geometry/stations-game';
+import { parcelRibbon, parcelStake } from '@/lib/render/geometry/stations-game';
 import { getGeometry } from '@/lib/render/geometry';
 import { InstancePool } from '@/lib/render/instancing';
 import { getClayMaterial } from '@/lib/render/materials';
@@ -47,10 +47,14 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
   const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false }), []);
   const foliage = useMemo(() => getClayMaterial({ vertexColors: true, wind: true, wobble: true }), []);
   const stakes = useMemo(() => {
-    const pool = new InstancePool(getGeometry('game:stake', parcelStake), material, MAX_PARCELS, { name: 'parcel-stakes', colors: true });
+    const pool = new InstancePool(getGeometry('game:stake', parcelStake), material, MAX_PARCELS, { name: 'parcel-stakes' });
     pool.mesh.castShadow = true;
     return pool;
   }, [material]);
+  const ribbons = useMemo(
+    () => new InstancePool(getGeometry('game:ribbon', parcelRibbon), foliage, MAX_PARCELS, { name: 'parcel-ribbons', colors: true }),
+    [foliage],
+  );
   const weeds = useMemo(() => {
     const pool = new InstancePool(invasiveGeometry(), foliage, MAX_PARCELS, { name: 'invasives' });
     pool.mesh.castShadow = true;
@@ -58,8 +62,9 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
   }, [foliage]);
   useEffect(() => () => {
     stakes.dispose();
+    ribbons.dispose();
     weeds.dispose();
-  }, [stakes, weeds]);
+  }, [stakes, ribbons, weeds]);
 
   const parcels = useMemo(() => (field ? parcelsAt(field, tier) : []), [field, tier]);
   const heights = useMemo(
@@ -73,6 +78,7 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
   useEffect(() => {
     if (!state || !field) return;
     stakes.reset();
+    ribbons.reset();
     weeds.reset();
     for (const p of parcels) {
       const ps = state.parcels[p.id];
@@ -80,9 +86,12 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
       const y = heights.get(p.id) ?? 0;
       const i = stakes.alloc();
       if (i < 0) break;
-      stakes.place(i, p.x, y, p.z, (p.i * 1.7 + p.j) % (Math.PI * 2), 1);
+      const rot = (p.i * 1.7 + p.j) % (Math.PI * 2);
+      stakes.place(i, p.x, y, p.z, rot, 1);
       const care = careKey.split(',')[parcels.indexOf(p)] as CareKind | '-';
-      stakes.setColor(i, color.set(care && care !== '-' ? RIBBON_ALERT : RIBBON[stage]!));
+      const r = ribbons.alloc();
+      ribbons.place(r, p.x, y, p.z, rot, 1);
+      ribbons.setColor(r, color.set(care && care !== '-' ? RIBBON_ALERT : RIBBON[stage]!));
       if (stage === 0 && p.invasive && !ps?.inv) {
         const w = weeds.alloc();
         const [ix, iz] = p.invasive;
@@ -94,11 +103,13 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
       }
     }
     stakes.resize(stakes.count);
+    ribbons.resize(ribbons.count);
     weeds.resize(weeds.count);
     stakes.commit();
+    ribbons.commit();
     weeds.commit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageKey, careKey, parcels, heights, stakes, weeds, field]);
+  }, [stageKey, careKey, parcels, heights, stakes, ribbons, weeds, field]);
 
   // What each marker offers, and its tag — recomputed only when something an
   // offer depends on changes (not on every piece of litter picked up).
@@ -161,6 +172,7 @@ export function Parcels({ heightfield }: { heightfield: Heightfield }) {
   return (
     <group name="parcels">
       <primitive object={stakes.mesh as THREE.Object3D} />
+      <primitive object={ribbons.mesh as THREE.Object3D} />
       <primitive object={weeds.mesh as THREE.Object3D} />
     </group>
   );

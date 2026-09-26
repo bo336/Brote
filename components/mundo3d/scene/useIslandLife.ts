@@ -12,7 +12,6 @@ import type { Placement, ProjectMarker, WorldConfig, WorldDailyState } from '@/l
 import { useProjectMarkers } from '../interaction/useProjectMarkers';
 import { useThingNotes } from '../interaction/useThingNotes';
 import { FORAGE_NODES } from '../verbs/register';
-import { useChores } from '../verbs/useChores';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -63,25 +62,10 @@ export function useIslandLife({
     [layout],
   );
 
-  /**
-   * The day's three chores, as places you walk past (`11-GAME-LOOP.md` §3.4).
-   * The date comes from the same timezone helper every other daily surface in
-   * the app uses, so the client and `world_daily_chore` agree on what "today"
-   * is without a second definition.
-   */
-  useChores({
-    layout,
-    heightfield,
-    userId,
-    localDate,
-    unlockedRegions: config.regions,
-    // The server-known arrangement, not the editor's live one: a chore sits at
-    // a prop that is actually down, never at one mid-drag.
-    placements,
-    daily,
-    readOnly,
-    isGround,
-  });
+  // The old three chores are the game's dailies now (`lib/world/game/texto/diarias.ts`).
+  void daily;
+  void readOnly;
+  void userId;
 
   // A stone for every real project they went to — the one thing the island
   // remembers that did not happen on the island.

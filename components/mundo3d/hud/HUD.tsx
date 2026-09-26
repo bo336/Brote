@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronsUp, HelpCircle, Sprout } from 'lucide-react';
+import { ArrowLeft, Backpack, ChevronsUp, HelpCircle, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
@@ -14,6 +14,9 @@ import { requestJump } from '../control/useInput';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { record } from '@/lib/world/telemetry';
 import { useSessionStore } from '../state/useSessionStore';
+import { balance, bagCap, bagCount } from '@/lib/world/game/state';
+import { useGameStore } from '../game/useGameStore';
+import { useGameUi } from '../game/useGameUi';
 
 /**
  * The HUD is **nearly empty**, and that is the design (`16-UI-AUDIO-A11Y.md` §1).
@@ -55,7 +58,12 @@ export function HUD({ onOpenBitacora }: {
   const t = useTranslations('mundo');
   const tBitacora = useTranslations('mundo.bitacora');
   const router = useRouter();
-  const semillas = usePlayerStore((s) => s.semillas);
+  // The WORLD's semillas and backpack — never the app's balance (`docs/MUNDO_JUEGO.md` §3.11).
+  const game = useGameStore((s) => s.state);
+  const semillas = game ? balance(game) : 0;
+  const bagUsed = game ? bagCount(game.bag) : 0;
+  const bagMax = game ? bagCap(game) : 0;
+  const openIsla = () => useGameUi.getState().open({ kind: 'isla', tab: 'misiones' });
   const hud = useSessionStore((s) => s.hud);
   const lockedHint = useSessionStore((s) => s.lockedHint);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
@@ -119,7 +127,7 @@ export function HUD({ onOpenBitacora }: {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      onOpenBitacora();
+      openIsla();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -167,12 +175,18 @@ export function HUD({ onOpenBitacora }: {
             on desktop (§3). */}
         <button
           type="button"
-          onClick={onOpenBitacora}
-          aria-label={tBitacora('title')}
-          className="tnum pointer-events-auto flex items-center gap-1.5 rounded-pill bg-brote-ink/40 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
+          onClick={openIsla}
+          aria-label="Tu isla: misiones, mochila, tienda"
+          className="tnum pointer-events-auto flex items-center gap-2.5 rounded-pill bg-brote-ink/45 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
         >
-          <Sprout className="h-3.5 w-3.5" aria-hidden />
-          {semillas}
+          <span className="flex items-center gap-1 text-brote-sun">
+            <Sprout className="h-3.5 w-3.5" aria-hidden />
+            {semillas}
+          </span>
+          <span className={`flex items-center gap-1 ${bagUsed >= bagMax && bagMax > 0 ? 'text-brote-coral' : ''}`}>
+            <Backpack className="h-3.5 w-3.5" aria-hidden />
+            {bagUsed}/{bagMax}
+          </span>
         </button>
       </div>
 

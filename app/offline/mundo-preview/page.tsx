@@ -10,6 +10,9 @@ import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { isWater, snapToLand, terrainHeight } from '@/lib/world/terrain';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
+import { useGameStore } from '@/components/mundo3d/game/useGameStore';
+import { useGameUi } from '@/components/mundo3d/game/useGameUi';
+import { useMissionView } from '@/components/mundo3d/game/scene/MissionGuide';
 import { mulberry32 } from '@/lib/world/rng';
 import { PROP_IDS } from '@/lib/world/progression';
 import { SPECIES } from '@/lib/world/species';
@@ -279,6 +282,14 @@ function Preview() {
     });
     // Where Pip actually is, and what the button is currently offering.
     // …and what the controls harness needs to check a jump and a press of E.
+    // The game (`lib/world/game`): its state, the card, and a way to act — for
+    // the play harness, which walks with real keys and checks what happened.
+    (w as unknown as { __game?: () => unknown }).__game = () => {
+      const g = useGameStore.getState();
+      return { state: g.state, rev: g.rev, status: g.status, mission: useMissionView.getState().view, ui: useGameUi.getState().screen };
+    };
+    (w as unknown as { __act?: (a: unknown) => unknown }).__act = (a: unknown) =>
+      useGameStore.getState().dispatch(a as Parameters<ReturnType<typeof useGameStore.getState>['dispatch']>[0]);
     w.__pip = () => ({
       x: playerTransform.x, y: playerTransform.y, z: playerTransform.z,
       airborne: playerTransform.airborne, speed: playerTransform.speed,

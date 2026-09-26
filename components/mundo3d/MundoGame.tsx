@@ -29,6 +29,7 @@ import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
 import { PostFx } from './scene/PostFx';
 import type { VisitSession } from './visit/useVisit';
+import { useGameSession } from './game/useGameSession';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
 const EMPTY_JOURNAL: JournalEntry[] = [];
@@ -240,6 +241,9 @@ export default function MundoGame({
   const world = useHydrateWorld({
     payload, userId, tier: worldTier, worldIndex, liveliness,
   });
+
+  // The game's save and its flush on leaving (`game/useGameSession.ts`).
+  useGameSession({ who: world.userId, tier: world.tier, payload, frozen, visit: visit !== undefined });
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).

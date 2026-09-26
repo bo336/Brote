@@ -16,7 +16,8 @@ import { mulberry32 } from '@/lib/world/rng';
 import type { PipCosmetics } from '@/lib/world/types';
 import type { PropCollider } from '../../control/CharacterController';
 import { PRIORITY, registerInteractable } from '../../interaction/InteractableRegistry';
-import { PipRig } from '../../pip/PipRig';
+import { PipRig, standing } from '../../pip/PipRig';
+import { castPositions } from './MissionGuide';
 import { playSfx } from '../../audio/sfx';
 import { playerTransform } from '../../state/usePlayerStore';
 import { useGameStore } from '../useGameStore';
@@ -86,11 +87,12 @@ export function Cast({
   const present = useMemo(() => CAST.filter((c) => c.from <= tier), [tier]);
   const bodies = useMemo(() => present.map((c) => {
     const root = buildPip(1) as PipRoot;
-    const rig = new PipRig(root);
+    const at = standing(0, 0, 0, 0);
+    const rig = new PipRig(root, at);
     applyCosmetics(root, c.cosmetics, { solid, overlay });
     applyStage(root, 'leafy');
     root.scale.setScalar(c.scale);
-    return { def: c, root, rig };
+    return { def: c, root, rig, at };
   }), [present, solid, overlay]);
   useEffect(() => () => bodies.forEach((b) => disposePip(b.root)), [bodies]);
 
@@ -115,9 +117,12 @@ export function Cast({
   useEffect(() => {
     bodies.forEach((b, i) => {
       const p = positions[i]!;
-      b.root.position.set(p.x, p.y, p.z);
-      b.root.rotation.y = p.rotY;
+      b.at.x = p.x;
+      b.at.y = p.y;
+      b.at.z = p.z;
+      b.at.yaw = p.rotY;
       b.rig.setState('idle');
+      castPositions.set(b.def.who, { x: p.x, z: p.z });
     });
     onColliders(positions.map((p) => ({ x: p.x, z: p.z, radius: 0.35, cameraRadius: 0.5 })));
   }, [bodies, positions, onColliders]);
@@ -196,9 +201,9 @@ export function Cast({
       const d = Math.hypot(pp.x - p.x, pp.z - p.z);
       if (d < 6) {
         const want = Math.atan2(pp.x - p.x, pp.z - p.z);
-        let diff = want - b.root.rotation.y;
+        let diff = want - b.at.yaw;
         diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-        b.root.rotation.y += diff * (1 - Math.exp(-dt * 4));
+        b.at.yaw += diff * (1 - Math.exp(-dt * 4));
       }
       b.rig.update(dt, t + i * 1.3);
     });

@@ -355,15 +355,22 @@ export function parcelStake(): THREE.BufferGeometry {
   sign.rotateX(Math.PI / 2);
   sign.translate(0, 0.62, 0.035);
   parts.push(sign);
-  // The ribbon: white here, tinted by the instance colour.
-  const ribbon = new THREE.PlaneGeometry(0.06, 0.24, 1, 4);
-  const pos = ribbon.attributes.position as THREE.BufferAttribute;
-  for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin((pos.getY(i) + 0.12) * 9) * 0.02);
-  ribbon.computeVertexNormals();
-  ribbon.translate(0.03, 0.68, 0);
-  const [front, back] = doubleSidedRibbon(ribbon);
-  parts.push(paintFlat(front, '#FFFFFF'), paintFlat(back, '#FFFFFF'));
   return mergePainted(parts);
+}
+
+/**
+ * The stake's ribbon, on its own: white in the geometry, tinted per instance
+ * by the parcel's stage. Separate from the stake because an instance colour
+ * tints every vertex it touches — together, the whole post went red.
+ */
+export function parcelRibbon(): THREE.BufferGeometry {
+  const ribbon = new THREE.PlaneGeometry(0.07, 0.3, 1, 5);
+  const pos = ribbon.attributes.position as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin((pos.getY(i) + 0.15) * 9) * 0.025);
+  ribbon.computeVertexNormals();
+  ribbon.translate(0.035, 0.62, 0);
+  const [front, back] = doubleSidedRibbon(ribbon);
+  return mergePainted([paintFlat(front, '#FFFFFF'), paintFlat(back, '#FFFFFF')]);
 }
 
 function doubleSidedRibbon(geo: THREE.BufferGeometry): [THREE.BufferGeometry, THREE.BufferGeometry] {

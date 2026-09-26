@@ -11,6 +11,7 @@ import { haptic } from '@/lib/utils/haptics';
 import { playSfx } from '../audio/sfx';
 import { celebrate, emitFx } from '../state/feedback';
 import { useSessionStore } from '../state/useSessionStore';
+import { useGameStore } from '../game/useGameStore';
 
 /** What each verb throws into the air when it lands. */
 const VERB_FX: Partial<Record<VerbId, FxKind>> = {
@@ -67,7 +68,6 @@ export function useWorldVerbs({
   onAdvanceTime?: () => void;
   onOpenMojon?: () => void;
 }): VerbRuntime {
-  const setSemillas = usePlayerStore((s) => s.setSemillas);
   const setVerb = usePlayerStore((s) => s.setVerb);
 
   /**
@@ -145,6 +145,12 @@ export function useWorldVerbs({
        */
       if (result.verb === 'log') facts.offer();
 
+      // The game pays for these, in world semillas, and counts them for missions.
+      const game = useGameStore.getState();
+      if (result.verb === 'log' && spot?.speciesSlug) game.dispatch({ t: 'log', species: spot.speciesSlug }, spot.position);
+      if (result.verb === 'fish') game.dispatch({ t: 'fished', species: 'mojarra' }, spot?.position);
+      if (result.verb === 'forage') game.dispatch({ t: 'forage' }, spot?.position);
+
       if (result.verb === 'log' && spot?.speciesSlug && !readOnly) {
         void (async () => {
           try {
@@ -155,8 +161,8 @@ export function useWorldVerbs({
               p_tod: timeOfDay,
             });
             if (error) return;
-            const reply = data as { ok?: boolean; semillas?: number } | null;
-            if (reply?.ok && typeof reply.semillas === 'number') setSemillas(reply.semillas);
+            // The census row only: the reward is the game's (`world_log_species` pays nothing since 0115).
+            void data;
           } catch {
             // The sighting is lost to a dropped connection. It is one row in a
             // journal, not an arrangement somebody spent an afternoon on, so
@@ -164,11 +170,9 @@ export function useWorldVerbs({
           }
         })();
       }
-      // `forage` pays too, and its RPC does not exist yet (`0095` prices it and
-      // nothing awards it). Until it does, foraging pays **nothing** rather
-      // than a number this file made up.
+      // Foraging pays in fruit, through the game (above): berries for the vivero.
     },
-    [controller, setVerb, setSemillas, timeOfDay, readOnly, facts, forage],
+    [controller, setVerb, timeOfDay, readOnly, facts, forage],
   );
 
   /**

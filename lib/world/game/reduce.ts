@@ -30,6 +30,7 @@ export type GameAction =
   | { t: 'pull'; parcel: string }
   | { t: 'sort'; bin: BinId }
   | { t: 'deliver'; station: StationId }
+  | { t: 'deliverAll'; station: StationId }
   | { t: 'feed'; station: StationId }
   | { t: 'collect'; station: StationId }
   | { t: 'vivero'; plant: string }
@@ -41,6 +42,7 @@ export type GameAction =
   | { t: 'talk'; who: string }
   | { t: 'log'; species: string }
   | { t: 'fished'; species: string }
+  | { t: 'forage' }
   | { t: 'visit'; region: RegionId }
   | { t: 'seen'; tier: number; div: number }
   | { t: 'care'; parcel: string };
@@ -219,6 +221,16 @@ export function reduce(prev: GameState, action: GameAction, ctx: GameContext, wo
       tryBuild(s, action.station, ctx, events);
       break;
     }
+    case 'deliverAll': {
+      // Everything the bag has that the next level needs, then one try at building.
+      for (let k = 0; k < 400; k++) {
+        const m = deliverOne(s, action.station, ctx, events);
+        if (!m) break;
+        events.push({ type: 'delivered', station: action.station, material: m });
+      }
+      tryBuild(s, action.station, ctx, events);
+      break;
+    }
     case 'feed':
       feed(s, action.station, ctx, events);
       break;
@@ -284,6 +296,18 @@ export function reduce(prev: GameState, action: GameAction, ctx: GameContext, wo
       events.push({ type: 'fished', species: action.species });
       bump(s, 'fished');
       break;
+    case 'forage': {
+      // A calafate bush: berries for the vivero, as far as the backpack allows.
+      const n = Math.min(2, bagFree(s));
+      if (n <= 0) {
+        events.push({ type: 'refused', why: 'bag_full' });
+        break;
+      }
+      s.bag.frutos += n;
+      events.push({ type: 'pickup', material: 'frutos', n });
+      bump(s, 'foraged');
+      break;
+    }
     case 'visit':
       events.push({ type: 'visited', region: action.region });
       break;

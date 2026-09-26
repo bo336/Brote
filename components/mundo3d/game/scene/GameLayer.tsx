@@ -18,6 +18,7 @@ import { Pickups } from './Pickups';
 import { Restoration } from './Restoration';
 import { Stations } from './Stations';
 import { TagProjector } from './TagProjector';
+import { WaterSources } from './WaterSources';
 
 /**
  * Everything the game adds to the island (`docs/MUNDO_JUEGO.md` §3): what lies
@@ -89,6 +90,7 @@ export function GameLayer({
       <Stations spots={spots} heightfield={heightfield} tier={tier} shadows={shadows} onColliders={onStations} enabled={interactive} />
       {interactive && <Cast spots={spots} heightfield={heightfield} terrain={layout.terrain} tier={tier} onColliders={onCast} />}
       {interactive && <MissionGuide layout={layout} spots={spots} spawns={spawns} />}
+      {interactive && <WaterSources layout={layout} heightfield={heightfield} />}
       <TagProjector />
     </>
   );

@@ -35,18 +35,15 @@ import { useIslandLife } from './useIslandLife';
 import { useEventRuntime } from '../events/useEventRuntime';
 import { useBlobShadows } from './useBlobShadows';
 import { useColliders } from './useColliders';
-import { useFirstRun } from './useFirstRun';
 import { useMood } from './useMood';
-import { Debris } from './Debris';
 import { Fauna } from './Fauna';
-import { FirstRunMarks } from './FirstRunMarks';
 import { Grass } from './Grass';
 import { Guidance } from './Guidance';
+import { GameLayer } from '../game/scene/GameLayer';
 import { Island } from './Island';
 import { Lights } from './Lights';
 import { MistWall } from './MistWall';
 import { ProjectMarkers } from './ProjectMarkers';
-import { Wilting } from './Wilting';
 import { PosterShot, type PosterFrame } from './PosterShot';
 import { Props } from './Props';
 import { Sky } from './Sky';
@@ -93,7 +90,7 @@ export function World({
   createdAt = 0,
   onboardedAt = 0,
   projectMarkers = EMPTY_MARKERS,
-  dueReviews = 0,
+  dueReviews: _dueReviews = 0,
   readOnly = false,
   visit,
   onPlacementsChanged,
@@ -173,7 +170,6 @@ export function World({
   const today = useMemo(() => localDate(), []);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
   const setEventRun = useSessionStore((s) => s.setEventRun);
-  const setFirstRun = useSessionStore((s) => s.setFirstRun);
 
   // ── The heightfield, baked once, behind the loading state.
   const heightfield = useMemo(
@@ -241,18 +237,12 @@ export function World({
   useEffect(() => setEventRun(eventRun), [eventRun, setEventRun]);
 
   /**
-   * The first three minutes (`11-GAME-LOOP.md` §7). Runs once ever, and only
-   * for somebody whose island has never been opened.
+   * The first minutes are the story now (`lib/world/game/texto/cadenas.ts`,
+   * El Claro's chapter: Don Beto, the litter, the Punto Limpio). The old
+   * three-beat tutorial — plant a seed, pick a chip, look at the promise —
+   * taught a game that no longer exists, and two tutorials at once is none.
    */
-  const firstRun = useFirstRun({
-    layout, heightfield, onboardedAt, tier: config.tier, readOnly,
-    onPlace: (p) => onPlacementsChanged?.([...placements, p]),
-  });
-  useEffect(() => {
-    setFirstRun(firstRun.beat ? {
-      beat: firstRun.beat, choose: firstRun.choose, advance: firstRun.advance, skip: firstRun.skip,
-    } : null);
-  }, [firstRun, setFirstRun]);
+  void onboardedAt;
 
   const placedMarkers = useIslandLife({
     layout, heightfield, config, userId, localDate: today,
@@ -343,13 +333,6 @@ export function World({
         onColliders={colliders.onProps}
         shadows={shadows}
       />
-      {/* La Costa: the waste channel, and the only system that starts worse. */}
-      <Debris
-        heightfield={heightfield}
-        layout={layout}
-        debrisCount={mirror.debrisCount}
-        shadows={shadows}
-      />
       <Fauna
         heightfield={heightfield}
         layout={layout}
@@ -358,6 +341,16 @@ export function World({
         liveliness={liveliness}
         shadows={shadows}
         demo={demoProps}
+      />
+      {/* The game (`docs/MUNDO_JUEGO.md`): parcels, stations, the cast, what lies
+          around, and the restoration you can see. The beach's litter is play now,
+          not a mirror of real waste — real impact lives in the Ceibo. */}
+      <GameLayer
+        layout={layout}
+        heightfield={heightfield}
+        shadows={shadows}
+        colliders={colliders}
+        interactive={!visit}
       />
       <Guidance layout={layout} heightfield={heightfield} />
       {/* The tier-up ceremony's clock and marker; its cards are in the HUD. */}
@@ -371,17 +364,11 @@ export function World({
         onCelebrated={onCelebrated}
       />
       {onPoster && <PosterShot onShoot={onPoster} heightfield={heightfield} />}
-      {/* Overdue reviews, as plants that want water. Never more than three,
-          never blocking, and they come back on their own in a week. */}
-      {dueReviews > 0 && (
-        <Wilting layout={layout} heightfield={heightfield} due={dueReviews} />
-      )}
+      {/* Academia reviews no longer wilt anything here: the world and the app
+          meet only at the rank tier (and the Ceibo shows real impact). */}
       {/* A small cairn for every real project. Standing where you walk past. */}
       {placedMarkers.length > 0 && (
         <ProjectMarkers markers={placedMarkers} heightfield={heightfield} />
-      )}
-      {firstRun.beat && (
-        <FirstRunMarks beat={firstRun.beat} layout={layout} heightfield={heightfield} />
       )}
       <MistWall layout={layout} config={config} palette={palette} />
       {visit && (
