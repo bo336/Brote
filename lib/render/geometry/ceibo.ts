@@ -45,14 +45,14 @@ export function ceiboFlower(): THREE.BufferGeometry {
   parts.push(paintFlat(cup, NATIVE.ceiboLeafDeep));
   // …the big upright banner, curled back like a crest…
   const banner = new THREE.SphereGeometry(0.03, 8, 6);
-  banner.scale(0.9, 1.9, 0.35);
-  banner.translate(0, 0.045, -0.01);
-  banner.rotateX(-0.35);
+  banner.scale(1.15, 1.25, 0.3);
+  banner.translate(0, 0.03, -0.012);
+  banner.rotateX(-0.55);
   parts.push(paintVertical(banner, '#A3122A', '#E8303F', 0.7));
   // …and the keel pointing forward, a darker red.
   const keel = new THREE.SphereGeometry(0.018, 6, 5);
-  keel.scale(0.7, 0.8, 2.1);
-  keel.translate(0, 0.012, 0.03);
+  keel.scale(0.75, 0.8, 1.5);
+  keel.translate(0, 0.012, 0.022);
   parts.push(paintFlat(keel, '#B3162E'));
   return mergePainted(parts);
 }

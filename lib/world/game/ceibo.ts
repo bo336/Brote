@@ -12,7 +12,7 @@ export const CEIBO = {
   /** One flower per action up to here; past it the crown is simply full. */
   maxFlowers: 240,
   /** A flower is about as big as a real ceibo flower at this scale. */
-  flowerScale: 1.35,
+  flowerScale: 1.05,
   /** Size of the tree at 0 actions, and how much each tenfold adds. */
   scaleAtZero: 0.42,
   scalePerDecade: 0.24,
