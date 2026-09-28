@@ -15,6 +15,10 @@ export const PARCEL = {
   extentM: 86,
   /** Organic edges: how much noise bends the border between two parcels, metres. */
   edgeNoiseM: 1.6,
+  /** A parcel's centre is at least this far in from the water's edge, so its stake and plants are ashore… */
+  coastClearM: 2,
+  /** …and each piece of its litter, and its invasive, at least this far. */
+  pieceCoastClearM: 0.9,
   /** Litter pieces a wild parcel starts with: base + one more from this region tier on. */
   litterBase: 3,
   litterExtraFromTier: 6,
@@ -55,6 +59,8 @@ export const SPAWNS = {
   stones: 7,
   /** Nothing spawns closer than this to another spawn. */
   minSpacingM: 1.4,
+  /** Nothing inland spawns closer than this to the water's edge. */
+  coastClearM: 1.2,
 } as const;
 
 export const SEMILLAS = {

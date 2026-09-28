@@ -13,7 +13,7 @@
  * Deterministic from the island's seed; `Math.random()` never appears.
  */
 import { fbm, isPlantable, isRockable, type WorldLayout } from '../terrain';
-import { regionAt, terrainForTier, type RegionAnchor } from '../layout';
+import { buildCoastline, insideCoast, regionAt, terrainForTier, type RegionAnchor } from '../layout';
 import { regionCentre, regionRadius, REGION_SPECS } from '../regions';
 import { cumulativeState, MAX_TIER } from '../progression';
 import { hashInt, mulberry32 } from '../rng';
@@ -64,8 +64,13 @@ function anchorsFor(tier: number): RegionAnchor[] {
   return (ANCHORS[t] ??= anchorsAt(t));
 }
 
-function isLand(x: number, z: number, L: WorldLayout): boolean {
-  return isPlantable(x, z, L) || isRockable(x, z, L);
+/**
+ * Ground a tier's island really has: land by the height function, and inside
+ * the rim the ground mesh is drawn to (`insideCoast`). The height function
+ * alone put a whole parcel, stake and litter, in the bay.
+ */
+function isLand(x: number, z: number, L: WorldLayout, coast: Float32Array, marginM: number): boolean {
+  return (isPlantable(x, z, L) || isRockable(x, z, L)) && insideCoast(x, z, coast, L, marginM);
 }
 
 /** Build every parcel of an island. Pure; ~10 ms. */
@@ -73,8 +78,13 @@ export function buildParcels(seed: number): ParcelField {
   const S = PARCEL.spacingM;
   const n = Math.floor(PARCEL.extentM / S);
   const terrains: WorldLayout[] = [];
-  for (let t = 1; t <= MAX_TIER; t++) terrains[t] = terrainForTier(seed, t);
+  const coasts: Float32Array[] = [];
+  for (let t = 1; t <= MAX_TIER; t++) {
+    terrains[t] = terrainForTier(seed, t);
+    coasts[t] = buildCoastline(terrains[t]!.R, seed);
+  }
   const final = terrains[MAX_TIER]!;
+  const finalCoast = coasts[MAX_TIER]!;
 
   const parcels: ParcelSpec[] = [];
   for (let i = -n; i <= n; i++) {
@@ -82,10 +92,10 @@ export function buildParcels(seed: number): ParcelField {
       const rng = mulberry32(hashInt(`parcel:${seed}:${i}:${j}`));
       const x = i * S + (rng() * 2 - 1) * PARCEL.jitter * S;
       const z = j * S + (rng() * 2 - 1) * PARCEL.jitter * S;
-      if (!isLand(x, z, final)) continue;
+      if (!isLand(x, z, final, finalCoast, PARCEL.coastClearM)) continue;
       let tier = 0;
       for (let t = 1; t <= MAX_TIER; t++) {
-        if (isLand(x, z, terrains[t]!)) {
+        if (isLand(x, z, terrains[t]!, coasts[t]!, PARCEL.coastClearM)) {
           tier = t;
           break;
         }
@@ -94,6 +104,7 @@ export function buildParcels(seed: number): ParcelField {
       const steep = !isPlantable(x, z, final);
       // Litter: a few pieces around the centre, on ground the parcel's own tier has.
       const L = terrains[tier]!;
+      const coast = coasts[tier]!;
       const litter: [number, number][] = [];
       const want = PARCEL.litterBase + (tier >= PARCEL.litterExtraFromTier ? 1 : 0);
       for (let k = 0; k < want * 4 && litter.length < want; k++) {
@@ -101,14 +112,14 @@ export function buildParcels(seed: number): ParcelField {
         const r = 1.1 + rng() * S * 0.3;
         const lx = x + Math.cos(a) * r;
         const lz = z + Math.sin(a) * r;
-        if (isLand(lx, lz, L)) litter.push([lx, lz]);
+        if (isLand(lx, lz, L, coast, PARCEL.pieceCoastClearM)) litter.push([lx, lz]);
       }
       let invasive: [number, number] | null = null;
       if (rng() < PARCEL.invasiveChance) {
         const a = rng() * Math.PI * 2;
         const ix = x + Math.cos(a) * 1.8;
         const iz = z + Math.sin(a) * 1.8;
-        if (isLand(ix, iz, L)) invasive = [ix, iz];
+        if (isLand(ix, iz, L, coast, PARCEL.pieceCoastClearM)) invasive = [ix, iz];
       }
       parcels.push({ id: `p${i}_${j}`, i, j, x, z, tier, steep, litter, invasive });
     }

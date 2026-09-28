@@ -15,7 +15,7 @@ import type { Spawn } from '../game/spawns';
 import { newGame, sanitize, balance, bagCount } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
-import { buildLayout } from '../layout';
+import { buildLayout, insideCoast } from '../layout';
 import { cumulativeState, unlocksFor } from '../progression';
 import { hashInt } from '../rng';
 import { SHOP } from '../game/shop';
@@ -263,4 +263,27 @@ test('a parcel waiting on compost never points at a compostera that cannot make 
   v = missionView(s, world, ctx(), at);
   assert.equal(v.target?.id, 'game-station-compostera');
   assert.equal(v.need, 'El compost está en camino');
+});
+
+test('everything to pick up or restore is ashore, where Pip can walk', () => {
+  // 2026-09-28: a branch, a bottle and a whole parcel's stake floating in the
+  // bay — land by the height function, but past the rim the island is drawn to.
+  for (const who of [WHO, 'b7a1c2d3-0000-4000-8000-00000000000b', 'c0ffee00-0000-4000-8000-00000000000c']) {
+    const f = buildParcels(hashInt(who));
+    for (const tier of [1, 2, 3, 5, 8, 11]) {
+      const layout = buildLayout(who, cumulativeState(tier));
+      const at = (x: number, z: number, m: number) => insideCoast(x, z, layout.coastline, layout.terrain, m);
+      for (const p of parcelsAt(f, tier)) {
+        assert.ok(at(p.x, p.z, 1.9), `${who} T${tier}: parcel ${p.id} is in the sea`);
+        for (const [x, z] of p.litter) assert.ok(at(x, z, 0.8), `${who} T${tier}: litter of ${p.id} is in the sea`);
+        if (p.invasive) assert.ok(at(p.invasive[0], p.invasive[1], 0.8), `${who} T${tier}: invasive of ${p.id} is in the sea`);
+      }
+      for (const day of ['2026-09-27', '2026-09-28', '2026-10-01', '2026-12-24']) {
+        const seed = layout.seed;
+        for (const sp of dailySpawns({ seed, day, tier, terrain: layout.terrain, coastline: layout.coastline })) {
+          assert.ok(at(sp.x, sp.z, 0.5), `${who} T${tier} ${day}: ${sp.id} is in the sea`);
+        }
+      }
+    }
+  }
 });

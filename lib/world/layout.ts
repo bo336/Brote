@@ -116,10 +116,23 @@ export function coastRadiusAt(coastline: Float32Array, angleRad: number): number
 }
 
 /**
+ * On the island as it is drawn and walked: inside the rim, `marginM` in from
+ * the water, or on El Islote. The height function goes on being land for a
+ * while past the rim — in the bay the rim is almost a quarter of the radius
+ * in — but the ground mesh stops at the rim and Pip is pushed back from it, so
+ * anything placed there floats in the sea out of reach.
+ */
+export function insideCoast(x: number, z: number, coastline: Float32Array, terrain: WorldLayout, marginM = 0): boolean {
+  const islet = terrain.islet;
+  if (islet && Math.hypot(x - islet.x, z - islet.z) < islet.r - marginM) return true;
+  return Math.hypot(x, z) < coastRadiusAt(coastline, Math.atan2(z, x)) - marginM;
+}
+
+/**
  * The coastline. A circle plus one headland, one bay and a seeded low-frequency
  * wobble — an irregular disc, never a perfect one.
  */
-function buildCoastline(R: number, seed: number): Float32Array {
+export function buildCoastline(R: number, seed: number): Float32Array {
   const n = LAYOUT.coastlineSegments;
   const out = new Float32Array(n);
   const s = (seed % 1000) * 0.013;

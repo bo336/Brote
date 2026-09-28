@@ -12,7 +12,7 @@
  * once; it stays clean because less goes into the water upstream.
  */
 import { isPlantable, isRockable, isWater, type WorldLayout } from '../terrain';
-import { coastRadiusAt } from '../layout';
+import { coastRadiusAt, insideCoast } from '../layout';
 import { hashInt, mulberry32 } from '../rng';
 import { SPAWNS } from './config';
 import { WASTE, WASTE_KINDS } from './materials';
@@ -94,9 +94,12 @@ export function dailySpawns(input: SpawnInput): Spawn[] {
       k++;
     }
   };
-  scatter('hojas', Math.round(SPAWNS.leafPiles * grow), 'h', (x, z) => isPlantable(x, z, terrain));
-  scatter('ramas', Math.round(SPAWNS.branches * grow), 'b', (x, z) => isPlantable(x, z, terrain));
-  scatter('piedras', Math.round(SPAWNS.stones * grow), 's', (x, z) => isRockable(x, z, terrain));
+  // On ground the island actually has: the height function alone would put a
+  // branch in the bay, where it floats out of reach.
+  const ashore = (x: number, z: number) => insideCoast(x, z, coastline, terrain, SPAWNS.coastClearM);
+  scatter('hojas', Math.round(SPAWNS.leafPiles * grow), 'h', (x, z) => ashore(x, z) && isPlantable(x, z, terrain));
+  scatter('ramas', Math.round(SPAWNS.branches * grow), 'b', (x, z) => ashore(x, z) && isPlantable(x, z, terrain));
+  scatter('piedras', Math.round(SPAWNS.stones * grow), 's', (x, z) => ashore(x, z) && isRockable(x, z, terrain));
   return out;
 }
 
