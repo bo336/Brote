@@ -541,3 +541,19 @@ test('the vivero with no fruit sends the player to harvest, or waits for tomorro
   assert.equal(missionView(make(ripeDay), world, ripeDay, at).target?.id, `game-parcel-${p.id}`);
   assert.notEqual(missionView(make(bareDay), world, bareDay, at).target?.id, 'game-station-vivero');
 });
+
+test('a daily that cannot be done today lets the next one go first', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:r:0', kind: 'residuos', waste: 'lata', x: 2, z: 2 } as Spawn],
+  };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  // No branch left on the ground today.
+  s.missions.daily = { day: c.day, ids: ['d.ramas', 'd.residuos'], prog: [0, 0], claimed: [false, false], bonus: false };
+  assert.equal(missionView(s, world, c, at).id, 'daily:d.residuos');
+  at.spawns.push({ id: 'x:b:0', kind: 'ramas', x: 5, z: 5 } as Spawn);
+  assert.equal(missionView(s, world, c, at).id, 'daily:d.ramas');
+});

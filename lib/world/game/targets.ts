@@ -494,17 +494,22 @@ function cardView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): M
 function dailyView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView | null {
   const d = s.missions.daily;
   if (d.day !== ctx.day) return null;
-  const i = d.ids.findIndex((_, k) => !d.claimed[k]);
-  const def = i >= 0 ? DAILY_BY_ID.get(d.ids[i]!) : undefined;
-  if (!def) return null;
-  const n = def.n(ctx.tier);
-  return {
-    id: `daily:${def.id}`, kind: 'daily', who: null,
-    eyebrow: `Del día · ${d.claimed.filter(Boolean).length} de ${d.ids.length}`,
-    title: def.title.replace('{n}', String(n)), ask: def.hint ?? '',
-    progress: n > 1 ? { done: d.prog[i] ?? 0, total: n } : null,
-    target: resolveTarget(def.target, s, w, ctx, at),
-  };
+  const views: MissionView[] = [];
+  d.ids.forEach((id, i) => {
+    const def = d.claimed[i] ? undefined : DAILY_BY_ID.get(id);
+    if (!def) return;
+    const n = def.n(ctx.tier);
+    views.push({
+      id: `daily:${def.id}`, kind: 'daily', who: null,
+      eyebrow: `Del día · ${d.claimed.filter(Boolean).length} de ${d.ids.length}`,
+      title: def.title.replace('{n}', String(n)), ask: def.hint ?? '',
+      progress: n > 1 ? { done: d.prog[i] ?? 0, total: n } : null,
+      target: resolveTarget(def.target, s, w, ctx, at),
+    });
+  });
+  // The first one that can be done now: "juntá 6 ramas" after the day's
+  // branches are all picked waits for tomorrow, and the next daily goes first.
+  return views.find((v) => v.target || v.ask) ?? views[0] ?? null;
 }
 
 /** The next level's line when the bag and the wallet already cover it; null otherwise. */
