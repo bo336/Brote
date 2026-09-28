@@ -161,6 +161,13 @@ function pickParcel(t: Extract<Target, { to: 'parcel' | 'grow' }>, s: GameState,
   const inRegion = (p: ParcelSpec) => !t.region || parcelRegion(p, s.parcels[p.id], ctx.tier) === t.region;
   const stageOf = (p: ParcelSpec) => s.parcels[p.id]?.s ?? 0;
   const all = parcelsAt(w.field, ctx.tier).filter(inRegion);
+  // Finish what you started: of parcels at one stage, the one with the most of
+  // that stage already in it, then the nearest. Nearest alone spread the
+  // compost over every parcel cleaned meanwhile, and none ever got enough.
+  const finishFirst = (pool: ParcelSpec[]) => {
+    const most = pool.reduce((m, p) => Math.max(m, s.parcels[p.id]?.n ?? 0), 0);
+    return nearest(pool.filter((p) => (s.parcels[p.id]?.n ?? 0) === most), at.pip);
+  };
   if (t.to === 'parcel') {
     const at0 = all.filter((p) => stageOf(p) === t.stage);
     // None there yet ("plantá en El Jardín" before any Jardín parcel has soil):
@@ -168,16 +175,11 @@ function pickParcel(t: Extract<Target, { to: 'parcel' | 'grow' }>, s: GameState,
     // instead of pointing nowhere.
     if (at0.length === 0) return pickParcel({ to: 'grow', stage: t.stage + 1, region: t.region }, s, w, ctx, at);
     const live = at0.filter((p) => actionable(s, p, ctx));
-    const pool = live.length > 0 ? live : at0;
-    // Finish what you started: the parcel with the most of this stage already
-    // in it, then the nearest. Nearest alone spread the compost over every
-    // parcel cleaned meanwhile, and none of them ever got enough.
-    const most = pool.reduce((m, p) => Math.max(m, s.parcels[p.id]?.n ?? 0), 0);
-    return nearest(pool.filter((p) => (s.parcels[p.id]?.n ?? 0) === most), at.pip);
+    return finishFirst(live.length > 0 ? live : at0);
   }
   const short = all.filter((p) => stageOf(p) < t.stage);
   for (let stage = t.stage - 1; stage >= 0; stage--) {
-    const hit = nearest(short.filter((p) => stageOf(p) === stage && actionable(s, p, ctx)), at.pip);
+    const hit = finishFirst(short.filter((p) => stageOf(p) === stage && actionable(s, p, ctx)));
     if (hit) return hit;
   }
   return nearest(short, at.pip);
