@@ -13,7 +13,8 @@ import { careOf } from './care';
 import { currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
 import { fittingPlantines, parcelNext, ripe } from './parcel-actions';
 import { parcelRegion, parcelsAt, soilMaterial, wildParcel, type ParcelSpec } from './parcels';
-import { INVASIVES, PARCEL_TYPES } from './plants';
+import { INVASIVES, PARCEL_TYPES, plantsFor, progressOf as plantProgress } from './plants';
+import { SHOP } from './shop';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
@@ -293,6 +294,19 @@ function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: Parcel
   if (ps.s === 2 && fittingPlantines(s, p, ps, ctx).length === 0) {
     const v = at.spots.stations.vivero;
     if (v && (s.stations.vivero?.lvl ?? 0) >= 1) return { target: { x: v.x, z: v.z, id: 'game-station-vivero' }, need: 'Primero, plantines del vivero' };
+    // No vivero yet, and nothing in the bag grows here: the Tienda sells a
+    // seedling of what does. Without this line the card pointed at soil ready
+    // for planting, with nothing to plant and nothing saying where to get it.
+    const now = plantProgress(ctx.tier, ctx.div);
+    const fits = plantsFor(parcelRegion(p, ps, ctx.tier), now);
+    const offer = SHOP.filter((i) => i.kind === 'sobre' && i.plant && fits.includes(i.plant) && plantProgress(i.tier, i.div ?? 1) <= now + 1e-9)
+      .sort((a, b) => a.price - b.price)[0];
+    if (offer) {
+      return {
+        target: { x: p.x, z: p.z, id: `game-parcel-${p.id}` },
+        need: `Nada de tu mochila crece acá: comprá un ${offer.name.toLowerCase()} en la Tienda (tocá tus semillas, arriba)`,
+      };
+    }
     return null;
   }
   if (ps.s === 3 && s.agua <= 0) {

@@ -509,7 +509,13 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
     `2d6c8a4`);
   - esperas de reloj sin nada que hacer (D9), la primera plantada a los veinte
     minutos (D10), compost repartido y misiones sin destino (D11);
-  - la tarjeta ahora sugiere mejorar la compostera cuando ya alcanza.
+  - la tarjeta ahora sugiere mejorar la compostera cuando ya alcanza (si
+    cualquier historia espera compost, la espera la nombra el compost);
+  - tierra lista para plantar sin nada en la mochila que crezca ahí y sin
+    vivero: la tarjeta dice qué plantín comprar en la Tienda y cómo abrirla.
+- Partida de 30 minutos a nivel 3 después de todo eso (`scratchpad/playgame.mjs`):
+  primera plantada a los 8 min, las tres historias abiertas se turnan mientras
+  el compost trabaja, nunca "sin objetivo", ni una traba.
 - **Queda (del dueño):** aplicar 0115 y después 0116, mergear #34.
 
 ### 2026-09-26 — sesión 3 — arte, tienda, estaciones lejanas, ceremonia, teléfono

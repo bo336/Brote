@@ -411,3 +411,20 @@ test('when one story waits for tomorrow and another for compost, the compost nam
   const v = missionView(s, world, c, at);
   assert.equal(v.title, 'Mejorá la compostera', JSON.stringify(v));
 });
+
+test('soil ready to plant with nothing that grows there says where to get a seedling', () => {
+  // 2026-09-28: a Pradera parcel ready for planting, only Jardín seedlings in
+  // the bag, no vivero yet — the card pointed at the soil and said nothing.
+  const layout = buildLayout(WHO, cumulativeState(3));
+  const c = ctx({ tier: 3 });
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.chain.pradera = CHAINS.pradera!.missions.findIndex((m) => m.title === 'El pastizal');
+  const pradera = parcelsAt(field, 3).find((p) => parcelRegion(p, undefined, 3) === 'pradera')!;
+  s.parcels[pradera.id] = { s: 2, lit: 255, inv: true, n: 0, plants: [], wet: [], at: 0 };
+  s.bag.plantines = { verbena: 1 };
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const v = missionView(s, world, c, at);
+  assert.equal(v.target?.id, `game-parcel-${pradera.id}`);
+  assert.match(v.need ?? '', /comprá un plantín de .+ en la Tienda/);
+});
