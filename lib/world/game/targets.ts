@@ -17,7 +17,7 @@ import { INVASIVES, PARCEL_TYPES } from './plants';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
-import { missingFor } from './production';
+import { missingFor, rate } from './production';
 import { nextCost, STATIONS } from './stations';
 import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
@@ -76,7 +76,7 @@ export function resolveTarget(
       const spot = at.spots.stations[t.id];
       if (!spot || STATIONS[t.id].tier > ctx.tier) return null;
       // Nothing to bring yet: the beacon goes to what is missing, not to the empty pad.
-      return detourFor(s, w, ctx, t.id, at)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
+      return detourFor(s, w, ctx, t.id, at, t.load)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
     }
     case 'cast': {
       const c = at.cast.get(t.who);
@@ -122,6 +122,13 @@ export function resolveTarget(
 }
 
 type Place = { x: number; z: number; id: string };
+
+/** How much input a producer can still take before it is full. */
+function loadRoom(st: { lvl: number; out: number; queue: number }, id: StationId): number {
+  const r = rate(id, st.lvl);
+  const per = STATIONS[id].makes?.per ?? 0;
+  return r && per > 0 ? (r.cap - st.out) * per - st.queue : 0;
+}
 
 /**
  * How many organics a producer still lacks before it can make the next unit:
@@ -186,19 +193,20 @@ function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext
       return tree;
     }
     case 'piedras':
-    case 'hojas':
     case 'residuos':
       return ground(k);
+    case 'hojas':
+      // Organic waste already in the bag becomes organics at the Punto Limpio;
+      // otherwise a leaf pile, or any litter (some of it is organic).
+      if (s.bag.residuos.some((x) => WASTE[x].bin === 'organico')) return station('punto_limpio');
+      return ground('hojas') ?? ground('residuos');
     case 'reciclado':
       // Recycled material comes out of sorting: sort what you carry, or pick some up first.
       return s.bag.residuos.some((w) => WASTE[w].bin === 'reciclable') ? station('punto_limpio') : ground('residuos');
     case 'compost':
       // Short of organics for the next batch: those first. Organic waste in the
       // bag becomes organics at the Punto Limpio.
-      if (inputShort(s, 'compostera') > 0) {
-        if (s.bag.residuos.some((w) => WASTE[w].bin === 'organico')) return station('punto_limpio');
-        return ground('hojas') ?? ground('residuos') ?? station('compostera');
-      }
+      if (inputShort(s, 'compostera') > 0) return sourceOf('hojas', s, w, ctx, at) ?? station('compostera');
       return station('compostera');
     default:
       return null;
@@ -211,7 +219,7 @@ function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext
  * the card says what it is. Without it the beacon points at an empty pad and
  * the player stands on it wondering why nothing happens.
  */
-function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationId, at: Where): { target: Place; need: string } | null {
+function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationId, at: Where, load = false): { target: Place; need: string } | null {
   const st = s.stations[id] ?? { lvl: 0, paid: {}, queue: 0, since: 0, out: 0 };
   const cost = nextCost(id, st.lvl);
   if (st.lvl < 1 && cost) {
@@ -226,6 +234,13 @@ function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationI
     return null;
   }
   const makes = STATIONS[id].makes;
+  // Loading is the job: an empty bag goes for more, whatever is cooking —
+  // unless the station is full and has to be emptied first.
+  if (load && makes && makes.per > 0 && st.lvl >= 1 && (s.bag[makes.input as BulkMaterial] ?? 0) === 0 && loadRoom(st, id) > 0) {
+    const route = sourceOf(makes.input, s, w, ctx, at);
+    const [, many] = WORD[makes.input] ?? ['', MATERIALS[makes.input].short.toLowerCase()];
+    if (route) return { target: route, need: `Juntá más ${many}` };
+  }
   const short = inputShort(s, id);
   if (makes && short > 0) {
     const route = sourceOf(makes.input, s, w, ctx, at);
@@ -259,7 +274,7 @@ function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: Parcel
     const short = inputShort(s, 'compostera');
     const st = s.stations.compostera;
     const cooking = !!st && st.out <= 0 && st.queue >= (STATIONS.compostera.makes?.per ?? 1);
-    const need = short > 0 ? shortLine(short, 'hojas', 'compost') : cooking ? 'El compost está en camino' : 'Primero, compost de la compostera';
+    const need = short > 0 ? shortLine(short, 'hojas', 'compost') : cooking ? COOKING : 'Primero, compost de la compostera';
     return { target: route, need };
   }
   if (ps.s === 2 && fittingPlantines(s, p, ps, ctx).length === 0) {
@@ -274,9 +289,12 @@ function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: Parcel
   return null;
 }
 
+/** The need line of a story step that is only waiting for the compost to be done. */
+const COOKING = 'El compost está en camino';
+
 /** The card's "what is missing" line for a mission's target. */
 function needFor(t: Target, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): string | null {
-  if (t.to === 'station') return detourFor(s, w, ctx, t.id, at)?.need ?? null;
+  if (t.to === 'station') return detourFor(s, w, ctx, t.id, at, t.load)?.need ?? null;
   if (t.to === 'parcel' || t.to === 'grow') {
     const p = pickParcel(t, s, w, ctx, at);
     return p ? parcelDetour(s, w, ctx, p, at)?.need ?? null : null;
@@ -316,31 +334,54 @@ export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at:
     if (!m) continue;
     const [done, total] = progressOf(m, s, w, ctx.tier);
     const region = CHAINS[chain]!.region;
+    const need = needFor(m.target, s, w, ctx, at);
+    // A step that only waits for the clock hands the card to something to do
+    // meanwhile, and takes it back when the compost is out. Standing at the
+    // compostera for six minutes on the first day is not a game.
+    if (need === COOKING) {
+      const side = meanwhile(s, w, ctx, at);
+      if (side) return side;
+    }
     return {
       id: m.id, kind: 'story', who: m.who,
       eyebrow: `${castName(m.who)} · ${REGION_NAME[region]}`,
       title: m.title, ask: m.ask,
       progress: total > 1 ? { done, total } : null,
       target: resolveTarget(m.target, s, w, ctx, at),
-      need: needFor(m.target, s, w, ctx, at),
+      need,
     };
   }
+  return dailyView(s, w, ctx, at) ?? freeView(s, w, ctx, at);
+}
+
+/** The first unfinished daily, if today has one. */
+function dailyView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView | null {
   const d = s.missions.daily;
-  if (d.day === ctx.day) {
-    const i = d.ids.findIndex((_, k) => !d.claimed[k]);
-    const def = i >= 0 ? DAILY_BY_ID.get(d.ids[i]!) : undefined;
-    if (def) {
-      const n = def.n(ctx.tier);
-      return {
-        id: `daily:${def.id}`, kind: 'daily', who: null,
-        eyebrow: `Del día · ${d.claimed.filter(Boolean).length} de ${d.ids.length}`,
-        title: def.title.replace('{n}', String(n)), ask: '',
-        progress: n > 1 ? { done: d.prog[i] ?? 0, total: n } : null,
-        target: resolveTarget(def.target, s, w, ctx, at),
-      };
-    }
-  }
-  return { ...freeView(s, w, ctx, at) };
+  if (d.day !== ctx.day) return null;
+  const i = d.ids.findIndex((_, k) => !d.claimed[k]);
+  const def = i >= 0 ? DAILY_BY_ID.get(d.ids[i]!) : undefined;
+  if (!def) return null;
+  const n = def.n(ctx.tier);
+  return {
+    id: `daily:${def.id}`, kind: 'daily', who: null,
+    eyebrow: `Del día · ${d.claimed.filter(Boolean).length} de ${d.ids.length}`,
+    title: def.title.replace('{n}', String(n)), ask: '',
+    progress: n > 1 ? { done: d.prog[i] ?? 0, total: n } : null,
+    target: resolveTarget(def.target, s, w, ctx, at),
+  };
+}
+
+/** While the compost works: a daily, or the next wild parcel to clean. */
+function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView | null {
+  const ask = 'Cuando esté el compost, la tarjeta te lleva de vuelta.';
+  const daily = dailyView(s, w, ctx, at);
+  if (daily?.target) return { ...daily, eyebrow: `Mientras el compost trabaja · ${daily.eyebrow}`, ask };
+  const target = resolveTarget({ to: 'parcel', stage: 0 }, s, w, ctx, at);
+  if (!target) return null;
+  return {
+    id: 'free:meanwhile', kind: 'free', who: null, eyebrow: 'Mientras el compost trabaja',
+    title: 'Limpiá otra parcela', ask, progress: null, target,
+  };
 }
 
 const REGION_NAME: Record<RegionId, string> = {

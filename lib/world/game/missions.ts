@@ -47,7 +47,12 @@ export type Goal =
 /** Where the objective card should point while this is the current mission. */
 export type Target =
   | { to: 'spawn'; kind: 'residuos' | 'hojas' | 'ramas' | 'piedras' }
-  | { to: 'station'; id: StationId }
+  /**
+   * `load`: the mission wants the station's input put in, so while the bag has
+   * none the beacon goes for more — even with a batch already cooking, which
+   * would otherwise read as "wait here".
+   */
+  | { to: 'station'; id: StationId; load?: boolean }
   | { to: 'parcel'; stage: number; region?: RegionId }
   | { to: 'cast'; who: string }
   | { to: 'water' }

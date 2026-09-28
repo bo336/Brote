@@ -68,7 +68,7 @@ const claro: ChainDef = {
       id: 'claro.8', who: 'ines', title: 'Tierra que respira',
       ask: 'Cargá la compostera con 6 orgánicos: hojas del piso o lo orgánico que separaste.',
       done: 'Ahora esperá un rato. El compost trabaja solo, aunque te vayas.',
-      goal: { k: 'event', match: { type: 'deposited', station: 'compostera' }, n: 6 }, target: { to: 'station', id: 'compostera' },
+      goal: { k: 'event', match: { type: 'deposited', station: 'compostera' }, n: 6 }, target: { to: 'station', id: 'compostera', load: true },
       reward: { sem: 15 },
     },
     {

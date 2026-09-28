@@ -258,11 +258,17 @@ test('a parcel waiting on compost never points at a compostera that cannot make 
   assert.equal(v.target?.id, 'game-station-compostera');
   assert.equal(v.need, 'Primero, compost de la compostera');
 
+  // Cooking: the card hands itself to something to do meanwhile…
   s.bag.hojas = 0;
   s.stations.compostera.queue = 4;
   v = missionView(s, world, ctx(), at);
+  assert.ok(v.eyebrow.startsWith('Mientras el compost trabaja'), v.eyebrow);
+  assert.ok(v.target && v.target.id !== 'game-station-compostera', JSON.stringify(v.target));
+  // …and takes the story back once there is compost to take out.
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 0, since: 0, out: 1 };
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.title, 'Suelo vivo');
   assert.equal(v.target?.id, 'game-station-compostera');
-  assert.equal(v.need, 'El compost está en camino');
 });
 
 test('everything to pick up or restore is ashore, where Pip can walk', () => {
@@ -286,4 +292,29 @@ test('everything to pick up or restore is ashore, where Pip can walk', () => {
       }
     }
   }
+});
+
+test('a mission to load the compostera goes for organics even while a batch cooks', () => {
+  // The 2026-09-28 run: five of six loaded, a batch cooking, an empty bag —
+  // and the beacon said "wait here" for six minutes.
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:h:0', kind: 'hojas', x: 4, z: 4 } as Spawn],
+  };
+  const s = newGame(ctx());
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Tierra que respira');
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 5, since: 1, out: 0 };
+  let v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'x:h:0');
+  assert.equal(v.need, 'Juntá más orgánicos');
+  // Organic waste in the bag: sort it first.
+  s.bag.residuos = ['yerba'];
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-punto_limpio');
+  // Full: nothing fits until the compost is taken out.
+  s.bag.residuos = [];
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 0, since: 0, out: 5 };
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-compostera');
 });

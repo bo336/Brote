@@ -36,11 +36,11 @@ export const DAILIES: DailyDef[] = [
   },
   {
     id: 'd.compostera', title: 'Cargá la compostera con {n} orgánicos', match: { type: 'deposited', station: 'compostera' }, n: grow(6, 0.5, 12),
-    target: { to: 'station', id: 'compostera' }, minTier: 1, can: (s) => built(s, 'compostera'),
+    target: { to: 'station', id: 'compostera', load: true }, minTier: 1, can: (s) => built(s, 'compostera'),
   },
   {
     id: 'd.compost', title: 'Retirá {n} de compost', match: { type: 'collected', station: 'compostera' }, n: grow(2, 0.3, 5),
-    target: { to: 'station', id: 'compostera' }, minTier: 1, can: (s) => built(s, 'compostera'),
+    target: { to: 'station', id: 'compostera', load: true }, minTier: 1, can: (s) => built(s, 'compostera'),
   },
   {
     id: 'd.plantines', title: 'Criá {n} plantines en el vivero', match: { type: 'collected', station: 'vivero' }, n: grow(2, 0.2, 4),
