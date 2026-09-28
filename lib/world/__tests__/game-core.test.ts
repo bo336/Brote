@@ -351,3 +351,26 @@ test('a story that can only wait for tomorrow lets the next one play', () => {
   const next = ctx({ tier: 3, day: '2026-10-02', now: Date.UTC(2026, 9, 2, 22) });
   assert.equal(missionView(s, world, next, at).id, 'claro.13');
 });
+
+test('every story step at every tier points somewhere', () => {
+  // 2026-09-28: "Plantá 3 flores en El Jardín" with no Jardín parcel ready
+  // had no target at all, and the card pointed nowhere for four minutes.
+  const problems: string[] = [];
+  for (const tier of [1, 3, 5, 8, 11]) {
+    const layout = buildLayout(WHO, cumulativeState(tier));
+    const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+    for (const id of CHAIN_ORDER) {
+      const chain = CHAINS[id]!;
+      if (chain.tier > tier) continue;
+      chain.missions.forEach((m, i) => {
+        if (m.target.to === 'none' || m.target.to === 'cast' || m.target.to === 'spawn' || m.target.to === 'water') return;
+        const s = newGame(ctx({ tier }));
+        for (const other of CHAIN_ORDER) s.missions.chain[other] = CHAINS[other]!.missions.length;
+        s.missions.chain[id] = i;
+        const v = missionView(s, world, ctx({ tier }), at);
+        if (v.id === m.id && !v.target) problems.push(`T${tier} ${m.id} (${m.title})`);
+      });
+    }
+  }
+  assert.deepEqual(problems, []);
+});

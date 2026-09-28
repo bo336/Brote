@@ -162,6 +162,10 @@ function pickParcel(t: Extract<Target, { to: 'parcel' | 'grow' }>, s: GameState,
   const all = parcelsAt(w.field, ctx.tier).filter(inRegion);
   if (t.to === 'parcel') {
     const at0 = all.filter((p) => stageOf(p) === t.stage);
+    // None there yet ("plantá en El Jardín" before any Jardín parcel has soil):
+    // the one closest to it, so the beacon leads through cleaning and compost
+    // instead of pointing nowhere.
+    if (at0.length === 0) return pickParcel({ to: 'grow', stage: t.stage + 1, region: t.region }, s, w, ctx, at);
     const live = at0.filter((p) => actionable(s, p, ctx));
     const pool = live.length > 0 ? live : at0;
     // Finish what you started: the parcel with the most of this stage already
