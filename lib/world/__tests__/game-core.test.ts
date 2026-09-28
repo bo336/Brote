@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildParcels, parcelAt, parcelsAt } from '../game/parcels';
+import { buildParcels, parcelAt, parcelRegion, parcelsAt } from '../game/parcels';
 import { ceiboShape } from '../game/ceibo';
 import { missionView, targetName } from '../game/targets';
 import { gameSpots } from '../game/spots';
@@ -390,4 +390,24 @@ test('waiting on compost with an upgrade already paid for suggests the upgrade',
   const v = missionView(s, world, ctx(), at);
   assert.equal(v.title, 'Mejorá la compostera');
   assert.equal(v.target?.id, 'game-station-compostera');
+});
+
+test('when one story waits for tomorrow and another for compost, the compost names the wait', () => {
+  const layout = buildLayout(WHO, cumulativeState(3));
+  const c = ctx({ tier: 3 });
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Mañana, otra vez');
+  s.missions.chain.pradera = CHAINS.pradera!.missions.findIndex((m) => m.title === 'El pastizal');
+  const [claro] = parcelsAt(field, 1);
+  s.parcels[claro!.id] = { s: 3, lit: 255, inv: true, n: 4, plants: ['flechilla'], wet: [dayOf(c.day)], at: 0, d: dayOf(c.day) };
+  const pradera = parcelsAt(field, 3).find((p) => parcelRegion(p, undefined, 3) === 'pradera')!;
+  s.parcels[pradera.id] = { s: 1, lit: 255, inv: true, n: 1, plants: [], wet: [], at: 0 };
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 4, since: 1, out: 0 };
+  s.bag.ramas = 10;
+  s.bag.reciclado = 6;
+  s.sem.earned = s.sem.spent + 200;
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const v = missionView(s, world, c, at);
+  assert.equal(v.title, 'Mejorá la compostera', JSON.stringify(v));
 });

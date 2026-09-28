@@ -376,7 +376,9 @@ export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at:
     // watered an hour ago — is not a game.
     const on = waitingOn(m.target, need, s, w, ctx, at);
     if (!on) return view;
-    waiting ??= { view, on };
+    // The compost is what everything else waits on, so it names the wait.
+    if (!waiting) waiting = { view, on };
+    else if (on === 'compost') waiting.on = 'compost';
   }
   if (waiting) return meanwhile(s, w, ctx, at, waiting.on) ?? waiting.view;
   return dailyView(s, w, ctx, at) ?? freeView(s, w, ctx, at);
