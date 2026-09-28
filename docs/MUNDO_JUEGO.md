@@ -463,13 +463,28 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 - **D8 — El tanque se construye mientras el compost trabaja** (Claro 9). Con la
   obra atada a la historia, el día 1 se quedaba sin nada que hacer esperando el
   compost.
+- **D9 — Una historia que sólo puede esperar le pasa la tarjeta a otra cosa.**
+  Esperar el compost (6 min por balde en el nivel 1) o regar "otro día" dejaba
+  la tarjeta clavada en una compostera o en una parcela ya regada. Ahora pasa a
+  la siguiente historia que pueda avanzar, o a una diaria, o a limpiar otra
+  parcela (o a mejorar la compostera si ya alcanza), y vuelve sola cuando la
+  espera termina (`targets.ts`, `waitingOn` / `meanwhile`).
+- **D10 — En Suelo vivo Inés presta dos baldes de compost.** Una parcela del
+  Claro lleva tres; con uno propio cada seis minutos, la primera plantada del
+  primer día llegaba a los veinte minutos. Con el préstamo llega a los ocho y
+  la lección del compost queda (el tercero es tuyo).
+- **D11 — La guía termina lo empezado.** Entre parcelas de la misma etapa elige
+  la que más tiene puesto (compost, plantines), y si ninguna llegó a la etapa
+  que pide la misión, la más avanzada de la región. Antes repartía el compost
+  entre todas las parcelas limpiadas, y "plantá en El Jardín" sin parcela lista
+  no apuntaba a ningún lado.
 
 ---
 
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `beb0215`.
+- Commits `bbe926f` … `81286d5`.
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -484,6 +499,17 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 - 0115 probada contra la base viva con rollback: aplica limpia sobre `0109`. Las
   `0110`–`0114` de otras ramas no tocan nada del mundo, así que el orden entre
   ramas no importa.
+- Partidas largas con teclado real (20–30 min a nivel 3) destaparon cuatro
+  trabas y un error de lugar, todos arreglados con su test:
+  - ramas, hojas, piedras y parcelas enteras caían en el mar de la bahía: la
+    altura del terreno decía tierra, pero la costa dibujada (y el empuje de
+    Pip) no llega ahí (`insideCoast`, `beec38b`);
+  - la guía se quedaba en una compostera con 3 de los 4 orgánicos que hacen
+    falta, y en "cargá la compostera" mientras una tanda se cocinaba (`68caf4f`,
+    `2d6c8a4`);
+  - esperas de reloj sin nada que hacer (D9), la primera plantada a los veinte
+    minutos (D10), compost repartido y misiones sin destino (D11);
+  - la tarjeta ahora sugiere mejorar la compostera cuando ya alcanza.
 - **Queda (del dueño):** aplicar 0115 y después 0116, mergear #34.
 
 ### 2026-09-26 — sesión 3 — arte, tienda, estaciones lejanas, ceremonia, teléfono
