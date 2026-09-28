@@ -123,6 +123,19 @@ export function resolveTarget(
 
 type Place = { x: number; z: number; id: string };
 
+/**
+ * How many organics a producer still lacks before it can make the next unit:
+ * 0 when something is ready, one is on its way, or the bag has enough to load.
+ * Otherwise the beacon would point at it forever — a compostera with three of
+ * the four organics it needs never makes anything by itself.
+ */
+function inputShort(s: GameState, id: StationId): number {
+  const st = s.stations[id];
+  const makes = STATIONS[id].makes;
+  if (!st || st.lvl < 1 || !makes || makes.per <= 0 || st.out > 0 || st.queue >= makes.per) return 0;
+  return Math.max(0, makes.per - st.queue - (s.bag[makes.input as BulkMaterial] ?? 0));
+}
+
 /** A planted parcel already watered today waits for tomorrow; everything else has something to do. */
 function actionable(s: GameState, p: ParcelSpec, ctx: GameContext): boolean {
   if ((s.parcels[p.id]?.s ?? 0) !== 3) return true;
@@ -180,6 +193,12 @@ function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext
       // Recycled material comes out of sorting: sort what you carry, or pick some up first.
       return s.bag.residuos.some((w) => WASTE[w].bin === 'reciclable') ? station('punto_limpio') : ground('residuos');
     case 'compost':
+      // Short of organics for the next batch: those first. Organic waste in the
+      // bag becomes organics at the Punto Limpio.
+      if (inputShort(s, 'compostera') > 0) {
+        if (s.bag.residuos.some((w) => WASTE[w].bin === 'organico')) return station('punto_limpio');
+        return ground('hojas') ?? ground('residuos') ?? station('compostera');
+      }
       return station('compostera');
     default:
       return null;
@@ -207,11 +226,21 @@ function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationI
     return null;
   }
   const makes = STATIONS[id].makes;
-  if (st.lvl >= 1 && makes && makes.per > 0 && st.out <= 0 && st.queue <= 0 && (s.bag[makes.input as BulkMaterial] ?? 0) === 0) {
+  const short = inputShort(s, id);
+  if (makes && short > 0) {
     const route = sourceOf(makes.input, s, w, ctx, at);
-    if (route) return { target: route, need: `Juntá ${MATERIALS[makes.input].short.toLowerCase()}` };
+    if (route) return { target: route, need: shortLine(short, makes.input, makes.output) };
   }
   return null;
+}
+
+const WORD: Partial<Record<MaterialId, [string, string]>> = { hojas: ['orgánico', 'orgánicos'], frutos: ['fruto', 'frutos'] };
+const NEXT: Partial<Record<string, string>> = { compost: 'el próximo compost', plantines: 'los próximos plantines' };
+
+/** "Te faltan 2 orgánicos para el próximo compost." */
+function shortLine(n: number, input: MaterialId, output: string): string {
+  const [one, many] = WORD[input] ?? [MATERIALS[input].short.toLowerCase(), MATERIALS[input].short.toLowerCase()];
+  return `Te ${n === 1 ? 'falta' : 'faltan'} ${n} ${n === 1 ? one : many} para ${NEXT[output] ?? 'la próxima tanda'}`;
 }
 
 /**
@@ -225,7 +254,13 @@ function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: Parcel
     const m = soilMaterial(parcelRegion(p, ps, ctx.tier));
     if ((s.bag[m] ?? 0) > 0) return null;
     const route = m === 'compost' && (s.stations.compostera?.lvl ?? 0) < 1 ? null : sourceOf(m, s, w, ctx, at);
-    return route ? { target: route, need: m === 'compost' ? 'Primero, compost de la compostera' : 'Primero, piedras del suelo' } : null;
+    if (!route) return null;
+    if (m !== 'compost') return { target: route, need: 'Primero, piedras del suelo' };
+    const short = inputShort(s, 'compostera');
+    const st = s.stations.compostera;
+    const cooking = !!st && st.out <= 0 && st.queue >= (STATIONS.compostera.makes?.per ?? 1);
+    const need = short > 0 ? shortLine(short, 'hojas', 'compost') : cooking ? 'El compost está en camino' : 'Primero, compost de la compostera';
+    return { target: route, need };
   }
   if (ps.s === 2 && fittingPlantines(s, p, ps, ctx).length === 0) {
     const v = at.spots.stations.vivero;

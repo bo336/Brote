@@ -9,7 +9,9 @@ import { join } from 'node:path';
 
 import { buildParcels, parcelAt, parcelsAt } from '../game/parcels';
 import { ceiboShape } from '../game/ceibo';
-import { targetName } from '../game/targets';
+import { missionView, targetName } from '../game/targets';
+import { gameSpots } from '../game/spots';
+import type { Spawn } from '../game/spawns';
 import { newGame, sanitize, balance, bagCount } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
@@ -231,4 +233,34 @@ test('the guide pin names what is at every kind of target', () => {
   assert.equal(targetName('p0_1:l:2'), 'Basura');
   assert.equal(targetName('region-pradera'), 'La Pradera');
   assert.ok(targetName('game-cast-ines').length > 0);
+});
+
+test('a parcel waiting on compost never points at a compostera that cannot make any', () => {
+  // The 2026-09-27 run: three organics loaded, four needed, none in the bag —
+  // and the beacon sat on the compostera for fifteen minutes.
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:h:0', kind: 'hojas', x: 4, z: 4 } as Spawn],
+  };
+  const s = newGame(ctx());
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Suelo vivo');
+  const p = parcelsAt(field, 1)[0]!;
+  s.parcels[p.id] = { s: 1, lit: 255, inv: true, n: 1, plants: [], wet: [], at: 0 };
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 3, since: 0, out: 0 };
+
+  let v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'x:h:0');
+  assert.equal(v.need, 'Te falta 1 orgánico para el próximo compost');
+
+  s.bag.hojas = 1;
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-compostera');
+  assert.equal(v.need, 'Primero, compost de la compostera');
+
+  s.bag.hojas = 0;
+  s.stations.compostera.queue = 4;
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-compostera');
+  assert.equal(v.need, 'El compost está en camino');
 });
