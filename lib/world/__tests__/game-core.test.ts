@@ -12,7 +12,7 @@ import { ceiboShape } from '../game/ceibo';
 import { missionView, targetName } from '../game/targets';
 import { gameSpots } from '../game/spots';
 import type { Spawn } from '../game/spawns';
-import { newGame, sanitize, balance, bagCount } from '../game/state';
+import { newGame, sanitize, balance, bagCount, dayOf } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
 import { buildLayout, insideCoast } from '../layout';
@@ -332,4 +332,22 @@ test('the guide finishes the parcel you started before a nearer, emptier one', (
   const at = { pip: { x: fresh!.x, z: fresh!.z }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
   const v = missionView(s, world, ctx({ tier: 3 }), at);
   assert.equal(v.target?.id, `game-parcel-${started!.id}`);
+});
+
+test('a story that can only wait for tomorrow lets the next one play', () => {
+  // 2026-09-28: at tier 3 the Claro reached "Mañana, otra vez" eight minutes
+  // in, and the card kept pointing at a parcel already watered, with La
+  // Pradera open and untouched.
+  const layout = buildLayout(WHO, cumulativeState(3));
+  const c = ctx({ tier: 3 });
+  const s = newGame(c);
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Mañana, otra vez');
+  const p = parcelsAt(field, 1)[0]!;
+  s.parcels[p.id] = { s: 3, lit: 255, inv: true, n: 4, plants: ['flechilla', 'chilca'], wet: [dayOf(c.day)], at: 0, d: dayOf(c.day) };
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map([['mila', { x: 3, z: 3 }]]), water: [], spawns: [] };
+  const v = missionView(s, world, c, at);
+  assert.equal(v.id, 'pradera.1');
+  // Tomorrow the Claro's step can move again, and it takes the card back.
+  const next = ctx({ tier: 3, day: '2026-10-02', now: Date.UTC(2026, 9, 2, 22) });
+  assert.equal(missionView(s, world, next, at).id, 'claro.13');
 });

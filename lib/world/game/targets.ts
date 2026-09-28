@@ -333,22 +333,29 @@ export function targetName(id: string): string {
   return '';
 }
 
+/**
+ * What a story step is waiting on, when all it can do is wait: its compost
+ * cooking, or a planted parcel already watered today that needs another day.
+ */
+function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): Wait | null {
+  if (need === COOKING) return 'compost';
+  if (t.to !== 'parcel' && t.to !== 'grow') return null;
+  const p = pickParcel(t, s, w, ctx, at);
+  return p && (s.parcels[p.id]?.s ?? 0) === 3 && !actionable(s, p, ctx) ? 'day' : null;
+}
+
+type Wait = 'compost' | 'day';
+
 /** The one thing the card shows. */
 export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView {
+  let waiting: { view: MissionView; on: Wait } | null = null;
   for (const chain of openChains(s, ctx.tier)) {
     const m = currentOf(s, chain);
     if (!m) continue;
     const [done, total] = progressOf(m, s, w, ctx.tier);
     const region = CHAINS[chain]!.region;
     const need = needFor(m.target, s, w, ctx, at);
-    // A step that only waits for the clock hands the card to something to do
-    // meanwhile, and takes it back when the compost is out. Standing at the
-    // compostera for six minutes on the first day is not a game.
-    if (need === COOKING) {
-      const side = meanwhile(s, w, ctx, at);
-      if (side) return side;
-    }
-    return {
+    const view: MissionView = {
       id: m.id, kind: 'story', who: m.who,
       eyebrow: `${castName(m.who)} · ${REGION_NAME[region]}`,
       title: m.title, ask: m.ask,
@@ -356,7 +363,15 @@ export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at:
       target: resolveTarget(m.target, s, w, ctx, at),
       need,
     };
+    // A step that can only wait hands the card to the next story that can
+    // move, or to something to do meanwhile, and takes it back when the wait
+    // is over. Standing at the compostera for six minutes — or at a parcel
+    // watered an hour ago — is not a game.
+    const on = waitingOn(m.target, need, s, w, ctx, at);
+    if (!on) return view;
+    waiting ??= { view, on };
   }
+  if (waiting) return meanwhile(s, w, ctx, at, waiting.on) ?? waiting.view;
   return dailyView(s, w, ctx, at) ?? freeView(s, w, ctx, at);
 }
 
@@ -377,17 +392,19 @@ function dailyView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): 
   };
 }
 
-/** While the compost works: a daily, or the next wild parcel to clean. */
-function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView | null {
-  const ask = 'Cuando esté el compost, la tarjeta te lleva de vuelta.';
+const MEANWHILE: Record<Wait, { eyebrow: string; ask: string }> = {
+  compost: { eyebrow: 'Mientras el compost trabaja', ask: 'Cuando esté el compost, la tarjeta te lleva de vuelta.' },
+  day: { eyebrow: 'Hasta mañana', ask: 'Lo que plantaste se riega de nuevo otro día. Mientras, esto.' },
+};
+
+/** While a story waits: a daily, or the next wild parcel to clean. */
+function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where, on: Wait): MissionView | null {
+  const { eyebrow, ask } = MEANWHILE[on];
   const daily = dailyView(s, w, ctx, at);
-  if (daily?.target) return { ...daily, eyebrow: `Mientras el compost trabaja · ${daily.eyebrow}`, ask };
+  if (daily?.target) return { ...daily, eyebrow: `${eyebrow} · ${daily.eyebrow}`, ask };
   const target = resolveTarget({ to: 'parcel', stage: 0 }, s, w, ctx, at);
   if (!target) return null;
-  return {
-    id: 'free:meanwhile', kind: 'free', who: null, eyebrow: 'Mientras el compost trabaja',
-    title: 'Limpiá otra parcela', ask, progress: null, target,
-  };
+  return { id: `free:${on}`, kind: 'free', who: null, eyebrow, title: 'Limpiá otra parcela', ask, progress: null, target };
 }
 
 const REGION_NAME: Record<RegionId, string> = {
