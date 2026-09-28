@@ -27,6 +27,13 @@
    driver mínimo de CDP con `--use-angle=d3d11`).
 5. Ruta sin cuenta: `/offline/mundo-preview` — corre el juego entero con guardado
    en `localStorage` (clave `brote.mundo.juego.v1:demo`). `?reset=1` lo borra.
+6. **Lo que queda es del dueño**, en este orden: aplicar
+   `supabase/migrations/0115_mundo_juego.sql` (el guardado del juego, el
+   catálogo, las semillas del mundo aparte), después
+   `supabase/migrations/0116_mundo_abierto.sql` (abre el mundo a todas las
+   cuentas), y mergear #34. La base viva llega a `0109`; `0110`–`0114` son de
+   otras ramas y no hacen falta para estas dos. Ninguna sesión las aplica sin un
+   OK del dueño en ese momento.
 
 ---
 
@@ -48,7 +55,7 @@
 | R12 | Nada de lo que se hace en el mundo suma puntos ni premios relevantes en la app; lo único que los une es el nivel | §3.11 | ✅ el juego no toca la app (tests de grep + SQL); semillas del mundo aparte |
 | R13 | Representar el impacto real del usuario en el juego, claro pero sin molestar | §3.10 | ✅ El Ceibo: una flor por acción real, agua/residuos/energía a sus pies, abre El Mojón |
 | R14 | Semillas como monedas que se ganan jugando, y una tienda para comprar objetos para el mundo | §3.7 | ✅ semillas del mundo + tienda + colocar lo comprado |
-| R15 | Tomarse el tiempo, dejarlo perfecto, cumplir todo | todo el plan | ◐ ver §5; pendiente sólo lo que necesita al dueño |
+| R15 | Tomarse el tiempo, dejarlo perfecto, cumplir todo | todo el plan | ◐ §5 completo; pendiente sólo lo que necesita al dueño (0115, 0116, merge) |
 | R16 | Planificar y anotar cosa por cosa lo hecho y lo que falta, porque las sesiones se cortan | este archivo | ✅ |
 
 ---
@@ -87,9 +94,11 @@ objetos, visitas con calcomanías, regalos, el póster, el perfil de rendimiento
    (caudal del río, aire, basura en la costa, faroles). Es poco visible, y el canal
    de residuos (basura en la costa) choca con juntar basura jugando (R13).
 
-**Sobre el revert de #29:** el dueño lo revirtió una hora después de mergearlo, sin
-dejar razón. No se re-aplica en bloque. Se rehace lo necesario por separado
-(póster) y se le pregunta al final si quiere de vuelta la cámara/zoom de #29.
+**Sobre el revert de #29:** ~~el dueño lo revirtió una hora después de mergearlo, sin
+dejar razón~~. **Corregido el 2026-09-27:** el dueño dijo que él no revirtió
+ninguna cámara y que tiene que andar normal. Lo de #29 volvió entero en `bbe926f`
+(cámara que orbita, zoom con rueda/pellizco/teclas/botones, rendimiento, guía de
+cómo jugar, cartel sobre la misión), adaptado al juego nuevo. Ver D5.
 
 ---
 
@@ -376,7 +385,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ### F2 — El ciclo central
 - [x] Recolectables: residuos (playa diaria + parcelas), hojas, ramas, piedras; recoger al pasar; mochila con capacidad. Las invasoras leñosas dan ramas.
 - [x] Estaciones: plataformas de obra con depósito automático (sólo si Pip se para y la historia ya pidió esa obra); Punto Limpio (+ minijuego de separar), Compostera, Tanque, Vivero; producción con tiempo real; panel de estación con cámara que la encuadra.
-- [x] Parcelas en escena: restauración, estacas, etiqueta, ola, y flora plantada por especie y etapa. (Fauna por parcela: pendiente menor.)
+- [x] Parcelas en escena: restauración, estacas, etiqueta, ola, y flora plantada por especie y etapa. Fauna por parcela (`ParcelFauna.tsx`, `a213d91`): mariposas desde "viva", y en "floreciente" el animal de su refugio (pájaro en el posadero o la caja nido, abejas en su hotel).
 - [x] Regar (regadera con carga; tanque, charco y laguna), plantar, cosechar frutos, sacar invasoras.
 
 ### F3 — Misiones y aprendizaje
@@ -399,11 +408,11 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 - [x] Retiradas: marchitas de Academia, sugerencia de dominio de la Bitácora, basura según residuos reales, línea diaria vieja de los personajes.
 
 ### F6 — Pulido y prueba
-- [~] Simulación de 60 días × jugadores (activo, casual, veterano 7, gaia): en tests (`game-sim`). El bot espera timers cortos como una persona.
-- [~] Bot con input real (`scratchpad/playgame.mjs`: WASD relativo a la cámara, E, clics en paneles). Juega el Claro. **Falta:** táctil y un día entero.
-- [~] Rendimiento: capa del juego aliviada para teléfono (bayas 117k→13k triángulos, basura lejana sin dibujar, estacas livianas, sin sombras de lo diminuto). **Queda:** árboles del mundo a T1 (≈67k, previo) y texturas/materiales por encima del techo del overlay (previo en parte).
-- [ ] Capturas finales; póster; docs (este archivo, CONTINUE.md, sistema de diseño).
-- [ ] PR; pedir OK para migración, bandera y merge.
+- [x] Simulación de 60 días × jugadores (activo, casual, veterano 7, gaia): en tests (`game-sim`). El bot espera timers cortos como una persona.
+- [x] Bot con input real. Teclado (`scratchpad/playgame.mjs`: WASD relativo a la cámara, E, clics en paneles) juega el Claro de punta a punta. Táctil (`scratchpad/playtouch.mjs`, 390×844: pulgar en el joystick, botón de acción, toques en diálogos, tachos y hojas; ni una tecla) llega a Claro 9 en 6 minutos: Punto Limpio, compostera y tanque construidos, tres parcelas limpias. Cámara táctil (`scratchpad/touch.mjs`): joystick, un dedo gira, pellizco centrado y escalonado, caminar y girar con dos pulgares, botones ±.
+- [x] Rendimiento: capa del juego aliviada para teléfono (bayas 117k→13k triángulos, basura lejana sin dibujar, estacas livianas, sin sombras de lo diminuto). Árboles resueltos con el LOD de #29: a T1 en teléfono la vegetación dibuja 5,4k triángulos por cuadro (antes ≈67k). Medido por grupo (`scratchpad/tris2.mjs`, T1 q1): 126k enviados, de los cuales el pasto son 82k — igual que en `main`, y las hojas fuera de cámara o de su anillo se colapsan en el vertex shader, así que casi no cuestan; la capa del juego suma ≈17k. Mediana 10 ms.
+- [x] Capturas finales y pósters por defecto (`e7a8ba9`); docs (este archivo; CONTINUE.md ya apunta acá).
+- [x] PR bo336/Brote#34. Migración 0115 probada contra la base viva en un bloque que termina en rollback (2026-09-27: 46 objetos en el catálogo, 7 funciones, bandera sin tocar). **Aplicarlas, abrir la bandera (0116) y mergear son del dueño** (ver §0).
 
 ---
 
@@ -433,7 +442,15 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
   cada uno es distinta; el carácter lo da el tipo de región.
 - **D4 — Se retiran las costuras de Academia y del censo-por-dominio** del juego,
   por R12 ("lo único que los une es el nivel").
-- **D5 — El revert de #29 se respeta.** Sólo se rehace el póster.
+- **D5 — ~~El revert de #29 se respeta.~~ #29 vuelve (2026-09-27).** El dueño no
+  lo había revertido y pidió que la cámara ande normal. Se deshizo el revert
+  (`bbe926f`) quedándose con el póster nuevo de esta rama; el resto de #29 se
+  adaptó al juego (el cartel nombra lo que hay donde apunta la misión, la guía
+  de cómo jugar habla del juego nuevo, el puente viejo roto usa las barandas de
+  #29). Probado con input real: arrastrar orbita, rueda 1,5–19,8 m, teclas y
+  botones; en el teléfono joystick, un dedo gira, dos dedos acercan/alejan
+  (arreglado en `beb0215`: el pellizco en el medio de la pantalla caía en el
+  joystick y caminaba).
 - **D6 — Contenido del juego en TS, cromo del HUD en `messages`.** Misiones,
   fichas, estaciones y diálogos viven en `lib/world/game/texto` (español, son
   contenido y se prueban con el reducer). Todo lo que es interfaz del HUD del
@@ -450,6 +467,24 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ---
 
 ## 8. Registro de sesiones
+
+### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
+- Commits `bbe926f` … `beb0215`.
+- El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
+  revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
+  demás (D5). Cámara probada con input real en escritorio y en teléfono.
+- El cartel de la misión nombra lo que hay donde apunta (`targetName`, `ee2182c`).
+- Fauna en las parcelas restauradas (`a213d91`); `habitatSpot` compartido con
+  la flora plantada.
+- Teléfono: el pellizco en el medio de la pantalla caía en la esquina del
+  joystick y caminaba en vez de acercar; ahora dos dedos juntos son pellizco
+  donde caigan (`beb0215`). Partida entera con toques (sin teclado) hasta Claro 9.
+- Rendimiento medido por grupo por cuadro: los árboles quedaron resueltos con el
+  LOD de #29; el pasto es lo grande y es igual que en `main` (ver F6).
+- 0115 probada contra la base viva con rollback: aplica limpia sobre `0109`. Las
+  `0110`–`0114` de otras ramas no tocan nada del mundo, así que el orden entre
+  ramas no importa.
+- **Queda (del dueño):** aplicar 0115 y después 0116, mergear #34.
 
 ### 2026-09-26 — sesión 3 — arte, tienda, estaciones lejanas, ceremonia, teléfono
 - Commits `9400435` … `2cbec2d` (ver `git log`).
