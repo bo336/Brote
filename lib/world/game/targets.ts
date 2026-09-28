@@ -11,15 +11,16 @@ import { regionCentre } from '../regions';
 import type { RegionId } from '../types';
 import { careOf } from './care';
 import { buildOpen, currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
-import { fittingPlantines, parcelNext, ripe } from './parcel-actions';
+import { fittingHabitats, fittingPlantines, parcelNext, ripe } from './parcel-actions';
 import { parcelRegion, parcelsAt, soilMaterial, wildParcel, type ParcelSpec } from './parcels';
 import { INVASIVES, PARCEL_TYPES, plantsFor, progressOf as plantProgress } from './plants';
-import { SHOP } from './shop';
+import { SHOP, SHOP_BY_SLUG } from './shop';
+import { PARCEL } from './config';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
 import { missingFor, rate } from './production';
-import { bagFree, balance } from './state';
+import { bagFree, balance, dayOf } from './state';
 import { named, nextCost, STATIONS } from './stations';
 import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
@@ -345,6 +346,28 @@ function parcelDetour(s: GameState, w: MissionWorld, ctx: GameContext, p: Parcel
     }
     return null;
   }
+  if (ps.s === 4) {
+    // To flourish: three species, a habitat that suits the place, and days.
+    const here = { x: p.x, z: p.z, id: `game-parcel-${p.id}` };
+    const now = plantProgress(ctx.tier, ctx.div);
+    const region = parcelRegion(p, ps, ctx.tier);
+    if (new Set(ps.plants).size < PARCEL.flourishSpecies) {
+      if (fittingPlantines(s, p, ps, ctx).some((pl) => !ps.plants.includes(pl))) return null;
+      const v = at.spots.stations.vivero;
+      if (v && (s.stations.vivero?.lvl ?? 0) >= 1) return { target: { x: v.x, z: v.z, id: 'game-station-vivero' }, need: 'Le falta otra especie: criá un plantín distinto en el vivero' };
+      const fits = plantsFor(region, now).filter((pl) => !ps.plants.includes(pl));
+      const offer = SHOP.filter((i) => i.kind === 'sobre' && i.plant && fits.includes(i.plant) && plantProgress(i.tier, i.div ?? 1) <= now + 1e-9)
+        .sort((a, b) => a.price - b.price)[0];
+      return offer ? { target: here, need: `Le falta otra especie: comprá un ${offer.name.toLowerCase()} en la Tienda (tocá tus semillas, arriba)` } : null;
+    }
+    if (fittingHabitats(s, p, ps, ctx).length === 0) {
+      const hab = PARCEL_TYPES[region].habitats.map((h) => SHOP_BY_SLUG.get(h))
+        .filter((i): i is NonNullable<typeof i> => !!i && plantProgress(i.tier, i.div ?? 1) <= now + 1e-9)
+        .sort((a, b) => a.price - b.price)[0];
+      return hab ? { target: here, need: `Le falta un refugio: ${hab.name} en la Tienda (tocá tus semillas, arriba)` } : null;
+    }
+    return null;
+  }
   if (ps.s === 3 && s.agua <= 0) {
     const hit = nearest(at.water, at.pip);
     return hit ? { target: { x: hit.x, z: hit.z, id: hit.id }, need: 'Primero, cargá la regadera' } : null;
@@ -405,7 +428,13 @@ function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld
   }
   if (t.to !== 'parcel' && t.to !== 'grow') return null;
   const p = pickParcel(t, s, w, ctx, at);
-  return p && (s.parcels[p.id]?.s ?? 0) === 3 && !actionable(s, p, ctx) ? 'day' : null;
+  if (!p) return null;
+  const ps = s.parcels[p.id];
+  if ((ps?.s ?? 0) === 3 && !actionable(s, p, ctx)) return 'day';
+  // Ready to flourish in everything but time: species and habitat in place.
+  if (ps?.s === 4 && new Set(ps.plants).size >= PARCEL.flourishSpecies && fittingHabitats(s, p, ps, ctx).length > 0
+    && dayOf(ctx.day) - (ps.d ?? 0) < PARCEL.flourishAfterDays) return 'day';
+  return null;
 }
 
 type Wait = 'compost' | 'day';

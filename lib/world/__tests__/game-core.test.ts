@@ -557,3 +557,25 @@ test('a daily that cannot be done today lets the next one go first', () => {
   at.spawns.push({ id: 'x:b:0', kind: 'ramas', x: 5, z: 5 } as Spawn);
   assert.equal(missionView(s, world, c, at).id, 'daily:d.ramas');
 });
+
+test('a parcel short of flourishing says what it lacks, and waits only for time', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Que florezca');
+  const p = parcelsAt(field, 1)[0]!;
+  s.parcels[p.id] = { s: 4, lit: 255, inv: true, n: 0, plants: ['flechilla'], wet: [], at: 0, d: dayOf(c.day) };
+  let v = missionView(s, world, c, at);
+  assert.match(v.need ?? '', /^Le falta otra especie: comprá un plantín de .+ en la Tienda/);
+  s.parcels[p.id]!.plants = ['flechilla', 'chilca', 'margarita_pampa'];
+  v = missionView(s, world, c, at);
+  assert.match(v.need ?? '', /^Le falta un refugio: .+ en la Tienda/);
+  // Everything in place but the days: the card hands itself on until then.
+  s.inv.posadero = 1;
+  v = missionView(s, world, c, at);
+  assert.notEqual(v.title, 'Que florezca');
+  s.parcels[p.id]!.d = dayOf(c.day) - 5;
+  assert.equal(missionView(s, world, c, at).title, 'Que florezca');
+});
