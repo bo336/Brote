@@ -667,7 +667,13 @@
       "rest": "Find a place to {thing}",
       "free": "Wander the island at your own pace",
       "progress": "{done} of {total} chores",
-      "distance": "{m} m away"
+      "distance": "{m} m away",
+      "hintFollow": "Follow the sign with the golden dot",
+      "hintUseKey": "When you see the green ring, press E",
+      "hintUseTouch": "When you see the green ring, tap the button",
+      "hintFree": "You cared for your island today. It grows more with what you do for real in Brote.",
+      "doneToday": "Today's tasks: done · new ones tomorrow",
+      "hintApproach": "Almost there: walk to the golden sign"
     },
     "reward": {
       "eyebrow": "Nice work!",
@@ -702,7 +708,7 @@
         "jump": "Jump",
         "use": "Use",
         "look": "Look",
-        "zoom": "Zoom"
+        "zoom": "Zoom in and out"
       },
       "keys": {
         "move": "WASD",
@@ -710,7 +716,7 @@
         "jump": "Space",
         "use": "E",
         "look": "Drag",
-        "zoom": "Wheel"
+        "zoom": "Wheel or + −"
       },
       "touch": {
         "move": "Left side",
@@ -718,7 +724,7 @@
         "jump": "⌃ button",
         "use": "Button",
         "look": "Right side",
-        "zoom": "Pinch"
+        "zoom": "Pinch or + −"
       }
     },
     "controls": {
@@ -1521,6 +1527,45 @@
         "hoyYa": "That was done today. Again tomorrow.",
         "todavia": "Not yet.",
         "masAdelante": "That build comes later in the story."
+      }
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "howto": {
+      "step": "{n} of {total}",
+      "next": "Next",
+      "back": "Back",
+      "start": "Let's play!",
+      "skip": "Skip",
+      "real": {
+        "tag": "Out there, for real",
+        "title": "Your island grows with what you really do",
+        "body": "Every real action you log in Brote levels you up, and every level discovers new places, species and stations on your island.",
+        "level": "Level {tier} of {max}",
+        "world": "World {n}: {growth} of {goal}",
+        "hint": "That happens in the app, outside. Playing here never adds points in the app."
+      },
+      "island": {
+        "tag": "In here, on the island",
+        "title": "In here, you restore it by playing",
+        "one": "Pick up the litter the sea brings, sort it at the Recycling Point and build the compost bin, the rain tank and the nursery.",
+        "two": "Follow the golden light to your mission. When the green ring appears, press E.",
+        "twoTouch": "Follow the golden light to your mission. When the green ring appears, tap the button.",
+        "three": "Every plot goes from wild to flourishing: clean it, add compost, plant natives and water them on different days. You earn world seeds for the shop."
+      },
+      "legend": {
+        "tag": "Quick guide",
+        "title": "What everything means",
+        "beam": "The golden light and its sign: your mission and how far it is.",
+        "ring": "The green ring: you can do something here, now.",
+        "button": "E: does what the green sign says.",
+        "buttonTouch": "The button at the bottom right: does what the sign says.",
+        "seeds": "Your world seeds and your backpack. Tap them for missions, backpack, shop and guide.",
+        "daily": "There is a story with chapters and three missions a day. Your ceibo, next to where you arrive, grows only with your real actions."
+      },
+      "controls": {
+        "tag": "Controls",
+        "title": "How to move"
       }
     }
   },

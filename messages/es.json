@@ -667,7 +667,13 @@
       "rest": "Buscá un lugar para {thing}",
       "free": "Recorré la isla a tu ritmo",
       "progress": "{done} de {total} tareas",
-      "distance": "a {m} m"
+      "distance": "a {m} m",
+      "hintFollow": "Seguí el cartel del punto dorado",
+      "hintUseKey": "Cuando veas el aro verde, tocá E",
+      "hintUseTouch": "Cuando veas el aro verde, tocá el botón",
+      "hintFree": "Hoy ya cuidaste tu isla. Crece más con lo que hacés de verdad en Brote.",
+      "doneToday": "Tareas de hoy: listas · mañana hay nuevas",
+      "hintApproach": "Ya casi: caminá hasta el cartel dorado"
     },
     "reward": {
       "eyebrow": "¡Bien hecho!",
@@ -702,7 +708,7 @@
         "jump": "Saltar",
         "use": "Usar",
         "look": "Mirar",
-        "zoom": "Acercar"
+        "zoom": "Acercar y alejar"
       },
       "keys": {
         "move": "WASD",
@@ -710,7 +716,7 @@
         "jump": "Espacio",
         "use": "E",
         "look": "Arrastrá",
-        "zoom": "Rueda"
+        "zoom": "Rueda o + −"
       },
       "touch": {
         "move": "Izquierda",
@@ -718,7 +724,7 @@
         "jump": "Botón ⌃",
         "use": "Botón",
         "look": "Derecha",
-        "zoom": "Pellizco"
+        "zoom": "Pellizco o + −"
       }
     },
     "controls": {
@@ -1521,6 +1527,45 @@
         "hoyYa": "Eso ya se hizo hoy. Mañana, otra vez.",
         "todavia": "Todavía no.",
         "masAdelante": "Esa obra viene más adelante en la historia."
+      }
+    },
+    "zoomIn": "Acercar la cámara",
+    "zoomOut": "Alejar la cámara",
+    "howto": {
+      "step": "{n} de {total}",
+      "next": "Siguiente",
+      "back": "Atrás",
+      "start": "¡A jugar!",
+      "skip": "Saltar",
+      "real": {
+        "tag": "Afuera, de verdad",
+        "title": "Tu isla crece con lo que hacés de verdad",
+        "body": "Cada acción real que registrás en Brote te sube de nivel, y cada nivel descubre lugares, especies y estaciones nuevas en tu isla.",
+        "level": "Nivel {tier} de {max}",
+        "world": "Mundo {n}: {growth} de {goal}",
+        "hint": "Eso pasa en la app, afuera. Jugar acá no suma puntos en la app."
+      },
+      "island": {
+        "tag": "Acá, en la isla",
+        "title": "Adentro, la restaurás jugando",
+        "one": "Juntá la basura que trae el mar, separala en el Punto Limpio y construí la compostera, el tanque y el vivero.",
+        "two": "Seguí la luz dorada hasta tu misión. Cuando aparezca el aro verde, tocá E.",
+        "twoTouch": "Seguí la luz dorada hasta tu misión. Cuando aparezca el aro verde, tocá el botón.",
+        "three": "Cada parcela pasa de silvestre a floreciente: limpiala, poné compost, plantá nativas y regala en días distintos. Ganás semillas del mundo para la tienda."
+      },
+      "legend": {
+        "tag": "Guía rápida",
+        "title": "Qué significa cada cosa",
+        "beam": "La luz dorada y su cartel: tu misión y cuánto falta.",
+        "ring": "El aro verde: acá podés hacer algo ahora.",
+        "button": "E: hace lo que dice el cartel verde.",
+        "buttonTouch": "El botón de abajo a la derecha: hace lo que dice el cartel.",
+        "seeds": "Tus semillas del mundo y tu mochila. Tocalas para ver misiones, mochila, tienda y guía.",
+        "daily": "Hay una historia con capítulos y tres misiones por día. Tu ceibo, al lado de donde llegás, crece sólo con tus acciones reales."
+      },
+      "controls": {
+        "tag": "Controles",
+        "title": "Cómo moverte"
       }
     }
   },

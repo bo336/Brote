@@ -91,9 +91,11 @@ export function MissionGuide({
     const session = useSessionStore.getState();
     const current = session.objective;
     const distanceM = t ? Math.hypot(t.x - p.x, t.z - p.z) : null;
-    if (current?.targetId !== (t?.id ?? null) || Math.abs((current?.distanceM ?? 0) - (distanceM ?? 0)) > 1) {
+    // The pin over the target names what to do there: the missing thing first, else the mission.
+    const thingText = view.need ?? view.title;
+    if (current?.targetId !== (t?.id ?? null) || current?.thingText !== thingText || Math.abs((current?.distanceM ?? 0) - (distanceM ?? 0)) > 1) {
       session.setObjective({
-        kind: 'chore', titleKey: 'goal.free', thingKey: null,
+        kind: 'chore', titleKey: 'goal.free', thingKey: null, thingText,
         target: t ? { x: t.x, z: t.z } : null, targetId: t?.id ?? null,
         progress: view.progress, distanceM,
       });

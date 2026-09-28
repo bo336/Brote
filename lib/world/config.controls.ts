@@ -59,8 +59,21 @@ export const CAMERA = {
   fov: 50,
   pitchDeg: -18, // the resting tilt at the default zoom, before the ground and the player move it
   distanceM: 6, // default follow distance
-  posLambda: 6, // position damping rate
-  lookLambda: 12, // look-at damping — 2× the position rate is the "attentive" trick
+  posLambda: 6, // a ceremony shot's settle rate, before `ceremonyLambdaScale`
+  // ── The follow rig (2026-09-16 playtest: "when I'm walking and moving the
+  //    camera it feels too bad"). The lens used to *chase* its spot in a straight
+  //    line: 27° behind the mouse at p95, cutting 10% inside its own orbit. Now it
+  //    orbits a pivot — the turn answers the hand at once, only the pivot trails Pip.
+  turnLambda: 30, // yaw and a dragged tilt toward where the hand put them: smooth, never elastic
+  followLambda: 10, // the pivot after Pip, across the ground — a little give, so a run reads as speed
+  followYLambda: 6, // …and up and down, so a jump or a step never jolts the frame
+  zoomLambda: 9, // the boom toward the zoom asked for
+  leadLambda: 3, // the look-ahead along Pip's travel eases in, so a turn never whips the frame
+  releaseLambda: 3.5, // after a cutscene the lens eases back to Pip instead of cutting
+  floorLiftOutLambda: 4, // lifted over a bump at once, let down slowly
+  snapPivotM: 6, // Pip further than this from the pivot was moved, not walked: follow at once
+  runFovKickDeg: 4, // a little wider at a run; never under reduced motion
+  fovLambda: 3,
   targetAspect: 390 / 844, // the reference portrait phone (`18-DECISIONS.md` D5)
   aspectDistanceMin: 1.0, // distance multiplier clamp, low end
   aspectDistanceMax: 1.6, // distance multiplier clamp, high end
@@ -102,13 +115,13 @@ export const CAMERA = {
   fadeOutLambda: 4, // …slow to come back, like the pull-in
   /** Widen the tested corridor a little, so a trunk fades before it clips. */
   fadeMarginM: 0.25,
-  pinchMinM: 2.8, // zoom clamp, near: over the shoulder
-  pinchMaxM: 14, // zoom clamp, far: the whole region in frame
+  pinchMinM: 2.2, // zoom clamp, near: over the shoulder
+  pinchMaxM: 20, // zoom clamp, far: most of the island in frame (the playtest asked for more of both)
   // ── The adaptive rig (2026-09-12 playtest: "the camera angle should be
   //    adaptive, like the rotation"). Pitch is a second axis the player owns,
   //    and when they are not steering it, it follows the zoom and the ground.
   pitchNearDeg: -9, // at the nearest zoom the lens sits low, behind Pip's shoulder…
-  pitchFarDeg: -38, // …and at the farthest it looks down over the region
+  pitchFarDeg: -45, // …and at the farthest it looks down over the region
   pitchMinDeg: -72, // the steepest a drag may take it
   pitchMaxDeg: 6, // the flattest: a touch under Pip, to look up a mountain
   pitchLambda: 6, // how fast the pitch eases to where it is going
@@ -117,8 +130,10 @@ export const CAMERA = {
   slopePitchMaxDeg: 14, // and the most the ground may tilt the lens
   dragYawPerPx: 0.0065, // radians of orbit per pixel dragged sideways
   dragPitchPerPx: 0.0045, // radians of tilt per pixel dragged vertically
-  wheelMetresPerPx: 0.006, // zoom per pixel of wheel delta
-  pinchMetresPerPx: 0.03, // zoom per pixel of pinch
+  // Zoom is a factor, not metres: a notch is the same step beside Pip and far out.
+  wheelZoomPerPx: 0.0015, // e^(delta × this): one 120 px notch is ×1.2
+  trackpadZoomPerPx: 0.01, // a trackpad pinch arrives as small ctrl+wheel deltas
+  stepZoom: 1.3, // the + / − keys and buttons, per press
   /**
    * **A leash, not a recentre.** The old rig swung itself behind Pip after
    * 2.5 s, and camera-relative input meant every swing changed what W did —

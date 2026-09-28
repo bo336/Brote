@@ -24,7 +24,9 @@ export function GameHud() {
   useCeiboGreeting();
   useDiscoveryGreeting();
   const hud = useSessionStore((s) => s.hud);
-  const playing = hud === 'play';
+  // Under the how-to-play guide the world's labels step back with the world.
+  const helpOpen = useSessionStore((s) => s.helpOpen);
+  const playing = hud === 'play' && !helpOpen;
   const top = `calc(max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px) + 56px)`;
   return (
     <>

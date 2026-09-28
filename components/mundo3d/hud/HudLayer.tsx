@@ -8,6 +8,8 @@ import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
 import { ControlsHelp } from './ControlsHelp';
 import { GameHud } from '../game/hud/GameHud';
+import { HowToPlay } from './HowToPlay';
+import { WorldLabels } from './WorldLabels';
 import { RegionTitle } from './RegionTitle';
 import { RewardToast } from './RewardToast';
 import { EventCard } from './EventCard';
@@ -77,6 +79,7 @@ export function HudLayer({
   const placementActions = useSessionStore((s) => s.placementActions);
   const eventRun = useSessionStore((s) => s.eventRun);
   const firstRun = useSessionStore((s) => s.firstRun);
+  const helpOpen = useSessionStore((s) => s.helpOpen);
   // What everybody's real actions add up to. Not a leaderboard: no ranking, no
   // comparison, no name on any figure.
   const collective = useCollective(readOnly);
@@ -111,7 +114,16 @@ export function HudLayer({
       {/* What to do, how to do it, and that it worked. */}
       {/* The game: mission card, tags, gains, toasts, and its screens. */}
       <GameHud />
+      {/* The mission's pin over its target (and the way to it from the screen edge), and the E chip. */}
+      {hud === 'play' && !helpOpen && <WorldLabels />}
       {hud === 'play' && <ControlsHelp />}
+      <HowToPlay
+        tier={tier}
+        worldIndex={worldIndex}
+        worldGrowth={worldGrowth}
+        worldGoal={worldGoal}
+        firstRunActive={Boolean(firstRun?.beat)}
+      />
       <RegionTitle />
       <RewardToast />
       <BitacoraSheet

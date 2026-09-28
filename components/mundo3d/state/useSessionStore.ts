@@ -196,6 +196,9 @@ interface SessionStoreState {
    */
   interact: (() => void) | null;
   setInteract: (fn: (() => void) | null) => void;
+  /** Zoom the camera by a factor, below 1 closer. Set by the camera input; the + / − keys and buttons call it. */
+  zoom: ((factor: number) => void) | null;
+  setZoom: (fn: ((factor: number) => void) | null) => void;
   /**
    * The one next thing to do (`lib/world/objectives.ts`). Deduplicated: the
    * tracker recomputes twice a second, and a card that re-renders on every
@@ -223,7 +226,7 @@ interface SessionStoreState {
   addPlanting: (at: readonly [number, number, number]) => void;
 }
 
-export type ControlKind = 'move' | 'look' | 'jump' | 'use';
+export type ControlKind = 'move' | 'look' | 'jump' | 'use' | 'zoom';
 
 export interface RewardCard {
   id: number;
@@ -327,12 +330,14 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setNoteValues: (noteValues) => set({ noteValues }),
   interact: null,
   setInteract: (interact) => set({ interact }),
+  zoom: null,
+  setZoom: (zoom) => set({ zoom }),
   objective: null,
   setObjective: (objective) =>
     set((s) => {
       const a = s.objective;
       const same = a && objective
-        && a.titleKey === objective.titleKey && a.targetId === objective.targetId
+        && a.titleKey === objective.titleKey && a.targetId === objective.targetId && a.thingText === objective.thingText
         && a.progress?.done === objective.progress?.done && a.progress?.total === objective.progress?.total
         && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5);
       return same || (!a && !objective) ? s : { objective };
@@ -344,7 +349,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setRegionTitle: (regionTitle) => set({ regionTitle }),
   celebrateAt: 0,
   bumpCelebrate: () => set((s) => ({ celebrateAt: s.celebrateAt + 1 })),
-  controlsUsed: { move: false, look: false, jump: false, use: false },
+  controlsUsed: { move: false, look: false, jump: false, use: false, zoom: false },
   markControl: (k) => set((s) => (s.controlsUsed[k] ? s : { controlsUsed: { ...s.controlsUsed, [k]: true } })),
   helpOpen: false,
   setHelpOpen: (helpOpen) => set({ helpOpen }),
