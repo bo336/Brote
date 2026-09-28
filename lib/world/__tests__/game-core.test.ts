@@ -12,7 +12,7 @@ import { ceiboShape } from '../game/ceibo';
 import { missionView, targetName } from '../game/targets';
 import { gameSpots } from '../game/spots';
 import type { Spawn } from '../game/spawns';
-import { newGame, sanitize, balance, bagCount, dayOf } from '../game/state';
+import { newGame, sanitize, balance, bagCount, bagCap, dayOf } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
 import { buildLayout, insideCoast } from '../layout';
@@ -427,4 +427,46 @@ test('soil ready to plant with nothing that grows there says where to get a seed
   const v = missionView(s, world, c, at);
   assert.equal(v.target?.id, `game-parcel-${pradera.id}`);
   assert.match(v.need ?? '', /comprá un plantín de .+ en la Tienda/);
+});
+
+test('a full bag never sends the player to pick something up', () => {
+  // A full bag refuses every pickup; the card says where to empty it instead.
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:r:0', kind: 'residuos', waste: 'botella', x: 4, z: 4 } as Spawn],
+  };
+  const s = newGame(ctx());
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Lo que trae el mar');
+  assert.equal(missionView(s, world, ctx(), at).target?.id, 'x:r:0');
+  s.bag.residuos = Array.from({ length: bagCap(s) }, () => 'lata' as const);
+  let v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-punto_limpio');
+  assert.match(v.need ?? '', /^Mochila llena/);
+  // Full of branches: into a build the story has opened, before any upgrade.
+  s.bag.residuos = [];
+  s.bag.ramas = bagCap(s);
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'La compostera');
+  s.missions.met.push('claro.5');
+  at.spawns = [{ id: 'x:b:0', kind: 'ramas', x: 4, z: 4 } as Spawn];
+  v = missionView(s, world, ctx(), at);
+  assert.equal(v.target?.id, 'game-station-compostera');
+  // Asked to pick up branches with a bag full of them: into a site that takes them.
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Lo que se hace, se guarda');
+  v = missionView(s, world, ctx(), at);
+  assert.notEqual(v.target?.id, 'x:b:0');
+  assert.match(v.need ?? '', /^Mochila llena: (entregá ramas en|una mochila más grande)/);
+});
+
+test('waiting with a bag heavy with rubbish suggests sorting it', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const s = newGame(ctx());
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Suelo vivo');
+  s.parcels[parcelsAt(field, 1)[0]!.id] = { s: 1, lit: 255, inv: true, n: 2, plants: [], wet: [], at: 0 };
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 4, since: 1, out: 0 };
+  s.bag.residuos = Array.from({ length: 12 }, () => 'lata' as const);
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const v = missionView(s, world, ctx(), at);
+  assert.equal(v.title, 'Separá lo que juntaste');
+  assert.equal(v.target?.id, 'game-station-punto_limpio');
 });

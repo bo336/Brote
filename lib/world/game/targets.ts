@@ -10,7 +10,7 @@
 import { regionCentre } from '../regions';
 import type { RegionId } from '../types';
 import { careOf } from './care';
-import { currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
+import { buildOpen, currentOf, DAILY_BY_ID, openChains, progressOf, type MissionWorld, type Target } from './missions';
 import { fittingPlantines, parcelNext, ripe } from './parcel-actions';
 import { parcelRegion, parcelsAt, soilMaterial, wildParcel, type ParcelSpec } from './parcels';
 import { INVASIVES, PARCEL_TYPES, plantsFor, progressOf as plantProgress } from './plants';
@@ -19,8 +19,8 @@ import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
 import { missingFor, rate } from './production';
-import { balance } from './state';
-import { nextCost, STATIONS } from './stations';
+import { bagFree, balance } from './state';
+import { named, nextCost, STATIONS } from './stations';
 import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
 import { CHAINS } from './texto/cadenas';
@@ -367,8 +367,57 @@ function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld
 
 type Wait = 'compost' | 'day';
 
+/** Targets that are picked up: litter, piles, branches, stones, an invasive, a wild parcel. */
+const PICKS = /(:[lrhbs]:\d+$)|(^game-invasive-)/;
+
+/**
+ * A full bag refuses every pickup, so a card that says "go pick that up" would
+ * send the player to fail. It says where to empty the bag instead: the rubbish
+ * to the Punto Limpio, the organics into the compostera.
+ */
+function emptyBag(s: GameState, tier: number, at: Where): { target: Place; need: string } | null {
+  if (bagFree(s) > 0) return null;
+  const spot = (id: StationId) => at.spots.stations[id];
+  const pl = spot('punto_limpio');
+  if (s.bag.residuos.length > 0 && pl) {
+    return { target: { x: pl.x, z: pl.z, id: 'game-station-punto_limpio' }, need: 'Mochila llena: separá lo que juntaste en el Punto Limpio' };
+  }
+  const cp = spot('compostera');
+  const st = s.stations.compostera;
+  if (s.bag.hojas > 0 && cp && st && st.lvl >= 1 && loadRoom(st, 'compostera') > 0) {
+    return { target: { x: cp.x, z: cp.z, id: 'game-station-compostera' }, need: 'Mochila llena: cargá los orgánicos en la compostera' };
+  }
+  // Branches and stones go into a build or an upgrade that still needs them —
+  // builds first, and only ones the story has opened (a closed pad refuses).
+  const sites = (Object.keys(STATIONS) as StationId[])
+    .filter((id) => STATIONS[id].tier <= tier && buildOpen(s, id))
+    .sort((a, b) => (s.stations[a]?.lvl ?? 0) - (s.stations[b]?.lvl ?? 0));
+  for (const m of ['ramas', 'piedras'] as const) {
+    if (s.bag[m] <= 0) continue;
+    for (const id of sites) {
+      const pad = spot(id);
+      const cost = nextCost(id, s.stations[id]?.lvl ?? 0);
+      if (!pad || !cost) continue;
+      const left = missingFor(s.stations[id] ?? { lvl: 0, paid: {}, queue: 0, since: 0, out: 0 }, cost)[m] ?? 0;
+      if (left > 0) {
+        return { target: { x: pad.x, z: pad.z, id: `game-station-${id}` }, need: `Mochila llena: entregá ${MATERIALS[m].short.toLowerCase()} en ${named(id)}` };
+      }
+    }
+  }
+  // Nowhere to put it down: a bigger bag.
+  return pl ? { target: { x: pl.x, z: pl.z, id: 'game-station-punto_limpio' }, need: 'Mochila llena: una mochila más grande está en la Tienda (tocá tus semillas, arriba)' } : null;
+}
+
 /** The one thing the card shows. */
 export function missionView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView {
+  const view = cardView(s, w, ctx, at);
+  const target = view.target;
+  const picking = !!target && (PICKS.test(target.id) || (target.id.startsWith('game-parcel-') && (s.parcels[target.id.slice(12)]?.s ?? 0) === 0));
+  const empty = picking ? emptyBag(s, ctx.tier, at) : null;
+  return empty ? { ...view, target: empty.target, need: empty.need } : view;
+}
+
+function cardView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): MissionView {
   let waiting: { view: MissionView; on: Wait } | null = null;
   for (const chain of openChains(s, ctx.tier)) {
     const m = currentOf(s, chain);
@@ -430,6 +479,9 @@ function affordableUpgrade(s: GameState, id: StationId): string | null {
   return next.gain;
 }
 
+/** Pieces of rubbish in the bag from which a waiting card suggests sorting them. */
+const SORT_WHEN = 10;
+
 const MEANWHILE: Record<Wait, { eyebrow: string; ask: string }> = {
   compost: { eyebrow: 'Mientras el compost trabaja', ask: 'Cuando esté el compost, la tarjeta te lleva de vuelta.' },
   day: { eyebrow: 'Hasta mañana', ask: 'Lo que plantaste se riega de nuevo otro día. Mientras, esto.' },
@@ -451,6 +503,16 @@ function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where, o
         target: { x: spot.x, z: spot.z, id: 'game-station-compostera' },
       };
     }
+  }
+  // A bag heavy with rubbish: sorting it is what gives the recycled material
+  // an upgrade needs, and the organics the compost does.
+  const pl = at.spots.stations.punto_limpio;
+  if (s.bag.residuos.length >= SORT_WHEN && pl) {
+    return {
+      id: 'free:sort', kind: 'free', who: null, eyebrow, title: 'Separá lo que juntaste',
+      ask: 'Lo reciclado sirve para mejorar las estaciones, y lo orgánico se vuelve compost.', progress: null,
+      target: { x: pl.x, z: pl.z, id: 'game-station-punto_limpio' },
+    };
   }
   const daily = dailyView(s, w, ctx, at);
   if (daily?.target) return { ...daily, eyebrow: `${eyebrow} · ${daily.eyebrow}`, ask };
