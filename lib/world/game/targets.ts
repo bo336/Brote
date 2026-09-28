@@ -18,6 +18,7 @@ import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
 import { missingFor, rate } from './production';
+import { balance } from './state';
 import { nextCost, STATIONS } from './stations';
 import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
@@ -396,14 +397,43 @@ function dailyView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): 
   };
 }
 
+/** The next level's line when the bag and the wallet already cover it; null otherwise. */
+function affordableUpgrade(s: GameState, id: StationId): string | null {
+  const st = s.stations[id];
+  if (!st || st.lvl < 1) return null;
+  const cost = nextCost(id, st.lvl);
+  const next = STATIONS[id].levels[st.lvl];
+  if (!cost || !next) return null;
+  if (balance(s) < (cost.semillas ?? 0)) return null;
+  for (const [k, n] of Object.entries(missingFor(st, cost)) as [MaterialId, number][]) {
+    const have = k === 'residuos' ? s.bag.residuos.length : k === 'plantines' ? 0 : s.bag[k as BulkMaterial] ?? 0;
+    if (have < n) return null;
+  }
+  return next.gain;
+}
+
 const MEANWHILE: Record<Wait, { eyebrow: string; ask: string }> = {
   compost: { eyebrow: 'Mientras el compost trabaja', ask: 'Cuando esté el compost, la tarjeta te lleva de vuelta.' },
   day: { eyebrow: 'Hasta mañana', ask: 'Lo que plantaste se riega de nuevo otro día. Mientras, esto.' },
 };
 
-/** While a story waits: a daily, or the next wild parcel to clean. */
+/**
+ * While a story waits: a faster compostera if you can already pay for it (the
+ * compost is what everything waits on), a daily, or the next wild parcel.
+ */
 function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where, on: Wait): MissionView | null {
   const { eyebrow, ask } = MEANWHILE[on];
+  if (on === 'compost') {
+    const up = affordableUpgrade(s, 'compostera');
+    const spot = at.spots.stations.compostera;
+    if (up && spot) {
+      return {
+        id: 'free:upgrade-compostera', kind: 'free', who: null, eyebrow,
+        title: 'Mejorá la compostera', ask: `${up} Ya tenés con qué.`, progress: null,
+        target: { x: spot.x, z: spot.z, id: 'game-station-compostera' },
+      };
+    }
+  }
   const daily = dailyView(s, w, ctx, at);
   if (daily?.target) return { ...daily, eyebrow: `${eyebrow} · ${daily.eyebrow}`, ask };
   const target = resolveTarget({ to: 'parcel', stage: 0 }, s, w, ctx, at);

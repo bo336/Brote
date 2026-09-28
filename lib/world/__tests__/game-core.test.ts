@@ -374,3 +374,20 @@ test('every story step at every tier points somewhere', () => {
   }
   assert.deepEqual(problems, []);
 });
+
+test('waiting on compost with an upgrade already paid for suggests the upgrade', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const s = newGame(ctx());
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Suelo vivo');
+  const p = parcelsAt(field, 1)[0]!;
+  s.parcels[p.id] = { s: 1, lit: 255, inv: true, n: 2, plants: [], wet: [], at: 0 };
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 4, since: 1, out: 0 };
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  assert.notEqual(missionView(s, world, ctx(), at).title, 'Mejorá la compostera');
+  s.bag.ramas = 10;
+  s.bag.reciclado = 6;
+  s.sem.earned = s.sem.spent + 200;
+  const v = missionView(s, world, ctx(), at);
+  assert.equal(v.title, 'Mejorá la compostera');
+  assert.equal(v.target?.id, 'game-station-compostera');
+});
