@@ -80,9 +80,12 @@ const claro: ChainDef = {
     },
     {
       id: 'claro.10', who: 'ines', title: 'Suelo vivo',
-      ask: 'Retirá compost de la compostera y ponelo en tu parcela limpia.',
+      ask: 'Te presté dos baldes de mi compost. Sumá el de tu compostera y ponelo todo en tu parcela limpia.',
       done: 'Tierra oscura y suelta. Ahí adentro hay más vida que en todo el barrio.',
       goal: { k: 'state', test: { t: 'parcels', stage: 2, n: 1 } }, target: { to: 'parcel', stage: 1 },
+      // A parcel takes three; the first one of your own is six minutes away.
+      // Without the loan the first planting came twenty minutes into day one.
+      gift: { sem: 0, mat: { compost: 2 } },
       reward: { sem: 25, card: 'k:suelo' },
     },
     {
