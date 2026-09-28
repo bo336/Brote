@@ -484,7 +484,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `81286d5`.
+- Commits `bbe926f` … `6940285` (y este registro).
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -512,10 +512,23 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
   - la tarjeta ahora sugiere mejorar la compostera cuando ya alcanza (si
     cualquier historia espera compost, la espera la nombra el compost);
   - tierra lista para plantar sin nada en la mochila que crezca ahí y sin
-    vivero: la tarjeta dice qué plantín comprar en la Tienda y cómo abrirla.
+    vivero: la tarjeta dice qué plantín comprar en la Tienda y cómo abrirla;
+  - mochila llena: la tarjeta nunca manda a juntar (se rechazaría); dice dónde
+    vaciarla — separar en el Punto Limpio, cargar la compostera, entregar ramas
+    o piedras en una obra que la historia ya abrió, o una mochila más grande en
+    la Tienda. Mientras se espera, con 10 o más residuos encima, propone
+    separarlos (de ahí sale el reciclado de las mejoras);
+  - cuatro diarias no apuntaban a nada: hablar con alguien (ahora el personaje
+    más cerca), registrar especies (la más cerca), llevar materiales a una obra
+    (la obra abierta más cerca que todavía necesita) y comprar en la Tienda (sin
+    lugar: la tarjeta dice cómo abrirla).
+- Tests nuevos que recorren todo: cada paso de historia y cada diaria, a cada
+  nivel, apunta a algún lado (o dice cómo hacerse); nada que juntar ni ninguna
+  parcela cae fuera de la costa, en tres islas distintas y a seis niveles.
 - Partida de 30 minutos a nivel 3 después de todo eso (`scratchpad/playgame.mjs`):
   primera plantada a los 8 min, las tres historias abiertas se turnan mientras
-  el compost trabaja, nunca "sin objetivo", ni una traba.
+  el compost trabaja, nunca "sin objetivo", ni una traba. Cada tarjeta nueva
+  capturada a 390×844 (`scratchpad/cards.mjs`).
 - **Queda (del dueño):** aplicar 0115 y después 0116, mergear #34.
 
 ### 2026-09-26 — sesión 3 — arte, tienda, estaciones lejanas, ceremonia, teléfono

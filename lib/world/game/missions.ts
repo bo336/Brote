@@ -16,7 +16,7 @@ import { parcelRegion, type ParcelField } from './parcels';
 import { bump, earn, putPlantin } from './state';
 import { CHAINS, CHAIN_ORDER } from './texto/cadenas';
 import { DAILIES } from './texto/diarias';
-import type { BulkMaterial, GameContext, GameEvent, GameState, StationId } from './types';
+import type { BinId, BulkMaterial, GameContext, GameEvent, GameState, StationId } from './types';
 
 // ── Goals ──────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export type Target =
    * none the beacon goes for more — even with a batch already cooking, which
    * would otherwise read as "wait here".
    */
-  | { to: 'station'; id: StationId; load?: boolean }
+  | { to: 'station'; id: StationId; load?: boolean; bin?: BinId }
   | { to: 'parcel'; stage: number; region?: RegionId }
   | { to: 'cast'; who: string }
   | { to: 'water' }

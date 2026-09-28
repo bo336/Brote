@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { buildParcels, parcelAt, parcelRegion, parcelsAt } from '../game/parcels';
 import { ceiboShape } from '../game/ceibo';
 import { missionView, targetName } from '../game/targets';
+import { ripe } from '../game/parcel-actions';
 import { gameSpots } from '../game/spots';
 import type { Spawn } from '../game/spawns';
 import { newGame, sanitize, balance, bagCount, bagCap, dayOf } from '../game/state';
@@ -494,4 +495,49 @@ test('every daily at every tier points somewhere', () => {
     }
   }
   assert.deepEqual(problems, []);
+});
+
+test('sorting with nothing of that kind in the bag goes for the rubbish first', () => {
+  // 2026-09-28, touch run: "Separá 3 orgánicos" with an empty bag opened an
+  // empty sort game a hundred and fifty times.
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [
+      { id: 'x:r:0', kind: 'residuos', waste: 'lata', x: 2, z: 2 } as Spawn,
+      { id: 'x:r:1', kind: 'residuos', waste: 'yerba', x: 9, z: 9 } as Spawn,
+    ],
+  };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.daily = { day: c.day, ids: ['d.organicos'], prog: [0], claimed: [false], bonus: false };
+  let v = missionView(s, world, c, at);
+  assert.equal(v.target?.id, 'x:r:1', 'the organic piece, not the nearer can');
+  s.bag.residuos = ['lata'];
+  assert.equal(missionView(s, world, c, at).target?.id, 'x:r:1');
+  s.bag.residuos = ['lata', 'cascara'];
+  v = missionView(s, world, c, at);
+  assert.equal(v.target?.id, 'game-station-punto_limpio');
+});
+
+test('the vivero with no fruit sends the player to harvest, or waits for tomorrow', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const p = parcelsAt(field, 1)[0]!;
+  // A day this parcel's fruit is ripe, and one it is not.
+  const days = ['2026-10-01', '2026-10-02'].map((day, i) => ctx({ day, now: Date.UTC(2026, 9, 1 + i, 22) }));
+  const ripeDay = days.find((c) => ripe(p.id, c))!;
+  const bareDay = days.find((c) => !ripe(p.id, c))!;
+  const step = CHAINS.claro!.missions.findIndex((m) => m.target.to === 'station' && m.target.id === 'vivero' && m.goal.k === 'event');
+  const make = (c: typeof ripeDay) => {
+    const s = newGame(c);
+    for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+    s.missions.chain.claro = step;
+    s.stations.vivero = { lvl: 1, paid: {}, queue: 0, since: 0, out: 0 };
+    s.parcels[p.id] = { s: 4, lit: 255, inv: true, n: 0, plants: ['flechilla', 'chilca'], wet: [], at: 0 };
+    return s;
+  };
+  assert.equal(missionView(make(ripeDay), world, ripeDay, at).target?.id, `game-parcel-${p.id}`);
+  assert.notEqual(missionView(make(bareDay), world, bareDay, at).target?.id, 'game-station-vivero');
 });

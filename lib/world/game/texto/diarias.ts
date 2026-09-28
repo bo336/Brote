@@ -28,11 +28,11 @@ export const DAILIES: DailyDef[] = [
   },
   {
     id: 'd.reciclables', title: 'Separá {n} reciclables', match: { type: 'sorted', bin: 'reciclable', right: true }, n: grow(5, 0.3, 8),
-    target: { to: 'station', id: 'punto_limpio' }, minTier: 1, can: (s) => built(s, 'punto_limpio'),
+    target: { to: 'station', id: 'punto_limpio', bin: 'reciclable' }, minTier: 1, can: (s) => built(s, 'punto_limpio'),
   },
   {
     id: 'd.organicos', title: 'Separá {n} orgánicos para compostar', match: { type: 'sorted', bin: 'organico', right: true }, n: grow(3, 0.2, 5),
-    target: { to: 'station', id: 'punto_limpio' }, minTier: 1, can: (s) => built(s, 'punto_limpio'),
+    target: { to: 'station', id: 'punto_limpio', bin: 'organico' }, minTier: 1, can: (s) => built(s, 'punto_limpio'),
   },
   {
     id: 'd.compostera', title: 'Cargá la compostera con {n} orgánicos', match: { type: 'deposited', station: 'compostera' }, n: grow(6, 0.5, 12),

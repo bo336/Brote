@@ -25,7 +25,7 @@ import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
 import { CHAINS } from './texto/cadenas';
 import { castName } from './texto/guia';
-import type { BulkMaterial, GameContext, GameState, MaterialId, StationId } from './types';
+import type { BinId, BulkMaterial, GameContext, GameState, MaterialId, StationId } from './types';
 
 export interface MissionView {
   /** Chain mission id, `daily:<id>`, or `free`. */
@@ -78,7 +78,7 @@ export function resolveTarget(
       const spot = at.spots.stations[t.id];
       if (!spot || STATIONS[t.id].tier > ctx.tier) return null;
       // Nothing to bring yet: the beacon goes to what is missing, not to the empty pad.
-      return detourFor(s, w, ctx, t.id, at, t.load)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
+      return detourFor(s, w, ctx, t.id, at, t.load, t.bin)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
     }
     case 'cast': {
       const c = at.cast.get(t.who);
@@ -231,6 +231,12 @@ function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext
     case 'reciclado':
       // Recycled material comes out of sorting: sort what you carry, or pick some up first.
       return s.bag.residuos.some((w) => WASTE[w].bin === 'reciclable') ? station('punto_limpio') : ground('residuos');
+    case 'frutos': {
+      // Fruit is harvested from a thriving parcel whose fruit is ripe today.
+      const ripeNow = parcelsAt(w.field, ctx.tier).filter((p) => (s.parcels[p.id]?.s ?? 0) >= 4 && ripe(p.id, ctx) && !s.today.harvested.includes(p.id));
+      const hit = nearest(ripeNow, at.pip);
+      return hit ? { x: hit.x, z: hit.z, id: `game-parcel-${hit.id}` } : null;
+    }
     case 'compost':
       // Short of organics for the next batch: those first. Organic waste in the
       // bag becomes organics at the Punto Limpio.
@@ -247,7 +253,7 @@ function sourceOf(k: MaterialId, s: GameState, w: MissionWorld, ctx: GameContext
  * the card says what it is. Without it the beacon points at an empty pad and
  * the player stands on it wondering why nothing happens.
  */
-function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationId, at: Where, load = false): { target: Place; need: string } | null {
+function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationId, at: Where, load = false, bin?: BinId): { target: Place; need: string } | null {
   const st = s.stations[id] ?? { lvl: 0, paid: {}, queue: 0, since: 0, out: 0 };
   const cost = nextCost(id, st.lvl);
   if (st.lvl < 1 && cost) {
@@ -260,6 +266,14 @@ function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationI
       return { target: route, need: `Te ${short === 1 ? 'falta' : 'faltan'} ${short} ${MATERIALS[k].short.toLowerCase()}` };
     }
     return null;
+  }
+  // Sorting with nothing (of that kind) to sort: the rubbish first. The sort
+  // game opens empty otherwise, and the card would send the player back to it
+  // forever.
+  if (id === 'punto_limpio' && !s.bag.residuos.some((x) => !bin || WASTE[x].bin === bin)) {
+    const litter = at.spawns.filter((sp) => sp.kind === 'residuos');
+    const hit = nearest(litter.filter((sp) => !bin || (sp.waste && WASTE[sp.waste].bin === bin)), at.pip) ?? nearest(litter, at.pip);
+    if (hit) return { target: { x: hit.x, z: hit.z, id: hit.id }, need: SORT_FIRST[bin ?? 'any'] };
   }
   const makes = STATIONS[id].makes;
   // Loading is the job: an empty bag goes for more, whatever is cooking —
@@ -276,6 +290,14 @@ function detourFor(s: GameState, w: MissionWorld, ctx: GameContext, id: StationI
   }
   return null;
 }
+
+const SORT_FIRST: Record<BinId | 'any', string> = {
+  any: 'Primero, juntá residuos: se separan acá',
+  reciclable: 'Primero, juntá reciclables: botellas, latas, papel',
+  organico: 'Primero, juntá orgánicos para separar: yerba, cáscaras',
+  resto: 'Primero, juntá residuos: se separan acá',
+  especial: 'Primero, juntá residuos: se separan acá',
+};
 
 const WORD: Partial<Record<MaterialId, [string, string]>> = { hojas: ['orgánico', 'orgánicos'], frutos: ['fruto', 'frutos'] };
 const NEXT: Partial<Record<string, string>> = { compost: 'el próximo compost', plantines: 'los próximos plantines' };
@@ -335,7 +357,7 @@ const COOKING = 'El compost está en camino';
 
 /** The card's "what is missing" line for a mission's target. */
 function needFor(t: Target, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): string | null {
-  if (t.to === 'station') return detourFor(s, w, ctx, t.id, at, t.load)?.need ?? null;
+  if (t.to === 'station') return detourFor(s, w, ctx, t.id, at, t.load, t.bin)?.need ?? null;
   if (t.to === 'parcel' || t.to === 'grow') {
     const p = pickParcel(t, s, w, ctx, at);
     return p ? parcelDetour(s, w, ctx, p, at)?.need ?? null : null;
@@ -374,6 +396,13 @@ export function targetName(id: string): string {
  */
 function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): Wait | null {
   if (need === COOKING) return 'compost';
+  // A producer short of input with none to be had anywhere today (no ripe
+  // fruit for the vivero): tomorrow brings more.
+  if (t.to === 'station') {
+    const makes = STATIONS[t.id].makes;
+    if (makes && inputShort(s, t.id) > 0 && (s.bag[makes.input as BulkMaterial] ?? 0) === 0 && !sourceOf(makes.input, s, w, ctx, at)) return 'day';
+    return null;
+  }
   if (t.to !== 'parcel' && t.to !== 'grow') return null;
   const p = pickParcel(t, s, w, ctx, at);
   return p && (s.parcels[p.id]?.s ?? 0) === 3 && !actionable(s, p, ctx) ? 'day' : null;
