@@ -19,6 +19,8 @@ import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
 import { missingFor } from './production';
 import { nextCost, STATIONS } from './stations';
+import { SPECIES_BY_SLUG } from '../species';
+import { PLACE_NAME } from './discoveries';
 import { CHAINS } from './texto/cadenas';
 import { castName } from './texto/guia';
 import type { BulkMaterial, GameContext, GameState, MaterialId, StationId } from './types';
@@ -245,6 +247,31 @@ function needFor(t: Target, s: GameState, w: MissionWorld, ctx: GameContext, at:
     return p ? parcelDetour(s, w, ctx, p, at)?.need ?? null : null;
   }
   return null;
+}
+
+/**
+ * What the thing at a target is, in two or three words, for the pin that hangs
+ * over it (`hud/WorldLabels.tsx`): the card says the mission, the pin says what
+ * you will find where it points.
+ */
+export function targetName(id: string): string {
+  const station = /^game-station-(.+)$/.exec(id);
+  if (station) return STATIONS[station[1] as StationId]?.name ?? 'Estación';
+  const cast = /^game-cast-(.+)$/.exec(id);
+  if (cast) return castName(cast[1]!);
+  if (id.startsWith('game-invasive-')) return 'Invasora para arrancar';
+  if (id.startsWith('game-parcel-')) return 'Tu parcela';
+  if (id.startsWith('game-water-')) return 'Agua para la regadera';
+  const log = /^log-(.+)$/.exec(id);
+  if (log) return SPECIES_BY_SLUG.get(log[1]!)?.name_es ?? 'Una especie';
+  if (id.startsWith('fish-')) return 'Para pescar';
+  const region = /^region-(.+)$/.exec(id);
+  if (region) return PLACE_NAME[region[1] as RegionId] ?? 'Por acá';
+  if (/:l:\d+$/.test(id) || /:r:\d+$/.test(id)) return 'Basura';
+  if (/:h:\d+$/.test(id)) return 'Orgánicos';
+  if (/:b:\d+$/.test(id)) return 'Ramas';
+  if (/:s:\d+$/.test(id)) return 'Piedras';
+  return '';
 }
 
 /** The one thing the card shows. */

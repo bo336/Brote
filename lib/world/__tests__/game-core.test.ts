@@ -9,6 +9,7 @@ import { join } from 'node:path';
 
 import { buildParcels, parcelAt, parcelsAt } from '../game/parcels';
 import { ceiboShape } from '../game/ceibo';
+import { targetName } from '../game/targets';
 import { newGame, sanitize, balance, bagCount } from '../game/state';
 import { reduce, type GameAction } from '../game/reduce';
 import { dailySpawns, parcelLitter } from '../game/spawns';
@@ -221,4 +222,13 @@ test('every chapter can be finished at the rank that opens it', () => {
     }
   }
   assert.deepEqual(problems, []);
+});
+
+test('the guide pin names what is at every kind of target', () => {
+  assert.equal(targetName('game-station-compostera'), 'Compostera');
+  assert.equal(targetName('game-invasive-p0_1'), 'Invasora para arrancar');
+  assert.equal(targetName('2026-09-27:b:3'), 'Ramas');
+  assert.equal(targetName('p0_1:l:2'), 'Basura');
+  assert.equal(targetName('region-pradera'), 'La Pradera');
+  assert.ok(targetName('game-cast-ines').length > 0);
 });

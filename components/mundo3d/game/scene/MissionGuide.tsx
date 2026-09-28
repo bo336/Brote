@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { create } from 'zustand';
 
-import { missionView, type MissionView } from '@/lib/world/game/targets';
+import { missionView, targetName, type MissionView } from '@/lib/world/game/targets';
 import type { Spawn } from '@/lib/world/game/spawns';
 import type { GameSpots } from '@/lib/world/game/spots';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -91,8 +91,8 @@ export function MissionGuide({
     const session = useSessionStore.getState();
     const current = session.objective;
     const distanceM = t ? Math.hypot(t.x - p.x, t.z - p.z) : null;
-    // The pin over the target names what to do there: the missing thing first, else the mission.
-    const thingText = view.need ?? view.title;
+    // The pin over the target names what is there (the missing thing, when the guide detoured to it).
+    const thingText = (t ? targetName(t.id) : '') || view.title;
     if (current?.targetId !== (t?.id ?? null) || current?.thingText !== thingText || Math.abs((current?.distanceM ?? 0) - (distanceM ?? 0)) > 1) {
       session.setObjective({
         kind: 'chore', titleKey: 'goal.free', thingKey: null, thingText,
