@@ -318,3 +318,18 @@ test('a mission to load the compostera goes for organics even while a batch cook
   v = missionView(s, world, ctx(), at);
   assert.equal(v.target?.id, 'game-station-compostera');
 });
+
+test('the guide finishes the parcel you started before a nearer, emptier one', () => {
+  // 2026-09-28: two of three compost in one parcel, then the third went to a
+  // nearer parcel cleaned meanwhile — and Suelo vivo never finished.
+  const layout = buildLayout(WHO, cumulativeState(3));
+  const s = newGame(ctx({ tier: 3 }));
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Suelo vivo');
+  const [started, fresh] = parcelsAt(field, 1);
+  s.parcels[started!.id] = { s: 1, lit: 255, inv: true, n: 2, plants: [], wet: [], at: 0 };
+  s.parcels[fresh!.id] = { s: 1, lit: 255, inv: true, n: 0, plants: [], wet: [], at: 0 };
+  s.bag.compost = 1;
+  const at = { pip: { x: fresh!.x, z: fresh!.z }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const v = missionView(s, world, ctx({ tier: 3 }), at);
+  assert.equal(v.target?.id, `game-parcel-${started!.id}`);
+});

@@ -162,7 +162,13 @@ function pickParcel(t: Extract<Target, { to: 'parcel' | 'grow' }>, s: GameState,
   const all = parcelsAt(w.field, ctx.tier).filter(inRegion);
   if (t.to === 'parcel') {
     const at0 = all.filter((p) => stageOf(p) === t.stage);
-    return nearest(at0.filter((p) => actionable(s, p, ctx)), at.pip) ?? nearest(at0, at.pip);
+    const live = at0.filter((p) => actionable(s, p, ctx));
+    const pool = live.length > 0 ? live : at0;
+    // Finish what you started: the parcel with the most of this stage already
+    // in it, then the nearest. Nearest alone spread the compost over every
+    // parcel cleaned meanwhile, and none of them ever got enough.
+    const most = pool.reduce((m, p) => Math.max(m, s.parcels[p.id]?.n ?? 0), 0);
+    return nearest(pool.filter((p) => (s.parcels[p.id]?.n ?? 0) === most), at.pip);
   }
   const short = all.filter((p) => stageOf(p) < t.stage);
   for (let stage = t.stage - 1; stage >= 0; stage--) {
