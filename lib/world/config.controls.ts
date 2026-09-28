@@ -158,6 +158,10 @@ export const JOYSTICK = {
   zoneHeightPct: 0.55, // …and the bottom 55% of its height
   releaseDampMs: 150, // damp input to zero on release; no return animation
   safeAreaMinPx: 16, // floor for the `env(safe-area-inset-bottom)` padding
+  // Two fingers that land this close together in time are a pinch, even when
+  // one lands in the stick's corner — a pinch centred on a phone screen does.
+  pinchWindowMs: 250,
+  pinchSlopPx: 14, // …as long as the stick's thumb has not started walking
 } as const;
 
 /** Every verb completion fires sound + motion + this haptic (`10` §6). */

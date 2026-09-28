@@ -5,6 +5,7 @@ import type React from 'react';
 
 import { CAMERA, JOYSTICK } from '@/lib/world/config';
 import type { FollowCamera } from './FollowCamera';
+import { yieldStick } from './Joystick';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -14,8 +15,10 @@ import { useSessionStore } from '../state/useSessionStore';
  * like to zoom in and out").
  *
  * On a touch screen the joystick owns the bottom-left, so a finger that starts
- * there never turns the camera. A mouse has no joystick — WASD is its stick —
- * so it may drag from anywhere, with either button.
+ * there never turns the camera — unless another finger lands with it: two
+ * fingers down together are a pinch wherever they land. A mouse has no
+ * joystick — WASD is its stick — so it may drag from anywhere, with either
+ * button.
  *
  * The wheel is listened for natively and not passively: a trackpad pinch
  * arrives as a ctrl+wheel, which the browser would otherwise turn into zooming
@@ -31,8 +34,21 @@ interface DragOptions {
   onInput: () => void;
 }
 
+interface Finger {
+  x: number;
+  y: number;
+  x0: number;
+  y0: number;
+  /** When it landed, `performance.now()`. */
+  t: number;
+}
+
 export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) {
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pointers = useRef(new Map<number, Finger>());
+  // Fingers the joystick took. Watched, because one of them may turn out to
+  // be half of a pinch: a pinch centred on a phone puts its left finger right
+  // in the stick's corner.
+  const stick = useRef(new Map<number, Finger>());
   const lastPinch = useRef<number | null>(null);
 
   const inJoystickZone = useCallback((e: React.PointerEvent) => {
@@ -44,18 +60,42 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (inJoystickZone(e)) return;
-      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const now = performance.now();
+      const finger: Finger = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: now };
+      const fresh = (f: Finger) => now - f.t < JOYSTICK.pinchWindowMs && Math.hypot(f.x - f.x0, f.y - f.y0) < JOYSTICK.pinchSlopPx;
+      const zone = inJoystickZone(e);
+      // Two fingers down together are a pinch wherever they land. The stick
+      // lets go of its thumb before it has walked anywhere.
+      const partner = e.pointerType === 'mouse'
+        ? undefined
+        : [...stick.current].find(([, f]) => fresh(f)) ?? (zone ? [...pointers.current].find(([, f]) => fresh(f)) : undefined);
+      if (!partner) {
+        (zone ? stick : pointers).current.set(e.pointerId, finger);
+        return;
+      }
+      yieldStick();
+      for (const [id, f] of stick.current) pointers.current.set(id, f);
+      stick.current.clear();
+      pointers.current.set(e.pointerId, finger);
+      lastPinch.current = null;
     },
     [inJoystickZone],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
-      const previous = pointers.current.get(e.pointerId);
-      if (!previous) return;
+      const held = stick.current.get(e.pointerId);
+      if (held) {
+        held.x = e.clientX;
+        held.y = e.clientY;
+        return;
+      }
+      const finger = pointers.current.get(e.pointerId);
+      if (!finger) return;
+      const previous = { x: finger.x, y: finger.y };
+      finger.x = e.clientX;
+      finger.y = e.clientY;
       const camera = cameraRef.current;
-      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (!camera) return;
       onInput();
 
@@ -81,6 +121,7 @@ export function useCameraDrag({ cameraRef, sensitivity, onInput }: DragOptions) 
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
+    stick.current.delete(e.pointerId);
     if (pointers.current.size < 2) lastPinch.current = null;
   }, []);
 
