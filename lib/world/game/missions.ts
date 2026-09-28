@@ -63,6 +63,12 @@ export type Target =
   | { to: 'fish' }
   /** The most advanced parcel still short of `stage` — finish what you started first. */
   | { to: 'grow'; stage: number; region?: RegionId }
+  /** Whoever of the cast is nearest. */
+  | { to: 'anyone' }
+  /** The nearest census spot of any species. */
+  | { to: 'census' }
+  /** The nearest build or upgrade the story has opened that still needs materials. */
+  | { to: 'site' }
   | { to: 'none' };
 
 export interface Reward {
@@ -107,6 +113,8 @@ export interface DailyDef {
   minTier: number;
   /** Is this completable on this island today? Checked when the day's three are drawn. */
   can?: (s: GameState, ctx: GameContext, w: MissionWorld) => boolean;
+  /** For a daily with no place to go: how to do it, on the card. */
+  hint?: string;
 }
 
 // ── Checking ───────────────────────────────────────────────────────────────

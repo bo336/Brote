@@ -118,6 +118,20 @@ export function resolveTarget(
       // Nothing to do there yet: first go and get what it needs.
       return parcelDetour(s, w, ctx, hit, at)?.target ?? { x: hit.x, z: hit.z, id: `game-parcel-${hit.id}` };
     }
+    case 'anyone': {
+      const who = [...at.cast.entries()].map(([id, c]) => ({ x: c.x, z: c.z, id: `game-cast-${id}` }));
+      return nearest(who, at.pip);
+    }
+    case 'census':
+      return nearest(at.find?.('log-') ?? [], at.pip);
+    case 'site': {
+      const open = (Object.keys(STATIONS) as StationId[]).filter((id) => {
+        const cost = nextCost(id, s.stations[id]?.lvl ?? 0);
+        return STATIONS[id].tier <= ctx.tier && buildOpen(s, id) && !!cost && !!at.spots.stations[id]
+          && Object.keys(missingFor(s.stations[id] ?? { lvl: 0, paid: {}, queue: 0, since: 0, out: 0 }, cost)).length > 0;
+      });
+      return nearest(open.map((id) => ({ x: at.spots.stations[id]!.x, z: at.spots.stations[id]!.z, id: `game-station-${id}` })), at.pip);
+    }
     case 'none':
       return null;
   }
@@ -458,7 +472,7 @@ function dailyView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): 
   return {
     id: `daily:${def.id}`, kind: 'daily', who: null,
     eyebrow: `Del día · ${d.claimed.filter(Boolean).length} de ${d.ids.length}`,
-    title: def.title.replace('{n}', String(n)), ask: '',
+    title: def.title.replace('{n}', String(n)), ask: def.hint ?? '',
     progress: n > 1 ? { done: d.prog[i] ?? 0, total: n } : null,
     target: resolveTarget(def.target, s, w, ctx, at),
   };

@@ -470,3 +470,28 @@ test('waiting with a bag heavy with rubbish suggests sorting it', () => {
   assert.equal(v.title, 'Separá lo que juntaste');
   assert.equal(v.target?.id, 'game-station-punto_limpio');
 });
+
+test('every daily at every tier points somewhere', () => {
+  const problems: string[] = [];
+  const kinds = ['residuos', 'hojas', 'ramas', 'piedras'] as const;
+  for (const tier of [1, 3, 5, 8, 11]) {
+    const layout = buildLayout(WHO, cumulativeState(tier));
+    const c = ctx({ tier });
+    const at = {
+      pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map([['ines', { x: 6, z: 6 }]]), water: [{ x: 2, z: 2, id: 'game-water-tanque' }],
+      spawns: kinds.map((kind, i) => ({ id: `x:${kind[0]}:${i}`, kind, waste: 'botella', x: 3 + i, z: 3 } as Spawn)),
+      find: () => [{ x: 5, z: 5, id: 'fish-0' }],
+    };
+    for (const def of DAILIES) {
+      if (def.minTier > tier) continue;
+      const s = newGame(c);
+      for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+      for (const id of Object.keys(STATIONS) as (keyof typeof STATIONS)[]) s.stations[id] = { lvl: 1, paid: {}, queue: 0, since: 0, out: 0 };
+      s.missions.daily = { day: c.day, ids: [def.id], prog: [0], claimed: [false], bonus: false };
+      const v = missionView(s, world, c, at);
+      // A daily with nowhere to go (the Tienda) says on the card how to do it.
+      if (v.id !== `daily:${def.id}` || (!v.target && !v.ask)) problems.push(`T${tier} ${def.id} → ${v.id} ${JSON.stringify(v.target)}`);
+    }
+  }
+  assert.deepEqual(problems, []);
+});
