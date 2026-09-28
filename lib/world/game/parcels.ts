@@ -192,3 +192,12 @@ export function soilMaterial(region: RegionId): 'compost' | 'piedras' {
 export function wildParcel(): ParcelState {
   return { s: 0, lit: 0, inv: false, n: 0, plants: [], wet: [], at: 0 };
 }
+
+/**
+ * Where a flourishing parcel's habitat stands: just behind its stake, turned to
+ * face out. Shared by the scene that draws it and the animals that use it.
+ */
+export function habitatSpot(p: ParcelSpec, distanceM: number): { x: number; z: number; rotY: number } {
+  const a = p.i * 0.7 + p.j * 1.3 + Math.PI;
+  return { x: p.x + Math.cos(a) * distanceM, z: p.z + Math.sin(a) * distanceM, rotY: -a + Math.PI / 2 };
+}

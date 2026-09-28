@@ -17,6 +17,7 @@ import { Ceibo } from './Ceibo';
 import { Framing } from './Framing';
 import { MissionGuide } from './MissionGuide';
 import { Parcels } from './Parcels';
+import { ParcelFauna } from './ParcelFauna';
 import { Planted } from './Planted';
 import { Pickups } from './Pickups';
 import { Restoration } from './Restoration';
@@ -107,6 +108,7 @@ export function GameLayer({
       {interactive && <Pickups spawns={spawns} heightfield={heightfield} enabled={interactive} />}
       {interactive && <Parcels heightfield={heightfield} />}
       <Planted heightfield={heightfield} />
+      <ParcelFauna heightfield={heightfield} />
       <Ceibo spots={spots} heightfield={heightfield} night={night} interactive={interactive} onColliders={onCeibo} />
       <Stations spots={spots} heightfield={heightfield} tier={tier} shadows={shadows} onColliders={onStations} enabled={interactive} />
       {interactive && <Cast spots={spots} heightfield={heightfield} terrain={layout.terrain} tier={tier} onColliders={onCast} />}

@@ -10,7 +10,7 @@ import { plantedGeometry, plantedScale, PLANTED_PER_PARCEL, type PlantedBuild } 
 import { InstancePool } from '@/lib/render/instancing';
 import { getClayMaterial, getTexture } from '@/lib/render/materials';
 import { GAME } from '@/lib/world/game/config';
-import { parcelsAt } from '@/lib/world/game/parcels';
+import { habitatSpot, parcelsAt } from '@/lib/world/game/parcels';
 import { PLANTS } from '@/lib/world/game/plants';
 import { mulberry32 } from '@/lib/world/rng';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
@@ -157,10 +157,8 @@ export function Planted({ heightfield }: { heightfield: Heightfield }) {
         const pool = habPoolFor(ps.hab);
         const i = pool ? pool.alloc() : -1;
         if (pool && i >= 0) {
-          const a = spec.i * 0.7 + spec.j * 1.3 + Math.PI;
-          const hx = spec.x + Math.cos(a) * GAME.planted.habitatM;
-          const hz = spec.z + Math.sin(a) * GAME.planted.habitatM;
-          pool.place(i, hx, sampleHeight(heightfield, hx, hz), hz, -a + Math.PI / 2, 1);
+          const h = habitatSpot(spec, GAME.planted.habitatM);
+          pool.place(i, h.x, sampleHeight(heightfield, h.x, h.z), h.z, h.rotY, 1);
         }
       }
       const species = [...new Set(ps.plants)].slice(0, 6);
