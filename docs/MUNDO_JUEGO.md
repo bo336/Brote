@@ -484,7 +484,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `a518605` (y este registro).
+- Commits `bbe926f` … `e331933` (y este registro).
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -543,7 +543,16 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
     táctil: parada tres minutos y medio al lado de una parcela;
   - con todas las parcelas limpias, mientras el compost trabaja la tarjeta junta
     lo que le falta a la mejora de la compostera, o orgánicos para la próxima
-    tanda, en vez de mandar a esperar.
+    tanda, en vez de mandar a esperar;
+  - mientras una historia espera, la tarjeta también propone llevar otra
+    parcela un paso más (abonar con el compost que haya, plantar), con los
+    mismos desvíos de siempre: el primer día ya no termina parado al lado de lo
+    regado.
+- Orden de lo que propone la tarjeta mientras una historia espera (D9):
+  mejorar la compostera si ya alcanza → separar si cargás 10 residuos o más →
+  la primera diaria que se pueda hoy → limpiar otra parcela → llevar otra
+  parcela un paso más → juntar para la mejora de la compostera → orgánicos para
+  la próxima tanda → y recién ahí, la espera.
 - Alcanzable con input real (`scratchpad/litterprobe.mjs`, caminando hacia cada
   cosa desde lados alternados): las 105 basuras de parcela de las islas de
   nivel 1 y 3 se levantan, y las 16 invasoras del nivel 3 se arrancan con E.

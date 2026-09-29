@@ -640,3 +640,20 @@ test('waiting for tomorrow with compost to spare takes another parcel a step fur
   assert.equal(v.target?.id, 'game-station-compostera');
   assert.equal(v.need, 'Primero, compost de la compostera');
 });
+
+test('with nothing left today but compost in the bin, the card says so and when', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = { pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [], spawns: [] };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Mañana, otra vez');
+  const [planted, ...rest] = parcelsAt(field, 1);
+  s.parcels[planted!.id] = { s: 3, lit: 255, inv: true, n: 4, plants: ['flechilla', 'chilca'], wet: [dayOf(c.day)], at: 0, d: dayOf(c.day) };
+  for (const p of rest) s.parcels[p.id] = { s: 1, lit: 255, inv: true, n: 0, plants: [], wet: [], at: 0 };
+  s.stations.compostera = { lvl: 1, paid: { ramas: 10, reciclado: 6 }, queue: 8, since: c.now - 60_000, out: 0 };
+  const v = missionView(s, world, c, at);
+  assert.equal(v.title, 'Esperá el compost');
+  assert.equal(v.target?.id, 'game-station-compostera');
+  assert.match(v.ask, /Sale en \d+ min\./);
+});

@@ -19,7 +19,7 @@ import { PARCEL } from './config';
 import type { Spawn } from './spawns';
 import type { GameSpots } from './spots';
 import { MATERIALS, WASTE } from './materials';
-import { missingFor, rate } from './production';
+import { missingFor, rate, secondsToNext } from './production';
 import { bagFree, balance, dayOf } from './state';
 import { named, nextCost, STATIONS } from './stations';
 import { SPECIES_BY_SLUG } from '../species';
@@ -525,8 +525,26 @@ function cardView(s: GameState, w: MissionWorld, ctx: GameContext, at: Where): M
     if (!waiting) waiting = { view, on };
     else if (on === 'compost') waiting.on = 'compost';
   }
-  if (waiting) return meanwhile(s, w, ctx, at, waiting.on) ?? waiting.view;
+  if (waiting) return meanwhile(s, w, ctx, at, waiting.on) ?? compostSoon(s, ctx, at) ?? waiting.view;
   return dailyView(s, w, ctx, at) ?? freeView(s, w, ctx, at);
+}
+
+/**
+ * Nothing left to do today but the compost in the bin: say so, and when. The
+ * story's own card would point at a plant already watered.
+ */
+function compostSoon(s: GameState, ctx: GameContext, at: Where): MissionView | null {
+  const st = s.stations.compostera;
+  const spot = at.spots.stations.compostera;
+  const per = STATIONS.compostera.makes?.per ?? 1;
+  if (!st || !spot || st.lvl < 1 || st.out > 0 || st.queue < per) return null;
+  const secs = secondsToNext(st, 'compostera', ctx.now);
+  const when = secs === null ? '' : secs < 60 ? ' Sale en menos de un minuto.' : ` Sale en ${Math.ceil(secs / 60)} min.`;
+  return {
+    id: 'free:compost-soon', kind: 'free', who: null, eyebrow: 'Por ahora, todo hecho',
+    title: 'Esperá el compost', ask: `Cuando salga, la tarjeta te lleva a abonar otra parcela.${when}`, progress: null,
+    target: { x: spot.x, z: spot.z, id: 'game-station-compostera' },
+  };
 }
 
 /** The first unfinished daily, if today has one. */
