@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Users, Sprout, GraduationCap, Clock, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { DomainIcon } from '@/components/icons/DomainIcon';
+import { DomainIcon, domainIconFor } from '@/components/icons/DomainIcon';
+import { SafeImage, ImagenFallback } from '@/components/ui/safe-image';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { FollowButton } from '@/components/social/FollowButton';
 import { getDomain } from '@/lib/domains';
@@ -102,13 +103,19 @@ function LadderCard({ item }: { item: LadderItem }) {
         {item.project.image_url && (
           // Fixed aspect box so nothing shifts while the image arrives.
           <div className="aspect-[16/9] w-full overflow-hidden bg-surface-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <SafeImage
               src={item.project.image_url}
-              alt=""
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              fallback={
+                <ImagenFallback
+                  color={dom?.color}
+                  icon={domainIconFor(item.project.domain_slug)}
+                  className="h-full w-full"
+                  iconSize={40}
+                />
+              }
             />
           </div>
         )}

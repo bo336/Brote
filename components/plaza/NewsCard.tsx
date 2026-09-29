@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Pill } from '@/components/ui/pill';
+import { SafeImage } from '@/components/ui/safe-image';
 import { getDomain } from '@/lib/domains';
 import type { NewsRow } from '@/lib/supabase/rows';
 
@@ -14,10 +15,7 @@ export function NewsCard({ item }: { item: NewsRow }) {
       href={`/feed/n/${item.id}`}
       className="flex gap-3 overflow-hidden rounded-card border border-border bg-surface p-3 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-soft-lg"
     >
-      {item.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image_url} alt="" className="h-20 w-20 shrink-0 rounded-[12px] object-cover" />
-      )}
+      <SafeImage src={item.image_url} loading="lazy" fallback={null} className="h-20 w-20 shrink-0 rounded-[12px] object-cover" />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 font-semibold leading-tight">{item.title_es}</p>
         {item.summary_es && <p className="mt-1 line-clamp-2 text-small text-muted-foreground">{item.summary_es}</p>}

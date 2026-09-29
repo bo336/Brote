@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Users, ThumbsUp, Lock, MapPin, Calendar, LogOut } from 'lucide-react';
 import { Pill } from '@/components/ui/pill';
 import { DomainIcon } from '@/components/icons/DomainIcon';
+import { SafeImage } from '@/components/ui/safe-image';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
 import { lockLabel } from '@/lib/recommendations';
@@ -46,14 +47,17 @@ export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; to
       className="block overflow-hidden rounded-card border border-border bg-surface shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-soft-lg"
     >
       <div className="relative h-28 w-full" style={{ background: `linear-gradient(135deg, ${domain?.color ?? '#1FB57A'}, ${domain?.color ?? '#1FB57A'}99)` }}>
-        {project.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={project.image_url} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <DomainIcon domain={project.domain_slug ?? 'comunidad'} size={48} variant="bare" className="text-white/90" />
-          </div>
-        )}
+        {/* On the domain gradient, a missing or failed photo just leaves the icon. */}
+        <SafeImage
+          src={project.image_url}
+          loading="lazy"
+          className="h-full w-full object-cover"
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <DomainIcon domain={project.domain_slug ?? 'comunidad'} size={48} variant="bare" className="text-white/90" />
+            </div>
+          }
+        />
         {locked && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill bg-brote-ink/70 px-2 py-0.5 text-caption font-semibold text-white">
             <Lock className="h-3 w-3" /> {lockLabel(project.min_rank_slug)}

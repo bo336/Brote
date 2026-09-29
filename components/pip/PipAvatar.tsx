@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { Pip, type PipStyle } from './Pip';
+import { SafeImage } from '@/components/ui/safe-image';
 import { RANK_BY_SLUG } from '@/lib/ranks';
 import { cn } from '@/lib/utils/cn';
 
@@ -75,19 +76,16 @@ function PipAvatarInner({
           : {}),
       }}
     >
-      {avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={avatarUrl}
-          alt={name ?? ''}
-          width={size}
-          height={size}
-          loading="lazy"
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <Pip size={size * 0.92} pipStyle={pipStyle ?? undefined} animate={animate} aura={aura} />
-      )}
+      {/* A photo that is gone falls back to their Pip, like having none. */}
+      <SafeImage
+        src={avatarUrl}
+        alt={name ?? ''}
+        width={size}
+        height={size}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        fallback={<Pip size={size * 0.92} pipStyle={pipStyle ?? undefined} animate={animate} aura={aura} />}
+      />
     </span>
   );
 

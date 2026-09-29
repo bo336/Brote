@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
+import { SafeImage } from '@/components/ui/safe-image';
 import { BRAND } from '@/lib/brand';
 
 /**
@@ -36,10 +37,7 @@ export function PublicPostPreview({
       <Logo size={30} />
 
       <article className="overflow-hidden rounded-card border border-border bg-surface shadow-soft-lg">
-        {image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className="h-44 w-full object-cover" />
-        )}
+        <SafeImage src={image} className="h-44 w-full object-cover" fallback={null} />
         <div className="space-y-2 p-4">
           {(author || source) && (
             <p className="eyebrow text-muted-foreground">{author ?? source}</p>

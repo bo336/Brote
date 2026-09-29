@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
+import { SafeImage } from '@/components/ui/safe-image';
 import { getDomain } from '@/lib/domains';
 import { relativeLabel } from '@/lib/utils/dates';
 import type { NewsRow } from '@/lib/supabase/rows';
@@ -29,17 +30,20 @@ export function NewsBriefingRow({ item }: { item: NewsRow }) {
         square made image-less stories look broken next to the rest (F14.2),
         so the fallback shows the domain's own icon instead.
       */}
-      {item.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image_url} alt="" className="h-14 w-14 shrink-0 rounded-[10px] object-cover" />
-      ) : (
-        <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[10px]"
-          style={{ background: `${dom?.color ?? '#1FB57A'}1f` }}
-        >
-          <DomainIcon domain={item.domain_tags[0] ?? 'comunidad'} size={30} variant="bare" />
-        </div>
-      )}
+      {/* The same tile stands in when the photo is missing OR fails to load. */}
+      <SafeImage
+        src={item.image_url}
+        loading="lazy"
+        className="h-14 w-14 shrink-0 rounded-[10px] object-cover"
+        fallback={
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[10px]"
+            style={{ background: `${dom?.color ?? '#1FB57A'}1f` }}
+          >
+            <DomainIcon domain={item.domain_tags[0] ?? 'comunidad'} size={30} variant="bare" />
+          </div>
+        }
+      />
       <div className="min-w-0 flex-1">
         <p
           className="line-clamp-1 bg-gradient-to-r from-current to-current bg-no-repeat font-display text-body font-semibold leading-snug transition-[background-size] duration-200 [background-position:0_100%] [background-size:0%_1.5px] group-hover:[background-size:100%_1.5px]"

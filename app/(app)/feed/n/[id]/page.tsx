@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, ExternalLink, Share2, Sprout, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
+import { SafeImage } from '@/components/ui/safe-image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pip } from '@/components/pip/Pip';
 import { SectionHeader } from '@/components/ui/section';
@@ -148,12 +149,10 @@ export default function NewsDetailPage() {
         </button>
       </div>
 
-      {item.image_url && (
-        // Hot-linked from the publisher on purpose — re-uploading press images
-        // to our own storage is the part that would not be defensible (08 §2).
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image_url} alt="" className="h-52 w-full rounded-card object-cover" />
-      )}
+      {/* Hot-linked from the publisher on purpose — re-uploading press images
+          to our own storage is the part that would not be defensible (08 §2).
+          A publisher that refuses the request leaves no picture, not a broken one. */}
+      <SafeImage src={item.image_url} fallback={null} className="h-52 w-full rounded-card object-cover" />
 
       <div className="flex flex-wrap items-center gap-1.5">
         {item.domain_tags.map((d) => {

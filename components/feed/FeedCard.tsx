@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { BadgeCheck, ExternalLink, Sprout, Trophy, Clock } from 'lucide-react';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { DomainIcon } from '@/components/icons/DomainIcon';
+import { SafeImage, ImagenNoDisponible } from '@/components/ui/safe-image';
 import { ReactionBar } from './ReactionBar';
 import { PostMenu } from './PostMenu';
 import { getDomain } from '@/lib/domains';
@@ -205,8 +206,14 @@ export const FeedCard = memo(function FeedCard({
               className="mt-2.5 overflow-hidden rounded-card border border-border"
               style={{ background: `${dom?.color ?? '#1FB57A'}14` }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.image_url} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+              {/* A picture that is gone says so in the same box, instead of the
+                  browser's broken-image icon. */}
+              <SafeImage
+                src={item.image_url}
+                loading="lazy"
+                className="aspect-[4/3] w-full object-cover"
+                fallback={<ImagenNoDisponible className="aspect-[16/7] w-full" />}
+              />
             </div>
           )}
 
@@ -244,15 +251,15 @@ export const FeedCard = memo(function FeedCard({
               href={`/feed/n/${item.news.id}`}
               className="press group mt-2.5 block overflow-hidden rounded-card border border-border shadow-soft hover:border-primary/30 hover:shadow-lift"
             >
-              {item.news.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.news.image_url}
-                  alt=""
-                  loading="lazy"
-                  className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              )}
+              {/* The story's own picture is decoration: when it is not a
+                  picture (a video player) or will not load, the card simply
+                  has none. */}
+              <SafeImage
+                src={item.news.image_url}
+                loading="lazy"
+                fallback={null}
+                className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              />
               <div className="p-3">
                 <p className="eyebrow text-muted-foreground">
                   {item.news.source}
