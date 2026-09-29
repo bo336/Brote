@@ -6,7 +6,7 @@ import { ChevronRight, Sprout } from 'lucide-react';
 
 import { biomeFor, type MundoState } from '@/lib/mundo';
 import { cn } from '@/lib/utils/cn';
-import { PosterFallback } from './PosterFallback';
+import { defaultPosterFor } from './defaultPoster';
 
 /**
  * The feed card. **A still image, and nothing else.**
@@ -62,19 +62,17 @@ export function MundoPoster({
 
   const card = (
     <div className="relative w-full overflow-hidden" style={{ height }}>
-      {snapshotUrl ? (
-        <img
-          src={snapshotUrl}
-          alt=""
-          width={1080}
-          height={1350}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <PosterFallback mundo={mundo} height={height} className="rounded-none border-0" />
-      )}
+      {/* A real picture always: their own poster, or a capture of the game at
+          their level. The drawn SVG island belonged to nobody. */}
+      <img
+        src={snapshotUrl || defaultPosterFor(mundo?.rankTier ?? 1)}
+        alt=""
+        width={1200}
+        height={600}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover"
+      />
 
       {/* Biome chip */}
       <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-pill bg-brote-ink/25 px-3 py-1 backdrop-blur-sm">

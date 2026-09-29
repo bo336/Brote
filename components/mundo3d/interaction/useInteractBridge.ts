@@ -24,6 +24,8 @@ export function useInteractBridge(runtime: VerbRuntime): void {
         return;
       }
       const store = useSessionStore.getState();
+      // A sheet, a dialogue or a ceremony owns the keys while it is up.
+      if (store.hud !== 'play') return;
       const target = store.active ? getInteractable(store.active.id) : undefined;
       if (!target) {
         store.setNote('controls.nothingNear');

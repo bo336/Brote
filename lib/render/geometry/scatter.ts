@@ -16,7 +16,7 @@ import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, NATIVE } from '../palette';
-import { mergePainted, paintFlat, paintVertical } from './build';
+import { mergePainted, paintFlat, paintVertical, surface } from './build';
 
 /**
  * One blade: a tapered, slightly curved strip. Three segments is enough for the
@@ -29,7 +29,7 @@ import { mergePainted, paintFlat, paintVertical } from './build';
  * twenty-six thousand triangles — a sixth of the whole T2 budget, spent on
  * geometry facing away from every camera the game has.
  */
-function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
+export function blade(height: number, width: number, bend: number, low: string, high: string): THREE.BufferGeometry {
   const geo = new THREE.CylinderGeometry(width * 0.12, width, height, 3, 3, true);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
@@ -142,7 +142,8 @@ export function smoothRock(radius: number, seed: number): THREE.BufferGeometry {
     colors.set([c.r, c.g, c.b], i * 3);
   }
   indexed.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return indexed;
+  // Grain and pits where a built thing's material shows them; plain elsewhere.
+  return surface(indexed, 'stone', [0, 1, 0]);
 }
 
 /** Smooth 3D value noise for rock shapes, 0..1. Build-time only. */

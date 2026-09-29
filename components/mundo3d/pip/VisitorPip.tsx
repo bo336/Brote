@@ -10,7 +10,7 @@ import { pipStageForTier } from '@/lib/mundo';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
 import type { PipCosmetics } from '@/lib/world/types';
-import { PipRig } from './PipRig';
+import { PipRig, standing } from './PipRig';
 
 /**
  * The host's Pip, standing on their own island while somebody visits.
@@ -41,7 +41,9 @@ export function VisitorPip({
   );
   const overlay = useMemo(() => getOverlayMaterial(), []);
   const root = useMemo(() => buildPip(1), []);
-  const rig = useMemo(() => new PipRig(root), [root]);
+  // Its own transform: a host standing on their island, not pinned to the visitor.
+  const at = useMemo(() => standing(0, 0, 0, Math.PI * 0.75), []);
+  const rig = useMemo(() => new PipRig(root, at), [root, at]);
 
   useEffect(() => () => disposePip(root), [root]);
 
@@ -56,10 +58,11 @@ export function VisitorPip({
     const [sx, sz] = layout.spawn;
     const x = sx + 2.2;
     const z = sz + 1.4;
-    root.position.set(x, sampleHeight(heightfield, x, z), z);
-    root.rotation.y = Math.PI * 0.75;
+    at.x = x;
+    at.y = sampleHeight(heightfield, x, z);
+    at.z = z;
     rig.setState('idle');
-  }, [root, rig, layout, heightfield]);
+  }, [root, rig, at, layout, heightfield]);
 
   useFrame((_, delta) => rig.update(delta, performance.now() / 1000));
 

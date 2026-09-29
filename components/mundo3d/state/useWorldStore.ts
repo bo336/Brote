@@ -4,7 +4,7 @@ import { create } from 'zustand';
 
 import { cumulativeState } from '@/lib/world/progression';
 import { buildLayout, type IslandLayout } from '@/lib/world/layout';
-import { mirrorFrom, ZERO_MIRROR } from '@/lib/world/impact';
+import { mirrorFrom, ZERO_IMPACT, ZERO_MIRROR } from '@/lib/world/impact';
 import { biomeConfig, type BiomeConfig } from '@/lib/world/biome';
 import type { ImpactTotals, MirrorParams, WorldConfig } from '@/lib/world/types';
 
@@ -28,6 +28,8 @@ interface WorldStoreState {
   layout: IslandLayout | null;
   biome: BiomeConfig;
   mirror: MirrorParams;
+  /** The real totals themselves, for El Ceibo — which counts actions, not a curve of them. */
+  impact: ImpactTotals;
   hydrate: (input: {
     userId: string;
     tier: number;
@@ -48,6 +50,7 @@ export const useWorldStore = create<WorldStoreState>((set) => ({
   layout: null,
   biome: biomeConfig(1),
   mirror: ZERO_MIRROR,
+  impact: ZERO_IMPACT,
   hydrate: ({ userId, tier, worldIndex, liveliness, impact }) => {
     const config = cumulativeState(tier);
     set({
@@ -59,6 +62,7 @@ export const useWorldStore = create<WorldStoreState>((set) => ({
       layout: buildLayout(userId, config),
       biome: biomeConfig(worldIndex),
       mirror: mirrorFrom(impact),
+      impact,
     });
   },
 }));

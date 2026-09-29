@@ -1,5 +1,9 @@
 # CONTINUE.md — Brote build progress & resume point
 
+> **TU MUNDO (el juego 3D), desde 2026-09-25:** el plan maestro, lo hecho y lo que
+> falta están en **`docs/MUNDO_JUEGO.md`** (rama `claude/mundo-juego`). Cualquier
+> sesión que toque `components/mundo3d`, `lib/world` o `lib/render` lo lee primero.
+
 > **Purpose:** This is the persistent build journal for the Brote project. If a build session hits a context/output limit, the working session MUST update this file before stopping. A fresh session reads **`BUILD_SPEC.md` + this file** and resumes with zero lost context. Keep this file accurate and terse.
 
 ---

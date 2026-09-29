@@ -16,11 +16,11 @@ import * as THREE from 'three';
 import { mulberry32 } from '@/lib/world/rng';
 import type { FeatureId } from '@/lib/world/types';
 import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical } from './build';
+import { bevelBox, mergePainted, paintFlat, paintVertical, surface } from './build';
 import { weather } from './carpentry';
 import { banco, hamaca } from './props-build';
 import { smoothRock } from './scatter';
-import { boat, bridge, compost, telescope, treehouse } from './structures-wood';
+import { boat, bridge, bridgeRails, compost, telescope, treehouse } from './structures-wood';
 
 /** A patch of moss, sitting on whatever it is placed on. */
 function moss(parts: THREE.BufferGeometry[], x: number, y: number, z: number, r: number): void {
@@ -52,7 +52,7 @@ function mojon(): THREE.BufferGeometry {
   }
   shaft.computeVertexNormals();
   shaft.translate(0, 0.72, 0);
-  parts.push(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone, 0.9));
+  parts.push(surface(paintVertical(shaft, CLAY.stoneDeep, CLAY.stone, 0.9), 'stone', [0, 1, 0]));
   const frame = bevelBox(0.38, 0.44, 0.05, weather(CLAY.stoneDeep, rng, 0.5), 0.9);
   const face = bevelBox(0.31, 0.37, 0.04, CLAY.sand, 0.94);
   face.translate(0, 0, 0.018);
@@ -120,7 +120,7 @@ function monument(): THREE.BufferGeometry {
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2 + (y > 0.3 ? 0.14 : 0);
       const w = ((Math.PI * 2 * radius) / count) * 0.97;
-      const block = bevelBox(w, h, 0.34, weather(CLAY.stone, rng, 0.7), 0.9);
+      const block = surface(bevelBox(w, h, 0.34, weather(CLAY.stone, rng, 0.7), 0.9), 'stone', [1, 0, 0]);
       block.rotateY(-a + Math.PI / 2);
       block.translate(Math.cos(a) * radius, y, Math.sin(a) * radius);
       parts.push(block);
@@ -174,14 +174,29 @@ const cache = new Map<string, THREE.BufferGeometry>();
  * Built on first use and cached. A feature the tier has not granted costs
  * nothing. `size` is for a structure sized to where it stands — the bridge's span.
  */
-export function buildStructure(feature: FeatureId, size?: number): THREE.BufferGeometry | null {
+export function buildStructure(feature: FeatureId, size?: number, broken = false): THREE.BufferGeometry | null {
   // Centimetres, as an integer: close enough to share a cached shape.
-  const key = size === undefined ? feature : `${feature}:${Math.round(size * 100)}`;
+  const key = `${size === undefined ? feature : `${feature}:${Math.round(size * 100)}`}${broken ? ':broken' : ''}`;
   const hit = cache.get(key);
   if (hit) return hit;
+  if (broken && feature === 'bridge') {
+    const geo = bridge(size, true);
+    cache.set(key, geo);
+    return geo;
+  }
   const build = BUILDERS[feature];
   if (!build) return null;
   const geo = build(size);
+  cache.set(key, geo);
+  return geo;
+}
+
+/** The bridge's rails, apart from its deck (`bridgeRails`). Cached like every structure. */
+export function buildBridgeRails(span?: number, broken = false): THREE.BufferGeometry {
+  const key = `${span === undefined ? 'bridge-rails' : `bridge-rails:${Math.round(span * 100)}`}${broken ? ':broken' : ''}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const geo = bridgeRails(span, broken);
   cache.set(key, geo);
   return geo;
 }

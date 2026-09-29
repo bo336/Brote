@@ -10,6 +10,10 @@ import { useSessionStore } from '@/components/mundo3d/state/useSessionStore';
 import { regionCentre } from '@/lib/world/regions';
 import { isWater, snapToLand, terrainHeight } from '@/lib/world/terrain';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
+import { useGameStore } from '@/components/mundo3d/game/useGameStore';
+import { parcelsAt } from '@/lib/world/game/parcels';
+import { useGameUi } from '@/components/mundo3d/game/useGameUi';
+import { useMissionView } from '@/components/mundo3d/game/scene/MissionGuide';
 import { mulberry32 } from '@/lib/world/rng';
 import { PROP_IDS } from '@/lib/world/progression';
 import { SPECIES } from '@/lib/world/species';
@@ -19,6 +23,7 @@ import * as THREE from 'three';
 import { updateReveal } from '@/lib/render/materials';
 import { liveGeometryKeys } from '@/lib/render/geometry';
 import { listInteractables } from '@/components/mundo3d/interaction/InteractableRegistry';
+import { useFxOverrides, type FxOverrides } from '@/components/mundo3d/dev/fxOverrides';
 import type { RegionId, TimeOfDay } from '@/lib/world/types';
 
 /**
@@ -193,6 +198,7 @@ function Preview() {
       __geometries?: () => string[];
       __interactables?: () => unknown[];
       __anchors?: () => unknown[];
+      __fx?: (fx: FxOverrides) => void;
       __objective?: () => unknown;
       __pip?: () => unknown;
       __reveal?: (m: string, a: number, x: number, y: number, z: number, r: number, bare?: string) => void;
@@ -270,6 +276,8 @@ function Preview() {
     // Where the ladder's structures stand, for framing the bridge, the treehouse
     // or the telescope without knowing today's chores.
     w.__anchors = () => useWorldStore.getState().layout?.anchors ?? [];
+    // The lens, pass by pass, for the perf protocol (`components/mundo3d/dev/fxOverrides.ts`).
+    w.__fx = (fx: FxOverrides) => useFxOverrides.getState().setFx(fx);
     // The one next thing to do, and what just paid out — for walking the loop
     // task by task instead of guessing at it from the card.
     w.__objective = () => ({
@@ -279,6 +287,21 @@ function Preview() {
     });
     // Where Pip actually is, and what the button is currently offering.
     // …and what the controls harness needs to check a jump and a press of E.
+    // The game (`lib/world/game`): its state, the card, and a way to act — for
+    // the play harness, which walks with real keys and checks what happened.
+    (w as unknown as { __game?: () => unknown }).__game = () => {
+      const g = useGameStore.getState();
+      const found = g.field && g.base ? parcelsAt(g.field, g.base.tier).map((p) => ({ id: p.id, x: p.x, z: p.z })) : [];
+      return { state: g.state, rev: g.rev, status: g.status, mission: useMissionView.getState().view, ui: useGameUi.getState().screen, found };
+    };
+    (w as unknown as { __act?: (a: unknown) => unknown }).__act = (a: unknown) =>
+      useGameStore.getState().dispatch(a as Parameters<ReturnType<typeof useGameStore.getState>['dispatch']>[0]);
+    // Open any of the game's screens, for reviewing them at phone size.
+    (w as unknown as { __ui?: (screen: unknown) => void }).__ui = (screen: unknown) =>
+      useGameUi.getState().open(screen as Parameters<ReturnType<typeof useGameUi.getState>['open']>[0]);
+    // Replace the save (sanitized like a server copy), for staging a close-up review.
+    (w as unknown as { __adopt?: (st: unknown) => void }).__adopt = (st: unknown) =>
+      useGameStore.getState().adopt(st, (useGameStore.getState().rev ?? 0) + 1);
     w.__pip = () => ({
       x: playerTransform.x, y: playerTransform.y, z: playerTransform.z,
       airborne: playerTransform.airborne, speed: playerTransform.speed,

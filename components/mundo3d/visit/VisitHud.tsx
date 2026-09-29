@@ -76,7 +76,7 @@ export function VisitHud({ visit }: { visit: VisitSession }) {
           and ranking nobody — and it forgives two days off by itself. */}
       {visit.streak && (
         <p
-          className="absolute inset-x-0 mx-auto mt-9 w-fit rounded-pill bg-brote-leaf/25 px-3 py-1 text-center text-caption font-semibold text-white backdrop-blur-sm"
+          className="absolute inset-x-0 mx-auto mt-9 w-fit rounded-pill bg-brote-green/25 px-3 py-1 text-center text-caption font-semibold text-white backdrop-blur-sm"
           style={safeTop}
         >
           {tv('streak', { days: visit.streak.days })}
@@ -150,7 +150,7 @@ export function VisitHud({ visit }: { visit: VisitSession }) {
         type="button"
         disabled={!canOpen}
         onClick={() => setPicking((open) => !open)}
-        className="pointer-events-auto absolute bottom-8 right-6 flex items-center gap-2 rounded-pill bg-brote-leaf px-5 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95 disabled:bg-brote-ink/40 disabled:text-white/60"
+        className="pointer-events-auto absolute bottom-8 right-6 flex items-center gap-2 rounded-pill bg-brote-green px-5 py-3 text-small font-bold text-white shadow-lg transition-transform active:scale-95 disabled:bg-brote-ink/40 disabled:text-white/60"
       >
         <StickerIcon className="h-4 w-4" aria-hidden />
         {canOpen ? tv('leave') : tv('left')}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { HAPTIC_MS, JOYSTICK } from '@/lib/world/config';
 import { clearStickInput, setStickInput } from './useInput';
@@ -32,12 +32,33 @@ interface StickState {
   originY: number;
 }
 
+/** Set while a stick is mounted: lets go of its thumb, which turned out to be half of a pinch. */
+let dropStick: (() => void) | null = null;
+
+/** The camera's pinch takes the stick's thumb (`useCameraDrag`). */
+export function yieldStick(): void {
+  dropStick?.();
+}
+
 export function Joystick({ enabled = true, onRun }: JoystickProps) {
   const zoneRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<StickState | null>(null);
   const wasRunningRef = useRef(false);
   // Only the visible knob is React state, and only while a thumb is down.
   const [visual, setVisual] = useState<{ x: number; y: number; dx: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    dropStick = () => {
+      if (!stateRef.current) return;
+      stateRef.current = null;
+      wasRunningRef.current = false;
+      clearStickInput();
+      setVisual(null);
+    };
+    return () => {
+      dropStick = null;
+    };
+  }, []);
 
   const write = useCallback(
     (clientX: number, clientY: number, origin: StickState) => {

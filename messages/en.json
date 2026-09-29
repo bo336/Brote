@@ -9,7 +9,8 @@
     "ranking": "Ranking",
     "perfil": "Profile",
     "aprender": "Learn",
-    "mercado": "Market"
+    "mercado": "Market",
+    "mundo": "Your world"
   },
   "common": {
     "loading": "Loading…",
@@ -647,6 +648,17 @@
     "typeMore": "Type at least two letters."
   },
   "mundo": {
+    "cerrado": {
+      "titulo": "Tu mundo todavía no abrió",
+      "cuerpo": "Estamos terminando de prepararlo. Cuando abra, vas a entrar desde acá mismo, con todo lo que ya hiciste de verdad.",
+      "volver": "Volver al inicio"
+    },
+    "entrada": {
+      "titulo": "Tu mundo",
+      "sub": "Tu isla: cuidala, construí, descubrí especies",
+      "subNivel": "Nivel {n} · {lugar}",
+      "entrar": "Entrar"
+    },
     "goal": {
       "eyebrow": "Now",
       "move": "Move around a little to start",
@@ -658,7 +670,13 @@
       "rest": "Find a place to {thing}",
       "free": "Wander the island at your own pace",
       "progress": "{done} of {total} chores",
-      "distance": "{m} m away"
+      "distance": "{m} m away",
+      "hintFollow": "Follow the sign with the golden dot",
+      "hintUseKey": "When you see the green ring, press E",
+      "hintUseTouch": "When you see the green ring, tap the button",
+      "hintFree": "You cared for your island today. It grows more with what you do for real in Brote.",
+      "doneToday": "Today's tasks: done · new ones tomorrow",
+      "hintApproach": "Almost there: walk to the golden sign"
     },
     "reward": {
       "eyebrow": "Nice work!",
@@ -693,7 +711,7 @@
         "jump": "Jump",
         "use": "Use",
         "look": "Look",
-        "zoom": "Zoom"
+        "zoom": "Zoom in and out"
       },
       "keys": {
         "move": "WASD",
@@ -701,7 +719,7 @@
         "jump": "Space",
         "use": "E",
         "look": "Drag",
-        "zoom": "Wheel"
+        "zoom": "Wheel or + −"
       },
       "touch": {
         "move": "Left side",
@@ -709,7 +727,7 @@
         "jump": "⌃ button",
         "use": "Button",
         "look": "Right side",
-        "zoom": "Pinch"
+        "zoom": "Pinch or + −"
       }
     },
     "controls": {
@@ -786,7 +804,9 @@
       "t8": "El monte se levantó con {acciones} acciones tuyas.",
       "t9": "Llegó la nieve. El aire de tu isla está más limpio.",
       "t10": "Se despejó el horizonte. Hay otra orilla.",
-      "t11": "Gaia. Tu isla ya puede sembrar otras."
+      "t11": "Gaia. Tu isla ya puede sembrar otras.",
+      "descubriste": "You discovered",
+      "descubristeLine": "They are on your island now, waiting for you to restore them by playing."
     },
     "world": {
       "complete": "Completaste un mundo. Tu isla cambió de color."
@@ -951,7 +971,24 @@
       "mundo_hamaca": "Hamaca paraguaya",
       "mundo_huerta": "Huerta",
       "mundo_molino": "Molino de viento",
-      "mundo_totem": "Tótem de piedra"
+      "mundo_totem": "Tótem de piedra",
+      "banco_reciclado": "Recycled bench",
+      "maceta": "Clay pot",
+      "cartel": "Wooden sign",
+      "sendero_piedra": "Stepping stones",
+      "cerco": "Stick fence",
+      "mesa_picnic": "Picnic table",
+      "farol_solar": "Solar lamp",
+      "hamaca_arbol": "Rope swing",
+      "pergola": "Pergola",
+      "estanque": "Pond",
+      "mirador": "Lookout",
+      "posadero": "Bird perch",
+      "bebedero": "Birdbath",
+      "hotel_chico": "Bee shelter",
+      "caja_nido": "Nest box",
+      "refugio_ranas": "Frog shelter",
+      "pirca": "Dry stone wall"
     },
     "placement": {
       "remaining": "{n} left",
@@ -1310,6 +1347,229 @@
       "log": "Log something",
       "later": "Later",
       "skip": "Skip"
+    },
+    "juego": {
+      "ceibo": {
+        "primera": "Every flower on your ceibo is a real action of yours in Brote.",
+        "nuevas": "{n, plural, one {# new real action bloomed} other {# new real actions bloomed}} on your ceibo."
+      },
+      "mision": "Mission: {title}",
+      "cerrar": "Close",
+      "isla": {
+        "titulo": "Your island",
+        "saldo": "{n} world seeds",
+        "abrir": "Your island: missions, backpack, shop",
+        "bitacora": "Logbook",
+        "acomodar": "Arrange",
+        "ajustes": "Settings",
+        "secciones": "Sections",
+        "tabs": {
+          "misiones": "Missions",
+          "mochila": "Backpack",
+          "tienda": "Shop",
+          "guia": "Guide",
+          "camino": "Path"
+        }
+      },
+      "misiones": {
+        "descubierto": "Discovered",
+        "descubiertoHint": "Your level in Brote opens it, with real actions: places, species, stations.",
+        "cuidado": "Cared for",
+        "cuidadoHint": "Playing makes it grow: living plots out of everything you already discovered.",
+        "deTotal": "{value} of {total}",
+        "historia": "The story",
+        "historiaFin": "You finished every chapter your level opened. The next one comes with your next level in Brote.",
+        "capitulo": "{region} · chapter {n} of {total} · {who}",
+        "recompensa": "Prize: {n} seeds",
+        "masCapitulos": "{n, plural, one {# more chapter opens} other {# more chapters open}} with your level in Brote.",
+        "todoDescubierto": "Every place on the island is discovered.",
+        "hoy": "Today's three",
+        "hoyHechas": "You did all three. New ones tomorrow.",
+        "hoyBonus": "All three together give {n} more seeds. They change every day."
+      },
+      "mochila": {
+        "titulo": "Backpack",
+        "deTotal": "{used} of {cap}",
+        "residuos": "Waste to sort",
+        "vender": "Sell",
+        "venderHint": "Don Beto pays {n} seed per unit",
+        "separarEn": "Sort them at the Recycling Point.",
+        "galpon": "Shed",
+        "plantin": "{name} seedling",
+        "herramientas": "Tools",
+        "agua": "Water in the can",
+        "herramienta": "{name} · level {n}"
+      },
+      "guia": {
+        "fichas": "{got} of {total} cards",
+        "conto": "{who} told you",
+        "porDescubrir": "A card still to discover, by playing.",
+        "cats": {
+          "residuos": "Waste",
+          "suelo": "Soil and compost",
+          "agua": "Water",
+          "plantas": "Native plants",
+          "fauna": "Wildlife",
+          "invasoras": "Invasives",
+          "energia": "Energy"
+        },
+        "porDescubrirN": "{n, plural, one {# more card} other {# more cards}} to discover here, by playing."
+      },
+      "camino": {
+        "dosFormas": "<b>Your island grows in two ways.</b> Your level in Brote —real actions— <em>discovers</em> places, species and stations.",
+        "dosFormas2": "By playing, what you discovered is <em>restored</em>: living plots, better stations, wildlife arriving.",
+        "nivel": "You are at level <b>{tier} · {rank}</b>, division <b>{div}</b> of 5. Every division discovers something; every level, a place.",
+        "irAcciones": "Go to Actions",
+        "estasAca": "You are here",
+        "division": "division {n}",
+        "kind": {
+          "lugar": "Place",
+          "planta": "Plant",
+          "estacion": "Station",
+          "objeto": "Shop",
+          "especie": "Logbook"
+        }
+      },
+      "tienda": {
+        "saldo": "You have <b>{n} seeds</b>. They are earned by playing: missions, dailies, plots that advance, sorting right.",
+        "secciones": {
+          "herramientas": "Tools",
+          "sobre": "Seedlings",
+          "habitat": "Shelters",
+          "decor": "Decoration"
+        },
+        "nivel": "level {lvl} · {value} {unit}",
+        "maximo": "Maxed out.",
+        "mejorar": "Upgrade to {value} {unit} · {price} seeds",
+        "seDescubre": "Discovered at level {tier}",
+        "seDescubreDiv": "Discovered at level {tier}, division {div}",
+        "conAcciones": "(with real actions)",
+        "tenes": "You have {n}",
+        "precio": "{price} seeds",
+        "precioMats": "{price} seeds + {mats}",
+        "colocar": "Place"
+      },
+      "separar": {
+        "titulo": "Recycling Point",
+        "quedan": "{n} to sort",
+        "nada": "Nothing to sort",
+        "racha": "{n} right in a row",
+        "vacio": "There is no waste in your backpack. The sea brings some every day: pick it up on the beach and on the wild plots.",
+        "bien": "Nice!",
+        "vaEn": "It goes in {bin}"
+      },
+      "estacion": {
+        "nivelDe": "Level {lvl} of 3",
+        "listo": " of {cap} {what} ready",
+        "agua": "water",
+        "cargarRegadera": "Fill the watering can",
+        "retirar": "Collect",
+        "trabajando": "Working: {n} more on the way.",
+        "espera": "{have} {input} waiting: {n} more for the next one.",
+        "trabajandoProx": "Working: {n} more on the way · the next in {t}.",
+        "vacia": "Empty. Every {per} {input} make 1 {output}.",
+        "cargar": "Load {input} ({n} in the backpack)",
+        "lluvia": "It collects rain on its own: the next in {t}.",
+        "queCrias": "What are you growing?",
+        "nivel": "Level {n}",
+        "falta": "Missing: {what}",
+        "entregar": "Hand in materials",
+        "mejorar": "Upgrade",
+        "maximo": "Maxed out.",
+        "min": "{m} min {s} s",
+        "seg": "{s} s"
+      },
+      "dialogo": {
+        "siguiente": "Next",
+        "seguir": "Go on"
+      },
+      "toast": {
+        "cumplida": "Mission complete",
+        "tresDelDia": "All three for today!",
+        "tresDelDiaBody": "New ones tomorrow.",
+        "diaria": "Daily mission complete",
+        "estrella": "{stars} Biodiversity",
+        "estrellaBody": "One more native species on that plot.",
+        "construida": "{name} is ready!",
+        "nivelNuevo": "{name}: level {n}",
+        "ficha": "Field guide: {title}",
+        "regalo": "{who} gave you seedlings",
+        "regaloBody": "{list}. They are in the shed.",
+        "compraste": "You bought {name}",
+        "herramienta": "Tool upgraded",
+        "etapa": {
+          "1": "Clean plot",
+          "2": "Living soil",
+          "3": "Planted",
+          "4": "Living plot!",
+          "5": "Flourishing!"
+        },
+        "etapaBody": {
+          "1": "No litter and no invasives. Now it needs living soil.",
+          "2": "Dark, loose soil: ready to plant.",
+          "3": "Now it needs water and a few days.",
+          "4": "It bears fruit and the bugs start arriving.",
+          "5": "Diversity and shelter: the wildlife stays."
+        },
+        "division": "Your level in Brote discovered something new",
+        "region": "You restored {name}!",
+        "regionBody": "Every plot your level revealed here is alive. Whatever your next level brings can be too."
+      },
+      "no": {
+        "llena": "Your backpack is full: take what you have to a station, or sell something to Don Beto.",
+        "falta": "You need {what}.",
+        "faltaAlgo": "Something is missing for that.",
+        "y": " and ",
+        "faltaAgua": "water in the can: fill it at the tank",
+        "faltaSemillas": "{n} seeds",
+        "faltaMat": "{n} {name}",
+        "pobre": "You need {n} more seeds. Missions and dailies give some.",
+        "pobreSin": "You need more seeds.",
+        "bloqueado": "Not discovered yet: it opens with your level in Brote.",
+        "nadaListo": "Nothing is ready yet.",
+        "hoyYa": "That was done today. Again tomorrow.",
+        "todavia": "Not yet.",
+        "masAdelante": "That build comes later in the story."
+      }
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "howto": {
+      "step": "{n} of {total}",
+      "next": "Next",
+      "back": "Back",
+      "start": "Let's play!",
+      "skip": "Skip",
+      "real": {
+        "tag": "Out there, for real",
+        "title": "Your island grows with what you really do",
+        "body": "Every real action you log in Brote levels you up, and every level discovers new places, species and stations on your island.",
+        "level": "Level {tier} of {max}",
+        "world": "World {n}: {growth} of {goal}",
+        "hint": "That happens in the app, outside. Playing here never adds points in the app."
+      },
+      "island": {
+        "tag": "In here, on the island",
+        "title": "In here, you restore it by playing",
+        "one": "Pick up the litter the sea brings, sort it at the Recycling Point and build the compost bin, the rain tank and the nursery.",
+        "two": "Follow the golden light to your mission. When the green ring appears, press E.",
+        "twoTouch": "Follow the golden light to your mission. When the green ring appears, tap the button.",
+        "three": "Every plot goes from wild to flourishing: clean it, add compost, plant natives and water them on different days. You earn world seeds for the shop."
+      },
+      "legend": {
+        "tag": "Quick guide",
+        "title": "What everything means",
+        "beam": "The golden light and its sign: your mission and how far it is.",
+        "ring": "The green ring: you can do something here, now.",
+        "button": "E: does what the green sign says.",
+        "buttonTouch": "The button at the bottom right: does what the sign says.",
+        "seeds": "Your world seeds and your backpack. Tap them for missions, backpack, shop and guide.",
+        "daily": "There is a story with chapters and three missions a day. Your ceibo, next to where you arrive, grows only with your real actions."
+      },
+      "controls": {
+        "tag": "Controls",
+        "title": "How to move"
+      }
     }
   },
   "negocio": {

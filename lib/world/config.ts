@@ -131,12 +131,18 @@ export const GUIDE = {
   beamOpacity: 0.85,
   beamFadeNearM: 3, // gone once you are standing at it…
   beamFadeFarM: 9, // …full strength from here out
-  arrowMinM: 5, // no arrow when the target is right there
-  arrowAheadM: 0.9, // how far in front of Pip the chevron sits
-  // Over the grass, not in it: at 6 cm the blades hid it completely.
-  arrowLiftM: 0.42,
-  arrowScale: 1.6,
-  arrowNudgeM: 0.12, // it nudges toward the target, a beckon
+  // The screen pin that replaced the chevron on the ground (2026-09-16: "there
+  // are circles on the floor, some things create confusion"): it says what and
+  // how far, and off screen it waits at the edge pointing the way.
+  pinHeightM: 2.2, // the pin hangs this far above the target's ground
+  pinHideNearM: 2.2, // gone only once its green ring and label have taken over (the interact radius is 2.4)
+  // Off screen, the whole label waits this far inside the edge — below the goal
+  // card and the zoom buttons at the top, above the thumbs' buttons at the bottom.
+  pinEdgeSidePx: 12,
+  pinEdgeTopPx: 190,
+  pinEdgeBottomPx: 170,
+  labelGapPx: 8, // the least space between the pin and the prompt
+  promptHeightM: 0.95, // the "E · Regar" label, just over the ring and Pip's head
   saplingGrowMs: 1600,
   saplingScale: 0.55,
 } as const;
@@ -170,8 +176,8 @@ export const PLACEMENT = {
    * 0.35 m, so an exact test makes picking one back up a game of skill.
    */
   pickUpReachScale: 1.6,
-  capBase: 4, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
-  capPerTier: 3,
+  capBase: 8, // cap = capBase + tier × capPerTier, so an island never becomes a junkyard
+  capPerTier: 4, // (0115: raised with the shop — decor is bought, and bought things want a place)
   rotationStepDeg: 15, // free rotation, snapped
   defaultFootprintM: 0.6, // OURS — reserved radius when a prop declares none
   nudgeM: 0.35, // overlap is refused with a soft nudge, never an error message
@@ -300,3 +306,4 @@ export * from './config.events';
  * is consumed by `lib/render/**`, and nothing above it is.
  */
 export * from './config.render';
+export * from './config.poster';

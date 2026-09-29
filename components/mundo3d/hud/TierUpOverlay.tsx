@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { RANK_BY_TIER } from '@/lib/ranks';
 import { formatWhole } from '@/lib/impact';
 import { scriptFor } from '@/lib/world/ceremony';
+import { discoveriesAt, type Discovery } from '@/lib/world/game/discoveries';
 import { IMPACT_PROVENANCE } from '@/lib/world/config';
 import type { ImpactTotals } from '@/lib/world/types';
 import { cn } from '@/lib/utils/cn';
@@ -35,6 +36,12 @@ interface TierUpOverlayProps {
   streakDays?: number;
 }
 
+/** Enough to feel like a lot, few enough to read in five seconds. */
+const DISCOVER_MAX = 8;
+const KIND_COLOR: Record<Discovery['kind'], string> = {
+  lugar: '#5B6CF0', planta: '#1FB57A', estacion: '#E9B949', objeto: '#C9A45C', especie: '#E8574B',
+};
+
 /** Where the site name on the card comes from. */
 const SITE_LABEL = 'brote.app';
 
@@ -49,6 +56,7 @@ export function TierUpOverlay({
 }: TierUpOverlayProps) {
   const t = useTranslations('mundo.tierup');
   const tVerb = useTranslations('mundo.verb');
+  const tKind = useTranslations('mundo.juego.camino.kind');
   const ceremony = useSessionStore((s) => s.ceremony);
   const reducedMotion = useSessionStore((s) => s.reducedMotion);
   const skipCeremony = useSessionStore((s) => s.skipCeremony);
@@ -135,6 +143,7 @@ export function TierUpOverlay({
   }, [request, skipCeremony, nextCeremony]);
 
   if (!script || request === null) return null;
+  const found = script.kind === 'tier' ? discoveriesAt(script.tier, 1).slice(0, DISCOVER_MAX) : [];
   const rank = RANK_BY_TIER[script.tier];
   const beat = ceremony.beat;
   const heading = script.kind === 'world' ? t('worldtitle', { n: script.tier }) : t('title', { rank: rank?.name_es ?? '' });
@@ -177,6 +186,22 @@ export function TierUpOverlay({
           <p className="text-h2 text-brote-cream">
             {t('newverb', { verbo: tVerb(script.verbs[0]) })}
           </p>
+        </Card>
+      )}
+
+      {beat === 'discover' && found.length > 0 && (
+        <Card>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brote-lime">{t('descubriste')}</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {found.map((d) => (
+              <li key={`${d.kind}:${d.name}`} className="flex items-center gap-1.5 rounded-pill bg-white/10 px-3 py-1.5 text-caption text-brote-cream">
+                <span className="h-2 w-2 rounded-full" style={{ background: d.color ?? KIND_COLOR[d.kind] }} />
+                <span className="font-semibold">{d.name}</span>
+                <span className="opacity-60">· {tKind(d.kind)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-body text-brote-cream/85">{t('descubristeLine')}</p>
         </Card>
       )}
 

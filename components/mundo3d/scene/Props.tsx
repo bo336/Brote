@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import {
-  buildProp, buildMovingPart, buildStructure, getTree, propFootprint, PROP_IDS, PROP_SPECS,
+  buildBridgeRails, buildProp, buildMovingPart, buildStructure, getTree, propFootprint, PROP_IDS, PROP_SPECS, trunkFootprint,
 } from '@/lib/render/geometry';
 import { buildLeafAtlas } from '@/lib/render/geometry/leaf-atlas';
 import { getClayMaterial, getTexture } from '@/lib/render/materials';
@@ -17,6 +17,8 @@ import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { MirrorParams, Placement, PropId, TimeOfDay } from '@/lib/world/types';
 import type { BlobShadowPool } from '@/lib/render/shadows';
 import type { PropCollider } from '../control/CharacterController';
+import { useGameStore } from '../game/useGameStore';
+import { fadeView, usePropFade, type FadeTarget } from './usePropFade';
 
 /**
  * The fixed structures the ladder puts on the island, and the props the player
@@ -31,10 +33,15 @@ const SWAY_HZ = WIND.hz * 0.6;
 const SWAY_AMPLITUDE = 0.06;
 /** Where the demo set is laid out, in metres from the spawn. */
 const DEMO_RING_M = 4.2;
+const DEMO_PER_RING = 12;
+const DEMO_RING_STEP_M = 4.5;
 /** Blob footprint for a fixed structure, in metres. Props use their own. */
 const STRUCTURE_SHADOW = 0.55;
 /** Where along its height an ombú forks, as a fraction — the treehouse deck sits there. */
 const TREEHOUSE_FORK = 0.6;
+/** How far a structure reaches into the lens's way, in metres; the treehouse's, per unit of its scale (as `Vegetation.tsx` crowns). */
+const STRUCTURE_FADE_M = 0.8;
+const TREEHOUSE_FADE_REACH = 0.85;
 
 /** Where each prop's moving part is mounted, relative to the prop's origin. */
 const MOVING_MOUNTS: Partial<Record<PropId, [number, number, number]>> = {
@@ -73,7 +80,7 @@ export function Props({
   heightfield, layout, mirror, timeOfDay, placements, demo = false, onColliders, shadows,
 }: PropsProps) {
   // Wood, stone and cloth all sit still: they take the wobble, never the wind.
-  const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true }), []);
+  const solid = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: true, built: true }), []);
   const movingRefs = useRef<(THREE.Object3D | null)[]>([]);
   const swayRefs = useRef<(THREE.Object3D | null)[]>([]);
   /** The same leaf material and shadow cut-out as the island's trees (`Vegetation.tsx`). */
@@ -100,11 +107,14 @@ export function Props({
     return { ...built, scale: (SCALE_REFERENCE.fullTreeM * 0.62) / (height * TREEHOUSE_FORK) };
   }, []);
 
+  // The old bridge stays broken until the game's repair is built (`game/scene/Stations`).
+  const bridgeBroken = useGameStore((s) => !!s.state && (s.state.stations.puente?.lvl ?? 0) < 1);
+
   /** The fixed structures: one per feature the tier has actually granted. */
   const structures = useMemo(() => {
     return layout.anchors
       .map((anchor) => {
-        const geometry = buildStructure(anchor.feature, anchor.span);
+        const geometry = buildStructure(anchor.feature, anchor.span, anchor.feature === 'bridge' && bridgeBroken);
         if (!geometry) return null;
         const walkable = anchor.feature === 'bridge';
         const ground = sampleHeight(heightfield, anchor.x, anchor.z);
@@ -121,23 +131,28 @@ export function Props({
           rotY: anchor.rotY,
           sways: anchor.feature === 'hammock',
           walkable,
+          rails: walkable ? buildBridgeRails(anchor.span, bridgeBroken) : null,
           // The treehouse had a platform and a ladder and no tree: a deck floating
           // in the air. It grows its own ombú, sized so the deck sits in the fork.
           tree: anchor.feature === 'treehouse' ? treehouseTree : null,
         };
       })
       .filter((s): s is NonNullable<typeof s> => s !== null);
-  }, [layout, heightfield, treehouseTree]);
+  }, [layout, heightfield, treehouseTree, bridgeBroken]);
 
   /** The placed props — the player's, or the demo ring while there are none. */
   const placed = useMemo<Placed[]>(() => {
     const source: { slug: PropId; x: number; z: number; rotY: number }[] = demo
       ? PROP_IDS.map((slug, i) => {
-          const a = (i / PROP_IDS.length) * Math.PI * 2;
+          // Rings of a dozen, each further out, so the shop's whole catalogue fits.
+          const ring = Math.floor(i / DEMO_PER_RING);
+          const inRing = Math.min(DEMO_PER_RING, PROP_IDS.length - ring * DEMO_PER_RING);
+          const a = ((i % DEMO_PER_RING) / inRing) * Math.PI * 2 + ring * 0.4;
+          const r = DEMO_RING_M + ring * DEMO_RING_STEP_M;
           return {
             slug,
-            x: layout.spawn[0] + Math.cos(a) * DEMO_RING_M,
-            z: layout.spawn[1] + Math.sin(a) * DEMO_RING_M,
+            x: layout.spawn[0] + Math.cos(a) * r,
+            z: layout.spawn[1] + Math.sin(a) * r,
             rotY: -a,
           };
         })
@@ -160,6 +175,49 @@ export function Props({
       })
       .filter((p): p is Placed => p !== null);
   }, [demo, placements, layout, heightfield]);
+
+  /**
+   * Every solid thing as a view that can dither out of the lens's way
+   * (`usePropFade.ts`), index for index with the lists above. The bridge fades
+   * only while Pip is off its deck — beside it, or swimming under it.
+   */
+  const faded = useMemo(() => {
+    const targets: FadeTarget[] = [];
+    const view = (geo: THREE.BufferGeometry, attrs: THREE.InstancedBufferAttribute[]) => {
+      const v = fadeView(geo);
+      attrs.push(v.fade);
+      return v.geometry;
+    };
+    const structureViews = structures.map((s) => {
+      const attrs: THREE.InstancedBufferAttribute[] = [];
+      const railAttrs: THREE.InstancedBufferAttribute[] = [];
+      const out = {
+        body: view(s.geometry, attrs),
+        wood: s.tree ? view(s.tree.wood, attrs) : null,
+        leaves: s.tree ? view(s.tree.leaves, attrs) : null,
+        rails: s.rails ? view(s.rails, railAttrs) : null,
+      };
+      const anchor = s.walkable ? layout.anchors.find((a) => a.id === s.key) : undefined;
+      if (anchor) {
+        // The deck fades only with Pip off it; its rails whenever they are in the way.
+        const deck = bridgeDeck(anchor, heightfield);
+        targets.push({ x: deck.x, z: deck.z, radius: deck.halfSpan, fade: 1, attrs, deck: [deck] });
+        targets.push({ x: deck.x, z: deck.z, radius: deck.halfSpan, fade: 1, attrs: railAttrs, rails: deck });
+      } else {
+        const radius = s.tree ? TREEHOUSE_FADE_REACH * s.tree.scale : STRUCTURE_FADE_M;
+        targets.push({ x: s.position[0], z: s.position[2], radius, fade: 1, attrs });
+      }
+      return out;
+    });
+    const placedViews = placed.map((p) => {
+      const attrs: THREE.InstancedBufferAttribute[] = [];
+      const out = { body: view(p.geometry, attrs), moving: p.moving ? view(p.moving, attrs) : null };
+      targets.push({ x: p.position[0], z: p.position[2], radius: propFootprint(p.slug), fade: 1, attrs });
+      return out;
+    });
+    return { structureViews, placedViews, targets };
+  }, [structures, placed, layout, heightfield]);
+  usePropFade(faded.targets);
 
   /**
    * Ground everything. A bench with no shadow reads as a bench hovering over a
@@ -187,8 +245,12 @@ export function Props({
   useEffect(() => {
     if (!onColliders) return;
     const colliders: PropCollider[] = [
-      // A bridge is walked over, so it is a deck, never a post in the way.
-      ...structures.filter((s) => !s.walkable).map((s) => ({ x: s.position[0], z: s.position[2], radius: 0.6 })),
+      // A bridge is walked over, so it is a deck, never a post in the way. The
+      // treehouse's ombú is as wide as its roots, or the lens ends up in its trunk.
+      ...structures.filter((s) => !s.walkable).map((s) => ({
+        x: s.position[0], z: s.position[2],
+        radius: s.tree ? trunkFootprint('oak') * s.tree.scale : 0.6,
+      })),
       ...placed.map((p) => ({ x: p.position[0], z: p.position[2], radius: propFootprint(p.slug) })),
     ];
     onColliders(colliders);
@@ -215,19 +277,22 @@ export function Props({
       {structures.map((s, i) => (
         <group
           key={s.key}
+          name={s.key}
           position={s.position}
           rotation={[0, s.rotY, 0]}
           ref={(node) => {
             if (s.sways) swayRefs.current[i] = node;
           }}
         >
-          <mesh geometry={s.geometry} material={solid} castShadow receiveShadow />
-          {s.tree && (
+          <instancedMesh args={[faded.structureViews[i]!.body, solid, 1]} castShadow receiveShadow />
+          {faded.structureViews[i]!.rails && (
+            <instancedMesh args={[faded.structureViews[i]!.rails!, solid, 1]} castShadow receiveShadow />
+          )}
+          {s.tree && faded.structureViews[i]!.wood && faded.structureViews[i]!.leaves && (
             <group scale={s.tree.scale}>
-              <mesh geometry={s.tree.wood} material={solid} castShadow receiveShadow />
-              <mesh
-                geometry={s.tree.leaves}
-                material={canopy}
+              <instancedMesh args={[faded.structureViews[i]!.wood!, solid, 1]} castShadow receiveShadow />
+              <instancedMesh
+                args={[faded.structureViews[i]!.leaves!, canopy, 1]}
                 customDepthMaterial={canopyDepth}
                 castShadow
                 receiveShadow
@@ -238,16 +303,16 @@ export function Props({
       ))}
 
       {placed.map((p, i) => (
-        <group key={p.key} position={p.position} rotation={[0, p.rotY, 0]}>
-          <mesh geometry={p.geometry} material={solid} castShadow receiveShadow />
-          {p.moving && (
+        <group key={p.key} name={p.slug} position={p.position} rotation={[0, p.rotY, 0]}>
+          <instancedMesh args={[faded.placedViews[i]!.body, solid, 1]} castShadow receiveShadow />
+          {faded.placedViews[i]!.moving && (
             <group
               position={p.movingMount}
               ref={(node) => {
                 movingRefs.current[i] = node;
               }}
             >
-              <mesh geometry={p.moving} material={solid} />
+              <instancedMesh args={[faded.placedViews[i]!.moving!, solid, 1]} />
             </group>
           )}
           {/* The lanterns light at night — the one prop whose description is a

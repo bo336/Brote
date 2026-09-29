@@ -24,7 +24,7 @@ test('every tier has a script, and it ends', () => {
 test('the beats stay in the spec order', () => {
   // The order is the whole ceremony: frame it, capture the before, change the
   // world, name the rank, teach the verb, offer the card, hand control back.
-  const ORDER = ['camera', 'before', 'arrival', 'title', 'verb', 'share', 'return'];
+  const ORDER = ['camera', 'before', 'arrival', 'title', 'verb', 'discover', 'share', 'return'];
   for (const tier of TIERS) {
     const ids = ceremonyFor(tier).beats.map((b) => b.id);
     const ranks = ids.map((id) => ORDER.indexOf(id));

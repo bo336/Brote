@@ -42,6 +42,8 @@ export interface Objective {
   titleKey: string;
   /** Copy key under `mundo` for the thing itself, or null. */
   thingKey: string | null;
+  /** Already-written words for the thing (the game's missions carry their own), used over `thingKey`. */
+  thingText?: string | null;
   target: { x: number; z: number } | null;
   targetId: string | null;
   progress: { done: number; total: number } | null;

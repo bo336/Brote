@@ -5,6 +5,22 @@ import type { PlayerState } from '@/lib/world/types';
 import type { PipRoot } from '@/lib/render/geometry/pip';
 import { playerTransform } from '../state/usePlayerStore';
 
+/** The part of a transform the rig reads. `playerTransform` is one; a standing figure brings its own. */
+export interface RigSource {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  speed: number;
+  vy: number;
+  airborne: boolean;
+}
+
+/** A still figure's transform: standing, facing `yaw`. */
+export function standing(x: number, y: number, z: number, yaw: number): RigSource {
+  return { x, y, z, yaw, speed: 0, vy: 0, airborne: false };
+}
+
 /**
  * Pip's animation. **100% procedural** (`09-PIP.md` §3).
  *
@@ -43,8 +59,17 @@ export class PipRig {
   private celebrateT = 0;
   private state: PlayerState = 'idle';
 
-  constructor(root: PipRoot) {
+  /**
+   * Whose transform this rig follows. The player's Pip follows the controller;
+   * a figure standing somewhere else (a visited island's host, one of the four
+   * characters) follows its own. It used to be the player's for everybody, so
+   * every other body drawn with this rig was pinned inside Pip.
+   */
+  private readonly source: RigSource;
+
+  constructor(root: PipRoot, source: RigSource = playerTransform) {
     this.root = root;
+    this.source = source;
     this.blinkAt = PIP_RIG.lookAroundEveryS * 0.5;
   }
 
@@ -62,7 +87,7 @@ export class PipRig {
    * body's scale. No allocation: every value below is a number.
    */
   update(dt: number, elapsed: number): void {
-    const p = playerTransform;
+    const p = this.source;
     const u = this.root.userData;
     const moving = p.speed > 0.08 && this.state !== 'rest';
 

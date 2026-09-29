@@ -44,6 +44,7 @@ export const CEREMONY = {
   featureMaxS: 15,
   titleCardS: 4, // beat 4 — the rank name and the line tying it to the real cause
   newVerbS: 4, // beat 5 — the new verb, taught in one sentence, in-world
+  discoverS: 5, // what the rank reveals on the island (`docs/MUNDO_JUEGO.md` §3.8)
   shareCardS: 2, // beat 6 — no upsell, no interstitial
   worldCompleteS: 8, // the biome cross-fade when `worldIndex` increments
   /** Beat 1 of the world completion. OURS: a smaller moment, a shorter lift. */

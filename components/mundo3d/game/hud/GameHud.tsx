@@ -1,0 +1,43 @@
+'use client';
+
+import { JOYSTICK } from '@/lib/world/config';
+import { useSessionStore } from '../../state/useSessionStore';
+import { useCeiboGreeting } from '../useCeiboGreeting';
+import { useDiscoveryGreeting } from '../useDiscoveryGreeting';
+import { useGameFeedback } from '../useGameFeedback';
+import { DialogCard } from './DialogCard';
+import { IslaSheet } from './IslaSheet';
+import { MissionCard } from './MissionCard';
+import { SortGame } from './SortGame';
+import { StationSheet } from './StationSheet';
+import { TagLayer } from './TagLayer';
+import { Gains, Toasts } from './Toasts';
+
+/**
+ * The game's part of the HUD: the tags over things in the world, the mission
+ * card, the floating gains and the toasts during play; and its screens (the
+ * island sheet, a station's panel, the sorting game, a character talking)
+ * when one is open.
+ */
+export function GameHud() {
+  useGameFeedback();
+  useCeiboGreeting();
+  useDiscoveryGreeting();
+  const hud = useSessionStore((s) => s.hud);
+  // Under the how-to-play guide the world's labels step back with the world.
+  const helpOpen = useSessionStore((s) => s.helpOpen);
+  const playing = hud === 'play' && !helpOpen;
+  const top = `calc(max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px) + 56px)`;
+  return (
+    <>
+      {playing && <TagLayer />}
+      {playing && <MissionCard />}
+      <Gains />
+      <Toasts top={top} />
+      <IslaSheet />
+      <StationSheet />
+      <SortGame />
+      <DialogCard />
+    </>
+  );
+}

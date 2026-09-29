@@ -13,7 +13,7 @@
 import { LAYOUT, MOORING, SCALE_REFERENCE, TERRAIN, WATER_LEVEL } from './config';
 import { bridgeCrossing } from './crossing';
 import { CACHE_SPOTS, REGION_SPECS, regionCentre, regionRadius } from './regions';
-import { islandRadius, tierForRegion } from './progression';
+import { cumulativeState, islandRadius, tierForRegion } from './progression';
 import { hashInt, mulberry32 } from './rng';
 import {
   fbm, isPlantable, isRockable, snapToLand, terrainHeight,
@@ -116,10 +116,23 @@ export function coastRadiusAt(coastline: Float32Array, angleRad: number): number
 }
 
 /**
+ * On the island as it is drawn and walked: inside the rim, `marginM` in from
+ * the water, or on El Islote. The height function goes on being land for a
+ * while past the rim — in the bay the rim is almost a quarter of the radius
+ * in — but the ground mesh stops at the rim and Pip is pushed back from it, so
+ * anything placed there floats in the sea out of reach.
+ */
+export function insideCoast(x: number, z: number, coastline: Float32Array, terrain: WorldLayout, marginM = 0): boolean {
+  const islet = terrain.islet;
+  if (islet && Math.hypot(x - islet.x, z - islet.z) < islet.r - marginM) return true;
+  return Math.hypot(x, z) < coastRadiusAt(coastline, Math.atan2(z, x)) - marginM;
+}
+
+/**
  * The coastline. A circle plus one headland, one bay and a seeded low-frequency
  * wobble — an irregular disc, never a perfect one.
  */
-function buildCoastline(R: number, seed: number): Float32Array {
+export function buildCoastline(R: number, seed: number): Float32Array {
   const n = LAYOUT.coastlineSegments;
   const out = new Float32Array(n);
   const s = (seed % 1000) * 0.013;
@@ -380,6 +393,19 @@ function buildCaches(regions: RegionAnchor[], verbs: readonly VerbId[]): Travers
     }
   }
   return out;
+}
+
+/**
+ * The terrain alone, as it stands at a rank tier — no scatter, no anchors.
+ *
+ * The game's parcels (`lib/world/game/parcels.ts`) need to know where land is
+ * at every tier, including tiers the player has not reached, so a parcel is
+ * never offered on ground a later tier floods: features only ever add, so
+ * whatever is water at tier 11 is never land worth restoring earlier.
+ */
+export function terrainForTier(seed: number, tier: number): WorldLayout {
+  const cfg = cumulativeState(tier);
+  return buildTerrainLayout(cfg.radius, seed, cfg.features);
 }
 
 // ── The entry point ─────────────────────────────────────────────────────────

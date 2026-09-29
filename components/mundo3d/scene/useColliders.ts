@@ -23,6 +23,8 @@ export interface Colliders {
   all(): PropCollider[];
   onProps(colliders: PropCollider[]): void;
   onTrees(colliders: PropCollider[]): void;
+  /** The game layer's stations and characters. */
+  onGame(colliders: PropCollider[]): void;
 }
 
 export function useColliders(
@@ -31,8 +33,9 @@ export function useColliders(
 ): Colliders {
   const props = useRef<PropCollider[]>([]);
   const trees = useRef<PropCollider[]>([]);
+  const game = useRef<PropCollider[]>([]);
 
-  const all = useCallback(() => [...props.current, ...trees.current], []);
+  const all = useCallback(() => [...props.current, ...trees.current, ...game.current], []);
   const push = useCallback(() => {
     const list = all();
     controller?.setColliders(list);
@@ -61,5 +64,12 @@ export function useColliders(
    * camera — so a camera drag, which wakes the render loop and re-renders the
    * tree, teleported Pip back to the spawn mid-walk.
    */
-  return useMemo(() => ({ all, onProps, onTrees }), [all, onProps, onTrees]);
+  const onGame = useCallback(
+    (colliders: PropCollider[]) => {
+      game.current = colliders;
+      push();
+    },
+    [push],
+  );
+  return useMemo(() => ({ all, onProps, onTrees, onGame }), [all, onProps, onTrees, onGame]);
 }

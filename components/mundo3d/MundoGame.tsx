@@ -29,6 +29,8 @@ import { usePlayerStore } from './state/usePlayerStore';
 import { World } from './scene/World';
 import { PostFx } from './scene/PostFx';
 import type { VisitSession } from './visit/useVisit';
+import { useGameSession } from './game/useGameSession';
+import { useGameUi } from './game/useGameUi';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
 const EMPTY_JOURNAL: JournalEntry[] = [];
@@ -173,6 +175,8 @@ export default function MundoGame({
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
+  // A station's panel or a conversation keeps the world moving behind it (`Framing`).
+  const framed = useGameUi((s) => s.screen?.kind === 'estacion' || s.screen?.kind === 'dialogo');
   const setHud = useSessionStore((s) => s.setHud);
   const ceremonyRequest = useSessionStore((s) => s.ceremony.request);
 
@@ -240,6 +244,9 @@ export default function MundoGame({
   const world = useHydrateWorld({
     payload, userId, tier: worldTier, worldIndex, liveliness,
   });
+
+  // The game's save and its flush on leaving (`game/useGameSession.ts`).
+  useGameSession({ who: world.userId, tier: world.tier, payload, frozen, visit: visit !== undefined });
 
   // ── Quality. **Start at T1**; static hints may only lower it, and a manual
   //    setting disables the monitor entirely (`07-RENDER-ARCHITECTURE.md` §4).
@@ -329,7 +336,6 @@ export default function MundoGame({
       onPointerMove={drag.onPointerMove}
       onPointerUp={drag.onPointerUp}
       onPointerCancel={drag.onPointerUp}
-      onWheel={drag.onWheel}
     >
       {/* A measurement run holds the loop open: `demand` gaps are not frames,
           the probe rejects them, and a harness that samples nothing measures
@@ -337,7 +343,7 @@ export default function MundoGame({
       <Canvas
         frameloop={ceremonyRequest !== null || perf || alwaysRender
           ? 'always'
-          : hud !== 'play' ? 'demand' : frameloop}
+          : hud !== 'play' && !framed ? 'demand' : frameloop}
         // A range, not a number: a number *forces* that ratio, so a 1080p screen at
         // DPR 1 was drawn at 1.75× — 3360×1890 — and ran at a tenth of its speed.
         dpr={[Math.min(1, params.dprCap), params.dprCap]}
