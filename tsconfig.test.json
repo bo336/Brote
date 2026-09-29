@@ -28,7 +28,11 @@
     "lib/mundo.ts",
     "lib/ranks.ts",
     "lib/domains.ts",
-    "lib/impact.ts"
+    "lib/impact.ts",
+    "lib/imagen-segura.ts",
+    "lib/inicio/impacto.ts",
+    "lib/inicio/puentes.ts",
+    "lib/inicio/__tests__/**/*.ts"
   ],
   "exclude": [
     "node_modules"

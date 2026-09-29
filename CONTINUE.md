@@ -4,6 +4,10 @@
 > falta están en **`docs/MUNDO_JUEGO.md`** (rama `claude/mundo-juego`). Cualquier
 > sesión que toque `components/mundo3d`, `lib/world` o `lib/render` lo lee primero.
 
+> **INICIO, desde 2026-09-29:** la pantalla de inicio es el centro de la app (ver
+> la sección "INICIO — EL CENTRO DE LA APP" más abajo). Rama `claude/inicio-hub`,
+> que además junta Academia (#32), Mercado v2 (#33) y Tu mundo (#34).
+
 > **Purpose:** This is the persistent build journal for the Brote project. If a build session hits a context/output limit, the working session MUST update this file before stopping. A fresh session reads **`BUILD_SPEC.md` + this file** and resumes with zero lost context. Keep this file accurate and terse.
 
 ---
@@ -1230,6 +1234,94 @@ distintos y cada una de las 32 pistas mapea a UNA categoría. Con tres empresas
 en seis categorías no aparecía nunca. No es un bug —la regla está bien—, pero
 quiere decir que el puente recién se va a ver cuando haya tres comercios reales
 en una misma categoría. Hoy aparece en las cuatro acciones de granel.
+
+---
+
+# INICIO — EL CENTRO DE LA APP · 2026-09-29 · rama `claude/inicio-hub`
+
+> El pedido del dueño: Inicio tiene que ser un hub claro y útil que mande a las
+> secciones reales; el impacto real arriba y bien visible (no el mundo); cada
+> bloque con su propio estilo; y que después de marcar una acción la persona
+> tenga ganas de abrir el Mercado, su isla, la Plaza o la Academia antes de
+> cerrar. Además: el ícono de cuenta personal/negocio, las imágenes rotas del
+> feed y `profiles.account_type` editable desde el cliente.
+
+**La rama junta todo lo que no estaba en `main`:** `claude/mercado` (que ya
+contiene `claude/academia-arbol`) + `claude/mundo-juego`, sin conflictos, más lo
+de esta sesión. Mergear esta rama cierra #32, #33 y #34.
+
+### Qué quedó
+
+- **Inicio** (`app/(app)/page.tsx` + `components/inicio/*`), de arriba abajo:
+  saludo con una frase de estado real; **Tu impacto real** (la única banda
+  oscura, números que cuentan, "+X hoy" por métrica, una equivalencia como
+  titular y la regla escrita: sólo lo mueven las acciones del día, la rutina y
+  Acciones); **Tus acciones del día** (una checklist con anillo, cada fila con
+  lo que ahorra); **Antes de cerrar** (aparece al marcar: qué sumó esa acción y
+  UNA puerta elegida por `lib/inicio/puentes.ts` — lección del mismo tema,
+  productos del tema, el ceibo de su isla o la Plaza con el texto ya escrito —
+  y las otras como chips); **Mi rutina** (pastillas de un toque con racha);
+  **Seguí en Brote** (Academia con la próxima lección y "Empezar" directo, Tu
+  isla con su foto y las flores del ceibo, la Plaza en vivo, el Mercado con
+  productos); **Reto del día** (banda de sol); **Para vos** (carril de acciones
+  grandes del catálogo); proyectos.
+- Las tarjetas comparten las claves de React Query de las secciones a las que
+  llevan (`['academia','mapa']`, `['feed-pulse']`, `['mercado',…]`,
+  `['catalog',…]`): tocar una abre una sección ya cargada. El catálogo se pide
+  recién cuando el carril se acerca a la pantalla, y `catalog`, `mercado`,
+  `feed-pulse` ya no se refrescan en cada acción marcada (`lib/refresh.ts`).
+- Se fueron `EntradaMundo`, `EntradaAcademia`, `EntradaMercado`, `NewsNudge`,
+  `RoutineSection` y `HabitsCard` (este último ya no se usaba).
+- `/feed?escribir=1&texto=…` abre el compositor con una primera línea;
+  `/acciones?dominio=agua` abre el catálogo filtrado.
+- **Impacto sólo por acciones — `0117_perfil_y_puntos_solo_por_rpc.sql`.**
+  La política `completions owner all` dejaba que cualquier cuenta insertara sus
+  propias acciones "verificadas" desde la consola (y con eso el impacto real).
+  Ahora `activity_completions`, `user_domain_points`, `user_challenges`,
+  `daily_sets` y `user_habits` son sólo lectura para el cliente; escriben las
+  funciones `security definer` de siempre. `lib/inicio/__tests__/impacto-origen.test.ts`
+  vigila las tres capas (SQL, permisos, cliente).
+- **`profiles.account_type` (y más).** La política `profiles owner update`
+  dejaba cambiar cualquier columna propia: un chico se pasaba a adulto, y
+  cualquiera se ponía puntos, rango, plan, verificado. 0117 deja UPDATE sólo en
+  nombre, ciudad, barrio, idioma, zona horaria, intereses, contexto, avisos y
+  Pip. El tipo de cuenta se elige una vez con `brote_set_account_type` (sólo
+  antes de terminar el onboarding), el fin del onboarding es
+  `brote_finish_onboarding` y el título equipado `equip_title` (sólo uno
+  ganado). El cliente cae al update viejo si la función todavía no existe, así
+  que el deploy no depende del orden.
+- **Imágenes rotas.** Un tercio de las "imágenes" de las noticias eran
+  reproductores de YouTube/Vimeo, videos o emojis de WordPress.
+  `lib/imagen-segura.ts` decide antes de pedir (YouTube → su miniatura), y
+  `<SafeImage>` (`components/ui/safe-image.tsx`) nunca muestra el ícono roto:
+  cae a un mosaico del color del tema, a "La imagen ya no está disponible" en
+  un post, o a nada. Está en el feed, las noticias, los proyectos, la búsqueda,
+  la moderación y los avatares. `refresh-news` usa las mismas reglas
+  (`supabase/functions/_shared/imagen.ts`, copia exacta vigilada por un test) y
+  el archivo del repo quedó igual al v3 desplegado + el arreglo.
+  `0118_noticias_sin_imagenes_rotas.sql` limpia lo ya guardado.
+- **Ícono de cuenta.** El selector de la barra mostraba una tienda en la cuenta
+  personal. Ahora muestra la cuenta en la que estás (persona / tienda + nombre).
+- Montos chicos en gramos (`30 g`, nunca `0 kg`), y la fila habla de la métrica
+  de su tema (una ducha dice litros).
+
+### Verificación
+
+`npm test` 574/574, typecheck, lint y build limpios. Pantallas con datos de
+prueba en una ruta temporal (`/offline/inicio-preview`, borrada) a 390×844 en
+claro y oscuro: persona nueva, día a medias, día cerrado, cuenta de chico, y un
+toque real en una acción con la red simulada (la fila se marca, el CO₂ total
+sube 39 → 40 kg contando, aparece "Antes de cerrar" con la puerta al ceibo).
+
+### Falta / del dueño
+
+- Aplicar en la base viva, en orden: `0113_mercado_v2.sql` (versión final),
+  `0114_vendedores.sql`, `0115_mundo_juego.sql`, `0116_mundo_abierto.sql`,
+  `0117_perfil_y_puntos_solo_por_rpc.sql`, `0118_noticias_sin_imagenes_rotas.sql`.
+- Desplegar `refresh-news` (entrada `source/index.ts` + `_shared/cors.ts`,
+  `_shared/gemini.ts`, `_shared/imagen.ts`).
+- Recorrido real con sesión: marcar una acción del día y una de la rutina,
+  seguir cada puerta de "Antes de cerrar", abrir el selector de cuenta.
 
 ---
 

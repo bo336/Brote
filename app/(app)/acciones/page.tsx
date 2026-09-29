@@ -71,6 +71,13 @@ function AccionesInner() {
   const [hideCompleted, setHideCompleted] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // `/acciones?dominio=agua` opens the catalogue already filtered — the daily
+  // challenge on Inicio links here with its own topic.
+  useEffect(() => {
+    const d = params.get('dominio');
+    if (d && getDomain(d)) setDomain(d);
+  }, [params]);
+
   const completionMap = completions.data;
   const completedIds = useMemo(() => {
     const s = new Set<string>();

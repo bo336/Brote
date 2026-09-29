@@ -166,8 +166,8 @@ export default function PerfilPage() {
         />
       </section>
 
-      {/* Impacto / handprint */}
-      <section>
+      {/* Impacto / handprint. Inicio's impact panel links here (#impacto). */}
+      <section id="impacto" className="scroll-mt-20">
         <SectionHeader eyebrow="En la vida real" title={t('impact')} />
         <Card className="overflow-hidden">
           <div className="relative h-40 bg-gradient-to-b from-domain-agua_azul/20 to-transparent">

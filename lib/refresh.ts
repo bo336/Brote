@@ -16,7 +16,23 @@ import type { QueryClient } from '@tanstack/react-query';
  * query is to be wrongly refetched. Content that cannot change as a result of
  * scoring is excluded so a completion never triggers a heavy news refetch.
  */
-const NOT_SCORE_RELATED = ['news', 'news-item', 'projects', 'project', 'monetization', 'feed', 'feed-thread'];
+// `catalog` is the whole action library (hundreds of rows): refetching it on
+// every completion made marking an action on Inicio download it again. Lock
+// state is derived client-side from points, which ARE refreshed.
+const NOT_SCORE_RELATED = [
+  'news',
+  'news-item',
+  'projects',
+  'project',
+  'monetization',
+  'feed',
+  'feed-thread',
+  'feed-pulse',
+  'catalog',
+  'ai-recs',
+  'mercado',
+  'mundo-enabled',
+];
 
 export function invalidateScores(qc: QueryClient): void {
   qc.invalidateQueries({

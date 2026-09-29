@@ -255,6 +255,26 @@ user-visible, elements that only change on `:active`.
     (`bottom-[calc(4.4rem+env(safe-area-inset-bottom))]`); white on the brand gradient's yellow end
     did not pass contrast.
 
+- **Inicio (el hub)** — 2026-09-29. The home screen rebuilt as the app's centre. Notes:
+  - **The real impact is the hero**, and the one dark ink band on the page (`<ImpactoReal>`):
+    four count-up totals in their metric colours, "+X hoy" chips, one picturable equivalence as the
+    gradient headline, and a footnote saying what moves it. The island is a card further down.
+  - **One shape per kind of thing**, so nothing reads as "the same card again": the day's actions
+    are a single checklist card with hairline rows and a progress ring; the routine is a sideways
+    row of pills; the next places to go are four different cards (an editorial card with the branch
+    colour on top for the Academia, a picture for Tu mundo, a live counter for the Plaza, a product
+    strip for the Mercado); the challenge is a slim sun-toned banner; suggestions are a rail of tall
+    cards with their topic colour on top.
+  - **"Antes de cerrar"** appears the moment an action is marked, right under the checklist: what
+    that action added, ONE door picked for it (`lib/inicio/puentes.ts`) and the rest as chips. It
+    is the page's answer to "open, tick, close".
+  - Numbers that CHANGE use `<NumeroVivo>` (animates from the previous value, keeps decimals);
+    `<CountUp>` stays for numbers that appear once.
+  - **`<SafeImage>`** (`components/ui/safe-image.tsx`) for every picture that comes from outside or
+    from old uploads: it filters non-pictures before the request (`lib/imagen-segura.ts`), catches
+    load errors (including ones that fire before hydration), and falls back to a tile in the
+    topic's colour — never the browser's broken-image icon.
+
 ### Primitives added in the Academia pass
 
 The Bosque-era rows are kept for history; the ones marked *removed* no longer exist since the
