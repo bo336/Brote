@@ -484,7 +484,13 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `e331933` (y este registro).
+- Commits `bbe926f` … `a8575ad` (y este registro).
+- **Partidas finales sobre `a8575ad`**, con input real: táctil a nivel 1 (las
+  diez parcelas del Claro limpias y "Mañana, otra vez" a los 7 min y medio);
+  teclado a nivel 1 (historia del día a los 7,8 min); teclado 20 min a nivel 3
+  (las 25 parcelas limpias, compostera mejorada a los 4 min 46 s, primera
+  plantada a los 6 min y medio, todas las tarjetas nuevas en su momento — incluida
+  "Esperá el compost · sale en 4 min"). Ni una traba, nunca sin destino.
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
