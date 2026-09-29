@@ -11,6 +11,7 @@ import { GAME } from '@/lib/world/game/config';
 import { toolValue } from '@/lib/world/game/materials';
 import type { Spawn } from '@/lib/world/game/spawns';
 import type { WasteKind } from '@/lib/world/game/types';
+import { BODY_RADIUS, type MoveCollider } from '@/lib/world/movement-probe';
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import { haptic } from '@/lib/utils/haptics';
 import { playSfx } from '../../audio/sfx';
@@ -39,6 +40,9 @@ const FLY_S = 0.32;
 const MAX_PER_SHAPE = 96;
 /** One pickup at a time, a beat apart: the rising note needs room to rise. */
 const PICK_EVERY_MS = 70;
+/** Scratch: the colliders near where Pip was when they were last gathered. */
+const near: MoveCollider[] = [];
+const nearAt = { x: Infinity, z: Infinity };
 
 function shapeOf(sp: Spawn): PickupShape {
   if (sp.kind === 'residuos') return WASTE_SHAPE[sp.waste ?? 'botella'];
@@ -63,12 +67,20 @@ export function Pickups({
   spawns,
   heightfield,
   enabled,
+  colliders,
 }: {
   /** What is lying around right now (today's spawns and wild parcels' litter). */
   spawns: readonly Spawn[];
   heightfield: Heightfield;
   /** Off during a ceremony, a visit, placement mode. */
   enabled: boolean;
+  /**
+   * What Pip is pushed out of — rocks, trunks, props, stations. A piece lying
+   * against one of them could be further from where Pip can stand than the
+   * gloves reach, and was never picked: a wild parcel that could never be
+   * cleaned. The reach grows by exactly what the obstacle takes away.
+   */
+  colliders?: () => readonly MoveCollider[];
 }) {
   const material = useMemo(() => getClayMaterial({ vertexColors: true, wind: false, wobble: false }), []);
   const pools = useMemo(() => {
@@ -109,13 +121,33 @@ export function Pickups({
     const now = performance.now();
     const counts = new Map<PickupShape, number>();
     for (const shape of SHAPES) counts.set(shape, 0);
+    // The obstacles around Pip, gathered again only after Pip has moved half a
+    // metre (the list has a metre of margin); only pieces near Pip look at them.
+    if (canPick && colliders && Math.hypot(p.x - nearAt.x, p.z - nearAt.z) > 0.5) {
+      nearAt.x = p.x;
+      nearAt.z = p.z;
+      near.length = 0;
+      for (const c of colliders()) {
+        const cx = c.x - p.x;
+        const cz = c.z - p.z;
+        const r = c.radius + BODY_RADIUS + reach + 1.5;
+        if (cx * cx + cz * cz < r * r) near.push(c);
+      }
+    }
 
     for (const item of placed) {
       if (taken.current.has(item.sp.id)) continue;
       const dx = item.sp.x - p.x;
       const dz = item.sp.z - p.z;
       const d2 = dx * dx + dz * dz;
-      if (canPick && d2 < reach * reach && now - lastPick.current > PICK_EVERY_MS) {
+      let within = reach;
+      if (near.length > 0 && d2 < (reach + 2.5) * (reach + 2.5)) {
+        for (const c of near) {
+          const blocked = c.radius + BODY_RADIUS - Math.hypot(item.sp.x - c.x, item.sp.z - c.z);
+          if (blocked > 0) within = Math.max(within, reach + blocked + 0.1);
+        }
+      }
+      if (canPick && d2 < within * within && now - lastPick.current > PICK_EVERY_MS) {
         const events = store.dispatch({ t: 'pickup', spawn: item.sp }, [item.sp.x, item.y, item.sp.z]);
         const got = events.find((ev) => ev.type === 'pickup');
         if (got && got.type === 'pickup') {

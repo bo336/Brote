@@ -105,7 +105,7 @@ export function GameLayer({
   return (
     <>
       <Restoration layout={layout} heightfield={heightfield} />
-      {interactive && <Pickups spawns={spawns} heightfield={heightfield} enabled={interactive} />}
+      {interactive && <Pickups spawns={spawns} heightfield={heightfield} enabled={interactive} colliders={colliders.all} />}
       {interactive && <Parcels heightfield={heightfield} />}
       <Planted heightfield={heightfield} />
       <ParcelFauna heightfield={heightfield} />

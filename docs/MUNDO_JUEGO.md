@@ -484,7 +484,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `6940285` (y este registro).
+- Commits `bbe926f` … `e0819c5` (y este registro).
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -521,7 +521,18 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
   - cuatro diarias no apuntaban a nada: hablar con alguien (ahora el personaje
     más cerca), registrar especies (la más cerca), llevar materiales a una obra
     (la obra abierta más cerca que todavía necesita) y comprar en la Tienda (sin
-    lugar: la tarjeta dice cómo abrirla).
+    lugar: la tarjeta dice cómo abrirla);
+  - separar sin nada (de ese tipo) en la mochila abría el juego de separar
+    vacío una y otra vez: ahora manda primero a juntar la basura justa (la
+    orgánica para "separá orgánicos"), y si en toda la isla ya no queda, la
+    diaria se hace a un lado hasta mañana;
+  - una diaria que hoy no se puede (no quedan ramas en el piso) deja pasar a la
+    siguiente;
+  - el vivero sin frutos manda a cosechar una parcela viva con frutos maduros,
+    o espera a mañana;
+  - una parcela viva que no florece dice qué le falta: otra especie (del vivero
+    o un plantín de la Tienda) o un refugio (de la Tienda); si sólo le faltan
+    días, la tarjeta pasa a otra cosa.
 - Tests nuevos que recorren todo: cada paso de historia y cada diaria, a cada
   nivel, apunta a algún lado (o dice cómo hacerse); nada que juntar ni ninguna
   parcela cae fuera de la costa, en tres islas distintas y a seis niveles.
