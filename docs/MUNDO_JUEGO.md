@@ -484,7 +484,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `9d481b1` (y este registro).
+- Commits `bbe926f` … `a518605` (y este registro).
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -535,7 +535,15 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
     días, la tarjeta pasa a otra cosa;
   - lo que queda pegado a una piedra, un tronco o una estación se levanta
     igual: el alcance de los guantes crece exactamente lo que el obstáculo no
-    deja acercarse (`Pickups.tsx`).
+    deja acercarse (`Pickups.tsx`);
+  - **el faro y la tarjeta se quedaban en una basura ya levantada**: las piezas
+    de una parcela comparten id, y el guía sólo republicaba si el objetivo se
+    movía en x — con la siguiente pieza al norte, nunca. Ahora compara x y z,
+    en `MissionGuide` y en `setObjective` (`86f5228`). Lo encontró la partida
+    táctil: parada tres minutos y medio al lado de una parcela;
+  - con todas las parcelas limpias, mientras el compost trabaja la tarjeta junta
+    lo que le falta a la mejora de la compostera, o orgánicos para la próxima
+    tanda, en vez de mandar a esperar.
 - Alcanzable con input real (`scratchpad/litterprobe.mjs`, caminando hacia cada
   cosa desde lados alternados): las 105 basuras de parcela de las islas de
   nivel 1 y 3 se levantan, y las 16 invasoras del nivel 3 se arrancan con E.

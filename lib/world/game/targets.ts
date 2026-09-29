@@ -605,6 +605,16 @@ function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where, o
   if (daily?.target) return { ...daily, eyebrow: `${eyebrow} · ${daily.eyebrow}`, ask };
   const target = resolveTarget({ to: 'parcel', stage: 0 }, s, w, ctx, at);
   if (target) return { id: `free:${on}`, kind: 'free', who: null, eyebrow, title: 'Limpiá otra parcela', ask, progress: null, target };
+  // Take another parcel a step further — compost into clean soil, seedlings
+  // into ready soil — through the same detours a story would use; but not one
+  // that itself only waits for the compost.
+  const grow: Target = { to: 'grow', stage: 4 };
+  const next = pickParcel(grow, s, w, ctx, at);
+  if (next && actionable(s, next, ctx) && (s.parcels[next.id]?.s ?? 0) > 0) {
+    const need = needFor(grow, s, w, ctx, at);
+    const to = need === COOKING ? null : resolveTarget(grow, s, w, ctx, at);
+    if (to) return { id: 'free:grow', kind: 'free', who: null, eyebrow, title: 'Seguí con tus parcelas', ask, progress: null, target: to, need };
+  }
   // Every parcel already clean: gather toward what comes next — the
   // compostera's next level, then organics for its next batch. Without these
   // the card fell back to "wait at the compostera" for six minutes.
