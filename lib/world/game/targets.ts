@@ -26,7 +26,7 @@ import { SPECIES_BY_SLUG } from '../species';
 import { PLACE_NAME } from './discoveries';
 import { CHAINS } from './texto/cadenas';
 import { castName } from './texto/guia';
-import type { BinId, BulkMaterial, GameContext, GameState, MaterialId, StationId } from './types';
+import type { BinId, BulkMaterial, GameContext, GameState, MaterialId, StationId, WasteKind } from './types';
 
 export interface MissionView {
   /** Chain mission id, `daily:<id>`, or `free`. */
@@ -78,6 +78,8 @@ export function resolveTarget(
     case 'station': {
       const spot = at.spots.stations[t.id];
       if (!spot || STATIONS[t.id].tier > ctx.tier) return null;
+      // Nothing to sort and no rubbish left anywhere today: nothing to do here.
+      if (nothingToSort(s, t, at)) return null;
       // Nothing to bring yet: the beacon goes to what is missing, not to the empty pad.
       return detourFor(s, w, ctx, t.id, at, t.load, t.bin)?.target ?? { x: spot.x, z: spot.z, id: `game-station-${t.id}` };
     }
@@ -419,6 +421,7 @@ export function targetName(id: string): string {
  */
 function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld, ctx: GameContext, at: Where): Wait | null {
   if (need === COOKING) return 'compost';
+  if (nothingToSort(s, t, at)) return 'day';
   // A producer short of input with none to be had anywhere today (no ripe
   // fruit for the vivero): tomorrow brings more.
   if (t.to === 'station') {
@@ -438,6 +441,13 @@ function waitingOn(t: Target, need: string | null, s: GameState, w: MissionWorld
 }
 
 type Wait = 'compost' | 'day';
+
+/** A sorting task with nothing of its kind in the bag and none left on the island today. */
+function nothingToSort(s: GameState, t: Target, at: Where): boolean {
+  if (t.to !== 'station' || t.id !== 'punto_limpio') return false;
+  const fits = (w: WasteKind) => !t.bin || WASTE[w].bin === t.bin;
+  return !s.bag.residuos.some(fits) && !at.spawns.some((sp) => sp.kind === 'residuos' && (!t.bin || (!!sp.waste && fits(sp.waste))));
+}
 
 /** Targets that are picked up: litter, piles, branches, stones, an invasive, a wild parcel. */
 const PICKS = /(:[lrhbs]:\d+$)|(^game-invasive-)/;

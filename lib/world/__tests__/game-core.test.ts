@@ -480,7 +480,10 @@ test('every daily at every tier points somewhere', () => {
     const c = ctx({ tier });
     const at = {
       pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map([['ines', { x: 6, z: 6 }]]), water: [{ x: 2, z: 2, id: 'game-water-tanque' }],
-      spawns: kinds.map((kind, i) => ({ id: `x:${kind[0]}:${i}`, kind, waste: 'botella', x: 3 + i, z: 3 } as Spawn)),
+      spawns: [
+        ...kinds.map((kind, i) => ({ id: `x:${kind[0]}:${i}`, kind, waste: 'botella', x: 3 + i, z: 3 } as Spawn)),
+        { id: 'x:r:9', kind: 'residuos', waste: 'yerba', x: 8, z: 3 } as Spawn,
+      ],
       find: () => [{ x: 5, z: 5, id: 'fish-0' }],
     };
     for (const def of DAILIES) {
@@ -578,4 +581,17 @@ test('a parcel short of flourishing says what it lacks, and waits only for time'
   assert.notEqual(v.title, 'Que florezca');
   s.parcels[p.id]!.d = dayOf(c.day) - 5;
   assert.equal(missionView(s, world, c, at).title, 'Que florezca');
+});
+
+test('a sorting daily with no rubbish left on the island today steps aside', () => {
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:h:0', kind: 'hojas', x: 2, z: 2 } as Spawn],
+  };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.daily = { day: c.day, ids: ['d.organicos', 'd.hojas'], prog: [0, 0], claimed: [false, false], bonus: false };
+  assert.equal(missionView(s, world, c, at).id, 'daily:d.hojas');
 });
