@@ -83,8 +83,13 @@ export function MissionGuide({
     if (tank && (s.stations.tanque?.lvl ?? 0) >= 1) water.push({ x: tank.x, z: tank.z, id: 'game-station-tanque' });
     const view = missionView(s, { field }, ctx, { pip: p, spawns, spots, cast: castPositions, water, find: findSpots });
     const prev = useMissionView.getState().view;
+    // Moved: in x *or* z. One wild parcel's pieces share an id, so the next
+    // piece is only a move — and comparing x alone kept the beacon on a piece
+    // already picked when the next one lay straight north of it.
+    const moved = (a: { x: number; z: number } | null | undefined, b: { x: number; z: number } | null | undefined) =>
+      Math.hypot((a?.x ?? 0) - (b?.x ?? 0), (a?.z ?? 0) - (b?.z ?? 0)) > 0.5;
     if (!prev || prev.id !== view.id || prev.title !== view.title || prev.progress?.done !== view.progress?.done || prev.need !== view.need ||
-      prev.target?.id !== view.target?.id || Math.abs((prev.target?.x ?? 0) - (view.target?.x ?? 0)) > 0.5) {
+      prev.target?.id !== view.target?.id || moved(prev.target, view.target)) {
       useMissionView.getState().set(view);
     }
     const t = view.target;
@@ -93,7 +98,8 @@ export function MissionGuide({
     const distanceM = t ? Math.hypot(t.x - p.x, t.z - p.z) : null;
     // The pin over the target names what is there (the missing thing, when the guide detoured to it).
     const thingText = (t ? targetName(t.id) : '') || view.title;
-    if (current?.targetId !== (t?.id ?? null) || current?.thingText !== thingText || Math.abs((current?.distanceM ?? 0) - (distanceM ?? 0)) > 1) {
+    if (current?.targetId !== (t?.id ?? null) || current?.thingText !== thingText || Math.abs((current?.distanceM ?? 0) - (distanceM ?? 0)) > 1
+      || moved(current?.target, t)) {
       session.setObjective({
         kind: 'chore', titleKey: 'goal.free', thingKey: null, thingText,
         target: t ? { x: t.x, z: t.z } : null, targetId: t?.id ?? null,

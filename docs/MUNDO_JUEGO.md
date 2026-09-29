@@ -484,7 +484,7 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
 ## 8. Registro de sesiones
 
 ### 2026-09-27 — sesión 4 — la cámara de #29 vuelve, fauna en las parcelas, teléfono, base
-- Commits `bbe926f` … `e0819c5` (y este registro).
+- Commits `bbe926f` … `9d481b1` (y este registro).
 - El dueño: "no revertí ninguna cámara, tiene que andar normal". Se deshizo el
   revert de #29 (`bbe926f`) quedándose con el póster de esta rama y adaptando lo
   demás (D5). Cámara probada con input real en escritorio y en teléfono.
@@ -532,7 +532,13 @@ En el centro de El Claro, junto a donde aparecés, crece **tu Ceibo**: un árbol
     o espera a mañana;
   - una parcela viva que no florece dice qué le falta: otra especie (del vivero
     o un plantín de la Tienda) o un refugio (de la Tienda); si sólo le faltan
-    días, la tarjeta pasa a otra cosa.
+    días, la tarjeta pasa a otra cosa;
+  - lo que queda pegado a una piedra, un tronco o una estación se levanta
+    igual: el alcance de los guantes crece exactamente lo que el obstáculo no
+    deja acercarse (`Pickups.tsx`).
+- Alcanzable con input real (`scratchpad/litterprobe.mjs`, caminando hacia cada
+  cosa desde lados alternados): las 105 basuras de parcela de las islas de
+  nivel 1 y 3 se levantan, y las 16 invasoras del nivel 3 se arrancan con E.
 - Tests nuevos que recorren todo: cada paso de historia y cada diaria, a cada
   nivel, apunta a algún lado (o dice cómo hacerse); nada que juntar ni ninguna
   parcela cae fuera de la costa, en tres islas distintas y a seis niveles.

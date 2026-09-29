@@ -336,10 +336,14 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setObjective: (objective) =>
     set((s) => {
       const a = s.objective;
+      // Same id is not same place: a wild parcel's pieces share one id, and the
+      // beacon has to follow the next piece when the last one is picked.
+      const samePlace = (!a?.target && !objective?.target) || (!!a?.target && !!objective?.target
+        && Math.hypot(a.target.x - objective.target.x, a.target.z - objective.target.z) <= 0.5);
       const same = a && objective
         && a.titleKey === objective.titleKey && a.targetId === objective.targetId && a.thingText === objective.thingText
         && a.progress?.done === objective.progress?.done && a.progress?.total === objective.progress?.total
-        && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5);
+        && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5) && samePlace;
       return same || (!a && !objective) ? s : { objective };
     }),
   reward: null,
