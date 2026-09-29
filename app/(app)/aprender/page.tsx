@@ -1,62 +1,55 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { Droplets, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Reveal } from '@/components/ui/reveal';
+import { SectionHeader } from '@/components/ui/section';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArbolBosque } from '@/components/academia/ArbolBosque';
-import { SaviaMedidor } from '@/components/academia/SaviaMedidor';
-import { TarjetaSiguiente } from '@/components/academia/TarjetaSiguiente';
-import { TiraBosque } from '@/components/academia/TiraBosque';
+import { Arbol } from '@/components/academia/Arbol';
 import { EnPausa } from '@/components/academia/EnPausa';
-import { fetchArbol, fetchEstadoAcademia } from '@/lib/api/academia';
-import { esFallo } from '@/lib/academia/types';
-import { getDomainColor } from '@/lib/domains';
+import { HojaUnidad } from '@/components/academia/HojaUnidad';
+import { ListaRamas } from '@/components/academia/ListaRamas';
+import { SaviaMedidor } from '@/components/academia/SaviaMedidor';
+import { SaviaVacia } from '@/components/academia/SaviaVacia';
+import { TarjetaSeguir } from '@/components/academia/TarjetaSeguir';
+import { TiraArbol } from '@/components/academia/TiraArbol';
+import { fetchMapa } from '@/lib/api/academia';
+import { esFallo, type Mapa } from '@/lib/academia/modelo';
+import type { NodoUbicado } from '@/lib/academia/geometria';
+import { useEmpezar } from '@/lib/academia/usar-empezar';
+
+const CLAVE_COMPLETAS = 'brote.academia.completas';
 
 /**
- * El Bosque — la pantalla identitaria de la Academia.
+ * El Árbol: la pantalla identitaria de la Academia.
  *
- * UNA sola llamada a `academia_arbol()`. Todo lo que se ve acá —el árbol, la
- * savia, la racha, la tira de cifras, la recomendación y la lista de riego—
- * sale de ese único objeto. Cuando la cabecera necesitó la racha, lo que se
- * arregló fue el RPC (migración 0080), no la pantalla.
+ * UNA sola llamada a `academia_mapa()`. Todo lo que se ve —el árbol, la tira de
+ * cifras, la próxima sesión, el repaso, la savia y la lista de ramas— sale de
+ * ese único objeto.
  */
-export default function BosquePage() {
-  const t = useTranslations('academia');
-  const router = useRouter();
-  const q = useQuery({ queryKey: ['academia', 'arbol'], queryFn: fetchArbol, staleTime: 30_000 });
+export default function ArbolPage() {
+  const t = useTranslations('arbol');
+  const q = useQuery({ queryKey: ['academia', 'mapa'], queryFn: fetchMapa, staleTime: 20_000 });
+  const [elegido, setElegido] = useState<NodoUbicado | null>(null);
+  const recien = useRecienCompletas(q.data && !esFallo(q.data) ? q.data : null);
 
-  // El arbol falla con un mensaje, no con un codigo, cuando la seccion esta
-  // apagada por bandera. Distinguir "en pausa" de "se cayo la red" importa —
-  // una tiene boton de reintentar y la otra no— asi que se pregunta, pero SOLO
-  // cuando ya falló: en el camino feliz sigue siendo una sola llamada.
-  const fallo = q.isError || (q.data != null && esFallo(q.data));
-  const estado = useQuery({
-    queryKey: ['academia', 'estado'],
-    queryFn: fetchEstadoAcademia,
-    enabled: fallo,
-    staleTime: 60_000,
-  });
+  if (q.isLoading) return <Esqueleto />;
 
-  if (q.isLoading) return <EsqueletoBosque />;
-
-  if (fallo || !q.data || esFallo(q.data)) {
-    const mensaje = q.data && esFallo(q.data) ? (q.data.mensaje ?? q.data.error) : t('errorCuerpo');
-    const pausada = estado.data && !esFallo(estado.data) && !estado.data.habilitada;
+  if (q.isError || !q.data || esFallo(q.data)) {
+    const f = q.data && esFallo(q.data) ? q.data : null;
     return (
       <div data-shell="wide">
-        {pausada ? (
-          <EnPausa mensaje={mensaje} />
+        {f?.error === 'pausa' ? (
+          <EnPausa mensaje={f.mensaje} />
         ) : (
           <EmptyState
             pipMood="worried"
             title={t('errorTitulo')}
-            message={mensaje}
+            message={f?.mensaje ?? t('errorCuerpo')}
             action={
               <Button variant="secondary" onClick={() => q.refetch()}>
                 <RotateCw className="h-4 w-4" aria-hidden />
@@ -69,12 +62,11 @@ export default function BosquePage() {
     );
   }
 
-  const arbol = q.data;
-  const conGajos = arbol.ramas.some((r) => r.gajos.length > 0);
-  // `marchitos` y `siguiente` llegan como gajos sueltos, sin su rama: el color
-  // de dominio sale de este índice y no de adivinarlo desde el slug.
-  const ramaDe = new Map(arbol.ramas.flatMap((r) => r.gajos.map((g) => [g.slug, r.slug] as const)));
-  const ramaDeSiguiente = arbol.siguiente ? (ramaDe.get(arbol.siguiente.gajo.slug) ?? 'tronco') : null;
+  const mapa = q.data;
+  const hayContenido = mapa.ramas.some((r) => r.unidades.length > 0);
+  const sinSavia = !mapa.pro && (mapa.savia?.restante ?? 1) <= 0;
+  const ramaSig = mapa.siguiente ? mapa.ramas.find((r) => r.slug === mapa.siguiente!.unidad.rama_slug) : undefined;
+  const unidadSig = ramaSig?.unidades.find((u) => u.id === mapa.siguiente!.unidad.id);
 
   return (
     <div data-shell="wide" className="space-y-5 pb-6">
@@ -83,116 +75,119 @@ export default function BosquePage() {
           <p className="eyebrow text-primary">{t('eyebrow')}</p>
           {/* El único momento de gradiente de marca de la pantalla. */}
           <h1 className="mt-1 text-balance font-display text-display-l font-extrabold leading-tight">
-            <span className="bg-brand-gradient bg-clip-text text-transparent">{t('title')}</span>
+            <span className="bg-brand-gradient bg-clip-text text-transparent">{t('titulo')}</span>
           </h1>
-          <p className="mt-1.5 max-w-md text-small leading-relaxed text-muted-foreground">{t('subtitle')}</p>
+          <p className="mt-1.5 max-w-lg text-small leading-relaxed text-muted-foreground">{t('subtitulo')}</p>
         </div>
-        <SaviaMedidor savia={arbol.savia} pro={arbol.pro} className="mt-1 shrink-0" />
+        <SaviaMedidor savia={mapa.savia} pro={mapa.pro} className="mt-1 shrink-0" />
       </header>
 
-      <TiraBosque stats={arbol.stats} racha={arbol.racha} />
+      <TiraArbol mapa={mapa} />
 
-      {!conGajos ? (
+      {!hayContenido ? (
         <EmptyState pipMood="sleepy" title={t('vacioTitulo')} message={t('vacioCuerpo')} />
       ) : (
         <>
           <Reveal>
-            <ArbolBosque
-              ramas={arbol.ramas}
-              anillo={arbol.anillo}
-              destacado={arbol.siguiente?.gajo.slug ?? null}
-              onAbrir={(g) => router.push(`/aprender/g/${g.gajo.slug}`)}
-              className="h-[62vh] min-h-[380px] lg:h-[68vh]"
+            <Arbol
+              ramas={mapa.ramas}
+              siguiente={mapa.siguiente}
+              recienCompletas={recien}
+              onElegir={setElegido}
+              className="h-[68vh] min-h-[440px] lg:h-[74vh]"
             />
           </Reveal>
 
-          {arbol.siguiente ? (
+          {mapa.siguiente ? (
             <Reveal index={1}>
-              <TarjetaSiguiente
-                gajo={arbol.siguiente.gajo}
-                razon={arbol.siguiente.razon}
-                ramaSlug={ramaDeSiguiente ?? 'tronco'}
+              <TarjetaSeguir
+                siguiente={mapa.siguiente}
+                unidad={unidadSig}
+                ramaNombre={ramaSig?.nombre_es ?? ''}
+                sinSavia={sinSavia}
               />
             </Reveal>
           ) : null}
 
-          {arbol.marchitos.length > 0 ? (
+          {sinSavia ? (
             <Reveal index={2}>
-              <section className="rounded-card border border-brote-coral/25 bg-brote-coral/5 p-4">
-                <h2 className="flex items-center gap-2 font-display text-h3 font-bold leading-tight">
-                  <Droplets className="h-5 w-5 text-brote-coral" aria-hidden />
-                  {t('regarTitulo', { n: arbol.marchitos.length })}
-                </h2>
-                <p className="mt-1 text-small leading-relaxed text-muted-foreground">{t('regarCuerpo')}</p>
-                <ul className="mt-3 divide-y divide-hairline border-y border-hairline">
-                  {arbol.marchitos.slice(0, 5).map((g) => (
-                    <li key={g.slug}>
-                      <Link
-                        href={`/aprender/g/${g.slug}`}
-                        className="flex items-center gap-3 py-2.5 text-small transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{ backgroundColor: getDomainColor(ramaDe.get(g.slug) ?? '') }}
-                          aria-hidden
-                        />
-                        <span className="min-w-0 flex-1 truncate">{g.titulo_es}</span>
-                        <span className="tnum shrink-0 text-caption text-muted-foreground">
-                          {Math.round(g.progreso * 100)}%
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <Button asChild block variant="secondary" className="mt-3">
-                  <Link href="/aprender/riego">{t('regarCta')}</Link>
-                </Button>
-              </section>
+              <SaviaVacia savia={mapa.savia} />
             </Reveal>
           ) : null}
 
-          <Reveal index={3}>
-            <ul className="divide-y divide-hairline border-y border-hairline">
-              {arbol.ramas
-                .filter((r) => r.gajos.length > 0)
-                .map((r) => {
-                  const frondosos = r.gajos.filter((g) => g.estado === 'frondoso').length;
-                  return (
-                    <li key={r.slug}>
-                      <Link
-                        href={`/aprender/${r.slug}`}
-                        className="flex items-center gap-3 py-3 transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <span
-                          className="h-8 w-1 shrink-0 rounded-pill"
-                          style={{ backgroundColor: getDomainColor(r.slug) }}
-                          aria-hidden
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-small font-semibold">{r.nombre_es}</span>
-                          <span className="block truncate text-caption text-muted-foreground">
-                            {t('ramaGajos', { n: r.gajos.length })} · {frondosos} {t('statFrondosos').toLowerCase()}
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-            </ul>
-          </Reveal>
+          {mapa.repaso > 0 && !sinSavia ? (
+            <Reveal index={2}>
+              <TarjetaRepaso n={mapa.repaso} />
+            </Reveal>
+          ) : null}
+
+          <section>
+            <SectionHeader eyebrow={t('ramasEyebrow')} title={t('ramasTitulo')} subtitle={t('ramasSub')} />
+            <ListaRamas ramas={mapa.ramas} />
+          </section>
         </>
       )}
+
+      <HojaUnidad nodo={elegido} onCerrar={() => setElegido(null)} sinSavia={sinSavia} />
     </div>
   );
 }
 
-function EsqueletoBosque() {
+function TarjetaRepaso({ n }: { n: number }) {
+  const t = useTranslations('arbol');
+  const { repasar, arrancando } = useEmpezar();
+  return (
+    <section className="flex flex-wrap items-center gap-4 rounded-card border border-brote-aqua/30 bg-brote-aqua/5 p-4">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brote-aqua/15 text-brote-aqua">
+        <Droplets className="h-5 w-5" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h2 className="font-display text-h3 font-bold leading-tight">{t('repasoTitulo', { n })}</h2>
+        <p className="mt-0.5 text-small leading-relaxed text-muted-foreground">{t('repasoCuerpo')}</p>
+      </div>
+      <Button variant="secondary" loading={arrancando === 'repaso'} onClick={() => void repasar()} className="w-full sm:w-auto">
+        {t('repasoCta')}
+      </Button>
+    </section>
+  );
+}
+
+/**
+ * Las unidades completadas desde la última visita, para que broten con
+ * animación. Es una comodidad de este navegador y nada más: si el
+ * almacenamiento no está, el árbol se ve igual, solo sin el festejo.
+ */
+function useRecienCompletas(mapa: Mapa | null): Set<string> {
+  const [recien, setRecien] = useState<Set<string>>(new Set());
+  const completas = useMemo(
+    () =>
+      mapa
+        ? mapa.ramas.flatMap((r) => r.unidades.filter((u) => u.estado === 'completa' || u.estado === 'repasar').map((u) => u.slug))
+        : null,
+    [mapa],
+  );
+  useEffect(() => {
+    if (!completas) return;
+    try {
+      const crudo = window.localStorage.getItem(CLAVE_COMPLETAS);
+      const antes = crudo ? new Set<string>(JSON.parse(crudo) as string[]) : null;
+      // Primera visita: no se festeja todo lo que ya estaba hecho.
+      if (antes) setRecien(new Set(completas.filter((s) => !antes.has(s))));
+      window.localStorage.setItem(CLAVE_COMPLETAS, JSON.stringify(completas));
+    } catch {
+      /* sin almacenamiento, sin festejo */
+    }
+  }, [completas]);
+  return recien;
+}
+
+function Esqueleto() {
   return (
     <div data-shell="wide" className="space-y-5 pb-6">
       <Skeleton className="h-24 w-full" />
       <Skeleton className="-mx-4 h-11 rounded-none lg:mx-0 lg:rounded-card" />
-      <Skeleton className="h-[62vh] min-h-[380px] w-full" />
-      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-[68vh] min-h-[440px] w-full" />
+      <Skeleton className="h-40 w-full" />
     </div>
   );
 }

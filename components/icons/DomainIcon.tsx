@@ -34,6 +34,11 @@ const DOMAIN_ICON: Record<DomainSlug, LucideIcon> = {
   ciencia: Microscope,
 };
 
+/** The lucide icon of a domain (a leaf for anything unknown). */
+export function domainIconFor(domain: string | null | undefined): LucideIcon {
+  return (domain && DOMAIN_ICON[domain as DomainSlug]) || Leaf;
+}
+
 interface DomainIconProps {
   domain: string;
   size?: number;

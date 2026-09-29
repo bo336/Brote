@@ -49,11 +49,16 @@ export function NivelBadge({
 }) {
   const t = useTranslations('mercado.nivel');
   const numero = Number(nivel.slice(1));
-  const etiqueta = `${t('etiqueta', { n: numero })} · ${t(`${nivel}.corto`)}`;
+  const completa = `${t('etiqueta', { n: numero })} · ${t(`${nivel}.corto`)}`;
+  // En la tarjeta, solo "Nivel 2": la frase entera partía el sello en dos
+  // renglones en un teléfono. Lo que quiere decir queda en el title y en la ficha.
+  const etiqueta = tamano === 'sm' ? t('etiqueta', { n: numero }) : completa;
 
   const cuerpo = (
     <span
+      title={tamano === 'sm' ? completa : undefined}
       className={cn(
+        'whitespace-nowrap',
         'inline-flex items-center gap-1.5 rounded-pill bg-surface font-semibold',
         tamano === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-caption',
         nivel !== 'e4' && cn('border', BORDE[nivel]),

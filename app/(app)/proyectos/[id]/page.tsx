@@ -13,6 +13,7 @@ import { Pill } from '@/components/ui/pill';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { usePipStyles } from '@/hooks/use-pip-styles';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SafeImage } from '@/components/ui/safe-image';
 import { Pip } from '@/components/pip/Pip';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
@@ -105,14 +106,15 @@ export default function ProjectDetailPage() {
         className="relative h-40 overflow-hidden rounded-card"
         style={{ background: `linear-gradient(135deg, ${domain?.color ?? '#1FB57A'}, ${domain?.color ?? '#1FB57A'}99)` }}
       >
-        {p.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.image_url} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <DomainIcon domain={p.domain_slug ?? 'comunidad'} size={64} variant="bare" className="text-white/90" />
-          </div>
-        )}
+        <SafeImage
+          src={p.image_url}
+          className="h-full w-full object-cover"
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <DomainIcon domain={p.domain_slug ?? 'comunidad'} size={64} variant="bare" className="text-white/90" />
+            </div>
+          }
+        />
       </div>
 
       <div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { JOYSTICK } from '@/lib/world/config';
+import { CAMERA, JOYSTICK } from '@/lib/world/config';
 import { useSessionStore } from '../state/useSessionStore';
 
 /**
@@ -135,7 +135,7 @@ const KEY_MAP: Record<string, keyof typeof keys> = {
 
 /**
  * Desktop keyboard, into the same vector. `Space` jumps, `E` (or `F`, or
- * `Enter`) uses whatever is in front of Pip, `Esc` exits.
+ * `Enter`) uses whatever is in front of Pip, `+` and `−` zoom, `Esc` exits.
  *
  * Space and E used to share one handler, and the handler was the render loop's
  * wake-up call — neither key did anything a player could see.
@@ -168,6 +168,12 @@ export function useKeyboardInput(
         e.preventDefault();
         onActivity?.();
         if (!e.repeat) onInteract?.();
+      } else if (e.code === 'Equal' || e.code === 'NumpadAdd' || e.code === 'Minus' || e.code === 'NumpadSubtract') {
+        // + closer, − farther: the keyboard's zoom, for anyone without a wheel.
+        e.preventDefault();
+        onActivity?.();
+        const closer = e.code === 'Equal' || e.code === 'NumpadAdd';
+        useSessionStore.getState().zoom?.(closer ? 1 / CAMERA.stepZoom : CAMERA.stepZoom);
       } else if (e.code === 'Escape') onExit?.();
     };
     const up = (e: KeyboardEvent) => {

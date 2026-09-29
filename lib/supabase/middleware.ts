@@ -31,6 +31,12 @@ const PUBLIC_PREFIXES = [
   '/api/cron/',
   '/api/sello/',
   '/mercado/negocio/',
+  // · `/mercado/tienda/` — la vidriera de una tienda (Mercado v2): lo mismo que
+  //   `/mercado/negocio/`, que ahora redirige acá. Sin cuenta se ve la tienda,
+  //   no sus productos ni sus precios.
+  '/mercado/tienda/',
+  // · `/vender` — la invitación a abrir una tienda: se comparte por WhatsApp.
+  '/vender',
   // La página pública del programa: es lo que se manda por WhatsApp a una
   // PyME antes de que exista cualquier relación (fase 5 §8.2).
   '/negocios',

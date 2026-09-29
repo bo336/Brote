@@ -45,6 +45,7 @@ export type BeatId =
   | 'arrival'
   | 'title'
   | 'verb'
+  | 'discover'
   | 'share'
   | 'return';
 
@@ -127,6 +128,9 @@ export function ceremonyFor(tier: number, opts: { reducedMotion?: boolean } = {}
   // Nothing to teach on a tier that grants no verb — and a card reading
   // "Ahora podés" with nothing after it is worse than no card.
   if (verbs.length > 0) beats.push({ id: 'verb', seconds: CEREMONY.newVerbS });
+  // What the new rank reveals on the island for the game to restore
+  // (`lib/world/game/discoveries.ts`): the half of the design a rank-up is for.
+  beats.push({ id: 'discover', seconds: CEREMONY.discoverS });
   beats.push({ id: 'share', seconds: CEREMONY.shareCardS });
   beats.push({ id: 'return', seconds: 0 });
 

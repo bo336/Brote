@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 
+import { PROP_SPECS } from '@/lib/render/geometry/props';
+import { isPlaceable } from '@/lib/world/game/shop';
 import { placeableProps } from '@/lib/world/placement';
 import { regionAt } from '@/lib/world/layout';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -10,6 +12,7 @@ import { makeGroundTest } from './PlacementMode';
 import { useLayouts } from './useLayouts';
 import { usePlacementEditor, type Ghost } from './usePlacementEditor';
 import { useSessionStore } from '../state/useSessionStore';
+import { useGameStore } from '../game/useGameStore';
 
 /**
  * The wire between the editor, which lives inside the canvas, and the bar,
@@ -55,10 +58,27 @@ export function usePlacementBridge({
 }): PlacementBridge {
   const layouts = useLayouts({ initial: savedLayouts, readOnly });
   const isGround = useMemo(() => (layout ? makeGroundTest(layout) : undefined), [layout]);
+
+  /**
+   * What can be put down: the old cosmetics from the app (as many as you like,
+   * as before) and what the world's shop sold, as many as were bought. The
+   * game's inventory is the count; the server checks the same (0115).
+   */
+  const inv = useGameStore((s) => s.state?.inv);
+  const { owned, limits } = useMemo(() => {
+    const lim: Record<string, number> = {};
+    for (const [slug, n] of Object.entries(inv ?? {})) {
+      if (n > 0 && isPlaceable(slug) && PROP_SPECS[slug]) lim[slug] = n;
+    }
+    for (const slug of ownedCosmetics) delete lim[slug];
+    return { owned: [...new Set([...ownedCosmetics, ...Object.keys(lim)])], limits: lim };
+  }, [inv, ownedCosmetics]);
+
   const editor = usePlacementEditor({
     layout,
     tier: config.tier,
-    owned: ownedCosmetics,
+    owned,
+    limits,
     initial: placements,
     isGround,
   });
@@ -68,9 +88,19 @@ export function usePlacementBridge({
   const setPlacementActions = useSessionStore((s) => s.setPlacementActions);
   const editing = useSessionStore((s) => s.hud) === 'placement';
 
+  const left = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const [slug, n] of Object.entries(limits)) {
+      out[slug] = n - editor.placements.filter((p) => p.prop_slug === slug).length;
+    }
+    return out;
+  }, [limits, editor.placements]);
   const tray = useMemo(
-    () => placeableProps(ownedCosmetics, config.props),
-    [ownedCosmetics, config.props],
+    () => [
+      ...placeableProps(ownedCosmetics, config.props),
+      ...Object.keys(left).filter((slug) => (left[slug] ?? 0) > 0),
+    ],
+    [ownedCosmetics, config.props, left],
   );
 
   /** Which slots hold something. The bar needs no more than that. */
@@ -83,9 +113,10 @@ export function usePlacementBridge({
       remaining: editor.remaining,
       canUndo: editor.canUndo,
       props: tray,
+      left,
       slots: filled,
     });
-  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray, filled]);
+  }, [setPlacement, editor.ghost, editor.remaining, editor.canUndo, tray, left, filled]);
 
   useEffect(() => {
     setPlacementActions({
@@ -105,7 +136,7 @@ export function usePlacementBridge({
         if (filled[index]) {
           const next = layouts.load(index, {
             tier: config.tier,
-            owned: ownedCosmetics,
+            owned,
             regionAt: (x, z) => regionAt(x, z, layout.regions),
             isGround,
           });
@@ -116,7 +147,7 @@ export function usePlacementBridge({
       },
     });
     return () => setPlacementActions(null);
-  }, [setPlacementActions, editor, layouts, filled, layout, config.tier, ownedCosmetics, isGround]);
+  }, [setPlacementActions, editor, layouts, filled, layout, config.tier, owned, isGround]);
 
   // The arrangement is reported up whenever it settles, never mid-drag: the
   // ghost is not part of it until it is put down.

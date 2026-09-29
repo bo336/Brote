@@ -70,14 +70,27 @@ export async function fetchBadges(userId: string): Promise<BadgeWithState[]> {
   return ((badges ?? []) as BadgeRow[]).map((b) => ({ ...b, earned: earnedSet.has(b.id) }));
 }
 
+/**
+ * Equip one of your titles (or none). Goes through `equip_title` (0117), which
+ * checks you actually earned it — the column is no longer client-writable.
+ * Before 0117 is applied the function does not exist, so the old direct update
+ * is the fallback.
+ */
 export async function equipTitle(titleId: string | null): Promise<void> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
-  const { error } = await supabase.from('profiles').update({ equipped_title_id: titleId }).eq('id', user.id);
+  const { data, error } = await supabase.rpc('equip_title', { p_title_id: titleId });
+  if (error && (error.code === 'PGRST202' || error.code === '42883')) {
+    const legacy = await supabase.from('profiles').update({ equipped_title_id: titleId }).eq('id', user.id);
+    if (legacy.error) throw legacy.error;
+    return;
+  }
   if (error) throw error;
+  const res = data as { ok?: boolean; mensaje?: string } | null;
+  if (res && res.ok === false) throw new Error(res.mensaje ?? 'No se pudo equipar ese título');
 }
 
 export async function fetchGoals(userId: string): Promise<GoalRow[]> {

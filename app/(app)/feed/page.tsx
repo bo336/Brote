@@ -55,6 +55,12 @@ function FeedInner() {
   const profile = useSession((s) => s.profile);
   const isKid = profile?.accountType === 'kid';
 
+  // `/feed?escribir=1&texto=…` — Inicio's "Contalo en la Plaza" opens the
+  // composer with a first line already written (always editable, never sent
+  // on its own).
+  const escribir = params.get('escribir') === '1';
+  const textoInicial = (params.get('texto') ?? '').slice(0, 240);
+
   const [tab, setTab] = useState<Pestana>('para_vos');
   const [topic, setTopic] = useState<string>(params.get('topic') ?? 'all');
   const [thread, setThread] = useState<FeedItem | null>(null);
@@ -194,6 +200,9 @@ function FeedInner() {
           // Publishing has to put your post on screen. Scrolling to the top of a
           // timeline that does not contain it yet just looks broken.
           <Composer
+            key={escribir ? `escribir:${textoInicial}` : 'composer'}
+            autoFocus={escribir}
+            initialBody={escribir ? textoInicial : undefined}
             onPosted={() => {
               setReloadToken((n) => n + 1);
               window.scrollTo({ top: 0, behavior: 'smooth' });

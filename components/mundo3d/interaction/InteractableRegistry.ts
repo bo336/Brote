@@ -114,8 +114,10 @@ export function findActive(
     // 0 when Pip faces the object, 1 when it is directly behind them.
     const facing = distance < 0.001 ? 0 : (1 - (dx * fx + dz * fz) / distance) / 2;
     const score = distance / item.radius + facing * INTERACT.facingWeight;
-    // Half a rank: above its peers, never above something more urgent.
-    const rank = (item.priority ?? PRIORITY.normal) + (item.id === preferId ? 5 : 0);
+    // What the card points at wins over its neighbours — also over a chore
+    // beside it (walking up to the plot the card named and getting the station
+    // next to it made the chapter unfinishable) — but never over an event.
+    const rank = (item.priority ?? PRIORITY.normal) + (item.id === preferId ? 15 : 0);
     // Priority first, then the nearest thing you are facing within that rank.
     if (rank > bestRank || (rank === bestRank && score < bestScore)) {
       bestRank = rank;

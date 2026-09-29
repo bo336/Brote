@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseVisitPayload } from '@/lib/world/visit';
 import { VisitClient } from './VisitClient';
+import { MundoCerrado } from '../../MundoCerrado';
 
 /**
  * `/mundo/visitar/<username>` — somebody else's island, rendered here.
@@ -36,7 +37,7 @@ export default async function VisitPage({ params, searchParams }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
-  if (!(await mundoEnabled(supabase))) redirect('/perfil');
+  if (!(await mundoEnabled(supabase))) return <MundoCerrado />;
 
   const username = decodeURIComponent(params.username);
   // Their island, and the visitor's own Pip — a visit where you arrive as

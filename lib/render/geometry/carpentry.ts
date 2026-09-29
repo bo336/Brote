@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 
-import { bevelBox, paintFlat, paintVertical } from './build';
+import { bevelBox, paintFlat, paintVertical, surface } from './build';
 
 export type Rng = () => number;
 
@@ -39,7 +39,7 @@ export function weather(hex: string, rng: Rng, amount = 1): string {
  * small bevel, a hair of twist, and its own tone.
  */
 export function board(len: number, width: number, thick: number, hex: string, rng: Rng): THREE.BufferGeometry {
-  const b = bevelBox(len, thick, width, weather(hex, rng), 0.93);
+  const b = surface(bevelBox(len, thick, width, weather(hex, rng), 0.93), 'wood', [1, 0, 0]);
   b.rotateX((rng() - 0.5) * 0.03);
   b.rotateY((rng() - 0.5) * 0.02);
   return b;
@@ -82,6 +82,30 @@ export function doubleSided(geo: THREE.BufferGeometry, backHex?: string, offset 
   return [front, back];
 }
 
+/**
+ * Make an indexed surface face away from a point: if the normal at `probe` (a
+ * vertex index) points toward `inside`, reverse every triangle. Built surfaces —
+ * a hull, a canvas, an animal's body — come out wound either way depending on
+ * how their rows were laid down, and the world material draws front faces only.
+ */
+export function faceAwayFrom(geo: THREE.BufferGeometry, probe: number, inside: THREE.Vector3): THREE.BufferGeometry {
+  geo.computeVertexNormals();
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const nor = geo.attributes.normal as THREE.BufferAttribute;
+  const out = new THREE.Vector3(pos.getX(probe), pos.getY(probe), pos.getZ(probe)).sub(inside);
+  const n = new THREE.Vector3(nor.getX(probe), nor.getY(probe), nor.getZ(probe));
+  if (n.dot(out) < 0 && geo.index) {
+    const index = geo.index;
+    for (let t = 0; t < index.count; t += 3) {
+      const tmp = index.getX(t + 1);
+      index.setX(t + 1, index.getX(t + 2));
+      index.setX(t + 2, tmp);
+    }
+    geo.computeVertexNormals();
+  }
+  return geo;
+}
+
 /** Orient a geometry built along `axis` so it runs from `a` to `b`. */
 export function between(geo: THREE.BufferGeometry, axis: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): THREE.BufferGeometry {
   const dir = b.clone().sub(a);
@@ -99,7 +123,7 @@ export function beamBetween(
   a: THREE.Vector3, b: THREE.Vector3, w: number, h: number, hex: string, rng: Rng,
 ): THREE.BufferGeometry {
   const len = a.distanceTo(b);
-  return between(bevelBox(len + 0.02, h, w, weather(hex, rng), 0.9), X, a, b);
+  return between(surface(bevelBox(len + 0.02, h, w, weather(hex, rng), 0.9), 'wood', [1, 0, 0]), X, a, b);
 }
 
 /**
@@ -122,18 +146,18 @@ export function logBetween(
     pos.setZ(i, z * k);
   }
   body.computeVertexNormals();
-  const log = between(paintVertical(body, weather(bark, rng), bark, 1), Y, a, b);
+  const log = between(surface(paintVertical(body, weather(bark, rng), bark, 1), 'wood', [0, 1, 0]), Y, a, b);
   const cap = new THREE.CircleGeometry(r1 * 0.96, radial);
   cap.rotateX(-Math.PI / 2);
   cap.translate(0, len / 2 + 0.002, 0);
-  return [log, between(paintFlat(cap, heart), Y, a, b)];
+  return [log, between(surface(paintFlat(cap, heart), 'wood', [0, 1, 0]), Y, a, b)];
 }
 
 /** A nail or a bolt head, sitting on a face whose outward normal is `normal`. */
 export function nail(at: THREE.Vector3, normal: THREE.Vector3, hex: string, r = 0.011): THREE.BufferGeometry {
   const head = new THREE.CylinderGeometry(r, r * 1.1, r * 0.7, 6);
   head.translate(0, r * 0.35, 0);
-  return between(paintFlat(head, hex), Y, at, at.clone().add(normal));
+  return between(surface(paintFlat(head, hex), 'metal', [0, 1, 0]), Y, at, at.clone().add(normal));
 }
 
 /**
@@ -149,7 +173,7 @@ export function rope(
     const p0 = p(i / segments);
     const p1 = p((i + 1) / segments);
     const seg = new THREE.CylinderGeometry(radius, radius, p0.distanceTo(p1) + radius, 5);
-    out.push(between(paintFlat(seg, hex), Y, p0, p1));
+    out.push(between(surface(paintFlat(seg, hex), 'cloth', [0, 1, 0]), Y, p0, p1));
   }
   return out;
 }

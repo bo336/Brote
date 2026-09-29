@@ -2,18 +2,19 @@
 
 import { Droplet, Infinity as InfinityIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { SaviaEstado } from '@/lib/academia/types';
+import type { SaviaEstado } from '@/lib/academia/modelo';
+import { BRAND } from '@/lib/brand';
 import { cn } from '@/lib/utils/cn';
 
 /**
  * El medidor de savia, o el chip de {plus} en su lugar.
  *
- * La savia se gasta al EMPEZAR una hoja, no al terminarla, y por eso el
- * medidor dice cuántas hojas quedan y no cuánto se avanzó. Regar nunca lo toca.
+ * La savia se gasta al EMPEZAR una sesión nueva: rehacer, practicar y repasar
+ * no la tocan. Por eso el medidor dice cuántas sesiones nuevas quedan hoy.
  *
- * Con Brote+ el RPC devuelve `savia: null`: la ausencia del medidor es el
- * beneficio. No se dibuja un medidor lleno hasta arriba — eso sería recordarle
- * a alguien que pagó que había un límite.
+ * Con {plus} el RPC devuelve `savia: null`: la ausencia del medidor es el
+ * beneficio. No se dibuja un medidor lleno hasta arriba — sería recordarle a
+ * alguien que pagó que había un límite.
  */
 export function SaviaMedidor({
   savia,
@@ -24,7 +25,7 @@ export function SaviaMedidor({
   pro: boolean;
   className?: string;
 }) {
-  const t = useTranslations('academia');
+  const t = useTranslations('arbol');
 
   if (pro || !savia) {
     return (
@@ -36,7 +37,7 @@ export function SaviaMedidor({
         )}
       >
         <InfinityIcon className="h-3.5 w-3.5" aria-hidden />
-        {t('saviaIlimitada')}
+        {t('saviaIlimitada', { plus: `${BRAND.name}+` })}
       </span>
     );
   }
@@ -47,6 +48,7 @@ export function SaviaMedidor({
       className={cn('inline-flex items-center gap-1.5', className)}
       role="img"
       aria-label={t('saviaRestante', { n: savia.restante })}
+      title={t('saviaRestante', { n: savia.restante })}
     >
       {gotas.map((llena, i) => (
         <Droplet

@@ -47,13 +47,17 @@ test('en el Mercado, la única salida hacia un comercio es la del interstitial',
       /href=\{[^}]*url_?[dD]estino/.test(src)
     );
   });
-  // Dos, y las dos a propósito:
+  // Cuatro, y las cuatro a propósito:
   // · el interstitial, que es la ÚNICA salida de una persona hacia un comercio;
-  // · la pantalla de plan, que manda a la empresa al checkout de MercadoPago
-  //   —el pago lo hospeda el proveedor y Brote nunca ve una tarjeta—.
-  assert.deepEqual(conSalidaExterna.map((f) => f.replace(/\\/g, '/')), [
+  // · las pantallas de plan (la de empresas y la de tiendas) y el último paso
+  //   del alta, que mandan a quien vende al checkout de Mercado Pago —el pago
+  //   lo hospeda el proveedor y Brote nunca ve una tarjeta— o a su cuenta de
+  //   Mercado Pago para actualizar el medio de pago.
+  assert.deepEqual(conSalidaExterna.map((f) => f.replace(/\\/g, '/')).sort(), [
     'components/mercado/SalidaMercado.tsx',
     'components/negocio/plan/PlanNegocio.tsx',
+    'components/negocio/vendedor/PasoMercadoPago.tsx',
+    'components/negocio/vendedor/PlanVendedor.tsx',
   ]);
 });
 

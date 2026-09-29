@@ -22,12 +22,17 @@
     "lib/negocio/plan.ts",
     "lib/negocio/sugerencias.ts",
     "lib/negocio/sello.ts",
+    "lib/negocio/vendedor.ts",
     "lib/negocio/__tests__/**/*.ts",
     "lib/pagos/**/*.ts",
     "lib/mundo.ts",
     "lib/ranks.ts",
     "lib/domains.ts",
-    "lib/impact.ts"
+    "lib/impact.ts",
+    "lib/imagen-segura.ts",
+    "lib/inicio/impacto.ts",
+    "lib/inicio/puentes.ts",
+    "lib/inicio/__tests__/**/*.ts"
   ],
   "exclude": [
     "node_modules"

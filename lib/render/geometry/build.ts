@@ -13,6 +13,8 @@
  */
 import * as THREE from 'three';
 
+import { SURFACE, SURFACE_BASE, type SurfaceKind } from '../materials/built';
+
 const scratchA = new THREE.Color();
 const scratchB = new THREE.Color();
 
@@ -59,6 +61,20 @@ export function paintVertical(
 }
 
 /**
+ * Say what a piece is made of, and which way its grain runs (`../materials/built.ts`).
+ * Carried in `tangent`, so every later rotate/translate of the piece turns the
+ * grain with it. Untagged pieces are plain clay.
+ */
+export function surface(geo: THREE.BufferGeometry, kind: SurfaceKind, axis: readonly [number, number, number] = [1, 0, 0]): THREE.BufferGeometry {
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const t = new Float32Array(pos.count * 4);
+  const w = SURFACE_BASE + SURFACE[kind];
+  for (let i = 0; i < pos.count; i++) t.set([axis[0], axis[1], axis[2], w], i * 4);
+  geo.setAttribute('tangent', new THREE.BufferAttribute(t, 4));
+  return geo;
+}
+
+/**
  * Merge already-transformed, already-painted geometries into one buffer.
  *
  * Every input is disposed: they are throwaway primitives, and leaving them
@@ -72,6 +88,8 @@ export function mergePainted(parts: THREE.BufferGeometry[]): THREE.BufferGeometr
   const position = new Float32Array(total * 3);
   const normal = new Float32Array(total * 3);
   const color = new Float32Array(total * 3);
+  // Surfaces ride along when any piece has one; untagged pieces get zeros (plain clay).
+  const tangent = flattened.some((g) => g.attributes.tangent) ? new Float32Array(total * 4) : null;
   let offset = 0;
 
   for (let k = 0; k < flattened.length; k++) {
@@ -79,6 +97,16 @@ export function mergePainted(parts: THREE.BufferGeometry[]): THREE.BufferGeometr
     const gp = g.attributes.position as THREE.BufferAttribute;
     const gn = g.attributes.normal as THREE.BufferAttribute | undefined;
     const gc = g.attributes.color as THREE.BufferAttribute | undefined;
+    const gt = g.attributes.tangent as THREE.BufferAttribute | undefined;
+    if (tangent && gt) {
+      for (let i = 0; i < gp.count; i++) {
+        const o4 = (offset + i) * 4;
+        tangent[o4] = gt.getX(i);
+        tangent[o4 + 1] = gt.getY(i);
+        tangent[o4 + 2] = gt.getZ(i);
+        tangent[o4 + 3] = gt.getW(i);
+      }
+    }
     for (let i = 0; i < gp.count; i++) {
       const o = (offset + i) * 3;
       position[o] = gp.getX(i);
@@ -100,6 +128,7 @@ export function mergePainted(parts: THREE.BufferGeometry[]): THREE.BufferGeometr
   out.setAttribute('position', new THREE.BufferAttribute(position, 3));
   out.setAttribute('normal', new THREE.BufferAttribute(normal, 3));
   out.setAttribute('color', new THREE.BufferAttribute(color, 3));
+  if (tangent) out.setAttribute('tangent', new THREE.BufferAttribute(tangent, 4));
   return out;
 }
 

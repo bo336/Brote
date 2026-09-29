@@ -19,6 +19,7 @@ import {
   Repeat2,
   ShieldAlert,
   UserRoundCheck,
+  Store,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -212,8 +213,11 @@ export default function NotificacionesPage() {
  */
 function NotificationItem({ n, actor }: { n: NotificationRow; actor: PipIdentity | null }) {
   const tf = useTranslations('feed');
-  const Icon = ICON[n.type] ?? Bell;
-  const tint = TINT[n.type] ?? '#1FB57A';
+  // Los avisos del Mercado (guardados, tiendas seguidas, preguntas) son de tipo
+  // `system` con `data.categoria = 'mercado'`: llevan el ícono de la tienda.
+  const esMercado = n.data?.categoria === 'mercado';
+  const Icon = esMercado ? Store : ICON[n.type] ?? Bell;
+  const tint = esMercado ? '#FFB23E' : TINT[n.type] ?? '#1FB57A';
 
   const isSocial = SOCIAL.has(n.type);
   const count = Number(n.data?.count ?? 1);

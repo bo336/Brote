@@ -60,3 +60,14 @@ export async function fetchImpactStats(): Promise<ImpactStats> {
   ]);
   return { completions: count ?? 0, domainsTouched: (domains ?? []).length };
 }
+
+/**
+ * Whether Tu mundo is open for this account (`mundo_enabled()`, the same guard
+ * `/mundo` uses). Inicio only offers the door when it opens: a card that lands
+ * on "todavía no está abierto" is a broken promise on the home screen.
+ */
+export async function fetchMundoAbierto(): Promise<boolean> {
+  const { data, error } = await createClient().rpc('mundo_enabled');
+  if (error) return false;
+  return data === true;
+}

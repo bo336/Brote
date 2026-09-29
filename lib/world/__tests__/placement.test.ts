@@ -28,12 +28,12 @@ test('a snapped rotation round-trips inside one turn', () => {
   }
 });
 
-test('the cap is four plus three a tier', () => {
-  assert.equal(placementCap(1), 7);
-  assert.equal(placementCap(11), 37);
-  assert.equal(remainingSlots(1, 7), 0);
+test('the cap is eight plus four a tier (0115: raised with the shop)', () => {
+  assert.equal(placementCap(1), 12);
+  assert.equal(placementCap(11), 52);
+  assert.equal(remainingSlots(1, 12), 0);
   assert.equal(remainingSlots(1, 99), 0);
-  assert.equal(remainingSlots(1, 2), 5);
+  assert.equal(remainingSlots(1, 2), 10);
 });
 
 test('an overlap is nudged clear, not refused', () => {

@@ -7,7 +7,6 @@ import { LayoutGrid, Settings2, X } from 'lucide-react';
 import { getDomainColor } from '@/lib/domains';
 import { pagesFor, progressFor } from '@/lib/world/journal';
 import { cn } from '@/lib/utils/cn';
-import { DomainSuggestion } from './DomainSuggestion';
 import { LevelPath } from './LevelPath';
 import { useRegionCensus } from './useRegionCensus';
 import type { JournalEntry } from '@/lib/world/types';
@@ -42,7 +41,7 @@ interface BitacoraSheetProps {
 }
 
 export function BitacoraSheet({
-  open, onClose, userId, tier, journal, readOnly, canArrange, onArrange, onOpenSettings,
+  open, onClose, tier, journal, readOnly, canArrange, onArrange, onOpenSettings,
   worldIndex, worldGrowth, worldGoal,
 }: BitacoraSheetProps) {
   const t = useTranslations('mundo.bitacora');
@@ -111,9 +110,6 @@ export function BitacoraSheet({
           <p className="mt-6 text-body text-brote-cream/80">{t('empty')}</p>
         )}
 
-        {/* The app seam. Inside the sheet they already opened — never an
-            interruption, and never more than one at a time. */}
-        <DomainSuggestion userId={userId} tier={tier} journal={journal} />
 
         {pages.map((page) => {
           const isOpen = openRegion === page.region || openRegion === null;

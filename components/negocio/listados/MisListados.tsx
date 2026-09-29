@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { AlertTriangle, ChevronRight, ImageOff, Plus } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { NivelBadge } from '@/components/mercado/NivelBadge';
 import { urlImagen } from '@/lib/mercado/imagenes';
 import { puede } from '@/lib/negocio/roles';

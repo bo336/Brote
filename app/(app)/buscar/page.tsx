@@ -9,6 +9,7 @@ import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SafeImage } from '@/components/ui/safe-image';
 import { Pip } from '@/components/pip/Pip';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { AccountRow } from '@/components/social/AccountRow';
@@ -137,10 +138,7 @@ function BuscarInner() {
         <div className="divide-y divide-hairline">
           {stories.data!.map((n) => (
             <Link key={n.id} href={`/feed/n/${n.id}`} className="group flex gap-3 py-3">
-              {n.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={n.image_url} alt="" loading="lazy" className="h-16 w-24 shrink-0 rounded-card object-cover" />
-              )}
+              <SafeImage src={n.image_url} loading="lazy" fallback={null} className="h-16 w-24 shrink-0 rounded-card object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="eyebrow truncate text-muted-foreground">
                   {n.source}

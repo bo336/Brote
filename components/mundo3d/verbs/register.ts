@@ -81,28 +81,9 @@ export function buildVerbSpots(
     if (spot) spots.push(spot);
   };
 
-  // ── plantar: the stone seed-spot in El Claro, from tier 1.
-  if (has('plant')) {
-    const [sx, sz] = layout.spawn;
-    const x = sx + 1.6;
-    const z = sz + 0.9;
-    spots.push({
-      id: 'seed-spot', verb: 'plant', region: 'claro',
-      position: [x, sampleHeight(heightfield, x, z), z], radius: INTERACT.defaultRadiusM,
-    });
-  }
-
-  // ── regar: any water you can reach — the puddle first, the lagoon later.
-  if (has('water')) {
-    push(anchorSpot(layout, heightfield, 'puddle', 'water', 1.4));
-    for (const lake of layout.terrain.lakes) {
-      const x = lake.x + lake.r * 1.1;
-      spots.push({
-        id: `water-${Math.round(lake.x)}-${Math.round(lake.z)}`, verb: 'water', region: 'rio',
-        position: [x, sampleHeight(heightfield, x, lake.z), lake.z], radius: INTERACT.defaultRadiusM * 1.3,
-      });
-    }
-  }
+  // Planting and watering are the game's now (`lib/world/game`): parcels are
+  // planted from their markers, and water is taken at the tank, the puddle and
+  // the lagoon (`game/scene/WaterSources.tsx`). The old seed-spot is gone.
 
   // ── registrar: the census. One spot per species that could be seen here now,
   //    placed on a scatter point inside its own region.

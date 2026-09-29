@@ -1,64 +1,55 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { AltaEnviada, AltaNegocio, ElegirNegocio } from '@/components/negocio/alta/AltaNegocio';
-import { getActiveBusiness, getMisNegocios, getNegocioDetalle } from '@/lib/negocio/context';
-import { puede } from '@/lib/negocio/roles';
+import { ElegirNegocio } from '@/components/negocio/alta/AltaNegocio';
+import { AltaVendedor } from '@/components/negocio/vendedor/AltaVendedor';
+import { getActiveBusiness, getMisNegocios } from '@/lib/negocio/context';
+import { estadoConfigMp, getEstadoVendedor } from '@/lib/negocio/vendedor-acciones';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('negocio.alta');
-  return { title: t('tituloNuevo') };
+  const t = await getTranslations('negocio.vendedor');
+  return { title: t('tituloPagina') };
 }
 
-const MAX_NEGOCIOS_OWNER = 3;
+const MAX_TIENDAS_OWNER = 3;
 
 /**
- * `/negocio/alta` — el alta en 5 pasos (fase 1 §5).
+ * `/negocio/alta` — abrir una tienda (Mercado v2). Cuatro pasos, cada uno se
+ * guarda; el estado viene del servidor en cada visita, así que volver otro
+ * día, desde otro teléfono, retoma exactamente donde quedó.
  *
- * El paso vive en la URL (`?paso=3`) y los valores vienen del servidor en cada
- * paso: guardar y avanzar es guardar y volver a pedir la página. Así un
- * refresco, un segundo dispositivo o volver otro día retoman exactamente donde
- * quedó, sin estado de cliente que se pierda.
+ * `?mp=` es la vuelta de Mercado Pago (vincular o pagar); `?listo=1`, la
+ * pantalla de "tu tienda está abierta" justo después de abrirla.
  */
 export default async function AltaPage({
   searchParams,
 }: {
-  searchParams: { nuevo?: string; paso?: string; enviado?: string };
+  searchParams: { nuevo?: string; mp?: string; motivo?: string; listo?: string };
 }) {
-  const [negocios, activo] = await Promise.all([getMisNegocios(), getActiveBusiness()]);
+  const [negocios, activo, mp] = await Promise.all([getMisNegocios(), getActiveBusiness(), estadoConfigMp()]);
   const propios = negocios.filter((n) => n.role === 'owner').length;
   const nuevo = searchParams.nuevo === '1';
+  const aviso = {
+    mp: ['ok', 'error', 'volvio'].includes(searchParams.mp ?? '') ? searchParams.mp! : null,
+    motivo: searchParams.motivo && /^[a-z_]{2,30}$/.test(searchParams.motivo) ? searchParams.motivo : null,
+  };
 
   if (!activo || nuevo) {
-    // Tiene negocios pero no eligió ninguno: primero elegir, crear es la segunda opción.
+    // Tiene tiendas pero no eligió ninguna: primero elegir; crear es la segunda opción.
     if (!nuevo && negocios.length > 0) {
-      return <ElegirNegocio negocios={negocios} puedeCrear={propios < MAX_NEGOCIOS_OWNER} />;
+      return <ElegirNegocio negocios={negocios} puedeCrear={propios < MAX_TIENDAS_OWNER} />;
     }
-    if (propios >= MAX_NEGOCIOS_OWNER) return <ElegirNegocio negocios={negocios} puedeCrear={false} />;
-    return <AltaNegocio negocio={null} paso={1} />;
+    if (propios >= MAX_TIENDAS_OWNER) return <ElegirNegocio negocios={negocios} puedeCrear={false} />;
+    return <AltaVendedor estado={null} mp={mp} aviso={{ mp: null, motivo: null }} />;
   }
 
-  const negocio = await getNegocioDetalle(activo.id);
-  if (!negocio) redirect('/negocio/contexto');
+  const estado = await getEstadoVendedor(activo.id);
+  if (!estado) redirect('/negocio/contexto');
+  // Lo dado de alta con el flujo anterior no pasa por acá.
+  if (estado.modelo === 'legacy') redirect('/negocio');
+  if (estado.rol !== 'owner' && estado.rol !== 'admin') redirect('/negocio');
+  // Abierta: la pantalla de festejo solo justo después; si no, al panel.
+  if (estado.abierta && searchParams.listo !== '1' && searchParams.mp !== 'volvio') redirect('/negocio');
 
-  const enRevision = negocio.status === 'submitted' || negocio.status === 'in_review';
-  if (searchParams.enviado === '1' && enRevision && !negocio.revision_note) {
-    return <AltaEnviada negocio={negocio} />;
-  }
-
-  const reaplicable =
-    negocio.status === 'rejected' &&
-    !!negocio.puede_reaplicar_at &&
-    new Date(negocio.puede_reaplicar_at).getTime() <= Date.now();
-  const editable =
-    negocio.status === 'draft' || (enRevision && !!negocio.revision_note) || reaplicable;
-  if (!editable || !puede(negocio.role, 'editar_negocio')) redirect('/negocio');
-
-  // En borrador no se salta hacia adelante de lo guardado; una solicitud ya
-  // enviada tiene los cinco pasos completos.
-  const maxPaso = negocio.status === 'draft' ? Math.min(5, Math.max(1, negocio.alta_paso)) : 5;
-  const pedido = Number(searchParams.paso);
-  const paso = Number.isInteger(pedido) && pedido >= 1 ? Math.min(pedido, maxPaso) : negocio.status === 'draft' ? maxPaso : 1;
-
-  return <AltaNegocio negocio={negocio} paso={paso} />;
+  return <AltaVendedor estado={estado} mp={mp} aviso={aviso} />;
 }

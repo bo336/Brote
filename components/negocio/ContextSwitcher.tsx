@@ -85,20 +85,30 @@ export function ContextSwitcher({
   return (
     <Menu.Root open={abierto} onOpenChange={setAbierto}>
       <Menu.Trigger asChild>
+        {/* The trigger shows the account you are IN, with the same icon the
+            menu uses for it: a person in the personal app, a store inside a
+            business. It used to show a store in the personal app — which read
+            as "you are in a business" exactly when you were not. */}
         {variante === 'persona' ? (
           <button
             type="button"
-            aria-label={t('contexto.abrir')}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-surface-2 data-[state=open]:text-foreground"
+            aria-label={`${t('contexto.estasViendo')}: ${t('contexto.personal')}. ${t('contexto.abrir')}`}
+            className="group inline-flex h-11 items-center gap-0.5 rounded-full pl-1.5 pr-1 text-muted-foreground transition-colors duration-150 hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-surface-2 data-[state=open]:text-foreground"
           >
-            <Store className="h-5 w-5" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <User className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" aria-hidden />
           </button>
         ) : (
           <button
             type="button"
-            aria-label={t('contexto.abrir')}
-            className="group inline-flex h-10 min-w-0 max-w-[14rem] items-center gap-1.5 rounded-button px-2.5 text-small font-semibold text-foreground transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-surface-2 sm:max-w-[20rem]"
+            aria-label={`${t('contexto.estasViendo')}: ${activoNombre ?? t('contexto.personal')}. ${t('contexto.abrir')}`}
+            className="group inline-flex h-10 min-w-0 max-w-[14rem] items-center gap-1.5 rounded-button px-2 text-small font-semibold text-foreground transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-surface-2 sm:max-w-[20rem]"
           >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              {activoId ? <Store className="h-4 w-4" aria-hidden /> : <User className="h-4 w-4" aria-hidden />}
+            </span>
             <span className="truncate">{activoNombre ?? t('contexto.personal')}</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
           </button>

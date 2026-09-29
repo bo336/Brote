@@ -1,4 +1,5 @@
 import type { ClaimKind, Datos, Nivel } from '@/lib/mercado/claims';
+import type { Condicion, Contacto, OrdenBusqueda } from '@/lib/mercado/categorias';
 import type { BusinessRole, BusinessStatus } from '@/lib/supabase/rows-negocio';
 
 /**
@@ -67,12 +68,22 @@ export interface ListadoFila {
   afirmaciones: number;
   reportes_abiertos: number;
   clics_30d: number;
+  // Mercado v2
+  subcategoria?: string | null;
+  condicion?: Condicion;
+  precio?: number | null;
+  favoritos?: number;
+  preguntas_pendientes?: number;
 }
 
 export interface MisListados {
   rol: BusinessRole;
-  negocio: { id: string; slug: string; nombre: string; status: BusinessStatus; tier: Nivel; sitio_web: string | null; verificacion: Fuerza };
+  negocio: {
+    id: string; slug: string; nombre: string; status: BusinessStatus; tier: Nivel; sitio_web: string | null; verificacion: Fuerza;
+    modelo?: 'vendedor' | 'legacy'; whatsapp?: boolean; instagram?: boolean;
+  };
   listados: ListadoFila[];
+  preguntas_pendientes?: number;
 }
 
 export interface SugerenciaIA {
@@ -101,6 +112,15 @@ export interface ReporteNegocio {
 export interface ListadoDetalle {
   rol: BusinessRole;
   verificacion: Fuerza;
+  /** Mercado v2: qué canales tiene cargados la tienda (solo si existen). */
+  negocio?: {
+    modelo: 'vendedor' | 'legacy';
+    whatsapp: boolean;
+    instagram: boolean;
+    sitio_web: string | null;
+    contacto_preferido: Contacto | null;
+    provincia: string | null;
+  };
   listado: {
     id: string;
     business_id: string;
@@ -110,6 +130,10 @@ export interface ListadoDetalle {
     descripcion: string;
     imagenes: string[];
     categoria: string;
+    subcategoria?: string | null;
+    condicion?: Condicion;
+    contacto?: Contacto;
+    favoritos?: number;
     dominios: string[];
     precio_referencia: number | null;
     moneda: string;
@@ -150,6 +174,17 @@ export interface TarjetaMercado {
   descripcion_largo: number;
   updated_at: string;
   negocio: { id: string; slug: string; nombre: string; logo: string | null; tier: Nivel; provincia: string | null; ciudad: string | null };
+  // Mercado v2 (0113). Opcionales: la tarjeta de 0107 no los traía.
+  subcategoria?: string | null;
+  imagenes_n?: number;
+  /** El precio de referencia anterior, SOLO si bajó en los últimos 30 días. */
+  precio_anterior?: number | null;
+  condicion?: Condicion;
+  /** Cuántas personas lo guardaron. Un número cierto, nunca inventado. */
+  favoritos?: number;
+  publicado_at?: string | null;
+  /** Si quien mira lo guardó (solo en los estantes y en guardados). */
+  favorito?: boolean;
 }
 
 /** Una afirmación pública, en la ficha. */
@@ -164,6 +199,25 @@ export interface AfirmacionPublica {
   cert: { nombre: string; emisor: string } | null;
 }
 
+/** Un compromiso de tienda, como se muestra en público. */
+export interface CompromisoPublico {
+  practica: string;
+  /** Ruta en listing-images, o null si esa práctica no tiene foto. */
+  foto: string | null;
+  revisado: boolean;
+}
+
+/** Una pregunta pública (la respuesta es pública; quién preguntó, no). */
+export interface PreguntaPublica {
+  id: string;
+  texto: string;
+  respuesta: string | null;
+  respondida_at: string | null;
+  created_at: string;
+  /** La hizo quien mira: las sin responder solo las ve quien preguntó. */
+  propia: boolean;
+}
+
 /** `mercado_listado(p_slug)`. */
 export interface FichaMercado extends Omit<TarjetaMercado, 'negocio'> {
   descripcion: string;
@@ -172,9 +226,29 @@ export interface FichaMercado extends Omit<TarjetaMercado, 'negocio'> {
   vista_previa: boolean;
   dominio_destino: string | null;
   publicado_at: string | null;
-  negocio: TarjetaMercado['negocio'] & { verificacion: Fuerza; nota_correccion: string | null };
+  negocio: TarjetaMercado['negocio'] & {
+    verificacion: Fuerza;
+    nota_correccion: string | null;
+    // Mercado v2
+    tipo?: 'persona' | 'empresa';
+    desde?: string;
+    mp_vinculado?: boolean;
+    productos?: number;
+    seguidores?: number;
+    seguida?: boolean;
+    compromisos?: CompromisoPublico[];
+  };
   afirmaciones: AfirmacionPublica[];
   ya_reportado: boolean;
+  // Mercado v2
+  /** Quien mira es de la tienda: no se pregunta ni se sigue a sí misma. */
+  propia?: boolean;
+  contacto?: Contacto;
+  favorito?: boolean;
+  preguntas?: PreguntaPublica[];
+  preguntas_total?: number;
+  mas_de_la_tienda?: TarjetaMercado[];
+  parecidos?: TarjetaMercado[];
 }
 
 /** `mercado_negocio(p_slug)`. */
@@ -184,6 +258,17 @@ export interface NegocioPublico {
     logo: string | null; portada: string | null; provincia: string | null; ciudad: string | null;
     sitio_web: string | null; tier: Nivel; progreso_mejora: number; verificacion: Fuerza;
     nota_correccion: string | null; nota_correccion_at: string | null; fundador: boolean; desde: string;
+    // Mercado v2 (0113)
+    tipo?: 'persona' | 'empresa';
+    modelo?: 'vendedor' | 'legacy';
+    categoria_principal?: string | null;
+    mp_vinculado?: boolean;
+    compromisos?: CompromisoPublico[];
+    seguidores?: number;
+    seguida?: boolean;
+    propia?: boolean;
+    productos?: number;
+    categorias?: Record<string, number>;
   };
   mejora: { titulo: string; dominio: string | null; unidad: string; linea_base: number | null; valor_final: number | null; cerrado_at: string }[];
 }
@@ -196,6 +281,96 @@ export interface Salida {
   comercio: string;
   logo: string | null;
   vistas_30d: number;
+  /** Mercado v2: por dónde sale (WhatsApp, Instagram o el sitio). */
+  canal?: Contacto;
+}
+
+// ── Mercado v2 (0113) ───────────────────────────────────────────────────────
+
+/** `mercado_buscar(...)`: una página, el total (tope 1001) y las facetas. */
+export interface Busqueda {
+  items: TarjetaMercado[];
+  total: number;
+  offset: number;
+  orden: OrdenBusqueda;
+  facetas: {
+    categorias?: Record<string, number>;
+    /** '_' = sin subcategoría. */
+    subcategorias?: Record<string, number>;
+    condicion?: Record<string, number>;
+  };
+}
+
+/** `mercado_sugerencias(q)`. */
+export interface Sugerencias {
+  productos: { slug: string; titulo: string; imagen: string | null; categoria: string }[];
+  tiendas: { slug: string; nombre: string; logo: string | null }[];
+}
+
+export type ClaveEstante =
+  | 'seguir_viendo'
+  | 'para_vos'
+  | 'porque_hiciste'
+  | 'aprendiendo'
+  | 'cerca'
+  | 'bajaron'
+  | 'nuevos'
+  | 'segunda_vida'
+  | 'documentados';
+
+export interface Estante {
+  clave: ClaveEstante;
+  /** Acción, rama o provincia, según el estante. */
+  param?: string;
+  accion?: string;
+  categoria?: string;
+  items: TarjetaMercado[];
+}
+
+export interface TiendaResumen {
+  id: string;
+  slug: string;
+  nombre: string;
+  logo: string | null;
+  provincia: string | null;
+  ciudad: string | null;
+  tier?: Nivel;
+  productos: number;
+  seguidores?: number;
+  seguida?: boolean;
+  imagenes?: string[] | null;
+  nuevos?: number;
+}
+
+/** `mercado_inicio()`. */
+export interface InicioMercado {
+  cuenta: 'teen' | 'adult';
+  provincia: string | null;
+  categorias: Record<string, number>;
+  total: number;
+  estantes: Estante[];
+  tiendas: TiendaResumen[];
+}
+
+/** `mercado_guardados()`. */
+export interface Guardados {
+  favoritos: (TarjetaMercado & { guardado_at: string; precio_al_guardar: number | null; disponible: boolean })[];
+  vistos: TarjetaMercado[];
+  tiendas: TiendaResumen[];
+}
+
+/** `tienda_preguntas(p_business, p_estado)`. */
+export interface PreguntasTienda {
+  pendientes: number;
+  items: {
+    id: string;
+    texto: string;
+    respuesta: string | null;
+    respondida_at: string | null;
+    created_at: string;
+    estado: 'visible' | 'oculta';
+    listado: { id: string; slug: string; titulo: string; imagen: string | null };
+  }[];
 }
 
 // ── Panel ───────────────────────────────────────────────────────────────────

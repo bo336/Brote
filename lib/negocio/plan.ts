@@ -15,7 +15,9 @@
  * choque contra él.
  */
 
-export const PLANES = ['semilla', 'raiz', 'bosque'] as const;
+export const PLANES = ['semilla', 'raiz', 'bosque', 'vendedor'] as const;
+/** Los tres planes del flujo de empresas (0108). Las tiendas nuevas tienen uno solo: 'vendedor'. */
+export const PLANES_LEGACY = ['semilla', 'raiz', 'bosque'] as const;
 export type BizPlan = (typeof PLANES)[number];
 
 export type EstadoSuscripcion =
@@ -71,6 +73,17 @@ export const LIMITES: Record<BizPlan, Limites> = {
     destacados: 1,
     acelerada: true,
   },
+  // Mercado v2 (0114): el único plan de las tiendas nuevas. USD 5 por mes.
+  vendedor: {
+    listados: 300,
+    objetivos: 3,
+    replanificaciones: 8,
+    miembros: 3,
+    analitica: 'completa',
+    historial_publico: true,
+    destacados: 0,
+    acelerada: true,
+  },
 };
 
 export function puedePublicar(plan: BizPlan, publicados: number): boolean {
@@ -91,6 +104,8 @@ export function puedeInvitar(plan: BizPlan, miembros: number): boolean {
 
 /** El plan siguiente que destraba `clave`, o null si ya está en el mejor. */
 export function planQueDestraba(actual: BizPlan, clave: keyof Limites): BizPlan | null {
+  // Las tiendas nuevas tienen un solo plan: no hay "el siguiente".
+  if (actual === 'vendedor') return null;
   const orden: BizPlan[] = ['semilla', 'raiz', 'bosque'];
   const desde = orden.indexOf(actual);
   for (const p of orden.slice(desde + 1)) {
@@ -113,6 +128,10 @@ export function textoTope(n: number): string | null {
  * FUNDADOR: todo funciona, sin tarjeta y sin prueba, con los topes de Raíz.
  */
 export interface EstadoPlan {
+  /** Mercado v2: 'vendedor' es el alta nueva; 'legacy', el flujo de empresas de 0105. */
+  modelo?: 'vendedor' | 'legacy';
+  mp?: { vinculado: boolean; nickname: string | null };
+  precio_vendedor?: { usd: number; ars: number | null; tipo_cambio: number | null; fecha: string | null; fuente: string | null };
   cobro_activo: boolean;
   plan: BizPlan;
   limites: Limites;
@@ -146,10 +165,12 @@ export function diasHasta(fecha: string | null, hoy: Date = new Date()): number 
  * En qué estado está la empresa para la interfaz. Un solo lugar para decidir
  * qué banda se muestra arriba de la pantalla, y qué dice.
  */
-export type SituacionPlan = 'fundador' | 'prueba' | 'activa' | 'gracia' | 'sin_plan';
+export type SituacionPlan = 'fundador' | 'prueba' | 'activa' | 'gracia' | 'sin_plan' | 'sin_cobro';
 
 export function situacion(e: EstadoPlan): SituacionPlan {
-  if (!e.cobro_activo) return 'fundador';
+  // Una tienda nueva con el cobro apagado no es "fundadora": es gratis por
+  // ahora, y se dice así.
+  if (!e.cobro_activo) return e.modelo === 'vendedor' ? 'sin_cobro' : 'fundador';
   if (e.suscripcion?.status === 'en_gracia') return 'gracia';
   if (e.suscripcion?.status === 'activa') return 'activa';
   if (e.en_prueba) return 'prueba';

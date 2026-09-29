@@ -27,19 +27,24 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
-    emoji: '🌱',
-    title: 'Tu mundo crece con lo que hacés',
-    body: 'Cada acción que completás suma puntos y hace crecer tu isla. Cuando se llena, se abre un bioma nuevo.',
+    emoji: '🌍',
+    title: 'Tu impacto real',
+    body: 'Cada acción que hacés ahorra agua, CO₂, residuos o energía de verdad. Lo ves arriba de todo en Inicio, y sólo lo mueven tus acciones.',
   },
   {
     emoji: '✅',
-    title: 'El set de hoy',
-    body: 'Todos los días te proponemos 5 acciones distintas, elegidas para vos. No se repiten por semanas, así que siempre hay algo nuevo.',
+    title: 'Tus acciones del día',
+    body: 'Todos los días te proponemos acciones distintas, elegidas para vos. No se repiten por semanas, así que siempre hay algo nuevo.',
   },
   {
     emoji: '🔁',
     title: 'Tu rutina',
     body: 'Algunas acciones se pueden fijar como costumbre diaria —la ducha corta, ir en bici— y cada una lleva su propia racha.',
+  },
+  {
+    emoji: '🧭',
+    title: 'Y después, seguí',
+    body: 'Cuando marcás una acción, Inicio te propone seguir: una lección de la Academia sobre ese tema, tu isla, la Plaza para contarlo o el Mercado.',
   },
   {
     emoji: '🏆',
@@ -48,13 +53,8 @@ const SLIDES: Slide[] = [
   },
   {
     emoji: '📰',
-    title: 'Novedades y comentarios',
-    body: 'En Explorar hay noticias ambientales en español, y podés comentarlas y opinar con el resto.',
-  },
-  {
-    emoji: '📘',
-    title: 'Aprendé',
-    body: 'Lecciones cortas para entender de verdad lo que estás haciendo. Suman puntos la primera vez que las aprobás.',
+    title: 'La Plaza',
+    body: 'Noticias ambientales en español y lo que publica la gente: comentá, opiná y contá lo que hiciste.',
   },
 ];
 

@@ -12,7 +12,7 @@ import {
   BarChart3,
   type LucideIcon,
 } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { NivelChip } from '@/components/negocio/NivelChip';
 import { AvisosNegocio } from '@/components/negocio/AvisosNegocio';
 import { BRAND } from '@/lib/brand';

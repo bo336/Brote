@@ -671,6 +671,12 @@ export const LISTA_NEGRA = {
   salud: [
     'cura', 'previene', 'trata', 'sana', 'desintoxica', 'detox', 'elimina toxinas', 'refuerza las defensas',
     'fortalece el sistema inmune', 'adelgaza', 'antitumoral', 'antiviral', 'sin efectos secundarios',
+    // Mercado v2 (0114): las conjugaciones que se colaban. Afuera a propósito
+    // "curar"/"curado" (el mate se cura, el jamón es curado) y "prevenir" (se
+    // previene el desperdicio).
+    'curan', 'curativo', 'curativa', 'curativos', 'curativas', 'previenen', 'sanan', 'desintoxican',
+    'desintoxicante', 'adelgazan', 'adelgazante', 'adelgazantes', 'depurativo', 'depurativa', 'quema grasa',
+    'milagroso', 'milagrosa',
   ],
   /** Vagas: NO se rechazan, se marcan para el revisor (a veces son parte del nombre). */
   vagos: ['natural', 'sustentable', 'consciente', 'responsable', 'limpio', 'puro', 'verde'],

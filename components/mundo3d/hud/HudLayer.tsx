@@ -7,11 +7,12 @@ import type { SaveState } from '../placement/usePlacementSave';
 import { useSessionStore } from '../state/useSessionStore';
 import { BitacoraSheet } from './BitacoraSheet';
 import { ControlsHelp } from './ControlsHelp';
-import { ObjectiveCard } from './ObjectiveCard';
+import { GameHud } from '../game/hud/GameHud';
+import { HowToPlay } from './HowToPlay';
+import { WorldLabels } from './WorldLabels';
 import { RegionTitle } from './RegionTitle';
 import { RewardToast } from './RewardToast';
 import { EventCard } from './EventCard';
-import { FirstRunBar } from './FirstRunBar';
 import { HUD } from './HUD';
 import { useCollective } from './useCollective';
 import { useGiftInbox } from './useGiftInbox';
@@ -78,6 +79,7 @@ export function HudLayer({
   const placementActions = useSessionStore((s) => s.placementActions);
   const eventRun = useSessionStore((s) => s.eventRun);
   const firstRun = useSessionStore((s) => s.firstRun);
+  const helpOpen = useSessionStore((s) => s.helpOpen);
   // What everybody's real actions add up to. Not a leaderboard: no ranking, no
   // comparison, no name on any figure.
   const collective = useCollective(readOnly);
@@ -110,8 +112,18 @@ export function HudLayer({
       />
       <HUD onOpenBitacora={() => setHud('bitacora')} />
       {/* What to do, how to do it, and that it worked. */}
-      {hud === 'play' && <ObjectiveCard />}
+      {/* The game: mission card, tags, gains, toasts, and its screens. */}
+      <GameHud />
+      {/* The mission's pin over its target (and the way to it from the screen edge), and the E chip. */}
+      {hud === 'play' && !helpOpen && <WorldLabels />}
       {hud === 'play' && <ControlsHelp />}
+      <HowToPlay
+        tier={tier}
+        worldIndex={worldIndex}
+        worldGrowth={worldGrowth}
+        worldGoal={worldGoal}
+        firstRunActive={Boolean(firstRun?.beat)}
+      />
       <RegionTitle />
       <RewardToast />
       <BitacoraSheet
@@ -131,6 +143,7 @@ export function HudLayer({
       {hud === 'placement' && placementActions && (
         <PlacementBar
           props={placement.props}
+          left={placement.left}
           hasGhost={placement.hasGhost}
           rejected={placement.rejected}
           remaining={placement.remaining}
@@ -150,7 +163,7 @@ export function HudLayer({
       {/* The first three minutes. Above the HUD in the tree and below it in
           the frame: it never covers the joystick, because the beat that
           matters most is the one where you walk. */}
-      {firstRun && hud === 'play' && <FirstRunBar run={firstRun} />}
+      {firstRun && hud === 'play' && null}
       <SettingsSheet open={hud === 'settings'} onClose={() => setHud('play')} />
       <MojonSheet
         open={hud === 'mojon'}

@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, Flag, ShoppingBag } from 'lucide-react';
+import { Camera, ChevronRight, Flag, ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CountUp } from '@/components/ui/count-up';
-import { listadosCola } from '@/lib/api/mercado';
+import { compromisosCola, listadosCola } from '@/lib/api/mercado';
 import { cn } from '@/lib/utils/cn';
 
 /**
@@ -18,10 +18,12 @@ export function MercadoResumen({ pass }: { pass: string }) {
   const t = useTranslations('mercado.panel');
   const tv = useTranslations('negocio.panel');
   const [c, setC] = useState<{ pendientes: number; auditoria: number; reportes: number } | null | undefined>(undefined);
+  const [compromisos, setCompromisos] = useState<number | null>(null);
 
   useEffect(() => {
     let vivo = true;
     void listadosCola(pass, 'pendientes').then((r) => vivo && setC(r.ok ? r.contadores : null));
+    void compromisosCola(pass).then((r) => vivo && setCompromisos(r.ok ? r.pendientes : null));
     return () => {
       vivo = false;
     };
@@ -30,6 +32,7 @@ export function MercadoResumen({ pass }: { pass: string }) {
   const filas = [
     { href: '/panel/listados', icono: ShoppingBag, titulo: t('resumenTitulo'), n: c ? c.pendientes + c.auditoria : null, texto: (n: number) => t('pendientes', { n }) },
     { href: '/panel/reportes', icono: Flag, titulo: t('resumenReportes'), n: c ? c.reportes : null, texto: (n: number) => t('abiertos', { n }) },
+    { href: '/panel/compromisos', icono: Camera, titulo: t('resumenCompromisos'), n: compromisos, texto: (n: number) => t('fotosPorRevisar', { n }) },
   ];
 
   return (

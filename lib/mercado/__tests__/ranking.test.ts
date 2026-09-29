@@ -231,7 +231,9 @@ test('rubros incompatibles, largos, imágenes, precio y URL', () => {
   assert.ok(codigosListado(listado({ titulo: 'Harina' })).includes('titulo_largo'));
   assert.ok(codigosListado(listado({ descripcion: 'Muy buena.' })).includes('descripcion_largo'));
   assert.ok(codigosListado(listado({ imagenes: 0 })).includes('faltan_imagenes'));
-  assert.ok(codigosListado(listado({ imagenes: 5 })).includes('max_imagenes'));
+  // Hasta 8 fotos desde el Mercado v2 (0114), para todos los modelos.
+  assert.ok(!codigosListado(listado({ imagenes: 8 })).includes('max_imagenes'));
+  assert.ok(codigosListado(listado({ imagenes: 9 })).includes('max_imagenes'));
   assert.ok(codigosListado(listado({ precio_referencia: 0 })).includes('precio_invalido'));
   assert.ok(codigosListado(listado({ url_destino: 'http://molino.com.ar' })).includes('url_invalida'));
   assert.ok(codigosListado(listado({ afirmaciones: [] })).includes('sin_afirmaciones'));

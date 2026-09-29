@@ -12,6 +12,17 @@ export function urlImagen(ruta: string | null | undefined): string | null {
   return base ? `${base}/storage/v1/object/public/listing-images/${ruta}` : null;
 }
 
+/**
+ * La URL pública del logo de una tienda (bucket `business-logos`). Acepta una
+ * URL completa o una ruta de la app, como `urlImagen`.
+ */
+export function urlLogo(ruta: string | null | undefined): string | null {
+  if (!ruta) return null;
+  if (/^https?:\/\//.test(ruta) || ruta.startsWith('/')) return ruta;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  return base ? `${base}/storage/v1/object/public/business-logos/${ruta}` : null;
+}
+
 /** "$ 4.200" — el número, sin la palabra: la etiqueta la pone la pantalla. */
 export function formatoPrecio(precio: number, moneda = 'ARS'): string {
   try {

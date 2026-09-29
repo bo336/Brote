@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
 import { parseWorldPayload } from '@/lib/world/payload';
+import { MundoCerrado } from './MundoCerrado';
 import { MundoClient } from './MundoClient';
 
 /**
@@ -46,7 +47,9 @@ export default async function MundoPage({ searchParams }: PageProps) {
   } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
-  if (!(await mundoEnabled(supabase))) redirect('/perfil');
+  // Not open for this account: say so. A silent bounce to `/perfil` read as the
+  // page jumping back to its top, on a phone, with no explanation.
+  if (!(await mundoEnabled(supabase))) return <MundoCerrado />;
 
   // **One round trip.** `world_bootstrap()` creates the row on a first visit and
   // returns the ladder, the island, the placements, the bitácora, the balance

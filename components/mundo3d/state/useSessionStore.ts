@@ -27,7 +27,7 @@ import type { Interactable, PropId, QualityTier, RegionId, TimeOfDay, VerbId } f
 import type { Objective } from '@/lib/world/objectives';
 
 /** What the HUD is showing. Sheets pause the world and drop to `demand`. */
-export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon';
+export type HudMode = 'play' | 'bitacora' | 'placement' | 'settings' | 'cutscene' | 'mojon' | 'juego';
 
 /**
  * Session ephemera: the things that change during play and that React genuinely
@@ -54,6 +54,8 @@ export interface PlacementSummary {
   remaining: number;
   canUndo: boolean;
   props: PropId[];
+  /** Copies still to place, for things bought in the world's shop; absent = unlimited. */
+  left?: Readonly<Record<string, number>>;
   /** Which saved-layout slots hold something. Length is how many are drawn. */
   slots: boolean[];
 }
@@ -194,6 +196,9 @@ interface SessionStoreState {
    */
   interact: (() => void) | null;
   setInteract: (fn: (() => void) | null) => void;
+  /** Zoom the camera by a factor, below 1 closer. Set by the camera input; the + / − keys and buttons call it. */
+  zoom: ((factor: number) => void) | null;
+  setZoom: (fn: ((factor: number) => void) | null) => void;
   /**
    * The one next thing to do (`lib/world/objectives.ts`). Deduplicated: the
    * tracker recomputes twice a second, and a card that re-renders on every
@@ -221,7 +226,7 @@ interface SessionStoreState {
   addPlanting: (at: readonly [number, number, number]) => void;
 }
 
-export type ControlKind = 'move' | 'look' | 'jump' | 'use';
+export type ControlKind = 'move' | 'look' | 'jump' | 'use' | 'zoom';
 
 export interface RewardCard {
   id: number;
@@ -325,14 +330,20 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setNoteValues: (noteValues) => set({ noteValues }),
   interact: null,
   setInteract: (interact) => set({ interact }),
+  zoom: null,
+  setZoom: (zoom) => set({ zoom }),
   objective: null,
   setObjective: (objective) =>
     set((s) => {
       const a = s.objective;
+      // Same id is not same place: a wild parcel's pieces share one id, and the
+      // beacon has to follow the next piece when the last one is picked.
+      const samePlace = (!a?.target && !objective?.target) || (!!a?.target && !!objective?.target
+        && Math.hypot(a.target.x - objective.target.x, a.target.z - objective.target.z) <= 0.5);
       const same = a && objective
-        && a.titleKey === objective.titleKey && a.targetId === objective.targetId
+        && a.titleKey === objective.titleKey && a.targetId === objective.targetId && a.thingText === objective.thingText
         && a.progress?.done === objective.progress?.done && a.progress?.total === objective.progress?.total
-        && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5);
+        && Math.round((a.distanceM ?? -5) / 5) === Math.round((objective.distanceM ?? -5) / 5) && samePlace;
       return same || (!a && !objective) ? s : { objective };
     }),
   reward: null,
@@ -342,7 +353,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setRegionTitle: (regionTitle) => set({ regionTitle }),
   celebrateAt: 0,
   bumpCelebrate: () => set((s) => ({ celebrateAt: s.celebrateAt + 1 })),
-  controlsUsed: { move: false, look: false, jump: false, use: false },
+  controlsUsed: { move: false, look: false, jump: false, use: false, zoom: false },
   markControl: (k) => set((s) => (s.controlsUsed[k] ? s : { controlsUsed: { ...s.controlsUsed, [k]: true } })),
   helpOpen: false,
   setHelpOpen: (helpOpen) => set({ helpOpen }),

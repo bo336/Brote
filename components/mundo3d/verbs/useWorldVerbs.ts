@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { INTERACT, SEMILLAS, VERB_TIMING } from '@/lib/world/config';
+import { INTERACT, VERB_TIMING } from '@/lib/world/config';
 import { createClient } from '@/lib/supabase/client';
 import type { FxKind } from '@/lib/render/fx';
 import { SPECIES_BY_SLUG } from '@/lib/world/species';
@@ -11,15 +11,12 @@ import { haptic } from '@/lib/utils/haptics';
 import { playSfx } from '../audio/sfx';
 import { celebrate, emitFx } from '../state/feedback';
 import { useSessionStore } from '../state/useSessionStore';
+import { useGameStore } from '../game/useGameStore';
 
 /** What each verb throws into the air when it lands. */
 const VERB_FX: Partial<Record<VerbId, FxKind>> = {
   plant: 'leaves', water: 'water', log: 'sparkle', forage: 'berries', fish: 'water',
   observe: 'stars', cave: 'dust', track: 'sparkle', mentor: 'stars',
-};
-/** What a verb shows on its card. The server pays; this only says so. */
-const VERB_SEMILLAS: Partial<Record<VerbId, number>> = {
-  log: SEMILLAS.censusFirst, forage: SEMILLAS.forageMin,
 };
 import { sampleHeight, type Heightfield } from '@/lib/world/terrain';
 import type { IslandLayout } from '@/lib/world/layout';
@@ -67,7 +64,6 @@ export function useWorldVerbs({
   onAdvanceTime?: () => void;
   onOpenMojon?: () => void;
 }): VerbRuntime {
-  const setSemillas = usePlayerStore((s) => s.setSemillas);
   const setVerb = usePlayerStore((s) => s.setVerb);
 
   /**
@@ -118,7 +114,8 @@ export function useWorldVerbs({
           titleKey: `reward.${result.verb}`,
           thingKey: result.verb === 'log' ? null : `verb.${result.verb}`,
           thingText: result.verb === 'log' && spot.speciesSlug ? SPECIES_BY_SLUG.get(spot.speciesSlug)?.name_es : undefined,
-          semillas: VERB_SEMILLAS[result.verb] ?? 0,
+          // What a verb pays is the game's, in world semillas, and floats on its own.
+          semillas: 0,
           fx: VERB_FX[result.verb] ?? 'sparkle',
           sound: result.verb === 'fish' ? 'splash' : 'reward',
           at: spot.position,
@@ -127,23 +124,18 @@ export function useWorldVerbs({
       }
 
       /**
-       * **Semillas come from the server or they do not come at all.**
-       *
-       * Every award writes a `semilla_ledger` row through
-       * `brote_grant_semillas` (`15-DATA-MODEL.md` §4), and the balance shown
-       * here is whatever that call returns. The client used to add the amount
-       * to its own counter and tell nobody, which looked identical and was a
-       * second currency path: the number went up, no row was written, and it
-       * was gone on the next load. An unauditable economy is worse than a
-       * slower one.
-       */
-      /**
        * Filing a sighting is the moment `12-LEARNING.md` §3.1 calls a learning
        * beat, so it is where a micro-fact is offered — through the budget,
        * which refuses most of the time by design. A refusal shows nothing
        * extra: the sighting landing in the Bitácora is its own feedback.
        */
       if (result.verb === 'log') facts.offer();
+
+      // The game pays for these, in world semillas, and counts them for missions.
+      const game = useGameStore.getState();
+      if (result.verb === 'log' && spot?.speciesSlug) game.dispatch({ t: 'log', species: spot.speciesSlug }, spot.position);
+      if (result.verb === 'fish') game.dispatch({ t: 'fished', species: 'mojarra' }, spot?.position);
+      if (result.verb === 'forage') game.dispatch({ t: 'forage' }, spot?.position);
 
       if (result.verb === 'log' && spot?.speciesSlug && !readOnly) {
         void (async () => {
@@ -155,8 +147,8 @@ export function useWorldVerbs({
               p_tod: timeOfDay,
             });
             if (error) return;
-            const reply = data as { ok?: boolean; semillas?: number } | null;
-            if (reply?.ok && typeof reply.semillas === 'number') setSemillas(reply.semillas);
+            // The census row only: the reward is the game's (`world_log_species` pays nothing since 0115).
+            void data;
           } catch {
             // The sighting is lost to a dropped connection. It is one row in a
             // journal, not an arrangement somebody spent an afternoon on, so
@@ -164,11 +156,9 @@ export function useWorldVerbs({
           }
         })();
       }
-      // `forage` pays too, and its RPC does not exist yet (`0095` prices it and
-      // nothing awards it). Until it does, foraging pays **nothing** rather
-      // than a number this file made up.
+      // Foraging pays in fruit, through the game (above): berries for the vivero.
     },
-    [controller, setVerb, setSemillas, timeOfDay, readOnly, facts, forage],
+    [controller, setVerb, timeOfDay, readOnly, facts, forage],
   );
 
   /**

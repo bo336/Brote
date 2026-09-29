@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { BRIDGE, SCALE_REFERENCE } from '@/lib/world/config';
 import { mulberry32 } from '@/lib/world/rng';
 import { CLAY, DOMAIN_COLORS, NATIVE, PIP_PARTS } from '../palette';
-import { bevelBox, mergePainted, paintFlat, paintVertical, post } from './build';
+import { bevelBox, mergePainted, paintFlat, paintVertical, post, surface } from './build';
 import { beamBetween, between, board, doubleSided, logBetween, nail, rope, v3, weather } from './carpentry';
 
 const METAL = PIP_PARTS.metal;
@@ -18,37 +18,51 @@ const UP = v3(0, 1, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 
 /**
- * El puente de madera, sized to its crossing (`lib/world/crossing.ts`): two
- * stringers under the planks, planks with a little play in them — a gap between
- * each, never quite straight, never quite one shade — and posts standing on both
- * banks carrying a top rail and a lower one, all along a gentle camber. The
- * deck's top is `BRIDGE.deckTopM` plus the camber, which is exactly the floor
- * `lib/world/decks.ts` stands Pip on.
+ * The bridge's camber, and a beam between two points along its span that
+ * follows it — shared by the deck and the rails, which are built apart.
  */
-export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const rng = mulberry32(Math.round(span * 1000));
+function spanFrame(span: number) {
   const half = span / 2;
-  const deckHalf = BRIDGE.deckWidthM / 2;
   const plankY = BRIDGE.deckTopM - 0.035;
   const lift = (t: number) => Math.sin(t * Math.PI) * BRIDGE.camberM;
-  const tilt = (t: number) => Math.atan((Math.cos(t * Math.PI) * Math.PI * BRIDGE.camberM) / span);
-  /** A beam between two points along the span, following the camber. */
   const beam = (t0: number, t1: number, y: number, z: number, h: number, d: number, hex: string) => {
     const x0 = -half + t0 * span;
     const x1 = -half + t1 * span;
     const y0 = y + lift(t0);
     const y1 = y + lift(t1);
-    const b = bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9);
+    const b = surface(bevelBox(Math.hypot(x1 - x0, y1 - y0) + 0.04, h, d, hex, 0.9), 'wood', [1, 0, 0]);
     b.rotateZ(Math.atan2(y1 - y0, x1 - x0));
     b.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
     return b;
   };
+  return { half, plankY, lift, beam };
+}
+
+/** Grey, weathered wood: the old bridge before the game's repair. */
+const OLD = ['#7E7468', '#6A6158'] as const;
+
+/**
+ * El puente de madera, sized to its crossing (`lib/world/crossing.ts`): two
+ * stringers under the planks, and planks with a little play in them — a gap
+ * between each, never quite straight, never quite one shade — along a gentle
+ * camber. The deck's top is `BRIDGE.deckTopM` plus the camber, which is exactly
+ * the floor `lib/world/decks.ts` stands Pip on. Its rails are `bridgeRails`.
+ *
+ * `broken`: "el puente viejo" before the game's repair (`game/scene/Stations`)
+ * — a third of the planks gone, some sagging, the wood grey.
+ */
+export function bridge(span: number = BRIDGE.defaultSpanM, broken = false): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const rng = mulberry32(Math.round(span * 1000));
+  const { half, plankY, lift, beam } = spanFrame(span);
+  const deckHalf = BRIDGE.deckWidthM / 2;
+  const tilt = (t: number) => Math.atan((Math.cos(t * Math.PI) * Math.PI * BRIDGE.camberM) / span);
+  const gone = (i: number) => broken && (i % 3 === 1 || (i * 7919) % 11 === 4);
 
   const segments = Math.max(4, Math.round(span / 0.8));
   for (const side of [-1, 1]) {
     for (let i = 0; i < segments; i++) {
-      parts.push(beam(i / segments, (i + 1) / segments, plankY - 0.12, side * (deckHalf - 0.22), 0.16, 0.13, CLAY.barkDeep));
+      parts.push(beam(i / segments, (i + 1) / segments, plankY - 0.12, side * (deckHalf - 0.22), 0.16, 0.13, broken ? OLD[1] : CLAY.barkDeep));
     }
   }
 
@@ -57,26 +71,40 @@ export function bridge(span: number = BRIDGE.defaultSpanM): THREE.BufferGeometry
   for (let i = 0; i < planks; i++) {
     const t = (i + 0.5) / planks;
     const tone = rng();
-    const hex = tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
-    const plank = bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94);
-    plank.rotateY((rng() - 0.5) * 0.06);
-    plank.rotateZ(tilt(t));
+    const hex = broken ? OLD[tone < 0.5 ? 0 : 1] : tone < 0.45 ? CLAY.bark : tone < 0.85 ? CLAY.barkRoof : CLAY.barkDeep;
+    if (gone(i)) continue;
+    // Laid across the span: the grain runs from rail to rail.
+    const plank = surface(bevelBox(pitch - 0.03, 0.07, BRIDGE.deckWidthM - rng() * 0.14, hex, 0.94), 'wood', [0, 0, 1]);
+    plank.rotateY((rng() - 0.5) * (broken ? 0.3 : 0.06));
+    plank.rotateZ(tilt(t) + (broken && i % 4 === 0 ? 0.12 : 0));
     plank.translate(-half + t * span, plankY + lift(t) + (rng() - 0.5) * 0.015, (rng() - 0.5) * 0.06);
     parts.push(plank);
   }
+  return mergePainted(parts);
+}
 
+/**
+ * The bridge's posts, standing on both banks, and the top and lower rails they
+ * carry. Apart from the deck so the rails can dither out of the lens's way
+ * (`usePropFade.ts`) while the floor under Pip never does. Broken, one side's
+ * rails have fallen in the river and the other has gaps.
+ */
+export function bridgeRails(span: number = BRIDGE.defaultSpanM, broken = false): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const { half, plankY, lift, beam } = spanFrame(span);
   const posts = Math.max(3, Math.round(span / 1.5) + 1);
-  const railZ = deckHalf - 0.05;
+  const railZ = BRIDGE.deckWidthM / 2 - 0.05;
   const at = (i: number) => 0.03 + (i / (posts - 1)) * 0.94;
   for (const side of [-1, 1]) {
     for (let i = 0; i < posts; i++) {
-      const p = post(0.055, 1.0, CLAY.barkDeep, 7);
+      const p = surface(post(0.055, 1.0, broken ? OLD[1] : CLAY.barkDeep, 7), 'wood', [0, 1, 0]);
       p.translate(-half + at(i) * span, plankY - 0.3 + lift(at(i)), side * railZ);
       parts.push(p);
     }
     for (let i = 0; i < posts - 1; i++) {
-      parts.push(beam(at(i), at(i + 1), plankY + 0.62, side * railZ, 0.07, 0.08, CLAY.bark));
-      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, CLAY.barkRoof));
+      if (broken && (side > 0 || i % 2 === 1)) continue;
+      parts.push(beam(at(i), at(i + 1), plankY + BRIDGE.railTopM, side * railZ, 0.07, 0.08, broken ? OLD[1] : CLAY.bark));
+      parts.push(beam(at(i), at(i + 1), plankY + 0.3, side * railZ, 0.045, 0.05, broken ? OLD[0] : CLAY.barkRoof));
     }
   }
   return mergePainted(parts);
@@ -95,7 +123,7 @@ export function compost(): THREE.BufferGeometry {
   const sides: [number, number, number, number][] = [[0, -r, 0, 4], [-r, 0, Math.PI / 2, 4], [r, 0, Math.PI / 2, 4], [0, r, 0, 2]];
   for (const [x, z, yaw, count] of sides) {
     for (let k = 0; k < count; k++) {
-      const slat = bevelBox(r * 2 - 0.06, 0.12, 0.025, weather(CLAY.bark, rng), 0.93);
+      const slat = surface(bevelBox(r * 2 - 0.06, 0.12, 0.025, weather(CLAY.bark, rng), 0.93), 'wood', [1, 0, 0]);
       slat.rotateY(yaw);
       slat.translate(x, 0.09 + k * 0.17, z);
       parts.push(slat);
@@ -259,7 +287,7 @@ export function boat(): THREE.BufferGeometry {
     const a = v3(side * 0.16, sheer(-0.32) - 0.06, -0.72);
     const b = v3(side * 0.05, sheer(0.5) - 0.03, 0.85);
     parts.push(...logBetween(a, b, 0.018, 0.016, CLAY.barkRoof, SAWN, rng, 6));
-    const blade = bevelBox(0.11, 0.012, 0.34, weather(CLAY.barkRoof, rng), 0.93);
+    const blade = surface(bevelBox(0.11, 0.012, 0.34, weather(CLAY.barkRoof, rng), 0.93), 'wood', [0, 0, 1]);
     blade.rotateY(Math.atan2(b.x - a.x, b.z - a.z));
     blade.translate(b.x + (b.x - a.x) * 0.12, b.y + 0.01, b.z + 0.14);
     parts.push(blade);

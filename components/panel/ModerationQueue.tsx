@@ -8,6 +8,7 @@ import { AlertTriangle, EyeOff, Eye, X, ExternalLink } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SafeImage, ImagenNoDisponible } from '@/components/ui/safe-image';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { adminModerationQueue, adminModerate, type ModerationQueueItem } from '@/lib/api/admin';
 import { relativeLabel } from '@/lib/utils/dates';
@@ -133,8 +134,11 @@ function ReportCard({
         </p>
       )}
       {r.post?.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={r.post.image_url} alt="" className="max-h-48 w-full rounded-card object-cover" />
+        <SafeImage
+          src={r.post.image_url}
+          className="max-h-48 w-full rounded-card object-cover"
+          fallback={<ImagenNoDisponible className="h-24 w-full rounded-card" />}
+        />
       )}
 
       {r.author && (

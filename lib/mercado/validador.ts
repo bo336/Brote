@@ -29,7 +29,16 @@ export interface ListadoParaValidar {
   url_destino: string;
   imagenes: number;
   afirmaciones: Afirmacion[];
+  /** Mercado v2. Sin esto, se valida como el flujo anterior (0107). */
+  tipo?: 'producto' | 'servicio';
+  contacto?: 'web' | 'whatsapp' | 'instagram';
 }
+
+/** Los topes del listado, iguales a los de `listado_enviar` (0114). */
+export const MAX_IMAGENES = 8;
+export const MIN_DESCRIPCION_VENDEDOR = 30;
+export const MIN_DESCRIPCION_LEGACY = 80;
+export const MAX_DESCRIPCION = 4000;
 
 export interface ErrorListado {
   campo: string;
@@ -71,23 +80,36 @@ export function temaIncompatible(texto: string): string | null {
 
 export function validarListado(
   l: ListadoParaValidar,
-  opciones: { certs?: readonly CertInfo[]; hoy?: string } = {},
+  opciones: { certs?: readonly CertInfo[]; hoy?: string; modelo?: 'vendedor' | 'legacy' } = {},
 ): ResultadoListado {
   const errores: ErrorListado[] = [];
   const banderas: Bandera[] = [];
   const titulo = l.titulo.trim();
   const descripcion = l.descripcion.trim();
+  // Una tienda nueva: la afirmación ambiental es opcional (el compromiso se
+  // verificó en la tienda), la descripción puede ser corta, hasta 8 fotos, y
+  // la URL solo hace falta si el contacto es un sitio web.
+  const vendedor = opciones.modelo === 'vendedor';
+  const minDescripcion = vendedor ? MIN_DESCRIPCION_VENDEDOR : MIN_DESCRIPCION_LEGACY;
+  const contacto = vendedor ? l.contacto ?? 'web' : 'web';
 
   if (titulo.length < 10 || titulo.length > 70) errores.push({ campo: 'titulo', codigo: 'titulo_largo' });
-  if (descripcion.length < 80 || descripcion.length > 2000) errores.push({ campo: 'descripcion', codigo: 'descripcion_largo' });
+  if (descripcion.length < minDescripcion || descripcion.length > MAX_DESCRIPCION) {
+    errores.push({ campo: 'descripcion', codigo: 'descripcion_largo' });
+  }
   if (!esCategoria(l.categoria)) errores.push({ campo: 'categoria', codigo: 'categoria_invalida' });
   if (l.dominios.length > 3) errores.push({ campo: 'dominios', codigo: 'dominios_invalidos' });
   if (l.imagenes < 1) errores.push({ campo: 'imagenes', codigo: 'faltan_imagenes' });
-  if (l.imagenes > 4) errores.push({ campo: 'imagenes', codigo: 'max_imagenes' });
+  if (l.imagenes > MAX_IMAGENES) errores.push({ campo: 'imagenes', codigo: 'max_imagenes' });
   if (l.precio_referencia !== null && !(Number.isFinite(l.precio_referencia) && l.precio_referencia > 0)) {
     errores.push({ campo: 'precio_referencia', codigo: 'precio_invalido' });
   }
-  if (!/^https:\/\/[^\s/]+\.[^\s/]+/i.test(l.url_destino.trim())) errores.push({ campo: 'url_destino', codigo: 'url_invalida' });
+  if (vendedor && (l.tipo ?? 'producto') === 'producto' && l.precio_referencia === null) {
+    errores.push({ campo: 'precio_referencia', codigo: 'falta_precio' });
+  }
+  if (contacto === 'web' && !/^https:\/\/[^\s/]+\.[^\s/]+/i.test(l.url_destino.trim())) {
+    errores.push({ campo: 'url_destino', codigo: 'url_invalida' });
+  }
 
   // Absolutos y salud: rechazo duro, en el título Y en la descripción. Las
   // afirmaciones de salud se rechazan tenga la certificación que tenga.
@@ -101,7 +123,7 @@ export function validarListado(
   if (tema) errores.push({ campo: 'descripcion', codigo: 'rubro_incompatible', detalle: tema });
 
   // Las afirmaciones: 1 a 5, cada una válida.
-  if (l.afirmaciones.length === 0) errores.push({ campo: 'afirmaciones', codigo: 'sin_afirmaciones' });
+  if (l.afirmaciones.length === 0 && !vendedor) errores.push({ campo: 'afirmaciones', codigo: 'sin_afirmaciones' });
   if (l.afirmaciones.length > MAX_AFIRMACIONES) errores.push({ campo: 'afirmaciones', codigo: 'max_afirmaciones' });
   l.afirmaciones.forEach((a, i) => {
     for (const e of validarAfirmacion(a, { categoria: l.categoria, certs: opciones.certs, hoy: opciones.hoy })) {

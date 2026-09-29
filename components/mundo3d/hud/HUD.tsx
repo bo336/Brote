@@ -2,11 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronsUp, HelpCircle, Sprout } from 'lucide-react';
+import { ArrowLeft, Backpack, ChevronsUp, HelpCircle, Minus, Plus, Sprout } from 'lucide-react';
 
 import { useEffect } from 'react';
 
-import { INTERACT, JOYSTICK } from '@/lib/world/config';
+import { CAMERA, INTERACT, JOYSTICK } from '@/lib/world/config';
 import { haptic } from '@/lib/utils/haptics';
 import { ActionButton } from '../interaction/ActionButton';
 import { Joystick } from '../control/Joystick';
@@ -14,6 +14,9 @@ import { requestJump } from '../control/useInput';
 import { usePlayerStore } from '../state/usePlayerStore';
 import { record } from '@/lib/world/telemetry';
 import { useSessionStore } from '../state/useSessionStore';
+import { balance, bagCap, bagCount } from '@/lib/world/game/state';
+import { useGameStore } from '../game/useGameStore';
+import { useGameUi } from '../game/useGameUi';
 
 /**
  * The HUD is **nearly empty**, and that is the design (`16-UI-AUDIO-A11Y.md` §1).
@@ -38,6 +41,9 @@ const CAST_MS = 9000;
 /** The jump button: a thumb-sized circle, stacked above the action button's slot. */
 const JUMP_BUTTON_PX = 60;
 const JUMP_BUTTON_LIFT_PX = 76;
+/** The zoom pair, under the counter row. */
+const ZOOM_BUTTON_PX = 44;
+const ZOOM_BELOW_TOP_PX = 52;
 
 export function HUD({ onOpenBitacora }: {
   /**
@@ -54,8 +60,14 @@ export function HUD({ onOpenBitacora }: {
 }) {
   const t = useTranslations('mundo');
   const tBitacora = useTranslations('mundo.bitacora');
+  const tJuego = useTranslations('mundo.juego');
   const router = useRouter();
-  const semillas = usePlayerStore((s) => s.semillas);
+  // The WORLD's semillas and backpack — never the app's balance (`docs/MUNDO_JUEGO.md` §3.11).
+  const game = useGameStore((s) => s.state);
+  const semillas = game ? balance(game) : 0;
+  const bagUsed = game ? bagCount(game.bag) : 0;
+  const bagMax = game ? bagCap(game) : 0;
+  const openIsla = () => useGameUi.getState().open({ kind: 'isla', tab: 'misiones' });
   const hud = useSessionStore((s) => s.hud);
   const lockedHint = useSessionStore((s) => s.lockedHint);
   const setLockedHint = useSessionStore((s) => s.setLockedHint);
@@ -119,7 +131,7 @@ export function HUD({ onOpenBitacora }: {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      onOpenBitacora();
+      openIsla();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -167,14 +179,51 @@ export function HUD({ onOpenBitacora }: {
             on desktop (§3). */}
         <button
           type="button"
-          onClick={onOpenBitacora}
-          aria-label={tBitacora('title')}
-          className="tnum pointer-events-auto flex items-center gap-1.5 rounded-pill bg-brote-ink/40 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
+          onClick={openIsla}
+          aria-label={tJuego('isla.abrir')}
+          className="tnum pointer-events-auto flex items-center gap-2.5 rounded-pill bg-brote-ink/45 px-3 py-1.5 text-caption font-bold text-white backdrop-blur-sm transition-transform active:scale-95"
         >
-          <Sprout className="h-3.5 w-3.5" aria-hidden />
-          {semillas}
+          <span className="flex items-center gap-1 text-brote-sun">
+            <Sprout className="h-3.5 w-3.5" aria-hidden />
+            {semillas}
+          </span>
+          <span className={`flex items-center gap-1 ${bagUsed >= bagMax && bagMax > 0 ? 'text-brote-coral' : ''}`}>
+            <Backpack className="h-3.5 w-3.5" aria-hidden />
+            {bagUsed}/{bagMax}
+          </span>
         </button>
       </div>
+
+      {/* Zoom, where anyone can find it. The 2026-09-16 playtest asked for zoom
+          and never found the wheel, and on a phone a pinch fights the joystick.
+          The owner's call over the four-element rule. */}
+      {playing && (
+        <div
+          className="pointer-events-auto absolute right-4 flex flex-col items-center rounded-full bg-brote-ink/40 text-white backdrop-blur-sm"
+          style={{ top: `calc(max(env(safe-area-inset-top), ${JOYSTICK.safeAreaMinPx}px) + ${ZOOM_BELOW_TOP_PX}px)` }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            aria-label={t('zoomIn')}
+            onClick={() => useSessionStore.getState().zoom?.(1 / CAMERA.stepZoom)}
+            className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+            style={{ width: ZOOM_BUTTON_PX, height: ZOOM_BUTTON_PX }}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+          </button>
+          <span className="h-px w-5 bg-white/25" aria-hidden />
+          <button
+            type="button"
+            aria-label={t('zoomOut')}
+            onClick={() => useSessionStore.getState().zoom?.(CAMERA.stepZoom)}
+            className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+            style={{ width: ZOOM_BUTTON_PX, height: ZOOM_BUTTON_PX }}
+          >
+            <Minus className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      )}
 
       {/* The day's visitor. Below the caption slot, never in it: it is the one
           thing on screen nobody asked for, so it never displaces something

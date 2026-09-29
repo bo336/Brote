@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { BarChart3, CreditCard, LayoutDashboard, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
+import { BarChart3, CreditCard, LayoutDashboard, MessageCircleQuestion, Package, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { cn } from '@/lib/utils/cn';
 
@@ -13,11 +13,13 @@ import { cn } from '@/lib/utils/cn';
  * pantalla que todavía no está es una promesa rota en el lugar más visible del
  * producto.
  */
-const SECCIONES: {
-  clave: 'resumen' | 'mejora' | 'listados' | 'analitica' | 'verificacion' | 'plan';
+type Seccion = {
+  clave: 'resumen' | 'mejora' | 'listados' | 'analitica' | 'verificacion' | 'plan' | 'productos' | 'preguntas' | 'tienda';
   href: string;
   icono: LucideIcon;
-}[] = [
+};
+
+const SECCIONES_LEGACY: Seccion[] = [
   { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
   { clave: 'mejora', href: '/negocio/mejora', icono: Target },
   { clave: 'listados', href: '/negocio/listados', icono: Store },
@@ -26,14 +28,32 @@ const SECCIONES: {
   { clave: 'plan', href: '/negocio/plan', icono: CreditCard },
 ];
 
+// Mercado v2: una tienda vive de sus productos y de responder. La verificación
+// de sitio ya no es un paso (la hace Mercado Pago), y Mejora queda al final:
+// es el programa para quien quiere ir más allá.
+const SECCIONES_TIENDA: Seccion[] = [
+  { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
+  { clave: 'productos', href: '/negocio/listados', icono: Package },
+  { clave: 'preguntas', href: '/negocio/preguntas', icono: MessageCircleQuestion },
+  { clave: 'tienda', href: '/negocio/tienda', icono: Store },
+  { clave: 'analitica', href: '/negocio/analitica', icono: BarChart3 },
+  { clave: 'plan', href: '/negocio/plan', icono: CreditCard },
+  { clave: 'mejora', href: '/negocio/mejora', icono: Target },
+];
+
+function secciones(modelo: 'vendedor' | 'legacy' | undefined): Seccion[] {
+  return modelo === 'vendedor' ? SECCIONES_TIENDA : SECCIONES_LEGACY;
+}
+
 function activa(href: string, pathname: string): boolean {
   return href === '/negocio' ? pathname === '/negocio' : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /** Barra lateral de 220 px en escritorio. */
-export function NavLateral() {
+export function NavLateral({ modelo }: { modelo?: 'vendedor' | 'legacy' }) {
   const t = useTranslations('negocio.nav');
   const pathname = usePathname();
+  const SECCIONES = secciones(modelo);
 
   return (
     <nav aria-label={t('aria')}>
@@ -70,10 +90,11 @@ export function NavLateral() {
 }
 
 /** En móvil, la misma navegación como fila de chips con desplazamiento. */
-export function NavChips() {
+export function NavChips({ modelo }: { modelo?: 'vendedor' | 'legacy' }) {
   const t = useTranslations('negocio.nav');
   const pathname = usePathname();
   const router = useRouter();
+  const SECCIONES = secciones(modelo);
   const actual = SECCIONES.find((s) => activa(s.href, pathname))?.href ?? null;
 
   return (

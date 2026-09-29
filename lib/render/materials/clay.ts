@@ -19,6 +19,7 @@
  * the whole scene by changing numbers — never by rebuilding a material.
  */
 import * as THREE from 'three';
+import { neutralRestoration } from '../restoration';
 
 import { CLAY, FOG, GROUND, LOOK, WIND, WOBBLE } from '@/lib/world/config';
 import { BRAND } from '../palette';
@@ -27,6 +28,7 @@ import {
   REVEAL_FRAG, REVEAL_VERT, WIND_VERT, WOBBLE_VERT,
 } from './chunks';
 import { FAUNA_NORMAL_VERT, FAUNA_POSITION_VERT, FAUNA_VERT_HEAD } from './fauna-rig';
+import { BUILT_FRAG, BUILT_FRAG_HEAD, BUILT_ROUGH_FRAG, BUILT_VERT, BUILT_VERT_HEAD } from './built';
 import { REVEAL_OFF, revealModeIndex, type RevealState } from '../reveal';
 
 export interface WorldMood {
@@ -75,6 +77,8 @@ export interface ClayOptions {
   translucent?: boolean;
   /** The animals: wings, legs, tail and head move on the GPU (`fauna-rig.ts`). Instanced meshes only. */
   fauna?: boolean;
+  /** Built things (props, stations, structures): wood grain, stone, metal, weave (`./built`). */
+  built?: boolean;
 }
 
 export interface ClayMaterial extends THREE.MeshStandardMaterial {
@@ -131,6 +135,8 @@ function defaultUniforms(): Record<string, THREE.IUniform> {
     uGroundNormal: { value: blankTexture() },
     uGrassMask: { value: blankTexture() },
     uGrassMaskInfo: { value: new THREE.Vector4(1, 1, 0, 0) },
+    // The game's restoration map; the neutral texel means "as it always was".
+    uRestTex: { value: neutralRestoration() },
     uGroundScales: { value: new THREE.Vector4(GROUND.detailScale, GROUND.broadScale, GROUND.underGrass, GROUND.normalStrength) },
     // The paths' distance map (`geometry/path-map.ts`); the blank reads as "no path anywhere".
     uPathMap: { value: blankTexture() },
@@ -184,6 +190,7 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
   if ((opts.rim ?? true) && (opts.rimBoost ?? 1) > 1) defines.push('#define BH_RIM');
   if (opts.ground) defines.push('#define BH_REVEAL_GROUND');
   if (opts.fauna) defines.push('#define BH_FAUNA');
+  if (opts.built) defines.push('#define BH_BUILT');
   // Leaf cards carry the crown's normal on both faces; the default flip darkens every back face.
   if (opts.map && opts.side === THREE.DoubleSide) defines.push('#define BH_CARD_NORMALS');
   const defineBlock = defines.join('\n');
@@ -207,7 +214,8 @@ export function createClayMaterial(opts: ClayOptions = {}): ClayMaterial {
         inject(shader.vertexShader, '#include <common>', `#include <common>
 ${defineBlock}
 ${CLAY_VERT_HEAD}
-${FAUNA_VERT_HEAD}`),
+${FAUNA_VERT_HEAD}
+${BUILT_VERT_HEAD}`),
         '#include <begin_vertex>',
         /* glsl */ `
         #include <begin_vertex>
@@ -221,6 +229,7 @@ ${FAUNA_VERT_HEAD}`),
         #ifdef USE_INSTANCING
           vAOBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).y;
         #endif
+        ${BUILT_VERT}
         ${REVEAL_VERT}
         ${WOBBLE_VERT}
         ${WIND_VERT}
@@ -245,7 +254,8 @@ ${FAUNA_VERT_HEAD}`),
       inject(
         inject(shader.fragmentShader, '#include <common>', `#include <common>
 ${defineBlock}
-${CLAY_FRAG_HEAD}`),
+${CLAY_FRAG_HEAD}
+${BUILT_FRAG_HEAD}`),
         '#include <lights_fragment_end>',
         /* glsl */ `
         #include <lights_fragment_end>
@@ -279,11 +289,19 @@ ${CLAY_FRAG_HEAD}`),
       '#include <color_fragment>',
       /* glsl */ `
         #include <color_fragment>
+        ${BUILT_FRAG}
         ${REVEAL_FRAG}
         #ifdef BH_REVEAL_GROUND
           ${GROUND_DETAIL_FRAG}
         #endif
       `,
+    );
+
+    shader.fragmentShader = inject(
+      shader.fragmentShader,
+      '#include <roughnessmap_fragment>',
+      `#include <roughnessmap_fragment>
+        ${BUILT_ROUGH_FRAG}`,
     );
 
     shader.fragmentShader = inject(

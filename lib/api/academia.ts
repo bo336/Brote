@@ -1,199 +1,129 @@
 'use client';
 
 /**
- * Envoltorios tipados sobre los RPC de la Academia (El Bosque).
+ * Los RPC del Árbol de la Academia, tipados.
  *
- * Misma forma que `lib/api/aprender.ts`, que es el que esto va a reemplazar
- * cuando la fase 3 retire la pantalla vieja. Hasta entonces conviven: `lessons`
- * y sus tres RPC siguen en pie como camino de rollback.
- *
- * Toda la lógica vive en el servidor. Acá no se calcula ni un punto, ni una
- * semilla, ni si una respuesta estuvo bien: eso lo decide Postgres y este
- * archivo solo lo transporta.
+ * Acá no se calcula nada: ni un punto, ni una semilla, ni si una respuesta
+ * estuvo bien. Eso lo decide Postgres (0110 y 0111) y este archivo solo lo
+ * transporta. Lo único que agrega es la frontera: cada paso que llega se
+ * valida antes de tocar un renderer (`lib/academia/validar.ts`).
  */
 
 import { createClient } from '@/lib/supabase/client';
-import { parsearPaso } from '@/lib/academia/schemas';
+import { validarPayload } from '@/lib/academia/validar';
 import type {
-  Arbol,
-  DetalleGajo,
+  Correccion,
+  DetalleUnidad,
   EstadoAcademia,
-  FalloAcademia,
-  PasoSesion,
+  Fallo,
+  Mapa,
+  Paso,
+  Res,
+  Respuesta,
   Resultado,
-  RespuestaCorregida,
-  RespuestaEnviada,
-  ResultadoSesion,
   Sesion,
-  AccionSugerida,
-} from '@/lib/academia/types';
+} from '@/lib/academia/modelo';
 
 /**
  * Un error de red o de Postgres se convierte en el mismo `{ ok: false }` que
- * devuelven los RPC cuando dicen que no. La pantalla maneja UN solo caso de
- * fallo, no dos.
+ * devuelven los RPC cuando dicen que no: la pantalla maneja UN solo caso.
  */
-function fallo(mensaje: string, codigo = 'error'): FalloAcademia {
+function fallo(mensaje: string, codigo = 'error'): Fallo {
   return { ok: false, error: codigo, mensaje };
 }
 
-async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<Resultado<T>> {
-  const { data, error } = await createClient().rpc(nombre, args ?? {});
-  if (error) return fallo(error.message);
-  if (data == null) return fallo('El servidor no devolvió nada.');
-  return data as Resultado<T>;
+async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<Res<T>> {
+  try {
+    const { data, error } = await createClient().rpc(nombre, args ?? {});
+    if (error) return fallo(error.message);
+    if (data == null) return fallo('El servidor no devolvió nada.');
+    return data as Res<T>;
+  } catch (e) {
+    return fallo(e instanceof Error ? e.message : 'No hay conexión.', 'red');
+  }
 }
 
-/**
- * El árbol entero, en UNA sola llamada.
- *
- * Si esta pantalla alguna vez necesita una segunda consulta, el que está mal es
- * el RPC y se arregla el RPC (15-ui-motion.md §1).
- */
-export function fetchArbol(): Promise<Resultado<Arbol>> {
-  return rpc<Arbol>('academia_arbol');
+/** El árbol entero, en UNA llamada. */
+export function fetchMapa(): Promise<Res<Mapa>> {
+  return rpc<Mapa>('academia_mapa');
 }
 
-/** Savia, racha y semillas del día. Barato: lo consulta el encabezado. */
-export function fetchEstadoAcademia(): Promise<Resultado<EstadoAcademia>> {
+/** Savia, racha y semillas. Barato: lo usa la entrada desde Hoy. */
+export function fetchEstadoAcademia(): Promise<Res<EstadoAcademia>> {
   return rpc<EstadoAcademia>('academia_estado');
 }
 
-/** Las hojas de un gajo, con la fuerza real de cada concepto que enseña. */
-export function fetchGajo(slug: string): Promise<Resultado<DetalleGajo>> {
-  return rpc<DetalleGajo>('academia_gajo', { p_slug: slug });
+/** Una unidad por dentro: sus sesiones, sus objetivos y qué repasa. */
+export function fetchUnidad(slug: string): Promise<Res<DetalleUnidad>> {
+  return rpc<DetalleUnidad>('academia_unidad', { p_slug: slug });
 }
 
 /**
- * Arranca una hoja. Consume savia al EMPEZAR, no al terminar: si se cobrara al
- * final, abandonar sería gratis y el límite no existiría.
- *
- * Los pasos vuelven ya validados: un paso con el payload roto —o que traiga la
- * solución— se descarta acá y no llega a ningún renderer.
+ * Empieza una sesión. Cobra la savia al EMPEZAR si es territorio nuevo;
+ * rehacer, practicar y repasar no cuestan.
  */
-export async function empezarHoja(hojaId: string): Promise<Resultado<Sesion>> {
-  const r = await rpc<Sesion>('academia_start_session', { p_hoja_id: hojaId, p_tipo: 'hoja' });
+export async function empezarSesion(leccionId: string): Promise<Res<Sesion>> {
+  const r = await rpc<Sesion>('academia_empezar', { p_leccion_id: leccionId });
   return r.ok ? validarPasos(r) : r;
 }
 
-/** El riego es gratis y siempre lo va a ser: el límite nunca bloquea repasar. */
-export async function empezarRiego(): Promise<Resultado<Sesion>> {
-  const r = await rpc<Sesion>('academia_riego');
+/** Un repaso libre de lo que se está olvidando. Gratis siempre. */
+export async function empezarRepaso(): Promise<Res<Sesion>> {
+  const r = await rpc<Sesion>('academia_repasar');
   return r.ok ? validarPasos(r) : r;
 }
 
 /**
- * Los pasos de una sesión en curso que siguen sin responder.
- *
- * NO empieza nada y NO cuesta savia: relee una sesión que ya existe. Se usa
- * para dos cosas, y las dos son necesarias:
- *
- *   1. El paso re-encolado. `academia_answer` crea una entrega nueva cuando
- *      algo sale mal, pero solo devuelve la bandera; el `entrega_id` nuevo se
- *      pide acá. Sin esto la sesión no se puede cerrar nunca.
- *   2. Recargar la página. La savia se cobra al empezar, así que perder los
- *      pasos por un F5 sería perder una hoja del día.
+ * Relee una sesión que ya existe, con las correcciones de lo respondido.
+ * No empieza nada ni cobra: sirve para un F5, una pestaña cerrada, y para
+ * traer el paso que el servidor re-encola cuando algo sale mal.
  */
-export async function fetchPendientes(sesionId: string): Promise<Resultado<Sesion>> {
-  const r = await rpc<Sesion>('academia_pendientes', { p_sesion_id: sesionId });
+export async function retomarSesion(intentoId: string): Promise<Res<Sesion>> {
+  const r = await rpc<Sesion>('academia_retomar', { p_intento_id: intentoId });
   return r.ok ? validarPasos(r) : r;
 }
 
-function validarPasos(sesion: Sesion): Sesion {
-  const pasos: PasoSesion[] = [];
-  for (const paso of sesion.pasos) {
-    const v = parsearPaso(paso.payload);
+function validarPasos(s: Sesion): Sesion {
+  const pasos: Paso[] = [];
+  for (const p of s.pasos) {
+    const v = validarPayload(p.payload);
     if (!v.ok) {
-      // Un paso roto no tumba la sesión: se saltea y se deja rastro. Es lo que
-      // va a pasar el día que la fase 3 genere algo mal formado.
-      console.error(`[academia] paso ${paso.orden} descartado: ${v.motivo}`);
+      // Un paso roto no tumba la sesión: se saltea y queda rastro.
+      console.error(`[academia] paso ${p.orden} descartado: ${v.motivo}`);
       continue;
     }
-    pasos.push({ ...paso, payload: v.payload });
+    pasos.push({ ...p, payload: v.payload });
   }
-  return { ...sesion, pasos };
+  return { ...s, pasos };
+}
+
+/** Corrige un paso. De un solo uso: reintentar devuelve `ya_respondida`. */
+export function responder(entregaId: string, respuesta: Respuesta): Promise<Res<Correccion & { ok: true }>> {
+  return rpc<Correccion & { ok: true }>('academia_responder', { p_entrega_id: entregaId, p_respuesta: respuesta });
+}
+
+/** Cierra la sesión. Falla con `incompleta` si queda algo sin responder. */
+export function terminarSesion(intentoId: string): Promise<Res<Resultado>> {
+  return rpc<Resultado>('academia_terminar', { p_intento_id: intentoId });
+}
+
+/** Salir. Devuelve la savia si no se respondió nada en el primer minuto y medio. */
+export function salirDeSesion(intentoId: string): Promise<Res<{ ok: true; reembolso: boolean }>> {
+  return rpc<{ ok: true; reembolso: boolean }>('academia_salir', { p_intento_id: intentoId });
 }
 
 /**
- * Corrige un paso. De un solo uso: reintentar la misma entrega devuelve
- * `ya_respondida`, no una segunda corrección.
- *
- * La explicación y la fuente llegan ACÁ, nunca antes: la explicación es el
- * contenido del ejercicio, no un premio por acertar.
+ * Deja constancia de que el gancho de acción se mostró o se tocó. Medir no
+ * puede romper la pantalla: si falla, se pierde una medición y nada más.
  */
-export function responder(
-  entregaId: string,
-  respuesta: RespuestaEnviada,
-): Promise<Resultado<RespuestaCorregida>> {
-  return rpc<RespuestaCorregida>('academia_answer', {
-    p_entrega_id: entregaId,
-    p_respuesta: respuesta,
-  });
-}
-
-/**
- * Cierra la sesión: puntaje, XP, semillas, racha y el gancho de acción.
- *
- * Falla con `incompleta` si queda algún paso sin responder — si no, terminar en
- * el paso 1 sería una sesión completa con puntaje perfecto.
- */
-export function terminarSesion(sesionId: string): Promise<Resultado<ResultadoSesion>> {
-  return rpc<ResultadoSesion>('academia_finish_session', { p_sesion_id: sesionId });
-}
-
-/**
- * Salir sin haber empezado no puede costar savia. Devuelve `reembolso: true`
- * cuando se abandonó dentro del primer minuto y sin haber respondido nada.
- */
-export function abandonarSesion(sesionId: string): Promise<Resultado<{ ok: true; reembolso: boolean }>> {
-  return rpc<{ ok: true; reembolso: boolean }>('academia_abandonar', { p_sesion_id: sesionId });
-}
-
-/**
- * ¿Se cerró un anillo con esta sesión?
- *
- * Un anillo se cierra cuando todos sus gajos alcanzables están frondosos. Hasta
- * la fase 3 nadie escribía `cerrado_at`, así que el árbol nunca ganaba anillos
- * y los gajos del anillo 2 se quedaban latentes para siempre.
- */
-export function cerrarAnillo(): Promise<
-  Resultado<{ ok: true; cerrado: boolean; anillo?: number; nombre?: string }>
-> {
-  return rpc<{ ok: true; cerrado: boolean; anillo?: number; nombre?: string }>('academia_cerrar_anillo');
-}
-
-/**
- * Deja constancia de que el gancho de acción se mostró, y de si se tocó.
- *
- * Sin esto la tasa de toques no se puede calcular, y es la métrica que dice si
- * la sección está cumpliendo su única promesa: que aprender termine en hacer.
- * No bloquea nada: si falla, se pierde una medición, no una acción.
- */
-export async function marcarGancho(
-  sesionId: string,
-  accionId: string,
-  evento: 'mostrado' | 'tocado',
-): Promise<void> {
+export async function marcarGancho(intentoId: string, accionId: string, evento: 'mostrado' | 'tocado'): Promise<void> {
   try {
-    await createClient().rpc('academia_gancho', {
-      p_sesion_id: sesionId,
+    await createClient().rpc('academia_gancho_intento', {
+      p_intento_id: intentoId,
       p_accion_id: accionId,
       p_evento: evento,
     });
   } catch {
-    /* medir no puede romper la pantalla */
+    /* ídem */
   }
-}
-
-/**
- * El gancho de acción de una hoja.
- *
- * Devuelve `null` —no un error— cuando no hay ninguna acción elegible: una
- * acción en enfriamiento o fuera de rango sería un link roto disfrazado de
- * sugerencia. Nunca se inventa una acción.
- */
-export async function fetchAccionSugerida(hojaId: string): Promise<AccionSugerida | null> {
-  const { data, error } = await createClient().rpc('academia_accion_sugerida', { p_hoja_id: hojaId });
-  if (error) return null;
-  return (data ?? null) as AccionSugerida | null;
 }

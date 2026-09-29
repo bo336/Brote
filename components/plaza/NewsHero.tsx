@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Reveal } from '@/components/ui/reveal';
+import { SafeImage } from '@/components/ui/safe-image';
 import { getDomain } from '@/lib/domains';
 import { relativeLabel } from '@/lib/utils/dates';
 import type { NewsRow } from '@/lib/supabase/rows';
@@ -19,19 +20,17 @@ export function NewsHero({ item }: { item: NewsRow }) {
     <Reveal>
       <Link href={`/feed/n/${item.id}`} className="group block">
         <div className="leaf-clip relative h-64 w-full overflow-hidden rounded-card sm:h-80">
-          {item.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.image_url}
-              alt=""
-              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.045]"
-            />
-          ) : (
-            <div
-              className="h-full w-full"
-              style={{ background: `linear-gradient(135deg, ${dom?.color ?? '#1FB57A'}, #0C1A13)` }}
-            />
-          )}
+          {/* No picture, or one that fails: the domain gradient, never a broken icon. */}
+          <SafeImage
+            src={item.image_url}
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.045]"
+            fallback={
+              <div
+                className="h-full w-full"
+                style={{ background: `linear-gradient(135deg, ${dom?.color ?? '#1FB57A'}, #0C1A13)` }}
+              />
+            }
+          />
           <div className="absolute inset-0 bg-ink-scrim" />
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
             <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/85">

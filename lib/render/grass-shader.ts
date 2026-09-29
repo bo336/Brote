@@ -31,6 +31,8 @@ export const GRASS_VERT_HEAD = /* glsl */ `
   uniform vec2 uWindDir;
   uniform sampler2D uPathMap;
   uniform vec4 uPathInfo;
+  uniform sampler2D uRestTex;
+  varying float vGrassVital;
   varying float vGrassT;
   varying float vGrassGust;
   varying vec3 vGrassTone;
@@ -50,30 +52,53 @@ export const GRASS_VERT_BLADE = /* glsl */ `
   vec4 bhR = vec4(bhHash(bhCell), bhHash(bhCell + 17.31), bhHash(bhCell + 41.7), bhHash(bhCell + 5.13));
   vec2 bhRoot = (bhCell + bhR.xy) * uSpacing;
   vec2 bhUV = ((bhRoot + uExtent) / uStep + 0.5) / uRes;
-  float bhGroundY = texture2D(uHeightTex, bhUV).r;
-  vec4 bhMask = texture2D(uMaskTex, bhUV);
   float bhDist = length(bhRoot - uCenter);
   // Each ring owns an annulus and fades its blades down at both edges, so the
   // next ring's blades rise through the same ground and no line shows.
   float bhRing = smoothstep(uInner - uRingFade, uInner, bhDist) * (1.0 - smoothstep(uOuter - uRingFade, uOuter, bhDist));
+  /**
+   * **A blade nobody can see does no work.** Every ring is a full square around
+   * Pip, so most of its blades are behind the camera, off to the side, or inside
+   * the next ring in — and each used to pay three texture fetches and all the wind
+   * maths anyway: well over a million vertices a frame at T3. The root is projected
+   * once; outside the ring, behind the lens or clear of the frame's sides, the
+   * blade collapses to a point and skips the rest. Height is taken at Pip's level:
+   * the camera never rolls, so it moves a root up or down the frame, never sideways.
+   */
+  vec4 bhClip = projectionMatrix * viewMatrix * vec4(bhRoot.x, uPip.y, bhRoot.y, 1.0);
+  bool bhLive = bhRing > 0.0 && bhClip.w > -1.0 && abs(bhClip.x) < bhClip.w * 1.15 + 1.2;
+  float bhGroundY = 0.0;
+  vec4 bhMask = vec4(0.0);
+  vec4 bhPathTex = vec4(1.0);
+  if (bhLive) {
+    bhGroundY = texture2D(uHeightTex, bhUV).r;
+    bhMask = texture2D(uMaskTex, bhUV);
+    bhPathTex = texture2D(uPathMap, (bhRoot + uPathInfo.x) / (2.0 * uPathInfo.x));
+  }
   // The mask's density is a likelihood; a meadow at half of it should still be a
   // full meadow, and only a clearing's edge should thin out.
-  float bhDensity = smoothstep(0.0, 0.45, bhMask.a);
+  // Restoration: how much of the potential grows here, how alive it is, how tall.
+  vec4 bhRest = bhLive ? texture2D(uRestTex, bhUV) : vec4(1.0);
+  float bhDensity = smoothstep(0.0, 0.45, bhMask.a * bhRest.g);
+  vGrassVital = bhRest.r;
   // …and stops at the worn edge of a path, the same line the ground draws.
-  vec4 bhPathTex = texture2D(uPathMap, (bhRoot + uPathInfo.x) / (2.0 * uPathInfo.x));
   float bhPathHalf = uPathInfo.z * mix(0.3, 1.0, bhPathTex.g) * smoothstep(0.0, 0.35, bhPathTex.g);
   float bhKeep = step(bhR.z, bhDensity) * bhRing
     * smoothstep(bhPathHalf - 0.02, bhPathHalf + 0.3, bhPathTex.r * uPathInfo.y + (bhR.x - 0.5) * 0.25);
   // Lush patches grow tall; clearings stay short and dry.
-  float bhPatch = bhNoise(bhRoot * 0.09);
-  float bhH = uBladeH * (0.55 + 0.8 * bhR.w) * mix(0.55, 1.3, bhPatch) * (0.45 + 0.55 * bhDensity) * bhKeep;
+  float bhPatch = bhLive ? bhNoise(bhRoot * 0.09) : 0.0;
+  float bhH = uBladeH * (0.55 + 0.8 * bhR.w) * mix(0.55, 1.3, bhPatch) * (0.45 + 0.55 * bhDensity) * bhKeep
+    // Wild ground grows short, tired tufts; a restored pastizal stands tall.
+    * mix(0.55, 1.0, bhRest.r) * (1.0 + bhRest.a * 0.75);
   float bhAng = bhHash(bhCell + 9.7) * 6.2831853;
   vec2 bhFacing = vec2(cos(bhAng), sin(bhAng));
   vec2 bhSide = vec2(-bhFacing.y, bhFacing.x);
   // Wind: gust fronts rolling downwind across the field, and a quick flutter.
-  float bhGust = smoothstep(0.35, 0.85, bhNoise(bhRoot * 0.055 - uWindDir * uTime * 0.6));
+  float bhGust = bhLive ? smoothstep(0.35, 0.85, bhNoise(bhRoot * 0.055 - uWindDir * uTime * 0.6)) : 0.0;
   float bhFlutter = sin(uTime * 3.1 + bhR.x * 12.0 + bhRoot.x * 0.7) * 0.08;
   vec2 bhBend = bhFacing * (0.12 + 0.38 * bhR.z) + uWindDir * (bhGust * 0.9 + 0.15) * uWindAmp + bhSide * bhFlutter;
+  // Dry blades lie over: tired pasture is flattened, not a field of upright spikes.
+  bhBend += bhFacing * (1.0 - bhRest.r) * (0.55 + 0.35 * bhR.x);
   vec2 bhAway = bhRoot - uPip.xz;
   float bhPD = length(bhAway);
   float bhPush = (1.0 - smoothstep(0.05, uPushR, bhPD)) * (1.0 - step(1.2, abs(uPip.y - bhGroundY)));
@@ -98,7 +123,8 @@ export const GRASS_VERT_POSITION = /* glsl */ `
   float bhTaper = 1.0 - pow(bhT, 1.4);
   float bhTwist = (bhR.x - 0.5) * 1.3 * bhT;
   vec2 bhSideT = bhSide * cos(bhTwist) - bhFacing * sin(bhTwist);
-  transformed.xz = bhRoot + bhSideT * position.x * uBladeW * (0.3 + 0.7 * bhTaper) * (0.7 + 0.6 * bhR.w)
+  // Dry blades are thin: wild ground reads as a tired pasture, not as a field of paper spikes.
+  transformed.xz = bhRoot + bhSideT * position.x * uBladeW * (0.3 + 0.7 * bhTaper) * (0.7 + 0.6 * bhR.w) * mix(0.55, 1.0, vGrassVital)
     + bhBend * bhCurve * bhH;
   transformed.y = bhGroundY + bhT * bhH * (1.0 - 0.4 * bhBendLen * bhCurve);
   vGrassWorld = transformed;
@@ -117,6 +143,7 @@ export const GRASS_FRAG_HEAD = /* glsl */ `
   varying vec3 vGrassTone;
   varying vec3 vGrassBase;
   varying vec3 vGrassWorld;
+  varying float vGrassVital;
 `;
 
 /** After `color_fragment`: several greens, some straw, the biome's tint, and shade at the root. */
@@ -134,6 +161,11 @@ export const GRASS_FRAG_COLOR = /* glsl */ `
   // Tips dry toward a warm light green; roots sink into the ground's root shade.
   bhC = mix(bhC, bhC * vec3(1.3, 1.15, 0.6) + vec3(0.02, 0.012, 0.0), smoothstep(0.6, 1.0, vGrassT) * 0.55);
   float bhRootShade = mix(0.42, 1.0, smoothstep(0.0, 0.7, vGrassT));
+  // Wild ground: the same blades gone to straw — pale, dry, a little grey.
+  // Wild ground: tired pasture — still green low down, gone to golden straw at the tips.
+  vec3 bhStrawC = mix(vec3(0.27, 0.2, 0.07), vec3(0.42, 0.32, 0.12), vGrassTone.x) * (0.88 + 0.24 * vGrassTone.y);
+  vec3 bhDryC = mix(bhC * vec3(0.8, 0.85, 0.6), bhStrawC, smoothstep(0.05, 0.55, vGrassT));
+  bhC = mix(bhDryC, bhC, smoothstep(0.05, 0.85, vGrassVital));
   diffuseColor.rgb = bhC * bhRootShade;
 `;
 

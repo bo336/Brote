@@ -50,12 +50,20 @@ export function formatWater(l: number): string {
   if (l >= 1000) return `${nf1.format(l / 1000)} m³`;
   return `${nf.format(l)} L`;
 }
+/**
+ * Under a kilo, grams: a reusable bottle avoids 30 g of plastic, and "0 kg"
+ * (what one decimal of a kilo rounds it to) told people their action saved
+ * nothing.
+ */
+function gramos(kg: number): string | null {
+  return kg > 0 && kg < 0.95 ? `${nf.format(Math.max(1, Math.round(kg * 1000)))} g` : null;
+}
 export function formatCo2(kg: number): string {
   if (kg >= 1000) return `${nf1.format(kg / 1000)} t`;
-  return kg < 10 ? `${nf1.format(kg)} kg` : `${nf.format(kg)} kg`;
+  return gramos(kg) ?? (kg < 10 ? `${nf1.format(kg)} kg` : `${nf.format(kg)} kg`);
 }
 export function formatWaste(kg: number): string {
-  return kg < 10 ? `${nf1.format(kg)} kg` : `${nf.format(kg)} kg`;
+  return gramos(kg) ?? (kg < 10 ? `${nf1.format(kg)} kg` : `${nf.format(kg)} kg`);
 }
 export function formatEnergy(kwh: number): string {
   return kwh < 10 ? `${nf1.format(kwh)} kWh` : `${nf.format(kwh)} kWh`;

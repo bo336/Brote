@@ -5,7 +5,7 @@ import { AlertTriangle, Baby, Check, ExternalLink, Gavel, RefreshCw, Shuffle, X 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Ejercicio } from '@/components/academia/ejercicios';
+import { Ejercicio } from '@/components/panel/academia-legado';
 import {
   academiaCola,
   academiaRevisar,

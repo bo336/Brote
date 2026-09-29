@@ -209,6 +209,14 @@ export const REVEAL_VERT = /* glsl */ `
         // Overshoot and settle. A bloom springs; it does not inflate.
         transformed *= bhG * (1.0 + 0.30 * sin(bhG * 3.14159));
       }
+      // ── bloom: the same spring, but only inside the radius. A parcel coming
+      //    alive grows what stands in it and leaves the rest of the island be.
+      if (uRevealMode > 5.5) {
+        float bhD = length(bhBase.xz - uRevealCentre.xz);
+        float bhFront = uRevealAmount * uRevealRadius;
+        float bhG = bhD > uRevealRadius ? 1.0 : clamp((bhFront - bhD) / max(0.001, uRevealRadius * 0.3), 0.0, 1.0);
+        transformed *= bhG * (1.0 + 0.30 * sin(bhG * 3.14159));
+      }
     #endif
   }
 `;
@@ -228,7 +236,7 @@ export const REVEAL_FRAG = /* glsl */ `
   // what is left ahead of the front. A hue shift that keeps the shading it
   // found — tinting flat would turn a lit island into a sticker, and the whole
   // clay read is in that shading.
-  if (uRevealMode > 4.5) {
+  if (uRevealMode > 4.5 && uRevealMode < 5.5) {
     float bhD = length(vClayWorld.xz - uRevealCentre.xz);
     float bhFront = uRevealAmount * uRevealRadius;
     float bhAhead = smoothstep(bhFront - uRevealRadius * 0.06, bhFront + uRevealRadius * 0.02, bhD);
@@ -341,7 +349,18 @@ export const GROUND_DETAIL_FRAG = /* glsl */ `
   // Under dense grass the ground is the grass's own root shade, so the gaps
   // between blades read as depth instead of bare floor.
   vec2 bhGrassUV = ((bhG + uGrassMaskInfo.z) / uGrassMaskInfo.y + 0.5) / uGrassMaskInfo.x;
-  float bhGrass = smoothstep(0.02, 0.4, texture2D(uGrassMask, bhGrassUV).a) * uGrassMaskInfo.w * (1.0 - bhPath);
+  // Restoration (restoration.ts): wild ground is dry and cracked, composted
+  // ground is dark and rich, and the root shade follows the grass that is
+  // actually there rather than the grass that could be.
+  vec4 bhRest = texture2D(uRestTex, bhGrassUV);
+  float bhGrass = smoothstep(0.02, 0.4, texture2D(uGrassMask, bhGrassUV).a * bhRest.g) * uGrassMaskInfo.w * (1.0 - bhPath);
+  float bhWild = (1.0 - smoothstep(0.05, 0.6, bhRest.r)) * (1.0 - bhPath);
+  vec3 bhDrySoil = vec3(0.42, 0.33, 0.21) * (0.78 + 0.45 * bhFine) * (0.9 + 0.2 * bhMid);
+  float bhCracks = (1.0 - smoothstep(0.0, 0.055, abs(bh_noise2(bhG * 1.7) - 0.5))) * (0.5 + 0.5 * bhMacro);
+  bhDrySoil *= 1.0 - 0.35 * bhCracks;
+  bhBase = mix(bhBase, bhDrySoil, bhWild * 0.85);
+  vec3 bhRich = vec3(0.12, 0.08, 0.05) * (0.75 + 0.5 * bhFine);
+  bhBase = mix(bhBase, bhRich, bhRest.b * 0.85 * (1.0 - bhPath));
   vec3 bhRootShade = vec3(0.05, 0.1, 0.025) * (0.8 + 0.5 * bhFine);
   bhBase = mix(bhBase, bhRootShade, bhGrass * uGroundScales.z);
   // Grey stone that faces the sky grows moss and grass in patches.
@@ -390,6 +409,7 @@ export const CLAY_FRAG_HEAD = /* glsl */ `
     uniform sampler2D uGroundNormal;
     uniform sampler2D uGrassMask;
     uniform vec4 uGrassMaskInfo;
+    uniform sampler2D uRestTex;
     uniform vec4 uGroundScales;
     uniform sampler2D uPathMap;
     uniform vec4 uPathInfo;
