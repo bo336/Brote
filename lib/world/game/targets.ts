@@ -604,8 +604,34 @@ function meanwhile(s: GameState, w: MissionWorld, ctx: GameContext, at: Where, o
   const daily = dailyView(s, w, ctx, at);
   if (daily?.target) return { ...daily, eyebrow: `${eyebrow} · ${daily.eyebrow}`, ask };
   const target = resolveTarget({ to: 'parcel', stage: 0 }, s, w, ctx, at);
-  if (!target) return null;
-  return { id: `free:${on}`, kind: 'free', who: null, eyebrow, title: 'Limpiá otra parcela', ask, progress: null, target };
+  if (target) return { id: `free:${on}`, kind: 'free', who: null, eyebrow, title: 'Limpiá otra parcela', ask, progress: null, target };
+  // Every parcel already clean: gather toward what comes next — the
+  // compostera's next level, then organics for its next batch. Without these
+  // the card fell back to "wait at the compostera" for six minutes.
+  const cp = s.stations.compostera;
+  const cost = cp && cp.lvl >= 1 ? nextCost('compostera', cp.lvl) : null;
+  if (cp && cost) {
+    for (const [k, n] of Object.entries(missingFor(cp, cost)) as [MaterialId, number][]) {
+      const have = k === 'residuos' ? s.bag.residuos.length : k === 'plantines' ? 0 : s.bag[k as BulkMaterial] ?? 0;
+      if (have >= n) continue;
+      const route = sourceOf(k, s, w, ctx, at);
+      if (!route) continue;
+      const left = n - have;
+      return {
+        id: `free:gather-${k}`, kind: 'free', who: null, eyebrow,
+        title: `Juntá ${MATERIALS[k].short.toLowerCase()} para mejorar la compostera`,
+        ask: `Te ${left === 1 ? 'falta' : 'faltan'} ${left}. ${STATIONS.compostera.levels[cp.lvl]?.gain ?? ''}`.trim(),
+        progress: null, target: route,
+      };
+    }
+  }
+  if (cp && cp.lvl >= 1 && loadRoom(cp, 'compostera') > 0) {
+    const route = sourceOf('hojas', s, w, ctx, at);
+    if (route) {
+      return { id: 'free:gather-hojas', kind: 'free', who: null, eyebrow, title: 'Juntá orgánicos para la próxima tanda', ask, progress: null, target: route };
+    }
+  }
+  return null;
 }
 
 const REGION_NAME: Record<RegionId, string> = {

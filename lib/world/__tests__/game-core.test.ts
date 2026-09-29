@@ -595,3 +595,29 @@ test('a sorting daily with no rubbish left on the island today steps aside', () 
   s.missions.daily = { day: c.day, ids: ['d.organicos', 'd.hojas'], prog: [0, 0], claimed: [false, false], bonus: false };
   assert.equal(missionView(s, world, c, at).id, 'daily:d.hojas');
 });
+
+test('with every parcel clean, waiting on compost gathers toward the next upgrade', () => {
+  // 2026-09-28, touch run: all ten Claro parcels cleaned, the card fell back
+  // to "wait at the compostera" with the upgrade two branches away.
+  const layout = buildLayout(WHO, cumulativeState(1));
+  const c = ctx();
+  const at = {
+    pip: { x: 0, z: 0 }, spots: gameSpots(WHO, layout), cast: new Map(), water: [],
+    spawns: [{ id: 'x:b:0', kind: 'ramas', x: 4, z: 4 } as Spawn, { id: 'x:h:0', kind: 'hojas', x: 6, z: 6 } as Spawn],
+  };
+  const s = newGame(c);
+  for (const id of CHAIN_ORDER) s.missions.chain[id] = CHAINS[id]!.missions.length;
+  s.missions.chain.claro = CHAINS.claro!.missions.findIndex((m) => m.title === 'Suelo vivo');
+  for (const p of parcelsAt(field, 1)) s.parcels[p.id] = { s: 1, lit: 255, inv: true, n: 0, plants: [], wet: [], at: 0 };
+  s.parcels[parcelsAt(field, 1)[0]!.id]!.n = 2;
+  s.stations.compostera = { lvl: 1, paid: {}, queue: 4, since: 1, out: 0 };
+  s.bag.ramas = 8;
+  s.bag.reciclado = 10;
+  let v = missionView(s, world, c, at);
+  assert.equal(v.title, 'Juntá ramas para mejorar la compostera');
+  assert.equal(v.target?.id, 'x:b:0');
+  // Upgrade materials in hand but not the semillas yet: organics for the next batch.
+  s.bag.ramas = 10;
+  v = missionView(s, world, c, at);
+  assert.equal(v.title, 'Juntá orgánicos para la próxima tanda');
+});
