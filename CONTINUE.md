@@ -8,6 +8,10 @@
 > la sección "INICIO — EL CENTRO DE LA APP" más abajo). Rama `claude/inicio-hub`,
 > que además junta Academia (#32), Mercado v2 (#33) y Tu mundo (#34).
 
+> **CUENTAS, EMPRESAS Y EL MUNDO EN EL TELÉFONO, desde 2026-10-03:** ver la sección
+> "CUENTAS Y EMPRESAS" más abajo (rama `claude/cuentas-y-mundo`). Para probar
+> cada tipo de cuenta: `/panel/pruebas`.
+
 > **Purpose:** This is the persistent build journal for the Brote project. If a build session hits a context/output limit, the working session MUST update this file before stopping. A fresh session reads **`BUILD_SPEC.md` + this file** and resumes with zero lost context. Keep this file accurate and terse.
 
 ---
@@ -1315,13 +1319,98 @@ sube 39 → 40 kg contando, aparece "Antes de cerrar" con la puerta al ceibo).
 
 ### Falta / del dueño
 
-- Aplicar en la base viva, en orden: `0113_mercado_v2.sql` (versión final),
-  `0114_vendedores.sql`, `0115_mundo_juego.sql`, `0116_mundo_abierto.sql`,
-  `0117_perfil_y_puntos_solo_por_rpc.sql`, `0118_noticias_sin_imagenes_rotas.sql`.
-- Desplegar `refresh-news` (entrada `source/index.ts` + `_shared/cors.ts`,
-  `_shared/gemini.ts`, `_shared/imagen.ts`).
+- ~~Aplicar 0113–0118, desplegar `refresh-news`, mergear~~ **hecho el
+  2026-09-29** (PR #35 mergeado, `refresh-news` v4, 0113–0118 en vivo).
 - Recorrido real con sesión: marcar una acción del día y una de la rutina,
   seguir cada puerta de "Antes de cerrar", abrir el selector de cuenta.
+
+---
+
+# CUENTAS Y EMPRESAS · EL MUNDO EN EL TELÉFONO · 2026-10-03 · rama `claude/cuentas-y-mundo`
+
+> El pedido: (1) el mundo no abre en los teléfonos; (2) revisar los tipos de
+> cuenta —chicos, adolescentes, adultos y empresas— para que cada uno tenga su
+> rol, sus reglas y lo que necesita; (3) separar la empresa que sólo vende en el
+> Mercado de la que usa Brote para bajar su huella, con IA que le propone
+> objetivos y acciones razonables, y que las empresas compitan sin que el
+> tamaño pese; (4) proyectos sólo para rangos altos; (5) una forma simple de
+> probar todo eso y el mundo por rango.
+
+### 1 · El mundo en el teléfono (`860c169`)
+
+No se pudo reproducir en emulación (Android e iOS, con el payload real del
+dueño): abre. `world_bootstrap` responde en 0,3 s. Lo que sí se midió: en un
+teléfono el monitor de calidad **subía solo a T2 al minuto** (y a T3 después:
+lente, sombras 2048, 1,75×), el salto típico tras el que iOS cierra la pestaña.
+Arreglos, en `lib/world/arranque.ts` (con tests) y `MundoGame`:
+- Un táctil no pasa de T2 por su cuenta y no usa el lente salvo "Alta".
+- Una apertura que muere deja marca: la siguiente arranca en T1 (T0 tras dos),
+  con un aviso y "Probar completa". 90 s estables borran los fallos.
+- `MundoSeguro`: chequea WebGL 2 antes de cargar three (r169 lo exige) y atrapa
+  cualquier error con una pantalla clara (modo liviano, reintentar, volver), en
+  vez del error genérico de la app.
+- El aviso de contexto perdido nunca se enganchaba (`canvasRef.current` en el
+  render): ahora usa el canvas como estado.
+- Los fallos se reportan a `world_client_errors` (0119) y se ven en
+  `/panel/pruebas`. **Si sigue sin abrir en algún teléfono, ahí va a estar el
+  modelo, el navegador y el error.**
+
+### 2 · Tipos de cuenta (`93bd07a`)
+
+`lib/cuentas/reglas.ts` es la matriz (con test contra el SQL). Lo nuevo:
+- Proyectos: crear = adulto **y** rango Arbusto (5) — antes Retoño y cualquier
+  edad; sumarse = adolescente o adulto, nunca chico; `project_participants` sin
+  INSERT/UPDATE directos (se salteaba rango y cupo); el contacto del organizador
+  deja de ser columna pública y sale por `project_contact` sólo a quien se sumó
+  (0120). El rango sigue editable en /panel (`project_min_rank_tier`).
+- Brote+: un adolescente no se suscribe solo (pago recurrente).
+- Ajustes → Tipo de cuenta: "Podés / Así te cuidamos" de la propia cuenta y de
+  las otras dos.
+
+### 3 · Dos cuentas de empresa y la Liga (`9598289`, 0121)
+
+- `businesses.objetivo`: `vender` (tienda), `mejorar` (empresa que mejora),
+  `ambos`. El alta pregunta primero para qué. El menú sale de
+  `lib/negocio/objetivo.ts`. Una empresa que sólo mejora no puede publicar
+  productos (trigger). Cada una puede sumar la otra desde el resumen.
+- Empresa que mejora: `empresa_crear` (seis datos) → aprobada para su programa
+  privado → directo al dossier → objetivos con IA (`business-goals`, ya
+  existía) filtrados por las reglas de realismo → pasos = acciones de la
+  semana en su inicio.
+- **Liga de empresas** por trimestre: logros aprobados por un revisor (los 4
+  mejores, 150 × peso × ambición, tope 600) + constancia (semanas con avance,
+  tope 250) + avance de pasos (tope 150). Nada de volumen ni tamaño
+  (`lib/negocio/liga.ts` es el espejo testeado). La tabla pública pide estar
+  verificada (nivel > e0 o un método de dominio/mail/red). Hoy las 4 tiendas
+  DEMO aparecen en la liga: se van con la demo.
+
+### 4 · Probar todo (`eae33e1`, 0122)
+
+`/panel/pruebas` (con la contraseña del panel):
+1. Una ventana de incógnito por cuenta; entrar con `tucorreo+chico@gmail.com`,
+   `+adolescente`, `+tienda`, `+empresa`… (enlace por mail, sin contraseña).
+2. En el panel: mail → tipo, rango (1–11) y negocio → Aplicar. Atajos para los
+   casos típicos. Sólo acepta mails con "+" o ya marcados `es_prueba`.
+3. Las cuentas quedan privadas y se borran del todo desde la lista.
+4. El mundo en cada rango sin cuenta: botones a `/offline/mundo-preview?tier=N`.
+
+### Verificación
+
+`npm test` 594/594, typecheck, lint, build. Dos ensayos contra la base viva en
+bloques que terminan en rollback: las 4 migraciones aplican (el primero
+encontró que `create_project` perdía sus valores por omisión — corregido),
+empresa nueva, listado bloqueado, liga y puesto, contacto del proyecto,
+reporte de error; y con una cuenta temporal + contraseña temporal del panel:
+configurar chico rango 3 (isla tier 3), negarle negocio, negar una cuenta real
+sin "+", chico sin sumarse ni crear proyectos, adulto en Retoño sin crear,
+tienda de prueba, listar y borrar. Pantallas nuevas capturadas a 390×844.
+
+### Falta / del dueño
+
+- Aplicar 0119, 0120, 0121, 0122 y mergear la rama.
+- Probar con `/panel/pruebas` en un teléfono real; si el mundo no abre, mirar
+  la lista de fallos ahí mismo.
+- Borrar la demo de negocios antes de lanzar (también sale de la liga).
 
 ---
 
