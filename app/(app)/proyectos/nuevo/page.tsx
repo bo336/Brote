@@ -57,14 +57,27 @@ export default function NuevoProyectoPage() {
 
   // Gate read from the server, so this screen and create_project() can never
   // disagree about who is allowed to organise.
-  const minTier = minTierQ.data ?? 4;
+  const minTier = minTierQ.data ?? 5;
   const needed = RANK_BY_TIER[minTier];
+  // Organising is for adult accounts (0120): the server refuses anyone else.
+  if (profile && (profile.accountType ?? 'adult') !== 'adult') {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <Pip size={80} mood="neutral" />
+        <h1 className="font-display text-h2 font-bold">{t('createAdults')}</h1>
+        <p className="max-w-xs text-small text-muted-foreground">{t('createAdultsBody')}</p>
+        <Button variant="secondary" asChild>
+          <Link href="/acciones?tab=proyectos">{tc('back')}</Link>
+        </Button>
+      </div>
+    );
+  }
   if (profile && getRank(profile.totalXp).tier < minTier) {
     const missing = Math.max(0, (needed?.enterAt ?? 0) - profile.totalXp);
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={80} mood="neutral" />
-        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: needed?.name_es ?? 'Retoño' })}</h1>
+        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: needed?.name_es ?? 'Arbusto' })}</h1>
         <p className="max-w-xs text-small text-muted-foreground">
           Organizar un proyecto significa coordinar gente en persona y repartir puntos, así que se
           habilita un poco más adelante. Te faltan{' '}

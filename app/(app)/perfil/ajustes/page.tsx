@@ -12,6 +12,7 @@ import { Input, Select, Field } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { ThemeSegmented } from '@/components/ui/theme-toggle';
 import { AccountTypeBadge } from '@/components/perfil/AccountTypeBadge';
+import { ReglasDeCuenta } from '@/components/perfil/ReglasDeCuenta';
 import { FirstRunTour } from '@/components/tutorial/FirstRunTour';
 import { BRAND } from '@/lib/brand';
 import { CITIES, OTHER_CITY } from '@/lib/data/cities';
@@ -259,8 +260,9 @@ export default function AjustesPage() {
       <Section title="Tipo de cuenta">
         <Card className="space-y-2 p-4">
           <AccountTypeBadge type={profile?.accountType} showDetail />
+          <ReglasDeCuenta tipo={profile?.accountType} />
           <p className="text-caption text-muted-foreground">
-            Define qué acciones, noticias y competencias ves. Para cambiarlo escribinos a{' '}
+            Define qué acciones, noticias, secciones y publicidad ves. Para cambiarlo escribinos a{' '}
             <a href={`mailto:${BRAND.contactEmail}`} className="text-primary underline underline-offset-2">
               {BRAND.contactEmail}
             </a>

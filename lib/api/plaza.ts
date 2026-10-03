@@ -19,11 +19,19 @@ export interface ProfileBrief {
   division: number;
 }
 
+/**
+ * Every project column a screen may read. Not `*`: the organiser's contact is
+ * not a public column (0120) — it comes from `project_contact`, and only to
+ * people who joined.
+ */
+const PROJECT_COLS =
+  'id, creator_id, title, description, type, domain_slug, image_url, neighborhood, city, lat, lng, location_text, event_date, status, min_rank_slug, max_participants, reward_points, upvotes, created_at, session_points';
+
 /** Project feed with participant counts + the user's joined/upvoted state. */
 export async function fetchProjects(userId?: string): Promise<ProjectWithMeta[]> {
   const supabase = createClient();
   const [{ data: projects, error }, { data: parts }, { data: mine }, { data: ups }] = await Promise.all([
-    supabase.from('projects').select('*').neq('status', 'cancelled').order('event_date', { ascending: true }),
+    supabase.from('projects').select(PROJECT_COLS).neq('status', 'cancelled').order('event_date', { ascending: true }),
     supabase.from('project_participants').select('project_id'),
     userId
       ? supabase.from('project_participants').select('project_id').eq('user_id', userId)
@@ -49,7 +57,7 @@ export async function fetchProjects(userId?: string): Promise<ProjectWithMeta[]>
 
 export async function fetchProject(id: string, userId?: string): Promise<ProjectWithMeta | null> {
   const supabase = createClient();
-  const { data, error } = await supabase.from('projects').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('projects').select(PROJECT_COLS).eq('id', id).maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const [{ count }, { data: mine }, { data: up }] = await Promise.all([
@@ -136,6 +144,18 @@ export async function leaveProject(projectId: string): Promise<{ ok: boolean; er
   const { data, error } = await createClient().rpc('leave_project', { p_project_id: projectId });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string };
+}
+
+/**
+ * How to reach the organiser: only for whoever organises or already joined,
+ * never for a kid account (0120). Null otherwise — or before 0120 is applied.
+ */
+export async function fetchProjectContact(
+  projectId: string,
+): Promise<{ contact_info: string; contact_kind: ProjectRow['contact_kind'] } | null> {
+  const { data, error } = await createClient().rpc('project_contact', { p_project: projectId });
+  if (error || !data) return null;
+  return data as { contact_info: string; contact_kind: ProjectRow['contact_kind'] };
 }
 
 export async function joinProject(projectId: string): Promise<void> {
