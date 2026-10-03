@@ -161,3 +161,46 @@ export async function aceptarTerminos(negocioId: string): Promise<{ ok: boolean;
   const r = data as { ok?: boolean; error?: string } | null;
   return r?.ok ? { ok: true } : { ok: false, error: r?.error ?? 'error' };
 }
+
+// ── Empresa que mejora (0121) ───────────────────────────────────────────────
+
+export interface ValoresEmpresa {
+  nombre_comercial: string;
+  rubro: string;
+  tamano: string;
+  provincia: string;
+  ciudad?: string;
+  sitio_web?: string;
+}
+
+/**
+ * Da de alta una EMPRESA QUE MEJORA y la deja activa. Corta a propósito: el
+ * trabajo de verdad (contar cómo opera, recibir objetivos) pasa en el
+ * programa, no en un formulario de alta.
+ */
+export async function crearEmpresa(v: ValoresEmpresa): Promise<Resultado<{ id: string }>> {
+  const { data, error } = await createClient().rpc('empresa_crear', {
+    p_nombre: (v.nombre_comercial ?? '').trim(),
+    p_rubro: v.rubro,
+    p_tamano: v.tamano,
+    p_provincia: v.provincia || null,
+    p_ciudad: (v.ciudad ?? '').trim() || null,
+    p_sitio_web: (v.sitio_web ?? '').trim() || null,
+  });
+  if (error) return { ok: false, error: 'error' };
+  const r = data as { ok?: boolean; id?: string; error?: string; campo?: string } | null;
+  if (!r?.ok || !r.id) return { ok: false, error: r?.error ?? 'error', campo: r?.campo };
+  escribirContexto(`biz:${r.id}`);
+  return { ok: true, id: r.id };
+}
+
+/** Sumar o sacar la tienda / el programa Mejora (sólo owner). */
+export async function cambiarObjetivo(
+  negocioId: string,
+  objetivo: 'vender' | 'mejorar' | 'ambos',
+): Promise<Resultado> {
+  const { data, error } = await createClient().rpc('negocio_set_objetivo', { p_business: negocioId, p_objetivo: objetivo });
+  if (error) return { ok: false, error: 'error' };
+  const r = data as { ok?: boolean; error?: string } | null;
+  return r?.ok ? { ok: true } : { ok: false, error: r?.error ?? 'error' };
+}

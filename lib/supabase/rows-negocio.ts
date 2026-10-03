@@ -61,7 +61,9 @@ export interface MiNegocio {
   status: BusinessStatus;
   tier: EvidenceTier;
   /** Mercado v2 (0114): 'vendedor' es el alta nueva; 'legacy', el flujo de empresas de 0105. */
-  modelo?: 'vendedor' | 'legacy';
+  modelo?: 'vendedor' | 'legacy' | 'empresa';
+  /** Qué vino a hacer: vender, mejorar su impacto, o las dos (0121). */
+  objetivo?: 'vender' | 'mejorar' | 'ambos';
 }
 
 /** Un método, tal como lo devuelve `negocio_detalle`. */
@@ -318,4 +320,52 @@ export interface ColaObjetivos {
     generated_by: string;
     evidencias: { id: string; path: string }[];
   }[];
+}
+
+// ── La Liga de empresas (0121) ──────────────────────────────────────────────
+
+/** Lo que suma una empresa en la temporada. Nada mide tamaño ni volumen. */
+export interface PuntajeLiga {
+  logros: number;
+  constancia: number;
+  avance: number;
+  total: number;
+  cerrados: number;
+  activos: number;
+  semanas: number;
+  semanas_activas: number;
+}
+
+export interface TemporadaLiga {
+  nombre: string;
+  desde: string;
+  hasta: string;
+}
+
+export interface FilaLiga extends PuntajeLiga {
+  id: string;
+  nombre: string;
+  slug: string;
+  logo: string | null;
+  rubro: string;
+  tamano: BusinessSize;
+  provincia: string | null;
+  tier: EvidenceTier;
+  progreso_mejora: number;
+}
+
+/** `liga_empresas(p_rubro, p_limit)`. */
+export interface LigaEmpresas {
+  temporada: TemporadaLiga;
+  filas: FilaLiga[];
+}
+
+/** `liga_mi_puesto(p_business)`. */
+export interface MiPuestoLiga {
+  temporada: TemporadaLiga;
+  puntaje: PuntajeLiga;
+  verificada: boolean;
+  participa: boolean;
+  puesto: number | null;
+  empresas: number;
 }

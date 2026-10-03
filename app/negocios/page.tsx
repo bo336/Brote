@@ -61,12 +61,19 @@ export default function NegociosPage() {
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href={mailto}
+          {/* A company signs itself up now (0121): the email stays for questions. */}
+          <Link
+            href="/auth/login?next=%2Fnegocio%2Falta%3Ftipo%3Dmejorar"
             className="press inline-flex items-center gap-2 rounded-pill bg-primary px-5 py-3 text-body font-semibold text-primary-foreground shadow-crisp"
           >
-            Quiero sumar mi negocio
+            Sumar mi empresa
             <ArrowRight className="h-4 w-4" />
+          </Link>
+          <a
+            href={mailto}
+            className="press inline-flex items-center gap-2 rounded-pill border border-border px-5 py-3 text-body font-medium"
+          >
+            Escribinos
           </a>
           <Link
             href="/legal/niveles"

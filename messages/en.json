@@ -672,7 +672,9 @@
     "sectionProyectos": "Projects",
     "nearbyTitle": "Projects near you",
     "nearbyBody": "{n} open to join",
-    "leave": "Leave project"
+    "leave": "Leave project",
+    "createAdults": "Projects are organised by adults",
+    "createAdultsBody": "A project is an in-person meeting, with a place and a contact. You can join existing ones; organising is for adult accounts."
   },
   "perfilPublico": {
     "actions30d": "Actions (30 d)",
@@ -1741,7 +1743,8 @@
       "plan": "Plan",
       "productos": "Productos",
       "preguntas": "Preguntas",
-      "tienda": "Tienda"
+      "tienda": "Tienda",
+      "liga": "League"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -2965,6 +2968,89 @@
         "cancelar": "Darme de baja",
         "legales": "Cómo se cobra, cómo darte de baja y qué pasa con tus datos está en los <enlace>términos para tiendas</enlace>."
       }
+    },
+    "tipo": {
+      "eyebrow": "Your business on Brote",
+      "titulo": "What will you use Brote for?",
+      "bajada": "They are two different accounts, each with what it needs.",
+      "venderTitulo": "Sell in the Market",
+      "venderCuerpo": "For those who make or sell products and services with an environmental commitment.",
+      "vender1": "Your store, your products and buyers' questions",
+      "vender2": "People looking to buy from those who do it right",
+      "vender3": "Analytics on who views and messages you",
+      "mejorarTitulo": "Improve my company's impact",
+      "mejorarCuerpo": "For companies of any size that want to really cut their footprint.",
+      "mejorar1": "Goals and actions made for you, always reachable",
+      "mejorar2": "Evidence-based tracking and a level that grows",
+      "mejorar3": "The Company League: size doesn't count, keeping your plan does",
+      "ambas": "Both? Start with one and add the other from the summary."
+    },
+    "empresa": {
+      "eyebrow": "Company that improves",
+      "titulo": "Add your company",
+      "bajada": "Six details and you're in the programme. The rest you tell later, at your pace.",
+      "paso1": "You tell how you work: energy, waste, water, supplies.",
+      "paso2": "You get goals and actions made for you, with how to measure them.",
+      "paso3": "You keep your plan and compete in the Company League.",
+      "tamanoAyuda": "Only to tailor the goals: it doesn't count in the league.",
+      "sitio": "Website (optional)",
+      "sitioAyuda": "Used to verify the company and appear in the public league.",
+      "revisar": "Check the marked fields.",
+      "crear": "Create and start"
+    },
+    "inicioEmpresa": {
+      "eyebrow": "Company that improves",
+      "bajada": "Your programme this week: what's next, your actions and how you're doing in the league.",
+      "dossierTitulo": "Tell us how you work",
+      "dossierCuerpo": "That's how we build goals that really help. You're {n}% done.",
+      "dossierCta": "Keep going",
+      "generarTitulo": "Ask for your goals",
+      "propuestosTitulo": "{n, plural, one {You have # proposed goal} other {You have # proposed goals}}",
+      "generarCuerpo": "AI proposes them from how you work and the rules keep them reachable. You accept the ones that help.",
+      "generarCta": "Ask for goals",
+      "propuestosCta": "See and choose",
+      "accionesTitulo": "This week's actions",
+      "verPrograma": "See the programme",
+      "accionesVacio": "When you accept a goal, its first step shows up here.",
+      "accionesListas": "You did every step of your ongoing goals: close them with their evidence.",
+      "pasosDe": "{hechos} of {total} steps",
+      "progreso": "Improvement progress: {n} of 100.",
+      "ligaTitulo": "Company League",
+      "puesto": "Place {puesto} of {total}",
+      "sinPuesto": "Verify your company to appear in the table. Meanwhile, it already counts.",
+      "verificar": "Verify my company",
+      "verLiga": "See the league",
+      "ligaPronto": "The league starts as soon as you close your first goal."
+    },
+    "liga": {
+      "eyebrow": "Season",
+      "titulo": "Company League",
+      "bajada": "The companies keeping their improvement plan best this season.",
+      "justaTitulo": "Size doesn't count",
+      "justaCuerpo": "Nobody scores for being big: no kilos, litres or employees are measured. Each company competes against its own plan, so a three-person shop can beat a 200-person plant.",
+      "logros": "Achievements",
+      "constancia": "Consistency",
+      "avance": "Progress",
+      "logrosDetalle": "goals met and approved, by ambition (up to {max}, best {n})",
+      "constanciaDetalle": "weeks with reported progress (up to {max})",
+      "avanceDetalle": "steps done on ongoing goals (up to {max})",
+      "tuEmpresa": "Your company",
+      "puesto": "Place {puesto} of {total}",
+      "sinPuesto": "You don't appear in the public table yet.",
+      "verificar": "Verify your company to appear",
+      "filtro": "Filter by sector",
+      "todos": "All",
+      "pronto": "The league is about to start.",
+      "vacia": "No verified companies this season yet. It could be yours.",
+      "cerrados": "{n, plural, =0 {no closures} one {# closure} other {# closures}}"
+    },
+    "sumar": {
+      "venderTitulo": "Do you also sell?",
+      "venderCuerpo": "Add the store and list your products in the Market.",
+      "mejorarTitulo": "Want to cut your business's footprint?",
+      "mejorarCuerpo": "Add the Improve programme: goals made for you and the Company League.",
+      "sumar": "Add",
+      "error": "That didn't work. Try again."
     }
   },
   "mercado": {
