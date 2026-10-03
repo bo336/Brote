@@ -1686,6 +1686,21 @@
         "tag": "Controles",
         "title": "Cómo moverte"
       }
+    },
+    "noAbre": {
+      "titulo_webgl": "Tu teléfono no puede dibujar la isla",
+      "cuerpo_webgl": "El mundo necesita WebGL 2 y este navegador no lo tiene. Actualizá el sistema o usá Chrome o Safari al día. Tu progreso está guardado.",
+      "titulo_error": "Tu isla no pudo abrirse",
+      "cuerpo_error": "Algo falló al dibujarla en este teléfono. Probá el modo liviano: es la misma isla, con menos detalle y mucho más liviana.",
+      "titulo_memoria": "Tu teléfono se quedó sin memoria para la isla",
+      "cuerpo_memoria": "La próxima vez abre en modo liviano para que no vuelva a pasar. Lo que hiciste está guardado.",
+      "liviano": "Abrir en modo liviano",
+      "reintentar": "Reintentar",
+      "volver": "Volver al inicio"
+    },
+    "liviano": {
+      "aviso": "Modo liviano: la última vez tu teléfono no pudo con la isla completa.",
+      "probar": "Probar completa"
     }
   },
   "negocio": {

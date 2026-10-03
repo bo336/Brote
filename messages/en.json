@@ -1686,6 +1686,21 @@
         "tag": "Controls",
         "title": "How to move"
       }
+    },
+    "noAbre": {
+      "titulo_webgl": "Your phone can't draw the island",
+      "cuerpo_webgl": "The world needs WebGL 2, which this browser lacks. Update your system or use a current Chrome or Safari. Your progress is saved.",
+      "titulo_error": "Your island couldn't open",
+      "cuerpo_error": "Something failed while drawing it on this phone. Try light mode: the same island, with less detail and much lighter.",
+      "titulo_memoria": "Your phone ran out of memory for the island",
+      "cuerpo_memoria": "Next time it opens in light mode so it doesn't happen again. What you did is saved.",
+      "liviano": "Open in light mode",
+      "reintentar": "Try again",
+      "volver": "Back to home"
+    },
+    "liviano": {
+      "aviso": "Light mode: last time your phone couldn't handle the full island.",
+      "probar": "Try full"
     }
   },
   "negocio": {

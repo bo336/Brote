@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -11,6 +12,18 @@ import { detailModeToTier, prefersReducedMotion, useSettings } from '@/stores/se
 import type { CeremonyScript } from '@/lib/world/ceremony';
 import { paletteForWorld } from '@/lib/render/palette';
 import { createQualityMonitor, initialTier, TIERS } from '@/lib/render/quality';
+import {
+  abrir,
+  cerrarLimpio,
+  lensAllowed,
+  marcarEstable,
+  maxAutoTier,
+  olvidarFallos,
+  registrarFallo,
+  STABLE_AFTER_MS,
+  volverAlFrente,
+  type Arranque,
+} from '@/lib/world/arranque';
 import type { JournalEntry, QualityTier, TimeOfDay, WorldPayload } from '@/lib/world/types';
 import type { FollowCamera } from './control/FollowCamera';
 import { useKeyboardInput } from './control/useInput';
@@ -31,6 +44,8 @@ import { PostFx } from './scene/PostFx';
 import type { VisitSession } from './visit/useVisit';
 import { useGameSession } from './game/useGameSession';
 import { useGameUi } from './game/useGameUi';
+import { MundoNoAbre } from './MundoSeguro';
+import { reportarFalloMundo } from './reportar';
 
 /** A world nobody owns has logged nothing. Stable, so the sheet never rebuilds. */
 const EMPTY_JOURNAL: JournalEntry[] = [];
@@ -41,6 +56,14 @@ const EMPTY_JOURNAL: JournalEntry[] = [];
  * on a narrow phone.
  */
 const LARGE_TEXT_SCALE = 1.25;
+
+function storage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 /** The four presets, in the order resting walks through them. */
 const TIME_ORDER: TimeOfDay[] = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -172,6 +195,23 @@ export default function MundoGame({
   const autoCamera = useSettings((s) => s.autoCamera);
   const sensitivity = useSettings((s) => s.cameraSensitivityX);
 
+  /**
+   * A phone is a touch screen. It decides the ceiling of the quality monitor
+   * and whether the lens may run (`lib/world/arranque.ts`).
+   */
+  const coarse = useMemo(
+    () => typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)')?.matches ?? false),
+    [],
+  );
+  /**
+   * Did the last opening die? Read once, before anything heavy is built: a
+   * crash mark from the previous visit means this one starts light (T1, or T0
+   * after two) and stays there for the session.
+   */
+  const [arranque] = useState<Arranque>(() =>
+    visit !== undefined || typeof window === 'undefined' ? { fallos: 0, liviano: null } : abrir(storage(), Date.now()),
+  );
+
   const setTierInStore = useSessionStore((s) => s.setTier);
   const setReducedMotion = useSessionStore((s) => s.setReducedMotion);
   const hud = useSessionStore((s) => s.hud);
@@ -187,10 +227,10 @@ export default function MundoGame({
    */
   const [tier, setTier] = useState<QualityTier>(() => initialTier({
     hardwareConcurrency: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : undefined,
-    coarsePointer: typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)')?.matches ?? false),
+    coarsePointer: coarse,
     prefersReducedMotion: prefersReducedMotion(reduceMotionSetting),
     detailMode,
-    forced: forcedTier,
+    forced: forcedTier ?? arranque.liviano,
   }));
   const [derivedTimeOfDay, setDerivedTimeOfDay] = useState<TimeOfDay>(() => (isNight() ? 'noche' : 'dia'));
   const timeOfDay = timeOfDayOverride ?? derivedTimeOfDay;
@@ -255,21 +295,53 @@ export default function MundoGame({
   const forcedManual = forcedTier != null && forcedTier >= 0 && forcedTier <= 3
     ? (Math.floor(forcedTier) as QualityTier)
     : null;
-  const manual = forcedManual ?? detailModeToTier(detailMode);
-  const monitor = useMemo(() => createQualityMonitor({ start: 1, manual }), [manual]);
+  // A light start after a crash holds its tier like a manual setting would.
+  const manual = forcedManual ?? arranque.liviano ?? detailModeToTier(detailMode);
+  const maxAuto = maxAutoTier(coarse);
+  const monitor = useMemo(() => createQualityMonitor({ start: 1, manual, maxAuto }), [manual, maxAuto]);
 
   useEffect(() => {
     const start = initialTier({
       hardwareConcurrency: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : undefined,
-      coarsePointer: typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)')?.matches ?? false),
+      coarsePointer: coarse,
       prefersReducedMotion: reducedMotion,
       detailMode,
-      forced: forcedTier,
+      forced: forcedTier ?? arranque.liviano,
     });
     monitor.reset(start);
     setTier(start);
     setTierInStore(start);
-  }, [detailMode, forcedTier, reducedMotion, monitor, setTierInStore]);
+  }, [detailMode, forcedTier, reducedMotion, monitor, setTierInStore, coarse, arranque.liviano]);
+
+  /**
+   * The crash mark's lifecycle. Going to the background or leaving cleanly is
+   * not a crash, so it clears the mark; coming back sets it again. A minute and
+   * a half of running without dying forgets past failures.
+   */
+  useEffect(() => {
+    if (visit !== undefined) return;
+    const store = storage();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') cerrarLimpio(store);
+      else volverAlFrente(store, Date.now());
+    };
+    const onPageHide = () => cerrarLimpio(store);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    const stable = window.setTimeout(() => marcarEstable(store), STABLE_AFTER_MS);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      window.clearTimeout(stable);
+      cerrarLimpio(store);
+    };
+  }, [visit]);
+
+  useEffect(() => {
+    if (arranque.liviano !== null) {
+      void reportarFalloMundo('arranque_liviano', `fallos previos: ${arranque.fallos}`, { tier: arranque.liviano });
+    }
+  }, [arranque]);
 
   useEffect(() => setReducedMotion(reducedMotion), [reducedMotion, setReducedMotion]);
 
@@ -288,7 +360,19 @@ export default function MundoGame({
    * context before falling back — a context that dies twice is a device out of
    * memory, and retrying forever is a battery drain with a black screen.
    */
-  const worldState = useWorldState(canvasRef.current);
+  // The canvas as state, not a ref: the lost-context listener has to attach
+  // when the canvas exists. Reading `canvasRef.current` during render passed
+  // null forever, so a phone that ran out of GPU memory got a frozen black
+  // screen instead of the fallback.
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
+  const worldState = useWorldState(canvasEl);
+  useEffect(() => {
+    if (worldState !== 'unsupported') return;
+    registrarFallo(storage(), Date.now());
+    void reportarFalloMundo('contexto_perdido', 'webglcontextlost sin restaurar', { tier });
+    // `tier` is read once, at the moment it failed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [worldState]);
   useEffect(() => cameraRef.current?.setAutoRecentre(autoCamera), [autoCamera]);
 
   const onTierChange = useCallback(
@@ -367,6 +451,7 @@ export default function MundoGame({
           onReady={(gl) => {
             rendererRef.current = gl;
             canvasRef.current = gl.domElement;
+            setCanvasEl(gl.domElement);
           }}
         />
         <color attach="background" args={[palette.skyHorizon]} />
@@ -395,13 +480,24 @@ export default function MundoGame({
           onCelebrated={celebrate}
           onPoster={poster}
         />
-        <PostFx tier={tier} />
+        {/* The lens runs on a phone only when the player picked "Alta". */}
+        {lensAllowed(coarse, detailMode) && <PostFx tier={tier} />}
         {perf && PerfProbe && <PerfProbe tier={tier} />}
       </Canvas>
 
       {/* Offline, a lost drawing context, or a browser that cannot draw at
           all. None of the three is a dead end. */}
-      <WorldStates state={worldState} />
+      <WorldStates state={worldState === 'unsupported' ? 'ok' : worldState} />
+      {worldState === 'unsupported' && (
+        <MundoNoAbre
+          motivo="memoria"
+          tier={world.tier}
+          snapshotUrl={payload?.snapshotUrl}
+          // The failure is counted, so the reload opens light.
+          onRetry={() => window.location.reload()}
+        />
+      )}
+      {arranque.liviano !== null && worldState === 'ok' && <AvisoLiviano />}
       <HudLayer
         canvasRef={canvasRef}
         impact={world.impact}
@@ -418,6 +514,40 @@ export default function MundoGame({
         journal={payload?.journal ?? EMPTY_JOURNAL}
         perf={perf}
       />
+    </div>
+  );
+}
+
+/**
+ * One line on top when the world opened light because the last attempt died,
+ * with the way to try the full one again. Gone after a few seconds: the light
+ * world is still the world.
+ */
+function AvisoLiviano() {
+  const t = useTranslations('mundo.liviano');
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const id = window.setTimeout(() => setVisible(false), 9000);
+    return () => window.clearTimeout(id);
+  }, []);
+  if (!visible) return null;
+  return (
+    <div
+      className="pointer-events-auto absolute inset-x-0 z-10 mx-auto flex w-fit max-w-[92%] items-center gap-3 rounded-pill bg-brote-ink/85 py-2 pl-4 pr-2 text-caption text-brote-cream shadow-soft-lg backdrop-blur-sm"
+      style={{ top: 'calc(env(safe-area-inset-top) + 4.5rem)' }}
+      role="status"
+    >
+      <span>{t('aviso')}</span>
+      <button
+        type="button"
+        onClick={() => {
+          olvidarFallos(storage());
+          window.location.reload();
+        }}
+        className="shrink-0 rounded-pill bg-white/15 px-3 py-1 font-semibold"
+      >
+        {t('probar')}
+      </button>
     </div>
   );
 }
