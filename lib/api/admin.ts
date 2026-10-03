@@ -115,3 +115,63 @@ export async function adminModerate(
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string };
 }
+
+// ── Pruebas (0119, 0122) ────────────────────────────────────────────────────
+
+export interface CuentaPrueba {
+  email: string;
+  usuario: string | null;
+  nombre: string | null;
+  tipo: 'kid' | 'teen' | 'adult';
+  rango: string;
+  tier: number;
+  negocios: { nombre: string; objetivo: string }[];
+}
+
+type Res<T> = ({ ok: true } & T) | { ok: false; error: string };
+
+/** Turn an account the owner created (email with a "+") into a test account of a given type and rank. */
+export async function adminCuentaPrueba(
+  pass: string,
+  email: string,
+  tipo: 'kid' | 'teen' | 'adult',
+  tier: number,
+  negocio: 'ninguno' | 'vender' | 'mejorar' | 'ambos',
+): Promise<Res<{ usuario: string | null; rango: string }>> {
+  const { data, error } = await createClient().rpc('admin_cuenta_prueba', {
+    p_pass: pass,
+    p_email: email,
+    p_tipo: tipo,
+    p_tier: tier,
+    p_negocio: negocio,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<{ usuario: string | null; rango: string }>;
+}
+
+export async function adminCuentasPrueba(pass: string): Promise<Res<{ cuentas: CuentaPrueba[] }>> {
+  const { data, error } = await createClient().rpc('admin_cuentas_prueba', { p_pass: pass });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<{ cuentas: CuentaPrueba[] }>;
+}
+
+export async function adminCuentaPruebaBorrar(pass: string, email: string): Promise<Res<object>> {
+  const { data, error } = await createClient().rpc('admin_cuenta_prueba_borrar', { p_pass: pass, p_email: email });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<object>;
+}
+
+export interface ErrorMundo {
+  kind: string;
+  message: string;
+  info: Record<string, unknown>;
+  at: string;
+  usuario: string | null;
+}
+
+/** What failed when the world did not open on someone's phone (0119). */
+export async function adminMundoErrores(pass: string): Promise<Res<{ resumen: Record<string, number>; filas: ErrorMundo[] }>> {
+  const { data, error } = await createClient().rpc('admin_mundo_errores', { p_pass: pass, p_limit: 60 });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<{ resumen: Record<string, number>; filas: ErrorMundo[] }>;
+}
