@@ -32,7 +32,7 @@ create or replace function public.create_project(
   p_title text, p_description text, p_type text, p_domain text, p_neighborhood text,
   p_location_text text, p_lat double precision, p_lng double precision,
   p_event_date timestamp with time zone, p_max_participants integer, p_image_url text,
-  p_min_rank text, p_contact_info text, p_contact_kind text
+  p_min_rank text default 'semilla', p_contact_info text default null, p_contact_kind text default null
 )
 returns uuid
 language plpgsql
