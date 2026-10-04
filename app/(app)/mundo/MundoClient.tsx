@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 
 import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
+import { MundoSeguro } from '@/components/mundo3d/MundoSeguro';
 import type { WorldPayload } from '@/lib/world/types';
 
 /**
@@ -31,12 +32,12 @@ interface MundoClientProps {
 }
 
 export function MundoClient({ perf, forcedTier, payload, degraded = false }: MundoClientProps) {
+  // The guard checks WebGL 2 before the 3D chunk loads and catches anything
+  // that breaks while it runs, so a phone that cannot draw the island gets a
+  // clear screen with a light mode — not the app's generic error page.
   return (
-    <MundoGame
-      perf={perf}
-      forcedTier={forcedTier}
-      payload={payload}
-      readOnly={degraded}
-    />
+    <MundoSeguro tier={payload.tier} snapshotUrl={payload.snapshotUrl}>
+      <MundoGame perf={perf} forcedTier={forcedTier} payload={payload} readOnly={degraded} />
+    </MundoSeguro>
   );
 }

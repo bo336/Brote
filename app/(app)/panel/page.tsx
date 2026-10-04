@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lock, ShieldCheck, RefreshCw, KeyRound } from 'lucide-react';
+import Link from 'next/link';
+import { Lock, ShieldCheck, RefreshCw, KeyRound, FlaskConical } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -257,6 +258,21 @@ export default function PanelPage() {
 
       {/* Negocios y cierres de objetivos: igual que la moderación, del otro
           lado hay alguien esperando una respuesta. */}
+      {/* Testing every account type and the island at every rank (0122). */}
+      <Link
+        href="/panel/pruebas"
+        className="press group flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary/15 text-primary">
+          <FlaskConical className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-h3 font-bold">Probar cada tipo de cuenta</span>
+          <span className="block text-caption text-muted-foreground">
+            Chicos, adolescentes, adultos, tiendas y empresas, el mundo en cada rango y los fallos en teléfonos
+          </span>
+        </span>
+      </Link>
       <NegociosResumen pass={pass} />
       <ObjetivosResumen pass={pass} />
       <MercadoResumen pass={pass} />

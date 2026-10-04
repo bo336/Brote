@@ -40,9 +40,12 @@ export function ProjectsSection() {
   // Both the gate and its label come from the server setting, so raising the
   // bar in /panel updates this screen without a deploy.
   const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
-  const minTier = minTierQ.data ?? 4;
-  const canCreate = getRank(totalXp).tier >= minTier;
-  const createRankName = RANK_BY_TIER[minTier]?.name_es ?? 'Retoño';
+  const minTier = minTierQ.data ?? 5;
+  // Adults only, and from the minimum rank (0120): a project is a meeting in
+  // person, with a place and a contact.
+  const adulto = (profile?.accountType ?? 'adult') === 'adult';
+  const canCreate = adulto && getRank(totalXp).tier >= minTier;
+  const createRankName = RANK_BY_TIER[minTier]?.name_es ?? 'Arbusto';
 
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
 
@@ -81,7 +84,7 @@ export function ProjectsSection() {
           </Button>
         ) : (
           <span className="inline-flex shrink-0 items-center gap-1 rounded-pill border border-border bg-surface-2 px-3 py-1 text-caption text-muted-foreground">
-            <Lock className="h-3 w-3" /> {t('createGated', { rank: createRankName })}
+            <Lock className="h-3 w-3" /> {adulto ? t('createGated', { rank: createRankName }) : t('createAdults')}
           </span>
         )}
       </div>

@@ -17,7 +17,7 @@ import { SafeImage } from '@/components/ui/safe-image';
 import { Pip } from '@/components/pip/Pip';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { useSession } from '@/stores/session';
-import { fetchProject, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/plaza';
+import { fetchProject, fetchProjectContact, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/plaza';
 import { ProjectSessions } from '@/components/plaza/ProjectSessions';
 import { getDomain } from '@/lib/domains';
 import { meetsRank } from '@/lib/ranks';
@@ -53,6 +53,13 @@ export default function ProjectDetailPage() {
   const pips = usePipStyles((participantsQ.data ?? []).map((u) => u.id));
   const p = projectQ.data;
   const locked = p ? !meetsRank(totalXp, p.min_rank_slug) : false;
+  // A project is a meeting in person: a kid account cannot join one (0120).
+  const esKid = profile?.accountType === 'kid';
+  const contactQ = useQuery({
+    queryKey: ['project-contact', params.id, p?.joined],
+    queryFn: () => fetchProjectContact(params.id),
+    enabled: !!p && (p.joined || p.creator_id === profile?.id) && !esKid,
+  });
 
   const joinM = useMutation({
     mutationFn: () => joinProject(params.id),
@@ -179,7 +186,12 @@ export default function ProjectDetailPage() {
         >
           <ThumbsUp className="h-5 w-5" /> {p.upvotes}
         </Button>
-        {locked ? (
+        {esKid ? (
+          <p className="flex-1 rounded-card border border-border bg-surface-2 px-3.5 py-2.5 text-caption leading-relaxed text-muted-foreground">
+            Los proyectos son encuentros en persona: con una cuenta de chico no te podés sumar. Puede hacerlo una persona
+            adulta de tu familia.
+          </p>
+        ) : locked ? (
           <Button block variant="secondary" size="lg" disabled>
             <Lock className="h-4 w-4" /> {t('createGated', { rank: lockLabel(p.min_rank_slug) })}
           </Button>
@@ -217,16 +229,26 @@ export default function ProjectDetailPage() {
 
       {/* How to reach the organiser — a project nobody can coordinate with
           never actually happens (F14.8). */}
-      {p.contact_info && (
+      {/* The contact reaches only people who joined (0120): an open phone
+          number on a public page is how strangers get it. */}
+      {contactQ.data ? (
         <Card className="mt-3 flex items-center gap-3 p-3.5">
           <MessageSquare className="h-4 w-4 shrink-0 text-primary" />
           <div className="min-w-0 flex-1">
             <p className="text-caption text-muted-foreground">
-              Coordinación{p.contact_kind ? ` · ${p.contact_kind}` : ''}
+              Coordinación{contactQ.data.contact_kind ? ` · ${contactQ.data.contact_kind}` : ''}
             </p>
-            <p className="truncate text-small font-medium">{p.contact_info}</p>
+            <p className="truncate text-small font-medium">{contactQ.data.contact_info}</p>
           </div>
         </Card>
+      ) : (
+        !esKid &&
+        !p.joined && (
+          <p className="mt-3 flex items-center gap-2 text-caption text-muted-foreground">
+            <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+            Cuando te sumes vas a ver cómo coordinar con quien lo organiza.
+          </p>
+        )
       )}
 
       {/* Repeatable work sessions, each crediting everyone who turned out. */}

@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
 
 import { LoadingState } from '@/components/mundo3d/hud/LoadingState';
+import { MundoSeguro } from '@/components/mundo3d/MundoSeguro';
 import { useVisit } from '@/components/mundo3d/visit/useVisit';
 import { useWorldStore } from '@/components/mundo3d/state/useWorldStore';
 import { payloadForVisit, type VisitPayload } from '@/lib/world/visit';
@@ -41,5 +42,9 @@ export function VisitClient({
   const layout = useWorldStore((s) => s.layout);
   const session = useVisit(visit, layout, gifts, streak);
 
-  return <MundoGame perf={perf} payload={payload} visit={session} />;
+  return (
+    <MundoSeguro tier={payload.tier}>
+      <MundoGame perf={perf} payload={payload} visit={session} />
+    </MundoSeguro>
+  );
 }

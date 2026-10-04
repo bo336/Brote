@@ -12,7 +12,8 @@
  * Chromium-only and `WEBGL_debug_renderer_info` is increasingly masked
  * (`03-RESEARCH-TECH.md` §7). We start conservative and measure.
  */
-import { QUALITY_MONITOR } from '@/lib/world/config';
+// Relative so the node test build can load it (no path alias at runtime).
+import { QUALITY_MONITOR } from '../world/config';
 import type { QualityTier } from '@/lib/world/types';
 
 export interface TierParams {
@@ -156,6 +157,12 @@ export interface QualityMonitor {
 export interface MonitorOptions {
   start?: QualityTier;
   manual?: QualityTier | null;
+  /**
+   * The highest tier the monitor may promote to on its own. A phone stops at
+   * T2: the jump to T3 (ambient occlusion, a 2048 shadow map, 1.75×) is the
+   * kind after which iOS kills the tab (`lib/world/arranque.ts`).
+   */
+  maxAuto?: QualityTier;
 }
 
 /**
@@ -175,6 +182,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
   let aboveSinceMs: number | null = null;
   let lockedUntilMs = 0;
   let startedMs: number | null = null;
+  const maxAuto: QualityTier = opts.maxAuto ?? 3;
 
   function median(): number {
     if (filled === 0) return 0;
@@ -211,7 +219,7 @@ export function createQualityMonitor(opts: MonitorOptions = {}): QualityMonitor 
       }
 
       belowSinceMs = null;
-      if (nowMs < lockedUntilMs || tier >= 3) {
+      if (nowMs < lockedUntilMs || tier >= maxAuto) {
         aboveSinceMs = null;
         return null;
       }

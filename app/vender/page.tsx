@@ -93,7 +93,7 @@ export default function VenderPage() {
           <Link href="/" className="font-display text-small font-bold">
             {BRAND.name}
           </Link>
-          <Link href="/auth/login?next=/negocio/alta" className="ml-auto text-small text-muted-foreground transition-colors hover:text-foreground">
+          <Link href="/auth/login?next=%2Fnegocio%2Falta%3Ftipo%3Dvender" className="ml-auto text-small text-muted-foreground transition-colors hover:text-foreground">
             Entrar
           </Link>
         </div>
@@ -111,7 +111,7 @@ export default function VenderPage() {
 
         <div className="mt-7 flex flex-wrap items-center gap-4">
           <Link
-            href="/negocio/alta"
+            href="/negocio/alta?tipo=vender"
             className="press inline-flex items-center gap-2 rounded-pill bg-primary px-6 py-3.5 text-body font-semibold text-primary-foreground shadow-crisp"
           >
             Abrir mi tienda
@@ -186,7 +186,7 @@ export default function VenderPage() {
 
         <div className="mt-12 flex flex-col items-start gap-3">
           <Link
-            href="/negocio/alta"
+            href="/negocio/alta?tipo=vender"
             className="press inline-flex items-center gap-2 rounded-pill bg-primary px-6 py-3.5 text-body font-semibold text-primary-foreground shadow-crisp"
           >
             Abrir mi tienda

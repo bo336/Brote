@@ -12,6 +12,8 @@ import type {
   MejoraEstado,
   MiNegocio,
   NegocioDetalle,
+  LigaEmpresas,
+  MiPuestoLiga,
 } from '@/lib/supabase/rows-negocio';
 
 export type ActiveBusiness = {
@@ -21,7 +23,9 @@ export type ActiveBusiness = {
   role: BusinessRole;
   status: BusinessStatus;
   tier: EvidenceTier;
-  modelo?: 'vendedor' | 'legacy';
+  modelo?: 'vendedor' | 'legacy' | 'empresa';
+  /** Qué vino a hacer: vender, mejorar su impacto, o las dos (0121). */
+  objetivo?: 'vender' | 'mejorar' | 'ambos';
 };
 
 /** Lo mínimo de la persona que necesita el shell de negocio. */
@@ -112,4 +116,21 @@ export const getObjetivoDetalle = cache(async (goalId: string): Promise<DetalleO
   const { data, error } = await createClient().rpc('objetivo_detalle', { p_goal: goalId });
   if (error) throw new Error(`Failed to load goal: ${error.message}`);
   return (data ?? null) as DetalleObjetivo | null;
+});
+
+/**
+ * La Liga de empresas de la temporada (0121). Null si la base todavía no la
+ * tiene: la pantalla lo dice en vez de caerse.
+ */
+export const getLigaEmpresas = cache(async (rubro: string | null): Promise<LigaEmpresas | null> => {
+  const { data, error } = await createClient().rpc('liga_empresas', { p_rubro: rubro, p_limit: 100 });
+  if (error) return null;
+  return (data ?? null) as LigaEmpresas | null;
+});
+
+/** El puntaje y el puesto de una empresa, esté o no verificada. */
+export const getMiPuestoLiga = cache(async (id: string): Promise<MiPuestoLiga | null> => {
+  const { data, error } = await createClient().rpc('liga_mi_puesto', { p_business: id });
+  if (error) return null;
+  return (data ?? null) as MiPuestoLiga | null;
 });

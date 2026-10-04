@@ -672,7 +672,9 @@
     "sectionProyectos": "Proyectos",
     "nearbyTitle": "Proyectos cerca tuyo",
     "nearbyBody": "{n} abiertos para sumarse",
-    "leave": "Salir del proyecto"
+    "leave": "Salir del proyecto",
+    "createAdults": "Los proyectos los organizan personas adultas",
+    "createAdultsBody": "Un proyecto es un encuentro en persona, con lugar y contacto. Podés sumarte a los que ya existen; organizarlos queda para cuentas adultas."
   },
   "perfilPublico": {
     "actions30d": "Acciones (30 d)",
@@ -1686,6 +1688,21 @@
         "tag": "Controles",
         "title": "Cómo moverte"
       }
+    },
+    "noAbre": {
+      "titulo_webgl": "Tu teléfono no puede dibujar la isla",
+      "cuerpo_webgl": "El mundo necesita WebGL 2 y este navegador no lo tiene. Actualizá el sistema o usá Chrome o Safari al día. Tu progreso está guardado.",
+      "titulo_error": "Tu isla no pudo abrirse",
+      "cuerpo_error": "Algo falló al dibujarla en este teléfono. Probá el modo liviano: es la misma isla, con menos detalle y mucho más liviana.",
+      "titulo_memoria": "Tu teléfono se quedó sin memoria para la isla",
+      "cuerpo_memoria": "La próxima vez abre en modo liviano para que no vuelva a pasar. Lo que hiciste está guardado.",
+      "liviano": "Abrir en modo liviano",
+      "reintentar": "Reintentar",
+      "volver": "Volver al inicio"
+    },
+    "liviano": {
+      "aviso": "Modo liviano: la última vez tu teléfono no pudo con la isla completa.",
+      "probar": "Probar completa"
     }
   },
   "negocio": {
@@ -1726,7 +1743,8 @@
       "plan": "Plan",
       "productos": "Productos",
       "preguntas": "Preguntas",
-      "tienda": "Tienda"
+      "tienda": "Tienda",
+      "liga": "Liga"
     },
     "rubros": {
       "gastronomia": "Gastronomía",
@@ -2950,6 +2968,89 @@
         "cancelar": "Darme de baja",
         "legales": "Cómo se cobra, cómo darte de baja y qué pasa con tus datos está en los <enlace>términos para tiendas</enlace>."
       }
+    },
+    "tipo": {
+      "eyebrow": "Tu negocio en Brote",
+      "titulo": "¿Para qué vas a usar Brote?",
+      "bajada": "Son dos cuentas distintas, cada una con lo que necesita.",
+      "venderTitulo": "Vender en el Mercado",
+      "venderCuerpo": "Para quien hace o vende productos y servicios con compromiso ambiental.",
+      "vender1": "Tu tienda, tus productos y las preguntas de quien compra",
+      "vender2": "Personas que buscan comprarle a quien lo hace bien",
+      "vender3": "Analítica de quién te mira y te escribe",
+      "mejorarTitulo": "Mejorar el impacto de mi empresa",
+      "mejorarCuerpo": "Para empresas de cualquier tamaño que quieren bajar su huella de verdad.",
+      "mejorar1": "Objetivos y acciones a tu medida, siempre alcanzables",
+      "mejorar2": "Seguimiento con evidencia y un nivel que sube",
+      "mejorar3": "La Liga de empresas: el tamaño no cuenta, cuenta cumplir tu plan",
+      "ambas": "¿Las dos cosas? Empezá por una y sumá la otra desde el resumen."
+    },
+    "empresa": {
+      "eyebrow": "Empresa que mejora",
+      "titulo": "Sumá tu empresa",
+      "bajada": "Seis datos y entrás al programa. Lo demás lo contás después, a tu ritmo.",
+      "paso1": "Contás cómo trabajan: energía, residuos, agua, insumos.",
+      "paso2": "Recibís objetivos y acciones a tu medida, con su forma de medirlos.",
+      "paso3": "Cumplís tu plan y competís en la Liga de empresas.",
+      "tamanoAyuda": "Sólo para adaptar los objetivos: en la liga no cuenta.",
+      "sitio": "Sitio web (opcional)",
+      "sitioAyuda": "Sirve para verificar la empresa y aparecer en la liga pública.",
+      "revisar": "Revisá los datos marcados.",
+      "crear": "Crear y empezar"
+    },
+    "inicioEmpresa": {
+      "eyebrow": "Empresa que mejora",
+      "bajada": "Tu programa de esta semana: lo que sigue, tus acciones y cómo vas en la liga.",
+      "dossierTitulo": "Contanos cómo trabajan",
+      "dossierCuerpo": "Con eso armamos objetivos que te sirvan de verdad. Vas {n}% completo.",
+      "dossierCta": "Seguir contando",
+      "generarTitulo": "Pedí tus objetivos",
+      "propuestosTitulo": "{n, plural, one {Tenés # objetivo propuesto} other {Tenés # objetivos propuestos}}",
+      "generarCuerpo": "La IA los propone según cómo trabajan y las reglas los dejan siempre alcanzables. Aceptás los que te sirvan.",
+      "generarCta": "Pedir objetivos",
+      "propuestosCta": "Verlos y elegir",
+      "accionesTitulo": "Acciones de esta semana",
+      "verPrograma": "Ver el programa",
+      "accionesVacio": "Cuando aceptes un objetivo, acá aparece lo primero que hay que hacer.",
+      "accionesListas": "Hiciste todos los pasos de tus objetivos en curso: cerralos con su evidencia.",
+      "pasosDe": "{hechos} de {total} pasos",
+      "progreso": "Progreso de mejora: {n} de 100.",
+      "ligaTitulo": "Liga de empresas",
+      "puesto": "Puesto {puesto} de {total}",
+      "sinPuesto": "Verificá tu empresa para aparecer en la tabla. Mientras, ya suma.",
+      "verificar": "Verificar mi empresa",
+      "verLiga": "Ver la liga",
+      "ligaPronto": "La liga empieza en cuanto cierres tu primer objetivo."
+    },
+    "liga": {
+      "eyebrow": "Temporada",
+      "titulo": "Liga de empresas",
+      "bajada": "Las empresas que más están cumpliendo su plan de mejora esta temporada.",
+      "justaTitulo": "El tamaño no cuenta",
+      "justaCuerpo": "Nadie suma por ser grande: no se miden kilos, litros ni empleados. Cada empresa compite contra su propio plan, así que una de tres personas puede ganarle a una de doscientas.",
+      "logros": "Logros",
+      "constancia": "Constancia",
+      "avance": "Avance",
+      "logrosDetalle": "objetivos cumplidos y aprobados, según su ambición (hasta {max}, los {n} mejores)",
+      "constanciaDetalle": "semanas con un avance reportado (hasta {max})",
+      "avanceDetalle": "pasos hechos de tus objetivos en curso (hasta {max})",
+      "tuEmpresa": "Tu empresa",
+      "puesto": "Puesto {puesto} de {total}",
+      "sinPuesto": "Todavía no aparecés en la tabla pública.",
+      "verificar": "Verificá tu empresa para aparecer",
+      "filtro": "Filtrar por rubro",
+      "todos": "Todos",
+      "pronto": "La liga está por empezar.",
+      "vacia": "Todavía no hay empresas verificadas en esta temporada. Puede ser la tuya.",
+      "cerrados": "{n, plural, =0 {sin cierres} one {# cierre} other {# cierres}}"
+    },
+    "sumar": {
+      "venderTitulo": "¿También vendés?",
+      "venderCuerpo": "Sumá la tienda y publicá tus productos en el Mercado.",
+      "mejorarTitulo": "¿Querés bajar la huella de tu negocio?",
+      "mejorarCuerpo": "Sumá el programa Mejora: objetivos a tu medida y la Liga de empresas.",
+      "sumar": "Sumar",
+      "error": "No se pudo. Probá de nuevo."
     }
   },
   "mercado": {

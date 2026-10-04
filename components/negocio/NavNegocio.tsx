@@ -4,45 +4,34 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { BarChart3, CreditCard, LayoutDashboard, MessageCircleQuestion, Package, ShieldCheck, Store, Target, type LucideIcon } from 'lucide-react';
+import { BarChart3, CreditCard, LayoutDashboard, MessageCircleQuestion, Package, ShieldCheck, Store, Target, Trophy, type LucideIcon } from 'lucide-react';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { cn } from '@/lib/utils/cn';
+import { normalizarObjetivo, seccionesDe, type SeccionNegocio } from '@/lib/negocio/objetivo';
 
 /**
- * Solo las secciones que existen. Equipo llega con su fase: un enlace a una
- * pantalla que todavía no está es una promesa rota en el lugar más visible del
- * producto.
+ * Solo las secciones que existen, y solo las que corresponden a lo que la
+ * empresa vino a hacer (0121): una tienda ve lo que vende; una empresa que
+ * mejora, su programa y su liga (`lib/negocio/objetivo.ts`).
  */
-type Seccion = {
-  clave: 'resumen' | 'mejora' | 'listados' | 'analitica' | 'verificacion' | 'plan' | 'productos' | 'preguntas' | 'tienda';
-  href: string;
-  icono: LucideIcon;
+type Seccion = { clave: SeccionNegocio; href: string; icono: LucideIcon };
+
+const SECCION: Record<SeccionNegocio, Omit<Seccion, 'clave'>> = {
+  resumen: { href: '/negocio', icono: LayoutDashboard },
+  mejora: { href: '/negocio/mejora', icono: Target },
+  liga: { href: '/negocio/liga', icono: Trophy },
+  productos: { href: '/negocio/listados', icono: Package },
+  preguntas: { href: '/negocio/preguntas', icono: MessageCircleQuestion },
+  tienda: { href: '/negocio/tienda', icono: Store },
+  analitica: { href: '/negocio/analitica', icono: BarChart3 },
+  verificacion: { href: '/negocio/verificacion', icono: ShieldCheck },
+  plan: { href: '/negocio/plan', icono: CreditCard },
 };
 
-const SECCIONES_LEGACY: Seccion[] = [
-  { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
-  { clave: 'mejora', href: '/negocio/mejora', icono: Target },
-  { clave: 'listados', href: '/negocio/listados', icono: Store },
-  { clave: 'analitica', href: '/negocio/analitica', icono: BarChart3 },
-  { clave: 'verificacion', href: '/negocio/verificacion', icono: ShieldCheck },
-  { clave: 'plan', href: '/negocio/plan', icono: CreditCard },
-];
+type Props = { modelo?: string | null; objetivo?: string | null };
 
-// Mercado v2: una tienda vive de sus productos y de responder. La verificación
-// de sitio ya no es un paso (la hace Mercado Pago), y Mejora queda al final:
-// es el programa para quien quiere ir más allá.
-const SECCIONES_TIENDA: Seccion[] = [
-  { clave: 'resumen', href: '/negocio', icono: LayoutDashboard },
-  { clave: 'productos', href: '/negocio/listados', icono: Package },
-  { clave: 'preguntas', href: '/negocio/preguntas', icono: MessageCircleQuestion },
-  { clave: 'tienda', href: '/negocio/tienda', icono: Store },
-  { clave: 'analitica', href: '/negocio/analitica', icono: BarChart3 },
-  { clave: 'plan', href: '/negocio/plan', icono: CreditCard },
-  { clave: 'mejora', href: '/negocio/mejora', icono: Target },
-];
-
-function secciones(modelo: 'vendedor' | 'legacy' | undefined): Seccion[] {
-  return modelo === 'vendedor' ? SECCIONES_TIENDA : SECCIONES_LEGACY;
+function secciones({ modelo, objetivo }: Props): Seccion[] {
+  return seccionesDe(normalizarObjetivo(objetivo, modelo), modelo).map((clave) => ({ clave, ...SECCION[clave] }));
 }
 
 function activa(href: string, pathname: string): boolean {
@@ -50,10 +39,10 @@ function activa(href: string, pathname: string): boolean {
 }
 
 /** Barra lateral de 220 px en escritorio. */
-export function NavLateral({ modelo }: { modelo?: 'vendedor' | 'legacy' }) {
+export function NavLateral(props: Props) {
   const t = useTranslations('negocio.nav');
   const pathname = usePathname();
-  const SECCIONES = secciones(modelo);
+  const SECCIONES = secciones(props);
 
   return (
     <nav aria-label={t('aria')}>
@@ -90,11 +79,11 @@ export function NavLateral({ modelo }: { modelo?: 'vendedor' | 'legacy' }) {
 }
 
 /** En móvil, la misma navegación como fila de chips con desplazamiento. */
-export function NavChips({ modelo }: { modelo?: 'vendedor' | 'legacy' }) {
+export function NavChips(props: Props) {
   const t = useTranslations('negocio.nav');
   const pathname = usePathname();
   const router = useRouter();
-  const SECCIONES = secciones(modelo);
+  const SECCIONES = secciones(props);
   const actual = SECCIONES.find((s) => activa(s.href, pathname))?.href ?? null;
 
   return (

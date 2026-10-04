@@ -52,7 +52,11 @@ export default function BrotePlusPage() {
   const profile = useSession((s) => s.profile);
   const [busy, setBusy] = useState(false);
   const isPro = monetization?.is_pro ?? false;
-  const isKid = (monetization?.account_type ?? profile?.accountType) === 'kid';
+  const tipo = monetization?.account_type ?? profile?.accountType;
+  const isKid = tipo === 'kid';
+  // A subscription is a contract that charges every month: a minor does not
+  // sign it alone. Teens see the same honest "an adult can do it" as kids.
+  const isTeen = tipo === 'teen';
 
   async function subscribe() {
     if (busy) return;
@@ -128,6 +132,14 @@ export default function BrotePlusPage() {
               <p className="mt-1 text-small text-muted-foreground">
                 Las cuentas de chicos nunca ven publicidad y no pueden suscribirse. Si querés apoyar el proyecto, puede
                 hacerlo una persona adulta desde su propia cuenta.
+              </p>
+            </Card>
+          ) : isTeen ? (
+            <Card className="p-4 text-center">
+              <p className="text-small font-semibold">Brote+ lo contrata una persona adulta</p>
+              <p className="mt-1 text-small text-muted-foreground">
+                Es un pago que se repite todos los meses, así que una cuenta adolescente no se suscribe sola. Si en tu
+                casa quieren apoyar el proyecto, pueden hacerlo desde la cuenta de una persona adulta.
               </p>
             </Card>
           ) : (
