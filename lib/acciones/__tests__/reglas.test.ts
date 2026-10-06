@@ -238,3 +238,19 @@ test('panel overrides merge one level deep', () => {
   assert.equal(r.pesos.interes, 0);
   assert.equal(r.pesos.nueva, REGLAS.pesos.nueva);
 });
+
+test('the panel can edit exactly the rules that exist, within ranges that include the defaults', () => {
+  const s = sql('0125_panel_acciones.sql');
+  const m = /rangos constant jsonb := '(\{[\s\S]*?\})'::jsonb;/.exec(s);
+  assert.ok(m, 'ranges not found');
+  const rangos = JSON.parse(m![1]!) as Record<string, [number, number]>;
+  const claves = Object.keys(REGLAS).filter((k) => k !== 'pesos');
+  assert.deepEqual(Object.keys(rangos).sort(), claves.sort());
+  for (const k of claves) {
+    const v = REGLAS[k as keyof typeof REGLAS] as number;
+    assert.ok(v >= rangos[k]![0] && v <= rangos[k]![1], `${k}=${v} outside its own range`);
+  }
+  const pesos = /pesos constant text\[\] := array\[([\s\S]*?)\];/.exec(s)![1]!.match(/'([a-z_]+)'/g)!.map((x) => x.slice(1, -1));
+  assert.deepEqual(pesos.sort(), Object.keys(REGLAS.pesos).sort());
+  assert.match(s, /revoke all on function public\.admin_acciones\(text\) from public, anon;/);
+});

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Lock, ShieldCheck, RefreshCw, KeyRound, FlaskConical } from 'lucide-react';
+import { Lock, ShieldCheck, RefreshCw, KeyRound, FlaskConical, ListChecks } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -270,6 +270,21 @@ export default function PanelPage() {
           <span className="block font-display text-h3 font-bold">Probar cada tipo de cuenta</span>
           <span className="block text-caption text-muted-foreground">
             Chicos, adolescentes, adultos, tiendas y empresas, el mundo en cada rango y los fallos en teléfonos
+          </span>
+        </span>
+      </Link>
+      {/* Acciones (0125): lo que se cambia, lo que no se hace, las reglas del día. */}
+      <Link
+        href="/panel/acciones"
+        className="press group flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary/15 text-primary">
+          <ListChecks className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-h3 font-bold">Cómo funcionan las acciones</span>
+          <span className="block text-caption text-muted-foreground">
+            Lo que la gente cambia y por qué, lo que no se hace, y las reglas del día
           </span>
         </span>
       </Link>
