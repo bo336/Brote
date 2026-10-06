@@ -369,7 +369,7 @@ function AccionesInner() {
 
           {deTemporada.length > 0 && (
             <section>
-              <SectionHeader eyebrow="De temporada" title={`Para este ${ESTACION_ES[estacionHoy]}`} />
+              <SectionHeader eyebrow="De temporada" title={`Para ${estacionHoy === 'primavera' ? 'esta' : 'este'} ${ESTACION_ES[estacionHoy]}`} />
               <div className="space-y-2.5">
                 {deTemporada.map((s) => (
                   <ActivityCard key={s.activity.id} activity={s.activity} locked={s.locked} completed={completedIds.has(s.activity.id)} />
