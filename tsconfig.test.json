@@ -35,7 +35,9 @@
     "lib/imagen-segura.ts",
     "lib/inicio/impacto.ts",
     "lib/inicio/puentes.ts",
-    "lib/inicio/__tests__/**/*.ts"
+    "lib/inicio/__tests__/**/*.ts",
+    "lib/acciones/**/*.ts",
+    "lib/data/cities.ts"
   ],
   "exclude": [
     "node_modules"
