@@ -19,7 +19,12 @@ import { useSession } from '@/stores/session';
 import { useQuery } from '@tanstack/react-query';
 import { useCatalog, useCatalogCompletions, useDomainPoints } from '@/hooks/use-catalog';
 import { fetchMyRecommendations } from '@/lib/api/catalog';
-import { scoreActivities } from '@/lib/recommendations';
+import { motivoNoAptaTexto, scoreActivities } from '@/lib/recommendations';
+import { CaminosRail } from '@/components/acciones/CaminosRail';
+import { useSugeridas } from '@/hooks/use-acciones';
+import { razonTexto } from '@/lib/acciones/presentar';
+import { ESTACION_ES, LUGARES, LUGAR_ES, estacionDe, type Lugar } from '@/lib/acciones/reglas';
+import { getDomainName } from '@/lib/domains';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { DOMAINS, getDomain } from '@/lib/domains';
 import { cn } from '@/lib/utils/cn';
@@ -70,6 +75,13 @@ function AccionesInner() {
   const [onlyDoable, setOnlyDoable] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  // "Para mí": sólo lo que te sirve hoy (contexto, estación, región). Se puede
+  // apagar para explorar todo, por ejemplo las de invierno en pleno verano.
+  const [paraMi, setParaMi] = useState(true);
+  const [rapidas, setRapidas] = useState(false);
+  const [ahorran, setAhorran] = useState(false);
+  const [lugar, setLugar] = useState<Lugar | null>(null);
+  const sugeridas = useSugeridas('catalog', 5);
 
   // `/acciones?dominio=agua` opens the catalogue already filtered — the daily
   // challenge on Inicio links here with its own topic.
@@ -95,6 +107,8 @@ function AccionesInner() {
       domainPoints: domainPointsQ.data ?? {},
       completedIds,
       personal: profile?.context ?? null,
+      cuenta: profile?.accountType ?? 'adult',
+      provincia: profile?.city ?? null,
     });
     // Blend the cached Gemini layer on top of the content-based score (§10.2):
     // boost AI-recommended slugs and surface their reason. Inert until recs exist.
@@ -109,16 +123,28 @@ function AccionesInner() {
           : s;
       })
       .sort((a, b) => b.score - a.score);
-  }, [catalog.data, profile?.interests, profile?.totalXp, profile?.context, domainPointsQ.data, completedIds, recsQ.data]);
+  }, [catalog.data, profile?.interests, profile?.totalXp, profile?.context, profile?.accountType, profile?.city, domainPointsQ.data, completedIds, recsQ.data]);
 
   const featured = useMemo(() => (catalog.data ?? []).filter((a) => a.is_featured), [catalog.data]);
 
-  const filtering = search.trim() !== '' || domain !== null || onlyDoable || hideCompleted;
+  const filtering = search.trim() !== '' || domain !== null || onlyDoable || hideCompleted || rapidas || ahorran || lugar !== null;
+  const estacionHoy = estacionDe(new Date());
+  const deTemporada = useMemo(
+    () =>
+      scored
+        .filter((s) => s.apta && (s.activity.estaciones ?? []).includes(estacionHoy) && !completedIds.has(s.activity.id))
+        .slice(0, 5),
+    [scored, estacionHoy, completedIds],
+  );
 
   const filtered = useMemo(() => {
     let list = scored;
+    if (paraMi) list = list.filter((s) => s.apta);
     if (domain) list = list.filter((s) => s.activity.domain_slug === domain);
     if (onlyDoable) list = list.filter((s) => !s.locked);
+    if (rapidas) list = list.filter((s) => (s.activity.minutos ?? 99) <= 5);
+    if (ahorran) list = list.filter((s) => s.activity.ahorra);
+    if (lugar) list = list.filter((s) => s.activity.lugar === lugar);
     if (hideCompleted) list = list.filter((s) => !completedIds.has(s.activity.id));
     if (search.trim()) {
       // Match the TOPIC as well as the words, so searching "agua" returns
@@ -138,17 +164,18 @@ function AccionesInner() {
       });
     }
     return list;
-  }, [scored, domain, onlyDoable, hideCompleted, search, completedIds]);
+  }, [scored, domain, onlyDoable, hideCompleted, search, completedIds, paraMi, rapidas, ahorran, lugar]);
 
   const byDomain = useMemo(() => {
     const map = new Map<string, ActivityRow[]>();
     for (const s of scored) {
+      if (paraMi && !s.apta) continue;
       const arr = map.get(s.activity.domain_slug) ?? [];
       arr.push(s.activity);
       map.set(s.activity.domain_slug, arr);
     }
     return map;
-  }, [scored]);
+  }, [scored, paraMi]);
 
   // The tab switch renders above every state, so a slow catalogue never hides
   // the way over to Projects.
@@ -243,12 +270,31 @@ function AccionesInner() {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
+            <ToggleChip active={paraMi} onClick={() => setParaMi((v) => !v)}>
+              Para mí
+            </ToggleChip>
+            <ToggleChip active={rapidas} onClick={() => setRapidas((v) => !v)}>
+              Rápidas (5 min)
+            </ToggleChip>
+            <ToggleChip active={ahorran} onClick={() => setAhorran((v) => !v)}>
+              Te ahorran plata
+            </ToggleChip>
             <ToggleChip active={onlyDoable} onClick={() => setOnlyDoable((v) => !v)}>
               {t('filterDoable')}
             </ToggleChip>
             <ToggleChip active={hideCompleted} onClick={() => setHideCompleted((v) => !v)}>
               {t('filterCompleted')}
             </ToggleChip>
+          </div>
+          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
+            <FilterChip active={lugar === null} onClick={() => setLugar(null)}>
+              En cualquier lugar
+            </FilterChip>
+            {LUGARES.map((l) => (
+              <FilterChip key={l} active={lugar === l} onClick={() => setLugar(lugar === l ? null : l)}>
+                {LUGAR_ES[l]}
+              </FilterChip>
+            ))}
           </div>
         </Card>
       )}
@@ -265,6 +311,9 @@ function AccionesInner() {
                   setDomain(null);
                   setOnlyDoable(false);
                   setHideCompleted(false);
+                  setRapidas(false);
+                  setAhorran(false);
+                  setLugar(null);
                 }}
                 className="text-small font-medium text-primary transition-colors hover:text-brote-green-deep"
               >
@@ -279,6 +328,7 @@ function AccionesInner() {
                 activity={s.activity}
                 locked={s.locked}
                 completed={completedIds.has(s.activity.id)}
+                noApta={s.apta ? null : motivoNoAptaTexto(s.motivoNoApta, s.activity)}
               />
             ))}
             {filtered.length === 0 && (
@@ -291,11 +341,21 @@ function AccionesInner() {
         </section>
       ) : (
         <>
-          {/* Para Vos */}
+          <CaminosRail />
+
+          {/* Para Vos: lo que elige la base con las reglas del día; si todavía
+              no lo tiene, el orden del cliente (sólo lo que te sirve hoy). */}
           <section>
             <SectionHeader eyebrow="Recomendado" title={t('paraVos')} subtitle={t('paraVosReason')} />
             <div className="space-y-2.5">
-              {scored.slice(0, 5).map((s) => (
+              {(sugeridas.data && sugeridas.data.length > 0
+                ? sugeridas.data.map((a) => ({
+                    activity: a,
+                    locked: false,
+                    reason: razonTexto(a.razon, { dominio: (d) => getDomainName(d) }) ?? undefined,
+                  }))
+                : scored.filter((x) => x.apta).slice(0, 5)
+              ).map((s) => (
                 <ActivityCard
                   key={s.activity.id}
                   activity={s.activity}
@@ -306,6 +366,17 @@ function AccionesInner() {
               ))}
             </div>
           </section>
+
+          {deTemporada.length > 0 && (
+            <section>
+              <SectionHeader eyebrow="De temporada" title={`Para este ${ESTACION_ES[estacionHoy]}`} />
+              <div className="space-y-2.5">
+                {deTemporada.map((s) => (
+                  <ActivityCard key={s.activity.id} activity={s.activity} locked={s.locked} completed={completedIds.has(s.activity.id)} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Nuevas esta semana */}
           {featured.length > 0 && (

@@ -8,7 +8,8 @@ export interface OnboardingProfileInput {
   /** Gates which actions/news/competitions the user sees (PLAN F12.1). */
   accountType?: 'kid' | 'teen' | 'adult';
   interests: string[];
-  context: Record<string, unknown>;
+  /** Sólo cuando la persona contestó "Tu casa y tu día": si no, no se toca. */
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -36,7 +37,7 @@ export async function saveOnboardingProfile(input: OnboardingProfileInput): Prom
       display_name: input.displayName.trim() || null,
       city: input.city.trim() || 'Buenos Aires',
       interests: input.interests,
-      context: input.context,
+      ...(input.context ? { context: input.context } : {}),
     })
     .eq('id', user.id);
   if (error) return { ok: false, error: error.message };

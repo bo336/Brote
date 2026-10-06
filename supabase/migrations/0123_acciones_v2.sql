@@ -857,6 +857,35 @@ as $$
    where user_id = auth.uid() and activity_id = p_activity_id and not deshecho;
 $$;
 
+-- "Tu casa y tu día": guarda las respuestas de contexto mezclándolas con lo
+-- que ya hay (profiles.context también guarda las banderas de la Plaza, así
+-- que el cliente nunca reescribe el objeto entero). Sólo claves conocidas y
+-- valores del tipo correcto.
+create or replace function public.acciones_guardar_contexto(p_ctx jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare v_uid uuid := auth.uid(); v_limpio jsonb := '{}'::jsonb; k text; v jsonb;
+begin
+  if v_uid is null then raise exception 'No autenticado' using errcode = 'P0001'; end if;
+  if jsonb_typeof(p_ctx) is distinct from 'object' then
+    return jsonb_build_object('ok', false, 'error', 'Formato inválido');
+  end if;
+  for k, v in select * from jsonb_each(p_ctx) loop
+    if k in ('balcon','jardin','pileta','edificio','auto','bici','gas','aire','lena','parrilla',
+             'perro','gato','chicos','trabajo','estudio','campo','costa','compost','huerta','respondido')
+       and jsonb_typeof(v) = 'boolean' then
+      v_limpio := v_limpio || jsonb_build_object(k, v);
+    elsif k = 'compra' and v #>> '{}' in ('super','mixto','local') then
+      v_limpio := v_limpio || jsonb_build_object(k, v);
+    end if;
+  end loop;
+  update profiles set context = coalesce(context, '{}'::jsonb) || v_limpio where id = v_uid;
+  return jsonb_build_object('ok', true, 'context', (select context from profiles where id = v_uid));
+end $fn$;
+
 -- Los caminos que le sirven a esta persona, con su avance.
 create or replace function public.mis_caminos()
 returns jsonb
@@ -1341,6 +1370,7 @@ revoke all on function public.acciones_ocultar(uuid, text, text) from public, an
 revoke all on function public.mis_acciones_ocultas() from public, anon;
 revoke all on function public.acciones_mostrar_de_nuevo(uuid) from public, anon;
 revoke all on function public.mis_caminos() from public, anon;
+revoke all on function public.acciones_guardar_contexto(jsonb) from public, anon;
 revoke all on function public.complete_activity(uuid, text, text, numeric) from public, anon;
 revoke all on function public.routine_suggestions(integer) from public, anon;
 revoke all on function public.my_habits() from public, anon;
@@ -1356,6 +1386,7 @@ grant execute on function public.acciones_ocultar(uuid, text, text) to authentic
 grant execute on function public.mis_acciones_ocultas() to authenticated;
 grant execute on function public.acciones_mostrar_de_nuevo(uuid) to authenticated;
 grant execute on function public.mis_caminos() to authenticated;
+grant execute on function public.acciones_guardar_contexto(jsonb) to authenticated;
 grant execute on function public.complete_activity(uuid, text, text, numeric) to authenticated;
 grant execute on function public.routine_suggestions(integer) to authenticated;
 grant execute on function public.my_habits() to authenticated;

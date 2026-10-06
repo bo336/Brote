@@ -181,7 +181,9 @@
       "extrasHechas": "{n} done",
       "hechaAria": "{titulo}: done",
       "marcarAria": "Mark as done: {titulo}",
-      "sumaste": "added {v}"
+      "sumaste": "added {v}",
+      "detalleAria": "What it is and how to do it: {titulo}",
+      "medirAria": "Count and mark: {titulo}"
     },
     "antes": {
       "diaCompleto": "You closed the day!",

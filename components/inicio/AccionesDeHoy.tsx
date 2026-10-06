@@ -3,16 +3,18 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ChevronDown, Cloud, Droplets, Recycle, Zap, type LucideIcon } from 'lucide-react';
+import { Check, ChevronDown, Clock, Cloud, Droplets, Recycle, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { impactoDeAccion, pistaDeImpacto, sumar, type ConImpacto, type Metrica } from '@/lib/inicio/impacto';
 import { EMPTY_IMPACT } from '@/lib/impact';
 import { haptic } from '@/lib/utils/haptics';
 import { cn } from '@/lib/utils/cn';
-import type { ActivityRow } from '@/lib/supabase/rows';
+import { getDomainName } from '@/lib/domains';
+import { efemerideTexto, minutosTexto, razonTexto, type EfemerideHoy } from '@/lib/acciones/presentar';
+import type { AccionConRazon } from '@/lib/api/acciones';
 
-type Accion = ActivityRow & ConImpacto;
+type Accion = AccionConRazon & ConImpacto;
 
 export const ICONO_METRICA: Record<Metrica, LucideIcon> = {
   water: Droplets,
@@ -37,12 +39,17 @@ export function AccionesDeHoy({
   done,
   loading,
   onComplete,
+  onAbrir,
+  efemeride,
 }: {
   set: Accion[];
   extra: Accion[];
   done: Set<string>;
   loading: boolean;
   onComplete: (a: Accion) => void;
+  /** Abre la hoja de la acción: qué es, cómo se hace, cuánto, cambiarla. */
+  onAbrir: (a: Accion) => void;
+  efemeride?: EfemerideHoy | null;
 }) {
   const t = useTranslations('inicio.hoy');
   const [masAbierto, setMasAbierto] = useState(false);
@@ -99,6 +106,12 @@ export function AccionesDeHoy({
                 ? t('quedan', { impacto: pendiente.texto, puntos: puntosPendientes })
                 : t('quedanPuntos', { puntos: puntosPendientes })}
           </p>
+          {efemeride && (
+            <p className="mt-1.5 inline-flex items-center gap-1 rounded-pill bg-brote-sun/15 px-2.5 py-0.5 text-caption font-semibold text-brote-ink dark:text-brote-sun">
+              <Sparkles className="h-3 w-3" aria-hidden />
+              {efemerideTexto(efemeride)}
+            </p>
+          )}
         </div>
       </header>
 
@@ -107,7 +120,7 @@ export function AccionesDeHoy({
       ) : (
         <ul className="divide-y divide-hairline border-t border-hairline">
           {filas.map((a) => (
-            <Fila key={a.id} a={a} hecha={done.has(a.id)} onComplete={onComplete} />
+            <Fila key={a.id} a={a} hecha={done.has(a.id)} onComplete={onComplete} onAbrir={onAbrir} efemeride={efemeride} />
           ))}
           <AnimatePresence initial={false}>
             {masAbierto &&
@@ -120,7 +133,7 @@ export function AccionesDeHoy({
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <FilaContenido a={a} hecha={done.has(a.id)} onComplete={onComplete} />
+                  <FilaContenido a={a} hecha={done.has(a.id)} onComplete={onComplete} onAbrir={onAbrir} efemeride={efemeride} />
                 </motion.li>
               ))}
           </AnimatePresence>
@@ -159,7 +172,15 @@ export function AccionesDeHoy({
   );
 }
 
-function Fila(props: { a: Accion; hecha: boolean; onComplete: (a: Accion) => void }) {
+type FilaProps = {
+  a: Accion;
+  hecha: boolean;
+  onComplete: (a: Accion) => void;
+  onAbrir: (a: Accion) => void;
+  efemeride?: EfemerideHoy | null;
+};
+
+function Fila(props: FilaProps) {
   return (
     <li>
       <FilaContenido {...props} />
@@ -167,67 +188,95 @@ function Fila(props: { a: Accion; hecha: boolean; onComplete: (a: Accion) => voi
   );
 }
 
-function FilaContenido({ a, hecha, onComplete }: { a: Accion; hecha: boolean; onComplete: (a: Accion) => void }) {
+/**
+ * Dos zonas: el texto abre la hoja (qué es, cómo se hace, cambiarla) y el
+ * círculo la marca. Una medible ("¿cuántas cuadras?") abre la hoja también
+ * desde el círculo, porque sin la cantidad no se puede contar bien.
+ */
+function FilaContenido({ a, hecha, onComplete, onAbrir, efemeride }: FilaProps) {
   const t = useTranslations('inicio.hoy');
   const pista = pistaDeImpacto(impactoDeAccion(a), a.domain_slug);
   const Icono = pista ? ICONO_METRICA[pista.key] : null;
+  const razon = hecha ? null : razonTexto(a.razon, { efemeride, dominio: (s) => getDomainName(s) });
+  const minutos = minutosTexto(a.minutos);
+  const medible = !!a.medida && !hecha;
 
   return (
-    <button
-      type="button"
-      disabled={hecha}
-      aria-pressed={hecha}
-      aria-label={hecha ? t('hechaAria', { titulo: a.title_es }) : t('marcarAria', { titulo: a.title_es })}
-      onClick={() => {
-        if (hecha) return;
-        haptic('success');
-        onComplete(a);
-      }}
-      className={cn(
-        'group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150',
-        hecha ? 'cursor-default' : 'hover:bg-surface-2/70 active:bg-surface-2',
-      )}
-    >
-      <span className={cn('shrink-0 transition-transform duration-200', !hecha && 'group-hover:scale-105', hecha && 'opacity-60')}>
-        <DomainIcon domain={a.domain_slug} size={40} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            'line-clamp-2 text-body font-medium leading-snug transition-colors duration-200',
-            hecha && 'text-muted-foreground line-through decoration-muted-foreground/50',
-          )}
-        >
-          {a.title_es}
+    <div className="group flex w-full items-center gap-1 pr-3">
+      <button
+        type="button"
+        onClick={() => onAbrir(a)}
+        aria-label={t('detalleAria', { titulo: a.title_es })}
+        className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left transition-colors duration-150 hover:bg-surface-2/70 active:bg-surface-2"
+      >
+        <span className={cn('shrink-0 transition-transform duration-200', !hecha && 'group-hover:scale-105', hecha && 'opacity-60')}>
+          <DomainIcon domain={a.domain_slug} size={40} />
         </span>
-        <span className="mt-0.5 flex flex-wrap items-center gap-x-2.5 text-caption">
-          {pista && Icono && (
-            <span className="inline-flex items-center gap-1 font-semibold tnum" style={{ color: pista.color }}>
-              <Icono className="h-3.5 w-3.5" aria-hidden />
-              {hecha ? t('sumaste', { v: pista.valor }) : pista.valor}
+        <span className="min-w-0 flex-1">
+          {razon && (
+            <span className="mb-0.5 flex items-center gap-1 text-caption font-medium text-primary">
+              <Sparkles className="h-3 w-3 shrink-0" aria-hidden />
+              <span className="truncate">{razon}</span>
             </span>
           )}
-          <span className={cn('font-semibold tnum', hecha ? 'text-muted-foreground' : 'text-brote-sun')}>
-            +{a.base_points} pts
+          <span
+            className={cn(
+              'line-clamp-2 text-body font-medium leading-snug transition-colors duration-200',
+              hecha && 'text-muted-foreground line-through decoration-muted-foreground/50',
+            )}
+          >
+            {a.title_es}
+          </span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-x-2.5 text-caption">
+            {minutos && !hecha && (
+              <span className="inline-flex items-center gap-1 text-muted-foreground tnum">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {minutos}
+              </span>
+            )}
+            {pista && Icono && (
+              <span className="inline-flex items-center gap-1 font-semibold tnum" style={{ color: pista.color }}>
+                <Icono className="h-3.5 w-3.5" aria-hidden />
+                {hecha ? t('sumaste', { v: pista.valor }) : medible ? `desde ${pista.valor}` : pista.valor}
+              </span>
+            )}
+            <span className={cn('font-semibold tnum', hecha ? 'text-muted-foreground' : 'text-brote-sun')}>
+              +{a.base_points} pts
+            </span>
           </span>
         </span>
-      </span>
-      <span
-        aria-hidden
+      </button>
+      <button
+        type="button"
+        disabled={hecha}
+        aria-pressed={hecha}
+        aria-label={hecha ? t('hechaAria', { titulo: a.title_es }) : medible ? t('medirAria', { titulo: a.title_es }) : t('marcarAria', { titulo: a.title_es })}
+        onClick={() => {
+          if (hecha) return;
+          if (medible) return onAbrir(a);
+          haptic('success');
+          onComplete(a);
+        }}
         className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
-          hecha
-            ? 'border-primary bg-primary text-primary-foreground'
-            : 'border-border group-hover:border-primary/60 group-hover:bg-primary/5',
+          'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
+          hecha ? 'cursor-default' : 'hover:bg-primary/[0.06]',
         )}
       >
-        {hecha && (
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 22 }}>
-            <Check className="h-4 w-4" strokeWidth={3} />
-          </motion.span>
-        )}
-      </span>
-    </button>
+        <span
+          aria-hidden
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-200',
+            hecha ? 'border-primary bg-primary text-primary-foreground' : 'border-border group-hover:border-primary/60',
+          )}
+        >
+          {hecha && (
+            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 22 }}>
+              <Check className="h-4 w-4" strokeWidth={3} />
+            </motion.span>
+          )}
+        </span>
+      </button>
+    </div>
   );
 }
 

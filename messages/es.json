@@ -181,7 +181,9 @@
       "extrasHechas": "{n, plural, one {# hecha} other {# hechas}}",
       "hechaAria": "{titulo}: hecha",
       "marcarAria": "Marcar como hecha: {titulo}",
-      "sumaste": "sumaste {v}"
+      "sumaste": "sumaste {v}",
+      "detalleAria": "Ver qué es y cómo se hace: {titulo}",
+      "medirAria": "Contar cuánto y marcar: {titulo}"
     },
     "antes": {
       "diaCompleto": "¡Cerraste el día!",

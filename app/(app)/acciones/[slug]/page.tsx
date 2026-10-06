@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Check, Lock, Repeat, Globe2 } from 'lucide-react';
+import { ArrowLeft, Check, Lock, Repeat, Globe2, Clock, PiggyBank, Users, ExternalLink, Compass, EyeOff } from 'lucide-react';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { DondeConseguirlo } from '@/components/mercado/DondeConseguirlo';
 import { Pill } from '@/components/ui/pill';
@@ -27,6 +27,10 @@ import { invalidateScores } from '@/lib/refresh';
 import { toast } from '@/stores/toast';
 import Link from 'next/link';
 import type { Impact } from '@/lib/points';
+import { CantidadSelector } from '@/components/acciones/CantidadSelector';
+import { useMisCaminos } from '@/hooks/use-acciones';
+import { ocultarAccion } from '@/lib/api/acciones';
+import { estacionesTexto, formatoTexto, minutosTexto, requiereTexto } from '@/lib/acciones/presentar';
 
 const EFFORT_ES = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' } as const;
 const IMPACT_ES = { low: 'Bajo', medium: 'Medio', high: 'Alto' } as const;
@@ -44,6 +48,9 @@ export default function ActivityDetailPage() {
   const profile = useSession((s) => s.profile);
   const [busy, setBusy] = useState(false);
   const [habitBusy, setHabitBusy] = useState(false);
+  const [cantidad, setCantidad] = useState(1);
+  const [ocultando, setOcultando] = useState(false);
+  const caminosQ = useMisCaminos();
 
   const activityQ = useQuery({
     queryKey: ['activity', params.slug],
@@ -54,6 +61,10 @@ export default function ActivityDetailPage() {
 
   const a = activityQ.data;
   const completion = a ? completions.data?.get(a.id) : undefined;
+  useEffect(() => {
+    if (a?.medida) setCantidad(a.medida.def);
+  }, [a?.id, a?.medida]);
+  const camino = a?.camino_slug ? (caminosQ.data ?? []).find((c) => c.slug === a.camino_slug) : undefined;
   const locked = a ? !meetsRank(profile?.totalXp ?? 0, a.min_rank_slug) : false;
 
   function invalidate() {
@@ -65,7 +76,7 @@ export default function ActivityDetailPage() {
     if (!a || busy) return;
     setBusy(true);
     try {
-      const result = await completeActivity(a.id);
+      const result = await completeActivity(a.id, null, null, a.medida ? cantidad : null);
       celebrateCompletion(result);
       invalidate();
     } catch (e) {
@@ -73,6 +84,20 @@ export default function ActivityDetailPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function ocultar(motivo: 'no_aplica' | 'no_me_gusta') {
+    if (!a || ocultando) return;
+    setOcultando(true);
+    const r = await ocultarAccion(a.id, motivo, motivo === 'no_aplica' ? (a.requiere ?? [])[0] ?? null : null);
+    setOcultando(false);
+    if (!r.ok) {
+      toast.error('No se pudo', r.error);
+      return;
+    }
+    toast.success('Listo', 'No te la vamos a ofrecer. Lo podés deshacer en Ajustes.');
+    qc.invalidateQueries({ queryKey: ['sugeridas'] });
+    router.back();
   }
 
   if (activityQ.isLoading) {
@@ -118,9 +143,30 @@ export default function ActivityDetailPage() {
         )}
         <h1 className="mt-1 text-balance font-display text-h1 font-bold leading-tight">{a.title_es}</h1>
         <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5">
+          {minutosTexto(a.minutos) && (
+            <Pill size="sm">
+              <Clock className="h-3 w-3" aria-hidden /> {minutosTexto(a.minutos)}
+            </Pill>
+          )}
+          {formatoTexto(a.formato) && <Pill size="sm">{formatoTexto(a.formato)}</Pill>}
           <Pill size="sm">{EFFORT_ES[a.effort]}</Pill>
           <Pill size="sm">Impacto {IMPACT_ES[a.impact]}</Pill>
+          {a.ahorra && (
+            <Pill size="sm" className="border-brote-green/40 text-brote-green">
+              <PiggyBank className="h-3 w-3" aria-hidden /> Te ahorra plata
+            </Pill>
+          )}
+          {profile?.accountType === 'kid' && a.con_adulto && (
+            <Pill size="sm">
+              <Users className="h-3 w-3" aria-hidden /> Con un adulto
+            </Pill>
+          )}
         </div>
+        {(estacionesTexto(a.estaciones) || requiereTexto(a.requiere)) && (
+          <p className="mt-2 text-caption text-muted-foreground">
+            {[estacionesTexto(a.estaciones), requiereTexto(a.requiere)].filter(Boolean).join(' · ')}
+          </p>
+        )}
         <span className="mt-3 font-display text-display-l font-extrabold text-brote-sun tnum">
           +{formatPoints(a.base_points)}
         </span>
@@ -131,7 +177,42 @@ export default function ActivityDetailPage() {
         <p className="text-body leading-relaxed">
           {activityDescription(a.title_es, a.impact as Impact, a.description_es)}
         </p>
+        {a.fuente && a.fuente_url && (
+          <a
+            href={a.fuente_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-caption text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            Fuente: {a.fuente} <ExternalLink className="h-3 w-3" aria-hidden />
+          </a>
+        )}
       </Card>
+
+      {/* El camino del que es parte: dónde está y qué sigue. */}
+      {camino && (
+        <Card className="p-4">
+          <p className="eyebrow flex items-center gap-1.5 text-primary">
+            <Compass className="h-3.5 w-3.5" aria-hidden />
+            Paso {a.camino_paso} de {camino.pasos.length} · {camino.titulo_es}
+          </p>
+          <div className="mt-2 flex gap-1" aria-hidden>
+            {camino.pasos.map((p) => (
+              <span key={p.id} className={p.hecho ? 'h-1.5 flex-1 rounded-pill bg-primary' : 'h-1.5 flex-1 rounded-pill bg-border'} />
+            ))}
+          </div>
+          {(() => {
+            const sig = camino.pasos.find((p) => !p.hecho && p.slug !== a.slug);
+            return sig ? (
+              <Link href={`/acciones/${sig.slug}`} className="mt-2.5 inline-flex items-center gap-1 text-small font-semibold text-primary">
+                Después: {sig.title_es} →
+              </Link>
+            ) : (
+              <p className="mt-2.5 text-small text-muted-foreground">Es el último paso que te falta: al hacerlo, terminás el camino.</p>
+            );
+          })()}
+        </Card>
+      )}
 
       {/* Instructions */}
       <section>
@@ -201,6 +282,10 @@ export default function ActivityDetailPage() {
         </Card>
       )}
 
+      {a.medida && !isDone && !locked && (
+        <CantidadSelector medida={a.medida} valor={cantidad} onChange={setCantidad} dominio={a.domain_slug} />
+      )}
+
       {/* CTA */}
       <div className="sticky bottom-24 lg:bottom-4">
         {locked ? (
@@ -222,6 +307,17 @@ export default function ActivityDetailPage() {
           completar, y nunca para una cuenta de chico. Si no hay al menos tres
           listados relevantes, la base devuelve nada y acá no se dibuja nada. */}
       {profile?.accountType !== 'kid' && <DondeConseguirlo slugAccion={a.slug} />}
+
+      {/* Si no te sirve, decilo: no te la volvemos a ofrecer (se deshace en Ajustes). */}
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-2 text-caption text-muted-foreground">
+        <EyeOff className="h-3.5 w-3.5" aria-hidden />
+        <button type="button" disabled={ocultando} onClick={() => ocultar('no_aplica')} className="underline underline-offset-2 hover:text-foreground">
+          No aplica a mí
+        </button>
+        <button type="button" disabled={ocultando} onClick={() => ocultar('no_me_gusta')} className="underline underline-offset-2 hover:text-foreground">
+          No me interesa
+        </button>
+      </div>
     </div>
   );
 }

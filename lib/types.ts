@@ -61,4 +61,10 @@ export interface CompleteActivityResult {
   /** Set when the action is a tracked habit (F12.6). */
   habit?: { streak: number; bonus: number } | null;
   mundo_delta: { liveliness?: number; new_elements?: string[] } | null;
+  /** La cantidad que contó, si la acción es medible (0123). */
+  cantidad?: number | null;
+  /** En qué paso de su camino está, y si lo completó con esta (0123). */
+  camino?: { slug: string; titulo_es: string; paso: number | null; total: number; hechos: number; completado: boolean; puntos?: number } | null;
+  /** Lo que esta acción dejó armado ("compost", "huerta"). */
+  otorga?: string | null;
 }

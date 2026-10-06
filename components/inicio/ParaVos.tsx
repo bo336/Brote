@@ -9,6 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { ICONO_METRICA } from './AccionesDeHoy';
 import { useCatalog, useCatalogCompletions, useDomainPoints } from '@/hooks/use-catalog';
+import { useSugeridas } from '@/hooks/use-acciones';
+import { razonTexto } from '@/lib/acciones/presentar';
+import { getDomainName } from '@/lib/domains';
 import { fetchMyRecommendations } from '@/lib/api/catalog';
 import { scoreActivities } from '@/lib/recommendations';
 import { impactoDeAccion, pistaDeImpacto, type ConImpacto } from '@/lib/inicio/impacto';
@@ -45,17 +48,28 @@ export function ParaVos() {
     return () => io.disconnect();
   }, [cerca]);
 
-  const catalog = useCatalog(profile?.accountType ?? 'adult', cerca);
-  const completions = useCatalogCompletions(profile?.id, cerca);
-  const domainPoints = useDomainPoints(profile?.id, cerca);
+  // Primero lo que elige la base, con las mismas reglas que el día (y sabiendo
+  // lo que la persona ocultó). Si la base todavía no lo tiene, el catálogo
+  // ordenado en el cliente.
+  const sugeridas = useSugeridas('catalog', 6, cerca);
+  const usarCliente = sugeridas.isSuccess && sugeridas.data.length === 0;
+  const catalog = useCatalog(profile?.accountType ?? 'adult', cerca && usarCliente);
+  const completions = useCatalogCompletions(profile?.id, cerca && usarCliente);
+  const domainPoints = useDomainPoints(profile?.id, cerca && usarCliente);
   const recs = useQuery({
     queryKey: ['ai-recs', profile?.id],
     queryFn: fetchMyRecommendations,
-    enabled: cerca && !!profile?.id,
+    enabled: cerca && usarCliente && !!profile?.id,
     staleTime: 30 * 60_000,
   });
 
   const lista = useMemo(() => {
+    if (sugeridas.data && sugeridas.data.length > 0) {
+      return sugeridas.data.map((a) => ({
+        activity: a,
+        reason: razonTexto(a.razon, { dominio: (s) => getDomainName(s) }) ?? '',
+      }));
+    }
     if (!catalog.data) return [];
     const hechas = new Set<string>();
     completions.data?.forEach((info, id) => {
@@ -70,6 +84,8 @@ export function ParaVos() {
         domainPoints: domainPoints.data ?? {},
         completedIds: hechas,
         personal: profile?.context ?? null,
+        cuenta: profile?.accountType ?? 'adult',
+        provincia: profile?.city ?? null,
       },
     );
     const ai = new Map((recs.data ?? []).map((r, i) => [r.slug, { rank: i, reason: r.reason }]));
@@ -78,10 +94,10 @@ export function ParaVos() {
         const r = ai.get(s.activity.slug);
         return r && !hechas.has(s.activity.id) ? { ...s, score: s.score + 1000 - r.rank, reason: r.reason || s.reason } : s;
       })
-      .filter((s) => !s.locked && !hechas.has(s.activity.id))
+      .filter((s) => !s.locked && s.apta && !hechas.has(s.activity.id))
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
-  }, [catalog.data, completions.data, domainPoints.data, recs.data, profile?.interests, profile?.totalXp, profile?.context]);
+  }, [sugeridas.data, catalog.data, completions.data, domainPoints.data, recs.data, profile?.interests, profile?.totalXp, profile?.context, profile?.accountType, profile?.city]);
 
   return (
     <section ref={ref} aria-labelledby="para-vos">
@@ -104,7 +120,7 @@ export function ParaVos() {
         </Link>
       </div>
 
-      {!cerca || catalog.isPending ? (
+      {!cerca || sugeridas.isPending || (usarCliente && catalog.isPending) ? (
         <div className="-mx-4 flex gap-3 overflow-hidden px-4">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-[168px] w-[62%] shrink-0 rounded-card sm:w-[38%]" />
