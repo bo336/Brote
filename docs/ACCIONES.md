@@ -169,7 +169,7 @@ no la hiciste hoy (y en el catálogo, su enfriamiento) · no está en tu rutina.
 | tema de tus intereses | +30 |
 | afinidad: parte de tus acciones de 60 días en ese tema | hasta +15 |
 | nunca la hiciste | +20 |
-| es de esta estación (y no de todo el año) | +12 |
+| es de esta estación (y no de todo el año) | +8 (y como mucho 2 por día) |
 | efeméride de esta semana | +25 |
 | pide algo que tenés (bici, balcón…) | +10 |
 | impacto medio / alto | +5 / +10 |
@@ -201,23 +201,23 @@ de una de catálogo. Nuevo: +300 al terminar un camino.
 
 ## 7 · Fases
 
-- [ ] **A · Base** — `0123_acciones_v2.sql`: columnas, `acciones_feedback`,
+- [x] **A · Base** — `0123_acciones_v2.sql`: columnas, `acciones_feedback`,
   `caminos`, `user_caminos`, `daily_sets.razones/cambios`, región, estación,
   efemérides, `brote_accion_apta`, generador del día v2, `acciones_de_hoy`,
   `acciones_cambiar`, `acciones_sugeridas`, `complete_activity` con cantidad +
   impacto congelado + caminos, impacto leyendo lo congelado, rutina y
   Plaza/Academia con la misma elegibilidad. Espejo en `lib/acciones/` con tests.
-- [ ] **B · Contenido** — catálogo nuevo en `scripts/acciones/` (una fuente de
+- [x] **B · Contenido** — catálogo nuevo en `scripts/acciones/` (una fuente de
   verdad en el repo, por tema), validador (duplicados, campos, vocabulario,
   puntos por regla, rangos de impacto) y `0124_acciones_catalogo.sql`
   generado. Se conservan los slugs que siguen (historia y rutinas intactas) y
   se desactivan los que se van.
-- [ ] **C · Pantallas** — Inicio (porqué, minutos, hoja de acción con
+- [x] **C · Pantallas** — Inicio (porqué, minutos, hoja de acción con
   descripción + Cambiar, medibles, "Más" desde el servidor, tarjeta "Contanos
   de tu casa"), Acciones (Caminos, De temporada, filtros: rápidas, gratis, te
   ahorra, dónde), detalle (descripción, por qué, fuente, camino, no aplica),
   onboarding y Ajustes → "Tu casa y tu día" + "Acciones ocultas".
-- [ ] **D · Panel** — `/panel/acciones`: catálogo por tema/formato, más
+- [x] **D · Panel** — `/panel/acciones`: catálogo por tema/formato, más
   cambiadas y "no aplica", ofrecidas vs hechas, y las reglas editables.
 - [ ] **E · Verificación** — tests, typecheck, lint, build; ensayo contra la
   base en un bloque que termina en rollback; pantallas con datos de prueba a
@@ -226,3 +226,10 @@ de una de catálogo. Nuevo: +300 al terminar un camino.
 ## 8 · Diario
 
 - 2026-10-06 — Auditoría y plan (este archivo).
+- 2026-10-06 — A–D hechas en la rama: 0123 (reglas y RPCs), 0124 (437 acciones,
+  19 caminos, generada), 0125 (panel). 35 tests propios, 628+ en total, build ok.
+  Probado contra Postgres local (PGlite): las tres migraciones aplican, 0124 es
+  idempotente, rutinas y puentes al Mercado se heredan, 60 días seguidos sin
+  romper una regla. Pantallas capturadas a 390×844 claro/oscuro.
+  **Falta:** aplicar 0123–0125 en la base viva (pide el OK del dueño), merge,
+  y un recorrido con sesión real (cambiar una acción, una medible, un camino).
