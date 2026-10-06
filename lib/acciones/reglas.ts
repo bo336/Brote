@@ -46,6 +46,9 @@ export const CONTEXTO_CLAVES = [
   'estudio',
   'campo',
   'costa',
+  'compost',
+  'huerta',
+  'mascota',
 ] as const;
 export type ContextoClave = (typeof CONTEXTO_CLAVES)[number];
 
@@ -70,6 +73,8 @@ export interface ContextoInfo {
   noTengo: string;
   /** Una cuenta de chico no ve esta opción (no maneja, no tiene hijos, no trabaja). */
   adultos?: boolean;
+  /** No se pregunta: se deduce de otras (mascota = perro o gato). */
+  derivada?: boolean;
 }
 
 export const CONTEXTO: ContextoInfo[] = [
@@ -90,6 +95,9 @@ export const CONTEXTO: ContextoInfo[] = [
   { clave: 'estudio', label: 'Escuela o facultad', grupo: 'vida', porque: 'Para la escuela', noTengo: 'No voy a la escuela ni a la facu' },
   { clave: 'campo', label: 'Campo o pueblo chico', grupo: 'lugar', porque: 'Para el campo', noTengo: 'No vivo en el campo' },
   { clave: 'costa', label: 'Cerca del mar, un río o una laguna', grupo: 'lugar', porque: 'Cerca del agua', noTengo: 'No vivo cerca del agua' },
+  { clave: 'compost', label: 'Compostera', grupo: 'casa', porque: 'Para tu compost', noTengo: 'No tengo compostera' },
+  { clave: 'huerta', label: 'Huerta o macetas con verduras', grupo: 'casa', porque: 'Para tu huerta', noTengo: 'No tengo huerta' },
+  { clave: 'mascota', label: 'Mascota', grupo: 'vida', porque: 'Para vos y tu mascota', noTengo: 'No tengo mascota', derivada: true },
 ];
 
 export const CONTEXTO_POR_CLAVE = Object.fromEntries(CONTEXTO.map((c) => [c.clave, c])) as Record<ContextoClave, ContextoInfo>;
@@ -99,11 +107,16 @@ export type TipoCuenta = 'kid' | 'teen' | 'adult';
 /**
  * El contexto que cuenta para decidir. `true` = lo tiene; cualquier otra cosa
  * (false, ausente, basura) = no. Un chico o un adolescente va a la escuela
- * salvo que diga lo contrario.
+ * salvo que diga lo contrario. `compost` y `huerta` además se ganan: la acción
+ * que los arma (`otorga`) los marca al completarla.
  */
 export function contextoEfectivo(ctx: Record<string, unknown> | null | undefined, cuenta: TipoCuenta): Record<string, unknown> {
   const base = { ...(ctx ?? {}) };
   if ((cuenta === 'kid' || cuenta === 'teen') && !('estudio' in base)) base.estudio = true;
+  // Quien tiene jardín tiene un lugar afuera.
+  if (base.jardin === true) base.balcon = true;
+  // Mascota = perro o gato (y la respuesta del onboarding viejo, que preguntaba "mascota").
+  if (base.perro === true || base.gato === true) base.mascota = true;
   return base;
 }
 
@@ -293,6 +306,8 @@ export interface Reglas {
   larga_minutos: number;
   max_largas: number;
   max_por_dominio: number;
+  /** Como mucho estas de temporada por día (para que la estación no se coma la variedad). */
+  max_temporada: number;
   ventana_dias: number;
   cambios_por_dia: number;
   ya_lo_hago_dias: number;
@@ -313,6 +328,7 @@ export const REGLAS: Reglas = {
   larga_minutos: 15,
   max_largas: 1,
   max_por_dominio: 1,
+  max_temporada: 2,
   ventana_dias: 21,
   cambios_por_dia: 3,
   ya_lo_hago_dias: 60,
@@ -322,7 +338,7 @@ export const REGLAS: Reglas = {
     interes: 30,
     afinidad: 15,
     nueva: 20,
-    temporada: 12,
+    temporada: 8,
     efemeride: 25,
     contexto: 10,
     impacto_medio: 5,
@@ -370,10 +386,11 @@ export interface PerfilReglas {
   intereses: readonly string[];
 }
 
-export type MotivoNoApta = 'edad' | 'rango' | 'contexto' | 'estacion' | 'region' | 'dia';
+export type MotivoNoApta = 'interno' | 'edad' | 'rango' | 'contexto' | 'estacion' | 'region' | 'dia';
 
 /** La misma pregunta que `brote_accion_apta` en la base, con el motivo. */
 export function apta(a: AccionReglas, p: PerfilReglas): { ok: true } | { ok: false; motivo: MotivoNoApta } {
+  if (a.tags.includes('interno')) return { ok: false, motivo: 'interno' };
   if (!a.age_groups.includes(p.cuenta)) return { ok: false, motivo: 'edad' };
   if ((a.min_rank_tier ?? 1) > p.tier) return { ok: false, motivo: 'rango' };
   if (!contextoTiene(p.ctx, a.requiere)) return { ok: false, motivo: 'contexto' };
@@ -457,6 +474,8 @@ export interface Candidata {
   m: number;
   /** nunca la hizo */
   n: boolean;
+  /** de temporada (tiene estaciones) */
+  t?: boolean;
   /** puntaje */
   s: number;
 }
@@ -467,7 +486,7 @@ export interface Candidata {
  * aceptan respetando los topes; si no alcanza, se relajan en orden.
  *
  *   0. Si no hay ninguna nueva y existe una que no sea larga, va primero.
- *   1. Tope por tema + mezcla (rápidas mínimas, largas máximas).
+ *   1. Tope por tema + mezcla (rápidas mínimas, largas y de temporada máximas).
  *   2. Tope por tema 2 + mezcla.
  *   3. Tope por tema 2, sin mezcla.
  *   4. Sin topes.
@@ -482,11 +501,13 @@ export function armarDia(
   const porDominio = new Map<string, number>();
   let rapidas = 0;
   let largas = 0;
+  let temporada = 0;
   const sumar = (c: Candidata) => {
     elegidas.push(c);
     porDominio.set(c.d, (porDominio.get(c.d) ?? 0) + 1);
     if (c.m <= reglas.rapida_minutos) rapidas++;
     if (c.m > reglas.larga_minutos) largas++;
+    if (c.t) temporada++;
   };
   // Lo que se mantiene (al cambiar una) cuenta para los topes como cualquier otra.
   for (const c of mantener) sumar(c);
@@ -511,6 +532,7 @@ export function armarDia(
       if ((porDominio.get(c.d) ?? 0) >= pasada.maxDom) continue;
       if (pasada.mezcla) {
         if (c.m > reglas.larga_minutos && largas >= reglas.max_largas) continue;
+        if (c.t && temporada >= reglas.max_temporada) continue;
         if (c.m > reglas.rapida_minutos) {
           const faltan = Math.max(0, reglas.rapidas_min - rapidas);
           const libres = reglas.tamano - elegidas.length;

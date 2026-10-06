@@ -42,7 +42,10 @@ alter table public.activities
   add column if not exists fuente_url  text,
   add column if not exists camino_slug text,
   add column if not exists camino_paso smallint,
-  add column if not exists tags        text[]   not null default '{}';
+  add column if not exists tags        text[]   not null default '{}',
+  -- Lo que la acción deja armado: al completarla se marca en el contexto
+  -- ("Empezá a compostar" → compost) y se abren las que lo piden.
+  add column if not exists otorga      text;
 
 alter table public.activities drop constraint if exists activities_formato_chk;
 alter table public.activities add constraint activities_formato_chk
@@ -59,7 +62,9 @@ alter table public.activities add constraint activities_dias_chk check (dias is 
 alter table public.activities drop constraint if exists activities_requiere_chk;
 alter table public.activities add constraint activities_requiere_chk check (requiere <@ array[
   'balcon','jardin','pileta','edificio','auto','bici','gas','aire','lena','parrilla',
-  'perro','gato','chicos','trabajo','estudio','campo','costa']::text[]);
+  'perro','gato','chicos','trabajo','estudio','campo','costa','compost','huerta','mascota']::text[]);
+alter table public.activities drop constraint if exists activities_otorga_chk;
+alter table public.activities add constraint activities_otorga_chk check (otorga is null or otorga in ('compost','huerta'));
 alter table public.activities drop constraint if exists activities_estaciones_chk;
 alter table public.activities add constraint activities_estaciones_chk
   check (estaciones <@ array['verano','otono','invierno','primavera']::text[]);
@@ -310,7 +315,7 @@ stable security definer
 set search_path = public
 as $$
   with d as (
-    select '{"tamano":5,"rapidas_min":3,"rapida_minutos":5,"larga_minutos":15,"max_largas":1,"max_por_dominio":1,"ventana_dias":21,"cambios_por_dia":3,"ya_lo_hago_dias":60,"hoy_no_dias":7,"hecha_reciente_dias":3,"pesos":{"interes":30,"afinidad":15,"nueva":20,"temporada":12,"efemeride":25,"contexto":10,"impacto_medio":5,"impacto_alto":10,"ofrecida":25,"hoy_no":15,"hecha_reciente":15,"azar":20}}'::jsonb as j
+    select '{"tamano":5,"rapidas_min":3,"rapida_minutos":5,"larga_minutos":15,"max_largas":1,"max_por_dominio":1,"max_temporada":2,"ventana_dias":21,"cambios_por_dia":3,"ya_lo_hago_dias":60,"hoy_no_dias":7,"hecha_reciente_dias":3,"pesos":{"interes":30,"afinidad":15,"nueva":20,"temporada":8,"efemeride":25,"contexto":10,"impacto_medio":5,"impacto_alto":10,"ofrecida":25,"hoy_no":15,"hecha_reciente":15,"azar":20}}'::jsonb as j
   ), s as (
     select case when jsonb_typeof(v) = 'object' then v else '{}'::jsonb end as j
       from (select (select value from app_settings where key = 'acciones_reglas') as v) x
@@ -352,9 +357,16 @@ as $$
   select (b.id,
           b.edad,
           coalesce((brote_get_rank(b.total_xp) ->> 'tier')::int, 1),
-          case when b.edad in ('kid','teen') and not (coalesce(b.context, '{}'::jsonb) ? 'estudio')
-               then coalesce(b.context, '{}'::jsonb) || '{"estudio": true}'::jsonb
-               else coalesce(b.context, '{}'::jsonb) end,
+          coalesce(b.context, '{}'::jsonb)
+            || case when b.edad in ('kid','teen') and not (coalesce(b.context, '{}'::jsonb) ? 'estudio')
+                    then '{"estudio": true}'::jsonb else '{}'::jsonb end
+            -- Quien tiene jardín tiene un lugar afuera.
+            || case when coalesce(b.context, '{}'::jsonb) -> 'jardin' = 'true'::jsonb
+                    then '{"balcon": true}'::jsonb else '{}'::jsonb end
+            -- Mascota = perro o gato (y la respuesta del onboarding viejo).
+            || case when coalesce(b.context, '{}'::jsonb) -> 'perro' = 'true'::jsonb
+                      or coalesce(b.context, '{}'::jsonb) -> 'gato' = 'true'::jsonb
+                    then '{"mascota": true}'::jsonb else '{}'::jsonb end,
           brote_region(b.city),
           brote_estacion(b.f),
           extract(dow from b.f)::int,
@@ -382,6 +394,8 @@ stable
 set search_path = public
 as $$
   select a.active
+     -- Las de uso interno (la jornada de un proyecto) no se ofrecen nunca.
+     and not ('interno' = any(a.tags))
      and p.edad = any(a.age_groups)
      and coalesce((select r.tier from ranks r where r.slug = a.min_rank_slug), 1) <= p.tier
      and brote_contexto_tiene(p.ctx, a.requiere)
@@ -412,7 +426,7 @@ $$;
 create or replace function public.brote_candidatas(
   p_uid uuid, p_local date, p_tipo text, p_excluir uuid[] default '{}'
 )
-returns table (id uuid, d text, m int, i text, n boolean, s int, r jsonb)
+returns table (id uuid, d text, m int, i text, n boolean, t boolean, s int, r jsonb)
 language sql
 stable security definer
 set search_path = public
@@ -485,7 +499,7 @@ as $$
                      or (a.frequency = 'recurring' and ac.completed_at > now()
                          - make_interval(hours => greatest(coalesce(nullif(a.repeat_cooldown_hours, 0), 20), 1))))))
   )
-  select b.id, b.domain_slug, b.minutos::int, b.impact::text, b.nunca,
+  select b.id, b.domain_slug, b.minutos::int, b.impact::text, b.nunca, cardinality(b.estaciones) > 0,
          ( (case when b.domain_slug = any((p.v).intereses) then w.interes else 0 end)
          + round(w.afinidad * least(1, b.share * 3))::int
          + (case when b.nunca then w.nueva else 0 end)
@@ -527,6 +541,7 @@ declare
   v_lar_m int := (v_reglas ->> 'larga_minutos')::int;
   v_max_lar int := (v_reglas ->> 'max_largas')::int;
   v_max_dom int := (v_reglas ->> 'max_por_dominio')::int;
+  v_max_tem int := coalesce((v_reglas ->> 'max_temporada')::int, 2);
   v_cand jsonb;
   v_x jsonb;
   v_ids uuid[] := '{}';
@@ -534,6 +549,7 @@ declare
   v_dom jsonb := '{}';
   v_rap int := 0;
   v_lar int := 0;
+  v_tem int := 0;
   v_hay_nueva boolean := false;
   v_pasada int;
   v_tope int;
@@ -543,7 +559,7 @@ declare
 begin
   -- Lo que se mantiene cuenta para los topes.
   for r in
-    select a.id, a.domain_slug, a.minutos,
+    select a.id, a.domain_slug, a.minutos, cardinality(a.estaciones) > 0 as de_temporada,
            not exists (select 1 from activity_completions ac
                         where ac.user_id = p_uid and ac.activity_id = a.id and ac.status in ('honor','verified')) as nunca
       from unnest(coalesce(p_mantener, '{}')) with ordinality u(aid, ord)
@@ -554,10 +570,11 @@ begin
     v_dom := jsonb_set(v_dom, array[r.domain_slug], to_jsonb(coalesce((v_dom ->> r.domain_slug)::int, 0) + 1));
     if r.minutos <= v_rap_m then v_rap := v_rap + 1; end if;
     if r.minutos > v_lar_m then v_lar := v_lar + 1; end if;
+    if r.de_temporada then v_tem := v_tem + 1; end if;
     if r.nunca then v_hay_nueva := true; end if;
   end loop;
 
-  select coalesce(jsonb_agg(jsonb_build_object('id', c.id, 'd', c.d, 'm', c.m, 'n', c.n, 's', c.s, 'r', c.r)
+  select coalesce(jsonb_agg(jsonb_build_object('id', c.id, 'd', c.d, 'm', c.m, 'n', c.n, 't', c.t, 's', c.s, 'r', c.r)
                             order by c.s desc, c.id), '[]'::jsonb)
     into v_cand
     from brote_candidatas(p_uid, p_local, 'daily', coalesce(p_excluir, '{}') || coalesce(p_mantener, '{}')) c;
@@ -573,6 +590,7 @@ begin
       v_m := (v_x ->> 'm')::int;
       if v_m <= v_rap_m then v_rap := v_rap + 1; end if;
       if v_m > v_lar_m then v_lar := v_lar + 1; end if;
+      if (v_x ->> 't')::boolean then v_tem := v_tem + 1; end if;
       v_razones := v_razones || jsonb_build_object(v_x ->> 'id', v_x -> 'r');
     end if;
   end if;
@@ -589,12 +607,14 @@ begin
       v_m := (v_x ->> 'm')::int;
       if v_mezcla then
         continue when v_m > v_lar_m and v_lar >= v_max_lar;
+        continue when (v_x ->> 't')::boolean and v_tem >= v_max_tem;
         continue when v_m > v_rap_m and (v_tam - cardinality(v_ids) - 1) < greatest(0, v_rap_min - v_rap);
       end if;
       v_ids := v_ids || (v_x ->> 'id')::uuid;
       v_dom := jsonb_set(v_dom, array[v_x ->> 'd'], to_jsonb(coalesce((v_dom ->> (v_x ->> 'd'))::int, 0) + 1));
       if v_m <= v_rap_m then v_rap := v_rap + 1; end if;
       if v_m > v_lar_m then v_lar := v_lar + 1; end if;
+      if (v_x ->> 't')::boolean then v_tem := v_tem + 1; end if;
       v_razones := v_razones || jsonb_build_object(v_x ->> 'id', v_x -> 'r');
     end loop;
   end loop;
@@ -852,7 +872,9 @@ as $$
   pasos as (
     select c.slug as camino, a.id, a.slug, a.title_es, a.camino_paso, a.domain_slug, a.base_points,
            a.id in (select activity_id from hechas) as hecho,
-           ((p.v).edad = any(a.age_groups) and brote_contexto_tiene((p.v).ctx, a.requiere)) as le_sirve
+           -- compost y huerta no cuentan: se ganan dentro del mismo camino.
+           ((p.v).edad = any(a.age_groups)
+            and brote_contexto_tiene((p.v).ctx || '{"compost": true, "huerta": true}'::jsonb, a.requiere)) as le_sirve
       from caminos c
       join activities a on a.camino_slug = c.slug and a.active
       cross join p
@@ -962,6 +984,10 @@ begin
       on conflict (user_id, domain_slug) do update set points = user_domain_points.points + v_points;
   end if;
   v_habit := brote_touch_habit(v_uid, v_act.id, v_local);
+  -- Lo que esta acción deja armado (una compostera, una huerta) abre las que lo piden.
+  if v_act.otorga is not null then
+    update profiles set context = coalesce(context, '{}'::jsonb) || jsonb_build_object(v_act.otorga, true) where id = v_uid;
+  end if;
   if v_act.type = 'daily' then
     update profiles set current_streak = v_new_streak, longest_streak = greatest(longest_streak, v_new_streak), last_streak_date = v_local where id = v_uid;
     if v_streak_inc then
@@ -1078,7 +1104,7 @@ begin
     'semillas_earned', v_sem, 'semillas_balance', coalesce(v_sem_balance, 0),
     'impact', jsonb_build_object('water_l', coalesce(v_w, 0), 'co2_kg', coalesce(v_c, 0),
                                  'waste_kg', coalesce(v_r, 0), 'energy_kwh', coalesce(v_e, 0)),
-    'cantidad', v_cant, 'camino', v_camino,
+    'cantidad', v_cant, 'camino', v_camino, 'otorga', v_act.otorga,
     'mundo_delta', null);
 end $function$;
 

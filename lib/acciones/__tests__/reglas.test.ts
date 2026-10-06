@@ -207,6 +207,12 @@ test('at least three quick ones and at most one long one', () => {
   assert.deepEqual(dia, ['l1', 'm1', 'q1', 'q2', 'q3']);
 });
 
+test('at most two seasonal actions while there is variety', () => {
+  const t = (id: string, d: string, s: number): Candidata => ({ id, d, m: 2, s, n: false, t: true });
+  const cands = [t('s1', 'agua', 99), t('s2', 'energia', 98), t('s3', 'plantas', 97), t('s4', 'animales', 96), c('x1', 'residuos', 2, 10), c('x2', 'consumo', 2, 9), c('x3', 'digital', 2, 8)];
+  assert.deepEqual(armarDia(cands), ['s1', 's2', 'x1', 'x2', 'x3']);
+});
+
 test('a new action is guaranteed when one exists (and is not long)', () => {
   const cands = [c('x1', 'agua', 2, 90), c('x2', 'energia', 2, 80), c('x3', 'residuos', 2, 70), c('x4', 'plantas', 2, 60), c('x5', 'consumo', 2, 50), c('n1', 'digital', 2, 1, true)];
   assert.ok(armarDia(cands).includes('n1'));
