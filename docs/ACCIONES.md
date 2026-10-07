@@ -89,11 +89,18 @@ distintas; y un algoritmo que las reparta bien, con reglas claras.
    cuando la hay (ENARGAS, Guía de Ahorro de Energía del GCBA, AySA, FAO,
    Secretaría de Energía, Ministerio de Salud, ArgentiNat…).
 4. **Puntos por regla, no a ojo.** Esfuerzo × impacto, una tabla.
-5. **Impacto prudente y congelado.** Números conservadores; lo que sumó una
-   acción se guarda en la fila de la acción hecha, y corregir el catálogo no
-   reescribe el pasado.
+5. **Impacto real, nunca inflado** (§6b). Lo que sumó una acción se guarda en
+   la fila de la acción hecha, con la cantidad si es medible. Cuando un
+   número estaba mal, se corrige también para atrás: no se sostiene una cifra
+   inflada sólo porque ya se mostró.
 6. **Nada de encuadre anti-carne** (decisión del dueño, F1.2): comida de
    estación, legumbres, aprovechamiento, desperdicio cero.
+7. **Sólo lo que cuida algo de verdad.** Nada que sea del juego ("Regá tu
+   mundo"), de hacer crecer la app ("Invitá a alguien a Brote") o un mito
+   digital sin efecto medible (borrar fotos de la nube, modo oscuro,
+   desuscribirse de mails).
+8. **El Mercado, sólo donde hace falta un producto** (§6c), y nunca en el
+   set del día ni al completar.
 
 ## 3 · El modelo nuevo de una acción
 
@@ -120,9 +127,9 @@ Columnas nuevas en `activities` (todas con valor por omisión, nada se rompe):
 
 **Contexto de la persona** (`profiles.context`, editable en Ajustes → "Tu casa
 y tu día", y en el onboarding): `balcon`, `jardin`, `pileta`, `edificio`,
-`auto`, `bici`, `gas`, `aire`, `lena`, `parrilla`, `perro`, `gato`,
-`chicos`, `trabajo`, `estudio`, `campo`, `costa`. `true` = lo tiene; `false`
-o ausente = no se le ofrece lo que lo requiere.
+`auto`, `bici`, `gas`, `aire`, `secarropas`, `lena`, `parrilla`, `perro`,
+`gato`, `chicos`, `trabajo`, `estudio`, `campo`, `costa`. `true` = lo tiene;
+`false` o ausente = no se le ofrece lo que lo requiere.
 
 **Región** sale de la provincia (`profiles.city`, F15.4): AMBA, Centro, Cuyo,
 NOA, NEA, Patagonia.
@@ -199,6 +206,63 @@ llegan 5, se relajan en orden: repetición → tope por tema → mezcla.
 Sin cambios: racha ×1,1/×1,2/×1,3, +200 por set completo, +100 la primera vez
 de una de catálogo. Nuevo: +300 al terminar un camino.
 
+## 6b · Cómo se mide el impacto
+
+Las cuatro cifras que ve la persona ("agua que no se gastó", "CO₂ que no llegó
+al aire", "residuos que no fueron a la basura", "energía que no se consumió")
+tienen que poder sostenerse. Reglas (las aplica `scripts/acciones/generar.mjs`
+y las chequean los tests):
+
+- **Una vez = lo que esa vez ahorra.** Lo que dura (arreglar una pérdida, poner
+  un aireador, cambiar lámparas, apagar el piloto) cuenta **30 días** de
+  ahorro, no la vida útil. Nada hecho una sola vez pasa de 750 L, 5 kg CO₂,
+  2 kg de residuos o 30 kWh.
+- **Agua es la de tu canilla o tu manguera.** La huella hídrica de la comida
+  o la ropa (riego, fábrica) no la ahorraste vos: no se suma.
+- **La ropa usada no reemplaza siempre una nueva**: ~la mitad de las veces
+  (WRAP). Una prenda cuenta 2 kg CO₂ y 0,1 kg de textil, no 4 kg y 900 L.
+- **Residuos es lo que no fue a la basura común**: lo que no se generó, se
+  reusó, se recicló o se compostó (y pilas o remedios bien entregados).
+  Juntar basura de la calle o de la playa es muy bueno, pero lo juntado va a
+  la basura: suma puntos, no "residuos".
+- **No se cuenta dos veces.** Empezar o cosechar el compost no suma encima de
+  lo compostado cada día; entregarle al recuperador no suma encima de haber
+  separado.
+- **Aprender, observar, avisar, proponer, organizar: cero.** Plantar un árbol
+  también: lo que absorbe llega en años y no todos sobreviven.
+- **Sin el aparato no hay ahorro.** Lo que ahorra aire acondicionado o
+  secarropas sólo se ofrece a quien lo tiene (`aire`, `secarropas`).
+- **"Regá tu mundo" y lo del juego no cuentan** como acción real ni suman
+  impacto (`tags` `juego`).
+
+Factores (`scripts/acciones/dsl.mjs`): red eléctrica 0,31 kg CO₂/kWh; gas
+10,8 kWh y 1,95 kg CO₂ por m³; auto 0,17 kg CO₂/km; agua de ducha 0,035 kWh/L
+(38 °C desde 17 °C, calefón al 70%); comida tirada 2,5 kg CO₂e/kg (FAO);
+orgánico al relleno 0,5; plástico 2,5; reciclable 0,8.
+
+**Lo ya hecho se recalcula** al aplicar 0124: cada acción hecha pasa a contar
+lo que hoy cuenta su acción (o la que la heredó); lo que se fue sin reemplazo
+(paneles solares, tarifa renovable, termostato inteligente, "regá tu mundo")
+queda en la historia con sus puntos y sin impacto. En la base viva esto baja,
+por ejemplo, una sola "evitá la moda rápida" de 22.000 L a 0 L, y un "arreglá
+una canilla" de 20.000 L a 600 L.
+
+## 6c · El botón al Mercado
+
+43 acciones piden un producto que el Mercado tiene (detergente biodegradable,
+recargas, legumbres a granel, plantines nativos, composteras, copa menstrual,
+LED, reparación…) y lo declaran en el catálogo (`mercado: [categoría,
+subcategoría, texto]`). En la ficha de la acción, debajo de las
+instrucciones y sólo para adultos (08 §9):
+
+- con 3 empresas o más: 3 tarjetas (una por empresa) y el botón;
+- con 1 o 2 listados: sólo el botón "Buscalo en el Mercado" a la búsqueda
+  filtrada (una tarjeta sola se lee como publicidad de esa tienda);
+- sin listados: nada.
+
+Nunca en el set del día, en la hoja de Inicio ni al completar, y comprar no da
+puntos. Lo decide `mercado_para_accion` (0123) en la base.
+
 ## 7 · Fases
 
 - [x] **A · Base** — `0123_acciones_v2.sql`: columnas, `acciones_feedback`,
@@ -233,3 +297,12 @@ de una de catálogo. Nuevo: +300 al terminar un camino.
   romper una regla. Pantallas capturadas a 390×844 claro/oscuro.
   **Falta:** aplicar 0123–0125 en la base viva (pide el OK del dueño), merge,
   y un recorrido con sesión real (cambiar una acción, una medible, un camino).
+- 2026-10-07 — Pedido del dueño: botón al Mercado, impacto medido de verdad,
+  fuera lo que no cuida nada. Auditoría de impacto contra la base viva: 152
+  acciones hechas por 5 personas sumaban 42.000+ L y 1.500+ kg CO₂ por cifras
+  de "toda la vida" (paneles solares 1.500 kg de una vez, moda rápida
+  22.000 L). Reglas en §6b; 112 acciones corregidas, todas a la baja; 20 fuera (las del juego,
+  invitar a Brote, mitos digitales, triviales); 3 nuevas para chicos;
+  contexto `secarropas`; historia recalculada en 0124; "Regá tu mundo" fuera
+  de los totales. 43 acciones con botón al Mercado (§6c), sólo adultos.
+  420 acciones, 39 tests propios, 633 en total, build ok, PGlite ok.

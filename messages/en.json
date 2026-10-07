@@ -3544,7 +3544,8 @@
     "puente": {
       "titulo": "Where to get it",
       "ayuda": "These actions are easier with good suppliers. These businesses are in the Brote programme.",
-      "ver": "See more in the Market",
+      "boton": "Find it in the Market",
+      "cuantos": "{n, plural, one {# option} other {# options}}",
       "aclaracion": "Buying earns no points. Brote does not sell or broker: every listing leads to the shop's own site."
     },
     "plaza": {

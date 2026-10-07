@@ -12,11 +12,12 @@
 //
 // Los slugs que siguen existiendo conservan su historia y sus rutinas. Los
 // que se van se desactivan (nunca se borran: hay acciones hechas que los
-// apuntan). `hereda` pasa a la acción nueva las rutinas y los puentes al
-// Mercado de una vieja que se fusionó.
+// apuntan). `hereda` pasa a la acción nueva las rutinas de una vieja que se
+// fusionó, y lo que ya se hizo con la vieja pasa a contar lo que cuenta la
+// nueva. `mercado` declara el puente al Mercado: lo que no se declara se apaga.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { readdirSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { FUENTES } from './fuentes.mjs';
@@ -27,7 +28,7 @@ const raiz = join(aqui, '..', '..');
 
 const DOMINIOS = ['residuos', 'agua', 'energia', 'movilidad', 'plantas', 'animales', 'alimentacion', 'consumo', 'digital', 'comunidad', 'agua_azul', 'aire_suelo', 'ciencia'];
 const FORMATOS = ['gesto', 'tarea', 'salida', 'social', 'observar', 'aprender', 'reto'];
-const CONTEXTO = ['balcon', 'jardin', 'pileta', 'edificio', 'auto', 'bici', 'gas', 'aire', 'lena', 'parrilla', 'perro', 'gato', 'chicos', 'trabajo', 'estudio', 'campo', 'costa', 'compost', 'huerta', 'mascota'];
+const CONTEXTO = ['balcon', 'jardin', 'pileta', 'edificio', 'auto', 'bici', 'gas', 'aire', 'secarropas', 'lena', 'parrilla', 'perro', 'gato', 'chicos', 'trabajo', 'estudio', 'campo', 'costa', 'compost', 'huerta', 'mascota'];
 const SOLO_ADULTOS = ['auto', 'chicos', 'trabajo'];
 const LUGARES = ['casa', 'calle', 'compras', 'trabajo', 'escuela', 'naturaleza', 'celular'];
 const ESTACIONES = ['verano', 'otono', 'invierno', 'primavera'];
@@ -42,6 +43,20 @@ const PUNTOS = {
 const ENFRIAMIENTO = { gesto: 20, tarea: 720, salida: 168, social: 336, observar: 72, aprender: 720, reto: 168 };
 // Slugs que existen por fuera del catálogo y no se tocan.
 const INTOCABLES = new Set(['accion-grupal-proyecto']);
+// Formatos que no mueven un recurso medible: impacto cero, siempre (§6).
+const SIN_IMPACTO = ['aprender', 'observar'];
+
+// Las categorías del Mercado, leídas de lib/mercado/categorias.ts (el espejo
+// de la base): un puente a una categoría que no existe no se escribe.
+const fuenteCat = readFileSync(join(raiz, 'lib', 'mercado', 'categorias.ts'), 'utf8');
+const bloqueSub = fuenteCat.slice(fuenteCat.indexOf('export const SUBCATEGORIAS'));
+const SUBCATEGORIAS = Object.fromEntries(
+  [...bloqueSub.slice(0, bloqueSub.indexOf('};')).matchAll(/^\s*'?([a-z-]+)'?:\s*\[([^\]]*)\]/gm)].map((m) => [
+    m[1],
+    [...m[2].matchAll(/'([a-z-]+)'/g)].map((x) => x[1]),
+  ]),
+);
+if (Object.keys(SUBCATEGORIAS).length !== 12) throw new Error('no pude leer las categorías del Mercado');
 
 // ── Cargar ──────────────────────────────────────────────────────────────────
 
@@ -124,6 +139,24 @@ for (const a of acciones) {
   for (const h of a.hereda) if (h === a.slug) mal(a, 'se hereda a sí misma');
   if (a.otorga && !['compost', 'huerta'].includes(a.otorga)) mal(a, `otorga "${a.otorga}"`);
   if (a.otorga && a.req.includes(a.otorga)) mal(a, 'otorga lo mismo que pide');
+  if (SIN_IMPACTO.includes(a.formato) && (ef.w || ef.c || ef.r || ef.e)) mal(a, `"${a.formato}" no ahorra nada medible: impacto en cero`);
+  if (a.mercado) {
+    const [cat, sub, texto] = a.mercado;
+    if (!SUBCATEGORIAS[cat]) mal(a, `mercado: categoría "${cat}"`);
+    else if (sub != null && !SUBCATEGORIAS[cat].includes(sub)) mal(a, `mercado: subcategoría "${sub}" no es de ${cat}`);
+    if (!texto || texto.length < 30 || texto.length > 140) mal(a, `mercado: texto de ${texto?.length} caracteres (30–140)`);
+    if (a.edad.length === 1 && a.edad[0] === 'kid') mal(a, 'mercado: una acción sólo para chicos no lleva Mercado');
+  }
+}
+
+// Herencias: un slug viejo va a una sola acción, y no puede ser una acción viva.
+const heredado = new Map();
+for (const a of acciones) {
+  for (const h of a.hereda) {
+    if (slugs.has(h)) mal(a, `hereda ${h}, que sigue siendo una acción`);
+    if (heredado.has(h)) mal(a, `hereda ${h}, que ya hereda ${heredado.get(h)}`);
+    heredado.set(h, a.slug);
+  }
 }
 
 // Casi duplicados: mismo tema y casi las mismas palabras en el título.
@@ -233,6 +266,7 @@ const filas = acciones.map((a, i) => {
     otorga: a.otorga,
     sort_order: i + 1,
     hereda: a.hereda,
+    mercado: a.mercado ? { categoria: a.mercado[0], subcategoria: a.mercado[1], texto: a.mercado[2] } : null,
   };
 });
 
@@ -292,16 +326,11 @@ ${filas.map(valores).join(',\n')}
 on conflict (slug) do update set
 ${columnas.filter((c) => c !== 'slug').map((c) => `  ${c} = excluded.${c}`).join(',\n')};
 
--- ── Lo que se fusionó: rutinas y puentes al Mercado pasan a la acción nueva ──
+-- ── Lo que se fusionó: las rutinas pasan a la acción nueva ──
 `;
 for (const r of filas) {
   for (const viejo of r.hereda) {
-    sql += `insert into public.activity_market_hints (activity_id, categoria, dominios, texto_puente, activo)
-  select n.id, h.categoria, h.dominios, h.texto_puente, h.activo
-    from public.activity_market_hints h join public.activities o on o.id = h.activity_id, public.activities n
-   where o.slug = ${q(viejo)} and n.slug = ${q(r.slug)}
-  on conflict (activity_id, categoria) do nothing;
-update public.user_habits uh set activity_id = n.id
+    sql += `update public.user_habits uh set activity_id = n.id
   from public.activities o, public.activities n
  where o.slug = ${q(viejo)} and n.slug = ${q(r.slug)} and uh.activity_id = o.id
    and not exists (select 1 from public.user_habits x where x.user_id = uh.user_id and x.activity_id = n.id);
@@ -332,6 +361,61 @@ update public.activities set is_featured = true, featured_week = (now() at time 
  where slug in (${filas.filter((r) => r.type === 'catalog' && !r.estaciones.length && r.age_groups.includes('kid')).slice(0, 2).map((r) => q(r.slug)).join(',')});
 `;
 
+const puentes = filas.filter((r) => r.mercado);
+const valoresPuente = puentes
+  .map((r) => `(${q(r.slug)},${q(r.mercado.categoria)},${q(r.mercado.subcategoria)},${q(r.mercado.texto)})`)
+  .join(',\n');
+sql += `
+-- ── El puente al Mercado (02 §6.1): sólo donde la acción pide un producto ──
+-- ${puentes.length} acciones. Lo que no se declara acá se apaga (no se borra).
+insert into public.activity_market_hints (activity_id, categoria, subcategoria, dominios, texto_puente, activo)
+select a.id, m.categoria, m.subcategoria, array[a.domain_slug], m.texto, true
+  from (values
+${valoresPuente}
+  ) as m(slug, categoria, subcategoria, texto)
+  join public.activities a on a.slug = m.slug
+on conflict (activity_id, categoria) do update
+  set subcategoria = excluded.subcategoria, dominios = excluded.dominios,
+      texto_puente = excluded.texto_puente, activo = true;
+update public.activity_market_hints h set activo = false
+ where h.activo and not exists (
+   select 1 from public.activities a
+    where a.id = h.activity_id and (a.slug, h.categoria) in (${puentes.map((r) => `(${q(r.slug)},${q(r.mercado.categoria)})`).join(',')}));
+`;
+
+const herencias = filas.flatMap((r) => r.hereda.map((v) => `(${q(v)},${q(r.slug)})`));
+sql += `
+-- ── Lo ya hecho, con los números corregidos (docs/ACCIONES.md §6) ──
+-- Cada acción hecha pasa a contar lo que hoy cuenta la acción que la
+-- reemplaza (la misma, o la que la heredó), con la cantidad que dijo la
+-- persona si era medible. Lo que se fue sin reemplazo (paneles solares,
+-- "regá tu mundo"…) queda en la historia con sus puntos, pero sin impacto:
+-- no hay una cifra por vez que podamos sostener.
+with herencia (viejo, nuevo) as (values
+${herencias.length ? herencias.join(',\n') : '(null::text, null::text)'}
+)
+update public.activity_completions ac
+   set impact_water_l    = coalesce(case when n.medida is not null and ac.cantidad is not null
+                                         then round(coalesce((n.medida #>> '{por,water_l}')::numeric, 0) * ac.cantidad, 3)
+                                         else n.impact_water_l end, 0),
+       impact_co2_kg     = coalesce(case when n.medida is not null and ac.cantidad is not null
+                                         then round(coalesce((n.medida #>> '{por,co2_kg}')::numeric, 0) * ac.cantidad, 3)
+                                         else n.impact_co2_kg end, 0),
+       impact_waste_kg   = coalesce(case when n.medida is not null and ac.cantidad is not null
+                                         then round(coalesce((n.medida #>> '{por,waste_kg}')::numeric, 0) * ac.cantidad, 3)
+                                         else n.impact_waste_kg end, 0),
+       impact_energy_kwh = coalesce(case when n.medida is not null and ac.cantidad is not null
+                                         then round(coalesce((n.medida #>> '{por,energy_kwh}')::numeric, 0) * ac.cantidad, 3)
+                                         else n.impact_energy_kwh end, 0)
+  from public.activities a
+  left join herencia h on h.viejo = a.slug
+  left join public.activities n on n.slug = coalesce(h.nuevo, a.slug) and n.active
+ where a.id = ac.activity_id;
+
+-- El total colectivo se recalcula en la próxima lectura.
+update public.world_collective set refreshed_at = '-infinity' where id = 1;
+`;
+
 writeFileSync(join(raiz, 'supabase', 'migrations', '0124_acciones_catalogo.sql'), sql);
 writeFileSync(
   join(aqui, 'catalogo.json'),
@@ -344,5 +428,5 @@ const temporada = filas.filter((r) => r.estaciones.length).length;
 const conFuente = filas.filter((r) => r.fuente).length;
 const medibles = filas.filter((r) => r.medida).length;
 console.log(`✓ ${filas.length} acciones (${porTipo('daily')} del día · ${porTipo('catalog')} catálogo) · ${CAMINOS.length} caminos`);
-console.log(`  para chicos ${kid} · piden contexto ${conReq} · de temporada ${temporada} · con fuente ${conFuente} · medibles ${medibles}`);
+console.log(`  para chicos ${kid} · piden contexto ${conReq} · de temporada ${temporada} · con fuente ${conFuente} · medibles ${medibles} · con Mercado ${puentes.length}`);
 console.log(resumen.replace(/-- {3}/g, '  '));

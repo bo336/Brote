@@ -10,7 +10,7 @@ export default [
     corto: 'Lo que se compra por impulso casi nunca se usa del todo.',
     desc: 'Las góndolas están pensadas para que te lleves más de lo que fuiste a buscar. Ir con la lista y respetarla ahorra plata, envases y comida que después se vence.',
     pasos: ['Antes de salir, anotá lo que falta de verdad.', 'En el negocio, comprá sólo eso.', 'Si ves algo que "te tienta", anotalo y decidilo la próxima vez.'],
-    ef: { r: 0.05, c: 0.1 }, tags: ['compras'],
+    tags: ['compras'],
   }),
   d('con-cuidar-para-que-dure', 'Cuidá algo para que te dure más', {
     dom, e: 'easy', i: 'low', min: 10,
@@ -38,7 +38,7 @@ export default [
     corto: 'Un botón que falta no es motivo para que una prenda quede en el fondo del placard.',
     desc: 'Muchas prendas dejan de usarse por un detalle: un botón, un dobladillo, una costura abierta. Con aguja, hilo y diez minutos vuelven a estar en uso.',
     pasos: ['Buscá una prenda que no usás por un detalle.', 'Enhebrá una aguja con hilo del mismo color.', 'Cosé el botón o cerrá la costura con puntadas chicas.'],
-    ef: { c: 0.2, r: 0.02 }, tags: ['ropa', 'arreglo', 'chicos'],
+    tags: ['ropa', 'arreglo', 'chicos'],
   }),
   d('elegi-productos-con-minimo-packaging', 'Elegí el producto con menos envase', {
     dom, e: 'easy', i: 'low', min: 1, lugar: 'compras',
@@ -56,20 +56,21 @@ export default [
     pasos: ['La próxima prenda que necesites, buscala primero usada.', 'Probá ferias americanas, apps de usados o grupos de intercambio.', 'Contá cuántas prendas compraste usadas.'],
     medida: medida('¿Cuántas prendas compraste usadas?', 'prenda', 'prendas', { min: 1, max: 3, def: 1, por: por(prendas(1)) }),
     fuente: 'unep-moda', tags: ['ropa', 'usado'], hereda: ['agua-ropa-segunda-mano'],
+    mercado: ['indumentaria', 'segunda-mano', 'Usada, reparada o hecha para durar. Estos negocios están en el programa de Brote.'],
   }),
   c('revende-o-dona-lo-que-no-usas', 'Doná o vendé algo que no usás hace un año', {
     dom, e: 'easy', i: 'medium', min: 30, formato: 'social', edad: 'kta', adulto: true, cool: 336,
     corto: 'Lo que a vos te sobra, a alguien le falta.',
     desc: 'Ropa, juguetes, libros, utensilios o muebles que no se usan ocupan lugar en casa y podrían estar sirviendo. Donarlos a un ropero comunitario, una parroquia o un refugio, o venderlos usados, los mantiene en uso y fuera de la basura.',
     pasos: ['Elegí algo en buen estado que no hayas usado en un año.', 'Decidí: donar (ropero, comedor, escuela) o vender (apps de usados, feria).', 'Entregalo limpio y en condiciones.'],
-    ef: { r: 1, c: 1 }, tags: ['donar', 'usado'], hereda: ['dona-cosas-que-ya-no-usas-en-vez-de-tirarlas', 'res-donar-lo-que-no-usas'],
+    ef: { r: 0.5, c: 0.5 }, tags: ['donar', 'usado'], hereda: ['dona-cosas-que-ya-no-usas-en-vez-de-tirarlas', 'res-donar-lo-que-no-usas'],
   }),
   c('pedi-prestado-o-alquila-en-vez-de-comprar', 'Pedí prestado algo que vas a usar una vez', {
     dom, e: 'easy', i: 'high', min: 15, formato: 'social', edad: 'kta', ahorra: true, cool: 336,
     corto: 'Un taladro se usa, en promedio, unos minutos en toda su vida.',
     desc: 'Herramientas, la escalera, una carpa, un disfraz o un libro: para algo que vas a usar una vez, pedirlo prestado a un vecino o a la familia evita fabricar uno más que después queda guardado.',
     pasos: ['Antes de comprar algo para usar una vez, preguntá quién te lo puede prestar.', 'Devolvelo limpio y a tiempo.', 'Ofrecé lo tuyo cuando te lo pidan.'],
-    ef: { c: 3, r: 0.5 }, tags: ['prestar', 'barrio'], hereda: ['res-prestar-en-vez-de-comprar'],
+    ef: { c: 2, r: 0.3 }, tags: ['prestar', 'barrio'], hereda: ['res-prestar-en-vez-de-comprar'],
   }),
   c('repara-algo-en-vez-de-tirarlo', 'Repará algo en vez de reemplazarlo', {
     dom, e: 'medium', i: 'high', min: 45, edad: 'ta', ahorra: true, cool: 336,
@@ -77,6 +78,7 @@ export default [
     desc: 'Una silla floja, una lámpara que no prende, un cierre roto, unas auriculares sin un cable: casi todo se arregla con un tutorial, una herramienta prestada o un repuesto barato. Lo que se repara no se fabrica de nuevo.',
     pasos: ['Elegí algo roto que tengas guardado.', 'Buscá un tutorial con la marca y el modelo.', 'Conseguí el repuesto y arreglalo (o pedí ayuda a alguien que sepa).'],
     ef: { c: 5, r: 1 }, fuente: 'circularity-gap-2025', tags: ['arreglo'], hereda: ['res-reparar-algo-roto', 'con-reparar-antes-de-reemplazar'],
+    mercado: ['reparacion-y-reuso', null, 'Antes de tirarlo, alguien puede arreglarlo. Estos negocios están en el programa de Brote.'],
   }),
   c('con-arreglo-en-el-barrio', 'Llevá algo a arreglar al zapatero, la modista o el técnico', {
     dom, e: 'easy', i: 'high', min: 30, formato: 'salida', edad: 'ta', lugar: 'calle', ahorra: true, cool: 336,
@@ -84,6 +86,7 @@ export default [
     desc: 'Zapateros, modistas, relojeros, técnicos de celulares y de electrodomésticos: en casi todos los barrios hay alguien que arregla. Un taco, un cierre, una pantalla o un motor cuestan mucho menos que lo nuevo, y sostienen un oficio.',
     pasos: ['Juntá algo que no usás por un arreglo pendiente.', 'Buscá el zapatero, la modista o el técnico más cercano.', 'Preguntá presupuesto antes de decidir comprar otro.'],
     ef: { c: 3, r: 0.5 }, tags: ['arreglo', 'barrio'],
+    mercado: ['reparacion-y-reuso', null, 'Si no conocés a nadie que lo arregle, estos talleres del programa de Brote lo hacen.'],
   }),
   c('repara-tu-ropa-con-zurcido-visible', 'Zurcí una prenda rota', {
     dom, e: 'medium', i: 'medium', min: 30, edad: 'ta', cool: 168,
@@ -118,14 +121,14 @@ export default [
     corto: 'Un juguete guardado puede ser el juguete favorito de otro chico.',
     desc: 'Los juguetes en buen estado que ya no se usan pueden intercambiarse con amigos o donarse a un jardín, un comedor o un hospital. Así se juega más con lo que ya existe.',
     pasos: ['Elegí juguetes completos y en buen estado que ya no uses.', 'Proponé un intercambio con amigos o primos.', 'Lo que quede, donalo con un adulto.'],
-    ef: { r: 0.5, c: 1 }, tags: ['juguetes', 'donar', 'chicos'],
+    ef: { r: 0.5, c: 0.5 }, tags: ['juguetes', 'donar', 'chicos'],
   }),
   c('usa-una-biblioteca-de-libros-o-de-cosas', 'Sacá un libro de la biblioteca en vez de comprarlo', {
     dom, e: 'easy', i: 'medium', min: 30, formato: 'salida', edad: 'kta', cool: 336,
     corto: 'Un mismo libro puede leerlo todo un barrio.',
     desc: 'Las bibliotecas populares, escolares y municipales prestan libros gratis (muchas también revistas, películas y juegos). Leer prestado ahorra papel, plata y lugar en la biblioteca de casa.',
     pasos: ['Buscá la biblioteca popular o municipal más cercana.', 'Asociate (suele ser gratis o muy barato).', 'Sacá el próximo libro que ibas a comprar.'],
-    ef: { c: 1, r: 0.3 }, tags: ['libros', 'barrio'],
+    ef: { c: 0.5, r: 0.2 }, tags: ['libros', 'barrio'],
   }),
   c('compra-electronica-reacondicionada', 'Comprá un celular o una compu usados o reacondicionados', {
     dom, e: 'medium', i: 'high', min: 60, formato: 'salida', frec: 'recurring', cool: 4320, edad: 'a', ahorra: true,
@@ -133,6 +136,7 @@ export default [
     desc: 'La mayor parte de las emisiones de un celular o una notebook se producen antes de prenderlo por primera vez. Uno reacondicionado o usado en buen estado, con garantía, cumple igual y evita fabricar otro.',
     pasos: ['Cuando necesites cambiar de aparato, buscá primero reacondicionados con garantía.', 'Revisá batería, pantalla y que esté liberado.', 'Llevá el viejo a reciclaje o vendelo.'],
     ef: { c: 25, r: 0.2 }, fuente: 'ewaste-monitor', tags: ['electronicos', 'usado'],
+    mercado: ['reparacion-y-reuso', 'reacondicionados', 'Reacondicionado, con garantía y sin fabricar uno nuevo. Estos negocios están en el programa de Brote.'],
   }),
   c('con-regla-30-dias', 'Esperá 30 días antes de una compra grande', {
     dom, e: 'easy', i: 'medium', min: 5, formato: 'reto', edad: 'ta', ahorra: true, cool: 720,
@@ -147,6 +151,7 @@ export default [
     desc: 'Antes de comprar un aparato, una mochila o unas zapatillas, mirá si tiene repuestos, si se abre con tornillos y si hay service en tu ciudad. Lo que se puede arreglar dura más, aunque cueste un poco más.',
     pasos: ['Antes de comprar, buscá si hay repuestos y service de esa marca.', 'Preferí lo que se abre con tornillos y no con pegamento.', 'Guardá la garantía.'],
     ef: nada(), fuente: 'ue-derecho-reparar', tags: ['compras', 'arreglo'], hereda: ['con-elegir-durable'],
+    mercado: ['reparacion-y-reuso', null, 'Lo que se puede abrir y arreglar dura más. Estos negocios están en el programa de Brote.'],
   }),
   c('cons-regala-una-experiencia', 'Regalá una experiencia en vez de un objeto', {
     dom, e: 'easy', i: 'medium', min: 20, formato: 'social', edad: 'kta', cool: 720,
@@ -175,13 +180,14 @@ export default [
     desc: 'Detergente, lavandina, jabón líquido y suavizante se venden sueltos en muchas dietéticas, almacenes y "químicas" de barrio, o en versión concentrada. Rellenar los mismos bidones evita decenas de envases por año.',
     pasos: ['Guardá los envases vacíos de limpieza.', 'Buscá un local que venda sueltos o recargas.', 'Rellenalos, o elegí la versión concentrada.'],
     ef: plastico(0.1), tags: ['plastico', 'limpieza'], hereda: ['agua-jabon-concentrado'],
+    mercado: ['limpieza-hogar', 'recargas', 'Pasarse a recargable necesita alguien que te recargue. Estos negocios están en el programa de Brote.'],
   }),
   c('res-pila-recargable', 'Pasate a pilas recargables', {
     dom, e: 'easy', i: 'medium', min: 10, frec: 'one_time', edad: 'ta', costo: 'bajo', ahorra: true,
     corto: 'Una pila recargable reemplaza cientos de descartables.',
     desc: 'Para los controles, los juguetes y todo lo que gasta pilas seguido, unas recargables con su cargador se pagan solas en poco tiempo y evitan juntar pilas usadas en el cajón.',
     pasos: ['Contá qué aparatos gastan pilas seguido.', 'Comprá recargables de ese tamaño y un cargador.', 'Llevá las descartables que te queden a un punto de pilas.'],
-    ef: { r: 0.2, c: 1 }, tags: ['pilas'],
+    ef: { r: 0.05, c: 0.1 }, tags: ['pilas'],
   }),
   c('res-cepillo-recargable', 'Usá un cepillo de dientes de bambú o de cabezal recambiable', {
     dom, e: 'easy', i: 'low', min: 5, edad: 'kta', lugar: 'compras', cool: 2160,
@@ -189,13 +195,15 @@ export default [
     desc: 'Los cepillos de mango de bambú o los de cabezal recambiable cumplen igual y generan mucho menos plástico. Cuando lo cambies, el de bambú puede servir para limpiar rincones.',
     pasos: ['La próxima vez que cambies el cepillo, elegí uno de bambú o de cabezal recambiable.', 'Usá el viejo para limpiar juntas o zapatillas.'],
     ef: plastico(0.02), tags: ['plastico', 'baño'],
+    mercado: ['cuidado-personal', 'higiene-bucal', 'Cabezal recambiable, mango que dura. Estos negocios están en el programa de Brote.'],
   }),
   c('con-gestion-menstrual-reutilizable', 'Probá productos de gestión menstrual reutilizables', {
     dom, e: 'easy', i: 'high', min: 15, frec: 'one_time', edad: 'ta', ahorra: true,
     corto: 'Una copa o unas toallitas de tela reemplazan cientos de descartables por año.',
     desc: 'La copa menstrual, las toallitas de tela y la ropa interior absorbente duran años. Reemplazan miles de toallitas y tampones descartables a lo largo de la vida, ahorran plata y no van a la basura ni al inodoro.',
     pasos: ['Informate sobre las opciones (copa, toallitas de tela, ropa interior absorbente).', 'Probá la que te resulte más cómoda.', 'Seguí las indicaciones de limpieza.'],
-    ef: plastico(1.5), tags: ['plastico', 'baño'],
+    ef: plastico(0.15), tags: ['plastico', 'baño'],
+    mercado: ['cuidado-personal', 'higiene-menstrual', 'Copa, toallitas de tela o ropa interior absorbente. Estos negocios están en el programa de Brote.'],
   }),
   c('cons-desuscribite-de-promociones', 'Desuscribite de los mails de promociones', {
     dom, e: 'easy', i: 'low', min: 10, edad: 'ta', frec: 'recurring', cool: 2160, lugar: 'celular',
@@ -209,14 +217,16 @@ export default [
     corto: 'Reciclar sólo cierra el círculo si alguien compra lo reciclado.',
     desc: 'Papel higiénico, cuadernos, bolsas, botellas o ropa hechos con material reciclado le dan valor a lo que separás en tu casa. Mirá la etiqueta: muchos dicen el porcentaje.',
     pasos: ['En la próxima compra de papel, cuadernos o bolsas, buscá la opción reciclada.', 'Fijate en la etiqueta el porcentaje de material reciclado.'],
-    ef: { c: 0.5 }, tags: ['reciclaje', 'compras'],
+    tags: ['reciclaje', 'compras'],
+    mercado: ['hogar-y-deco', null, 'Con contenido reciclado declarado y su nivel de evidencia a la vista. Estos negocios están en el programa de Brote.'],
   }),
   c('hace-un-mes-sin-compras-innecesarias', 'Hacé un mes sin compras que no sean necesarias', {
     dom, e: 'hard', i: 'high', min: 30, formato: 'reto', edad: 'ta', rango: 'plantula', ahorra: true, cool: 720,
     corto: 'Un mes comprando sólo comida, remedios y lo imprescindible.',
     desc: 'Durante treinta días, nada de ropa, aparatos, decoración ni compras por impulso: sólo lo necesario. Es un reto, y casi siempre deja algo: la cuenta de lo que no hacía falta, y plata ahorrada.',
     pasos: ['Definí qué es "necesario" para vos (comida, remedios, transporte, arreglos).', 'Durante 30 días, no compres nada fuera de esa lista.', 'Anotá las ganas de comprar que se te pasaron solas.'],
-    ef: { c: 10, r: 2 }, tags: ['reto', 'compras'],
+    ef: { c: 5, r: 1 }, tags: ['reto', 'compras'],
+    hereda: ['evita-la-moda-rapida-toda-una-temporada'],
   }),
   c('res-cajas-para-mudanza', 'Pedí cajas usadas en vez de comprar', {
     dom, e: 'easy', i: 'low', min: 20, formato: 'salida', edad: 'ta', ahorra: true, cool: 2160,

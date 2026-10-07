@@ -10,14 +10,14 @@ export default [
     corto: 'Papel, cartón, plástico, vidrio y latas limpios y secos valen; mezclados con restos de comida, se pierden.',
     desc: 'Cerca de un tercio de lo que tira una casa argentina es papel, cartón, plástico, vidrio o metal. Separado limpio y seco, eso vuelve a la industria y le da trabajo a recuperadores y cooperativas; mezclado con restos de comida termina enterrado.',
     pasos: ['Tené dos bolsas o tachos: reciclables (secos) y el resto.', 'Poné en reciclables sólo lo limpio y seco.', 'Sacalos el día y el horario que corresponde en tu barrio, o entregalos a un recuperador.'],
-    ef: reciclable(0.3), fuente: 'faccyr', tags: ['reciclaje', 'separar', 'chicos'],
+    ef: reciclable(0.2), fuente: 'faccyr', tags: ['reciclaje', 'separar', 'chicos'],
   }),
   d('res-enjuagar-reciclables', 'Enjuagá los envases antes de separarlos', {
     dom, e: 'easy', i: 'low', min: 1, rut: true,
     corto: 'Un envase con restos ensucia el papel y el cartón de toda la bolsa.',
     desc: 'Un yogur o una lata con restos pueden arruinar todo lo que va en la misma bolsa. No hace falta dejarlo impecable: un enjuague rápido con el agua de lavar los platos alcanza.',
     pasos: ['Pasale un chorrito de agua (mejor la que ya usaste para lavar).', 'Dejalo escurrir y ponelo con los reciclables.'],
-    ef: reciclable(0.05), tags: ['reciclaje', 'separar'],
+    tags: ['reciclaje', 'separar'],
   }),
   d('res-aplastar-envases', 'Aplastá botellas y desarmá las cajas', {
     dom, e: 'easy', i: 'low', min: 1, rut: true,
@@ -32,6 +32,7 @@ export default [
     desc: 'El agua embotellada se usa un rato y su envase tarda siglos en desaparecer. Llenar tu botella o termo en casa (el agua de red es potable en casi todas las ciudades) te ahorra comprar y tirar.',
     pasos: ['A la noche, dejá la botella lista en la heladera.', 'Salí con ella en la mochila o la cartera.', 'Si se termina, pedí que te la rellenen en vez de comprar otra.'],
     ef: plastico(0.025), tags: ['plastico', 'botella'], hereda: ['agua-termo-en-vez-de-botella', 'ali-tomar-agua-de-canilla', 'toma-agua-de-la-canilla-en-vez-de-embotellada'],
+    mercado: ['hogar-y-deco', 'cocina', 'Si todavía no tenés una, estos negocios del programa de Brote las venden.'],
   }),
   d('lleva-tus-bolsas-reutilizables-a-comprar', 'Llevá tu bolsa para las compras', {
     dom, e: 'easy', i: 'low', min: 1, lugar: 'compras', rut: true,
@@ -39,6 +40,7 @@ export default [
     desc: 'Una bolsa de tela o una mochila reemplaza cientos de bolsas plásticas a lo largo del año. El truco es que esté donde la necesitás: doblada en la cartera, en el auto o colgada al lado de la puerta.',
     pasos: ['Dejá una bolsa doblada en la mochila o la cartera.', 'Otra al lado de la puerta, para cuando salís a comprar.', 'En la verdulería y la panadería, pedí que te pongan las cosas ahí.'],
     ef: plastico(0.012), tags: ['plastico', 'bolsa'],
+    mercado: ['hogar-y-deco', 'textiles', 'Bolsas de tela, de red o un changuito que duran años. Estos negocios están en el programa de Brote.'],
   }),
   d('usa-tu-vaso-o-termo-reutilizable', 'Pedí el café en taza o en tu vaso', {
     dom, e: 'easy', i: 'low', min: 1, edad: 'ta', lugar: 'calle',
@@ -46,6 +48,7 @@ export default [
     desc: 'Si te quedás, pedilo en taza. Si es para llevar, en tu vaso térmico o en tu termo. Muchos cafés ya lo aceptan, y algunos hasta hacen descuento.',
     pasos: ['Si tomás el café ahí, pedilo en taza.', 'Si es para llevar, dales tu vaso o tu termo.'],
     ef: plastico(0.015), tags: ['plastico', 'cafe'], hereda: ['ali-tomar-sin-descartable'],
+    mercado: ['hogar-y-deco', 'cocina', 'Si todavía no tenés un vaso o un termo que viaje con vos, estos negocios del programa de Brote los venden.'],
   }),
   d('res-sin-sorbete', 'Pedí tu bebida sin sorbete', {
     dom, e: 'easy', i: 'low', min: 1, lugar: 'calle',
@@ -115,14 +118,14 @@ export default [
     corto: 'Casi la mitad de la basura de una casa es orgánica: en el compost se vuelve tierra.',
     desc: 'Cáscaras, restos de verdura, yerba, café y cáscaras de huevo van al compost en vez de a la bolsa. Así no generan metano en el relleno y la bolsa de basura pesa la mitad y no huele.',
     pasos: ['Juntá los restos crudos del día en un recipiente con tapa.', 'Llevalos al compost y tapalos con hojas secas o tierra.', 'No pongas carne, lácteos ni grasas.'],
-    ef: organico(0.5), tags: ['compost'],
+    ef: organico(0.4), tags: ['compost'],
   }),
   d('reutiliza-un-frasco-o-envase', 'Reusá un frasco o envase antes de tirarlo', {
     dom, e: 'easy', i: 'low', min: 2,
     corto: 'Un frasco de vidrio es un tupper gratis que dura años.',
     desc: 'Los frascos de mermelada, de salsa o de dulce de leche sirven para guardar legumbres, especias, semillas o sobras. Cada envase que se reusa es uno menos que fabricar.',
     pasos: ['Lavá el frasco y sacale la etiqueta con agua tibia.', 'Usalo para guardar comida, semillas o lo que necesites.'],
-    ef: { r: 0.2, c: 0.1 }, tags: ['reuso', 'chicos'], hereda: ['res-frasco-organizador'],
+    ef: { r: 0.1, c: 0.05 }, tags: ['reuso', 'chicos'], hereda: ['res-frasco-organizador'],
   }),
   d('res-reutiliza-las-bolsas-de-pan', 'Reusá una bolsa antes de tirarla', {
     dom, e: 'easy', i: 'low', min: 1, rut: true,
@@ -144,6 +147,7 @@ export default [
     desc: 'Lo que vas a terminar seguro (detergente, arroz, aceite, galletitas) conviene en el formato más grande: menos envase por cada uso y casi siempre más barato por kilo.',
     pasos: ['Compará el precio por kilo o por litro.', 'Si lo vas a terminar antes de que venza, llevá el grande.'],
     ef: plastico(0.02), tags: ['plastico', 'compras'],
+    mercado: ['almacen-granel', null, 'Si comprás más cantidad y menos envase, estos negocios del programa de Brote lo hacen posible.'],
   }),
 
   // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -152,7 +156,7 @@ export default [
     corto: 'En la Argentina, buena parte de lo que se recicla lo recuperan cartoneros y cooperativas.',
     desc: 'Los recuperadores urbanos y sus cooperativas son el corazón del reciclaje en el país. Separar en tu casa y entregarles el material limpio, seco y aplastado (o dejarlo donde pasan, en su horario) les hace el trabajo más digno y hace que más material vuelva a la industria.',
     pasos: ['Averiguá qué día y a qué hora pasa el recuperador de tu cuadra, o si hay una cooperativa cerca.', 'Juntá cartón, papel, plásticos y latas limpios y secos.', 'Entregáselos en mano o dejalos en su horario.'],
-    ef: reciclable(1), fuente: 'faccyr', tags: ['reciclaje', 'cartoneros', 'barrio'],
+    fuente: 'faccyr', tags: ['reciclaje', 'cartoneros', 'barrio'],
   }),
   c('compra-a-granel-o-en-estaciones-de-recarga', 'Comprá algo suelto, con tu frasco o tu bolsa', {
     dom, e: 'easy', i: 'medium', min: 20, formato: 'salida', edad: 'ta', lugar: 'compras', cool: 168,
@@ -160,27 +164,30 @@ export default [
     desc: 'Dietéticas, almacenes y ferias venden legumbres, arroz, yerba, frutos secos, harinas o productos de limpieza sueltos. Llevando tus frascos o bolsas de tela te llevás lo justo y nada de envase.',
     pasos: ['Llevá frascos o bolsas de tela limpios.', 'Comprá sueltas las cosas que más usás (arroz, legumbres, avena, detergente).', 'Pedí que pesen el recipiente vacío antes de llenarlo.'],
     ef: plastico(0.03), tags: ['plastico', 'granel', 'compras'], hereda: ['res-comprar-a-granel'],
+    mercado: ['almacen-granel', null, 'Comprar a granel es fácil cuando sabés dónde. Estos negocios están en el programa de Brote.'],
   }),
   c('res-devolve-los-envases-retornables', 'Comprá bebidas en envase retornable', {
     dom, e: 'easy', i: 'medium', min: 5, formato: 'salida', edad: 'ta', lugar: 'compras', ahorra: true, cool: 72,
     corto: 'Una botella retornable vuelve a llenarse decenas de veces, y sale más barata.',
     desc: 'La cerveza de litro, varias gaseosas y el agua en bidón vienen en retornable: devolvés el envase y pagás sólo la bebida. Es el sistema más limpio que existe, y en la Argentina está en casi cualquier almacén.',
     pasos: ['Fijate qué bebidas que tomás vienen en retornable.', 'Comprá esas y guardá el envase.', 'Devolvelo en la próxima compra.'],
-    ef: { r: 0.4, c: 0.3 }, tags: ['retornable', 'vidrio', 'compras'], hereda: ['res-comprar-a-quien-recibe-envase'],
+    ef: plastico(0.1), tags: ['retornable', 'vidrio', 'compras'], hereda: ['res-comprar-a-quien-recibe-envase'],
+    mercado: ['almacen-granel', null, 'Estos comercios trabajan con envase propio o retornable, y están en el programa de Brote.'],
   }),
   c('res-soderia', 'Pedí la soda o el agua en sifones y bidones retornables', {
     dom, e: 'easy', i: 'high', min: 10, edad: 'a', frec: 'one_time', ahorra: true,
     corto: 'El sodero es un sistema retornable de toda la vida: cero botellas al tacho.',
     desc: 'Si en tu casa se toma soda o agua embotellada, el sodero las trae en sifones y bidones que se lleva vacíos y vuelve a llenar. En un mes son decenas de botellas de plástico que no se fabrican ni se tiran.',
     pasos: ['Preguntá en el barrio o en el almacén por un sodero que reparta en tu zona.', 'Arreglá la entrega semanal de sifones o bidones.', 'Devolvé los vacíos en cada entrega.'],
-    ef: plastico(0.6), tags: ['retornable', 'plastico', 'soda'],
+    ef: plastico(0.3), tags: ['retornable', 'plastico', 'soda'],
+    mercado: ['bebidas', 'jugos-y-aguas', 'Sifones y bidones retornables, con reparto. Estos negocios están en el programa de Brote.'],
   }),
   c('res-ecobotella', 'Armá una ecobotella con los plásticos chicos', {
     dom, e: 'easy', i: 'medium', min: 20, edad: 'kta', adulto: true, cool: 336,
     corto: 'Envoltorios y paquetitos que no se reciclan, compactados en una botella, se vuelven material de construcción.',
     desc: 'Los plásticos chicos y blandos (envoltorios de golosinas, paquetes de fideos, film) casi nunca se reciclan sueltos. Muchos municipios, escuelas y organizaciones reciben botellas rellenas y compactadas de esos plásticos para hacer ladrillos o bancos.',
     pasos: ['Juntá plásticos chicos limpios y secos.', 'Metelos en una botella de plástico apretándolos con un palo hasta que quede dura.', 'Averiguá en tu municipio o escuela dónde reciben ecobotellas.'],
-    ef: reciclable(0.3), tags: ['plastico', 'reciclaje', 'chicos'],
+    ef: { r: 0.3 }, tags: ['plastico', 'reciclaje', 'chicos'],
   }),
   c('res-tapitas-garrahan', 'Juntá tapitas para una campaña solidaria', {
     dom, e: 'easy', i: 'medium', min: 10, formato: 'salida', edad: 'kta', adulto: true, cool: 336,
@@ -250,21 +257,23 @@ export default [
     corto: 'Casi la mitad de la basura de una casa son restos que pueden volver a ser tierra.',
     desc: 'Una compostera se arma con un balde grande o un tacho con tapa y agujeros. Alternás restos húmedos (cáscaras, yerba, café) con secos (hojas, cartón sin tinta) y en unos meses tenés tierra negra para tus plantas. Tu bolsa de basura pesa la mitad y deja de oler.',
     pasos: ['Conseguí un tacho con tapa y hacele agujeros en la base y los costados.', 'Poné una capa de hojas secas o cartón y empezá a sumar restos crudos, tapando cada vez con algo seco.', 'Mezclá una vez por semana y mantenelo húmedo como una esponja escurrida.'],
-    ef: organico(1), tags: ['compost'], hereda: ['res-compost-balcon', 'evita-compost-a-base-de-turba'],
+    tags: ['compost'], hereda: ['res-compost-balcon', 'evita-compost-a-base-de-turba'],
+    mercado: ['jardin-y-huerta', 'composteras', 'Compostera, lombrices o el curso para arrancar. Estos negocios están en el programa de Brote.'],
   }),
   c('arma-una-compostera-con-lombrices-vermicompost', 'Armá una lombricompuesta', {
     dom, e: 'medium', i: 'high', min: 60, req: ['balcon'], edad: 'ta', frec: 'one_time', otorga: 'compost',
     corto: 'Las lombrices procesan los restos más rápido, sin olor y en poco espacio.',
     desc: 'Con dos cajones apilados y lombrices californianas (se consiguen en viveros o con alguien que ya tenga) se arma un compost que entra en un balcón. Las lombrices comen restos de verdura y dejan humus, uno de los mejores abonos.',
     pasos: ['Apilá dos cajones con agujeros en el fondo del de arriba.', 'Poné tierra húmeda, cartón y las lombrices.', 'Alimentalas con restos crudos picados, sin cítricos ni cebolla en exceso.'],
-    ef: organico(1), tags: ['compost', 'lombrices'],
+    tags: ['compost', 'lombrices'],
+    mercado: ['jardin-y-huerta', 'composteras', 'Lombrices, composteras de pisos o un taller para arrancar. Estos negocios están en el programa de Brote.'],
   }),
   c('res-compost-cosecha', 'Cosechá tu compost y usalo', {
     dom, e: 'easy', i: 'high', min: 30, req: ['compost'], edad: 'kta', adulto: true, cool: 2160,
     corto: 'La tierra negra del fondo es lo que dejaste de tirar estos meses.',
     desc: 'Cuando la capa de abajo está oscura, suelta y huele a tierra de bosque, está lista. Usarla en macetas, la huerta o al pie de un árbol cierra el círculo: lo que era basura ahora alimenta plantas.',
     pasos: ['Sacá la capa de abajo, la más oscura.', 'Tamizala con una rejilla y volvé a poner lo que no se deshizo.', 'Mezclala con la tierra de tus macetas o tu huerta.'],
-    ef: organico(6), tags: ['compost', 'plantas', 'chicos'],
+    tags: ['compost', 'plantas', 'chicos'],
   }),
   c('hace-una-auditoria-de-tu-basura', 'Mirá qué tirás durante una semana', {
     dom, e: 'medium', i: 'medium', min: 15, formato: 'reto', frec: 'one_time', edad: 'kta', adulto: true,
@@ -278,7 +287,7 @@ export default [
     corto: 'Siete días tratando de que no salga nada de tu casa que no se pueda reciclar o compostar.',
     desc: 'Un reto para cuando ya separás y compostás: durante una semana, evitá todo lo que termina en la bolsa de "resto". Al final, lo que no pudiste evitar te dice dónde está el próximo paso.',
     pasos: ['Planificá las compras: suelto, retornable, sin envoltorios.', 'Separá y compostá todo.', 'Guardá lo que no pudiste evitar y miralo al final de la semana.'],
-    ef: suma(plastico(0.3), reciclable(1), organico(2)), tags: ['reto', 'plastico'],
+    ef: suma(plastico(0.2), reciclable(0.8), organico(1)), tags: ['reto', 'plastico'],
   }),
   c('cambia-a-jabon-o-champu-en-barra', 'Pasate al jabón o al champú en barra', {
     dom, e: 'easy', i: 'medium', min: 10, edad: 'ta', frec: 'one_time', lugar: 'compras',
@@ -286,6 +295,7 @@ export default [
     desc: 'El jabón de tocador de siempre, el jabón blanco y los champús sólidos vienen sin botella. Una barra dura lo que dos o tres envases líquidos, y si la guardás en una jabonera que drene, no se deshace.',
     pasos: ['La próxima vez, comprá jabón o champú en barra.', 'Usá una jabonera con agujeros para que se seque entre usos.'],
     ef: plastico(0.04), tags: ['plastico', 'baño'], hereda: ['res-jabon-en-barra'],
+    mercado: ['cuidado-personal', 'solidos', 'La barra viene sin botella. Estos negocios están en el programa de Brote.'],
   }),
   c('res-ropa-a-trapos', 'Convertí una remera vieja en trapos', {
     dom, e: 'easy', i: 'low', min: 10, edad: 'kta', adulto: true, cool: 336,
@@ -306,7 +316,8 @@ export default [
     corto: 'Un juego de servilletas de tela reemplaza cientos de rollos de papel al año.',
     desc: 'Las servilletas de tela se lavan con la ropa y duran años. Si en tu casa cada uno tiene la suya (con un servilletero o un color), se usan varios días antes de lavar.',
     pasos: ['Conseguí o cosé un juego de servilletas (sirven retazos de tela).', 'Que cada uno tenga la suya para usar varios días.', 'Lavalas con la ropa.'],
-    ef: { r: 0.5, c: 0.5 }, tags: ['papel', 'cocina'],
+    ef: { r: 0.2, c: 0.1 }, tags: ['papel', 'cocina'],
+    mercado: ['hogar-y-deco', 'textiles', 'Servilletas y repasadores de tela que duran años. Estos negocios están en el programa de Brote.'],
   }),
   c('res-helado-en-tu-pote', 'Pedí el helado o la comida en tu propio recipiente', {
     dom, e: 'easy', i: 'low', min: 10, formato: 'salida', lugar: 'compras', edad: 'kta', cool: 48,

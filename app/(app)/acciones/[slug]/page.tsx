@@ -304,9 +304,10 @@ export default function ActivityDetailPage() {
       </div>
 
       {/* "Dónde conseguirlo" (02 §6.1): DEBAJO de todo, nunca en el camino de
-          completar, y nunca para una cuenta de chico. Si no hay al menos tres
-          listados relevantes, la base devuelve nada y acá no se dibuja nada. */}
-      {profile?.accountType !== 'kid' && <DondeConseguirlo slugAccion={a.slug} />}
+          completar, y sólo para adultos (08 §9). Si la acción no pide un
+          producto o no hay ningún listado, la base devuelve nada y acá no se
+          dibuja nada. */}
+      {profile?.accountType === 'adult' && <DondeConseguirlo slugAccion={a.slug} />}
 
       {/* Si no te sirve, decilo: no te la volvemos a ofrecer (se deshace en Ajustes). */}
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-2 text-caption text-muted-foreground">

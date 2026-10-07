@@ -32,7 +32,7 @@ export default [
     corto: 'La leña húmeda humea más, calienta menos y ensucia el aire del barrio.',
     desc: 'En la Patagonia, la montaña y muchas zonas rurales, la leña es la calefacción. La leña verde o mojada gasta su energía en evaporar agua: humea, calienta poco y llena la chimenea de hollín. La seca, guardada bajo techo de un año para el otro, rinde más con menos humo.',
     pasos: ['Usá leña que suene "hueca" al golpear dos troncos y tenga grietas en las puntas.', 'Prendé con papel y ramitas secas, no con plástico ni nafta.', 'Mantené la estufa con buena entrada de aire, sin ahogarla.'],
-    ef: { c: 0.5 }, fuente: 'oms-aire-hogar', tags: ['lena', 'humo', 'invierno'],
+    fuente: 'oms-aire-hogar', tags: ['lena', 'humo', 'invierno'],
   }),
   d('aire-asado-sin-plastico', 'Prendé el fuego del asado sin alcohol ni plásticos', {
     dom, e: 'easy', i: 'low', min: 5, req: ['parrilla'], dias: 'finde',
@@ -55,7 +55,7 @@ export default [
     corto: 'El humo de las quemas de hojas es de lo peor para el aire del barrio.',
     desc: 'Las hojas del otoño son oro para la tierra: apiladas en un rincón o en la compostera se vuelven mantillo en unos meses. Quemarlas llena el barrio de humo y partículas que afectan sobre todo a chicos y personas con asma.',
     pasos: ['Juntá las hojas en un rincón del jardín o en bolsas.', 'Usalas de mantillo sobre los canteros o sumalas al compost.', 'Nunca las quemes.'],
-    ef: organico(5), fuente: 'oms-aire-exterior', tags: ['hojas', 'compost', 'humo'],
+    fuente: 'oms-aire-exterior', tags: ['hojas', 'compost', 'humo'],
   }),
   c('aire-campo-no-quemar-pastizal', 'No quemes pastizales ni rastrojos', {
     dom, e: 'easy', i: 'high', min: 10, formato: 'aprender', req: ['campo'], edad: 'a', frec: 'one_time',
@@ -76,7 +76,7 @@ export default [
     corto: 'La leña de este invierno se prepara en verano.',
     desc: 'La leña recién cortada tiene mucha agua. Apilada bajo techo, separada del piso y con aire entre los troncos, en unos meses se seca y rinde mucho más, con menos humo. Es el mejor ahorro para quien se calefacciona a leña.',
     pasos: ['Apilá la leña bajo un techo, sobre palos o pallets, no en el piso.', 'Dejá aire entre las filas.', 'Usá primero la que lleva más tiempo guardada.'],
-    ef: { c: 2 }, tags: ['lena', 'invierno'],
+    tags: ['lena', 'invierno'],
   }),
   c('usa-cortadora-manual-o-electrica-en-vez-de-nafta', 'Cortá el pasto con cortadora eléctrica o manual', {
     dom, e: 'medium', i: 'medium', min: 45, req: ['jardin'], edad: 'a', cool: 168,
@@ -84,6 +84,7 @@ export default [
     desc: 'Los motores chicos de dos tiempos (bordeadoras, sopladoras, cortadoras a nafta) son muy contaminantes y ruidosos. Una eléctrica, una manual o simplemente cortar menos seguido y dejar un sector sin cortar cuidan el aire y el oído de la cuadra.',
     pasos: ['Si tenés que cortar, usá una cortadora eléctrica o manual.', 'Cortá menos seguido y dejá un sector más alto.', 'Si es a nafta, mantenela bien regulada.'],
     ef: { c: 1 }, tags: ['jardin', 'aire', 'ruido'],
+    mercado: ['jardin-y-huerta', 'macetas-y-herramientas', 'Cortadoras de pasto manuales y eléctricas. Estos negocios están en el programa de Brote.'],
   }),
   c('mejora-la-salud-del-suelo-sin-labranza', 'No des vuelta la tierra de la huerta', {
     dom, e: 'easy', i: 'medium', min: 30, req: ['huerta'], edad: 'ta', cool: 2160,
@@ -104,7 +105,7 @@ export default [
     corto: 'Un suelo con compost retiene más agua, más carbono y da más vida.',
     desc: 'El compost que hiciste es el mejor punto de partida para un cantero nuevo: mezclado con la tierra, alimenta plantas y bichos del suelo y guarda humedad. Es cerrar el círculo de tus restos de cocina.',
     pasos: ['Elegí un lugar con sol.', 'Mezclá una parte de compost cada tres de tierra.', 'Plantá y cubrí con mantillo.'],
-    ef: organico(3), tags: ['compost', 'suelo'],
+    tags: ['compost', 'suelo'],
   }),
   c('air-vinagre-y-bicarbonato', 'Prepará un limpiador casero con vinagre y bicarbonato', {
     dom, e: 'easy', i: 'low', min: 10, edad: 'ta', cool: 2160, ahorra: true,
@@ -112,13 +113,7 @@ export default [
     desc: 'Para mesadas, vidrios, sarro y grasa liviana, el vinagre blanco y el bicarbonato funcionan muy bien, cuestan poco y no dejan olores químicos en el aire. Guardalos en un rociador reusado y etiquetado.',
     pasos: ['Mezclá mitad vinagre blanco y mitad agua en un rociador reusado, y etiquetalo.', 'Para el sarro y la grasa, usá bicarbonato con un poco de agua.', 'Nunca mezcles vinagre con lavandina.'],
     ef: nada(), tags: ['limpieza', 'aire'],
-  }),
-  c('aire-medir-la-calidad-del-aire', 'Consultá la calidad del aire de tu ciudad', {
-    dom, e: 'easy', i: 'low', min: 10, formato: 'aprender', edad: 'ta', frec: 'one_time', lugar: 'celular',
-    corto: 'Saber cuándo el aire está peor cambia cuándo salís a correr o ventilás.',
-    desc: 'Varias ciudades argentinas publican mediciones de calidad del aire, y hay mapas mundiales con estaciones y sensores. Mirarlo te dice qué horas y qué días conviene evitar las avenidas para hacer ejercicio o ventilar.',
-    pasos: ['Buscá si tu ciudad publica la calidad del aire.', 'Mirá cómo cambia en el día.', 'Ajustá cuándo ventilás o salís a hacer ejercicio.'],
-    ef: nada(), fuente: 'oms-aire-exterior', tags: ['aire'], hereda: ['cie-calidad-aire'],
+    mercado: ['limpieza-hogar', 'limpiadores', 'Si preferís comprarlo hecho, estos negocios del programa de Brote hacen limpieza con menos química.'],
   }),
   c('aire-analiza-el-suelo-antes-de-plantar', 'Hacé la prueba del frasco para conocer tu suelo', {
     dom, e: 'easy', i: 'medium', min: 20, formato: 'observar', req: ['balcon'], edad: 'kta', adulto: true, cool: 4320,

@@ -12,12 +12,12 @@ export default [
     pasos: ['Elegí una ventana, balcón o banco de plaza.', 'Durante 5 minutos, mirá y escuchá.', 'Anotá cuántas aves viste y cómo eran.'],
     ef: nada(), fuente: 'aves-argentinas', tags: ['aves', 'chicos'],
   }),
-  d('cie-diario-clima', 'Anotá cómo está el tiempo hoy', {
-    dom, e: 'easy', i: 'low', min: 2, formato: 'observar', rut: true,
-    corto: 'Un registro diario simple, sostenido en el tiempo, se vuelve un dato.',
-    desc: 'Temperatura aproximada, si llovió, si hubo viento o nubes: anotarlo cada día en un cuaderno o el celular te entrena a observar, y después de unos meses muestra cómo cambian las estaciones en tu lugar.',
-    pasos: ['A la misma hora cada día, mirá el cielo y la temperatura.', 'Anotá: temperatura, nubes, lluvia y viento.'],
-    ef: nada(), tags: ['clima', 'chicos', 'experimento'],
+  d('cie-bicho-de-cerca', 'Buscá un bicho y miralo de cerca cinco minutos', {
+    dom, e: 'easy', i: 'low', min: 5, formato: 'observar', lugar: 'naturaleza',
+    corto: 'Una vaquita de San Antonio, un bicho bolita, una hormiga cargando una hoja: todos tienen algo que hacer.',
+    desc: 'Debajo de una hoja, en una flor o en la corteza de un árbol siempre hay alguien. Mirarlo de cerca un rato, sin tocarlo ni sacarlo de su lugar, enseña más de cómo funciona la naturaleza que cualquier libro: qué come, adónde va, quién se lo quiere comer.',
+    pasos: ['Buscá en el patio, la vereda o la plaza: debajo de una hoja, en una flor, en un tronco.', 'Miralo cinco minutos sin tocarlo: qué hace, adónde va.', 'Si querés, sacale una foto y averiguá cómo se llama.'],
+    ef: nada(), tags: ['insectos', 'chicos'],
   }),
 
   // ── Catálogo ───────────────────────────────────────────────────────────────

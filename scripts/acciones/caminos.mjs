@@ -91,7 +91,7 @@ export const CAMINOS = [
   {
     slug: 'vecino-activo', dom: 'comunidad', titulo: 'Vecino activo',
     desc: 'De levantar una botella de la vereda a organizar la limpieza del barrio.',
-    pasos: ['recoge-un-poco-de-basura-que-viste-en-la-calle', 'com-agradecer-a-quien-cuida', 'com-ayudar-vecino-reciclar', 'com-reportar-basural', 'organiza-o-sumate-a-una-limpieza-del-barrio'],
+    pasos: ['recoge-un-poco-de-basura-que-viste-en-la-calle', 'com-mapea-los-puntos-verdes', 'com-ayudar-vecino-reciclar', 'com-reportar-basural', 'organiza-o-sumate-a-una-limpieza-del-barrio'],
   },
   {
     slug: 'escuela-verde', dom: 'comunidad', titulo: 'Escuela verde',

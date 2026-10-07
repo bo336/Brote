@@ -188,6 +188,7 @@ export default [
     desc: 'Champús, cremas y maquillaje de muchas marcas todavía se prueban en animales. Las que no lo hacen suelen indicarlo con un sello reconocido. La próxima vez que repongas algo, buscá una opción así.',
     pasos: ['Cuando se te termine un producto de higiene o cosmética, buscá la versión sin testeo.', 'Fijate en el sello, no sólo en la palabra en el frente.'],
     ef: nada(), tags: ['compras', 'animales'],
+    mercado: ['cuidado-personal', 'cosmetica', 'Estos negocios del programa de Brote cuentan cómo hacen su cosmética, con su nivel de evidencia.'],
   }),
   c('anim-revisa-antes-de-podar', 'Revisá que no haya nidos antes de podar o cortar', {
     dom, e: 'easy', i: 'medium', min: 10, req: ['jardin'], est: ['primavera', 'verano'], edad: 'ta', cool: 720,

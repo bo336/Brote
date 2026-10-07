@@ -20,9 +20,9 @@
     "adult"
    ],
    "impact_water_l": 30,
-   "impact_co2_kg": 0.244,
+   "impact_co2_kg": 0.19,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 1.35,
+   "impact_energy_kwh": 1.05,
    "impact_equivalency_es": "Cada vez: ~30 L de agua",
    "routine_eligible": true,
    "formato": "gesto",
@@ -48,7 +48,8 @@
    "sort_order": 1,
    "hereda": [
     "agua-cronometro-ducha"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-cerrar-mientras-shampoo",
@@ -69,11 +70,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 20,
-   "impact_co2_kg": 0.162,
+   "impact_water_l": 15,
+   "impact_co2_kg": 0.095,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.9,
-   "impact_equivalency_es": "Cada vez: ~20 L de agua",
+   "impact_energy_kwh": 0.525,
+   "impact_equivalency_es": "Cada vez: ~15 L de agua",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -95,7 +96,8 @@
    ],
    "otorga": null,
    "sort_order": 2,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-balde-ducha-fria",
@@ -145,7 +147,8 @@
    "sort_order": 3,
    "hereda": [
     "reutiliza-el-agua-para-regar-las-plantas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "cerra-la-canilla-mientras-te-cepillas-o-enjabona",
@@ -166,11 +169,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 10,
+   "impact_water_l": 6,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~10 L de agua",
+   "impact_equivalency_es": "Cada vez: ~6 L de agua",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 2,
@@ -193,7 +196,8 @@
    ],
    "otorga": null,
    "sort_order": 4,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-manos-canilla-cerrada",
@@ -241,7 +245,8 @@
    ],
    "otorga": null,
    "sort_order": 5,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "lava-los-platos-con-la-canilla-cerrada",
@@ -290,7 +295,8 @@
    "sort_order": 6,
    "hereda": [
     "agua-secar-sin-enjuagar-doble"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "pone-el-lavarropas-solo-cuando-este-lleno",
@@ -339,7 +345,8 @@
    "sort_order": 7,
    "hereda": [
     "energia-lavarropas-carga-completa"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-programa-corto",
@@ -386,7 +393,8 @@
    ],
    "otorga": null,
    "sort_order": 8,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-usar-dos-veces",
@@ -436,7 +444,8 @@
    "sort_order": 9,
    "hereda": [
     "agua-ropa-menos-lavados"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-manchas-a-mano",
@@ -483,7 +492,8 @@
    ],
    "otorga": null,
    "sort_order": 10,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-lavar-verduras-en-bowl",
@@ -531,7 +541,8 @@
    ],
    "otorga": null,
    "sort_order": 11,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-remojar-ollas",
@@ -578,7 +589,8 @@
    ],
    "otorga": null,
    "sort_order": 12,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-descongelar-heladera",
@@ -626,7 +638,8 @@
    "sort_order": 13,
    "hereda": [
     "agua-descongelar-en-heladera"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-regar-temprano",
@@ -680,7 +693,8 @@
    "hereda": [
     "rega-tus-plantas-al-amanecer-o-atardecer",
     "pla-regar-a-la-tierra"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-tapon-en-la-pileta",
@@ -727,7 +741,8 @@
    ],
    "otorga": null,
    "sort_order": 15,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-inodoro-no-papelera",
@@ -774,7 +789,8 @@
    ],
    "otorga": null,
    "sort_order": 16,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-reusar-agua-pastas",
@@ -827,7 +843,8 @@
     "agua-hervir-verduras-reusar-caldo",
     "agua-regar-con-el-agua-del-mate",
     "agua-hervir-justa"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-escoba-no-manguera",
@@ -874,7 +891,8 @@
    ],
    "otorga": null,
    "sort_order": 18,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-no-jugar-con-manguera",
@@ -894,11 +912,11 @@
     "kid",
     "teen"
    ],
-   "impact_water_l": 100,
+   "impact_water_l": 40,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 L de agua",
+   "impact_equivalency_es": "Cada vez: ~40 L de agua",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 5,
@@ -923,7 +941,8 @@
    ],
    "otorga": null,
    "sort_order": 19,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-tapa-pileta",
@@ -978,7 +997,8 @@
    "hereda": [
     "agua-cubrir-pileta",
     "agua-tapar-la-pileta-o-fuente"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-ola-de-calor",
@@ -999,11 +1019,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 50,
+   "impact_water_l": 0,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 L de agua",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 2,
@@ -1028,7 +1048,8 @@
    ],
    "otorga": null,
    "sort_order": 21,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-deshumidificador",
@@ -1080,7 +1101,8 @@
    ],
    "otorga": null,
    "sort_order": 22,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-guardian-del-dia",
@@ -1126,7 +1148,8 @@
    ],
    "otorga": null,
    "sort_order": 23,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-afeitarse-vaso",
@@ -1172,16 +1195,17 @@
    ],
    "otorga": null,
    "sort_order": 24,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
-   "slug": "agua-hielo-a-la-planta",
+   "slug": "agua-revisa-las-canillas",
    "type": "daily",
    "domain_slug": "agua",
-   "title_es": "Los hielos que sobran, a una maceta",
-   "short_es": "Se derriten despacio y riegan sin encharcar.",
-   "description_es": "Cuando sobran hielos del vaso o de la cubetera, en vez de tirarlos en la pileta podés ponerlos en una maceta. Se derriten de a poco y la planta toma el agua sin que se escurra.",
-   "instructions_es": "Juntá los hielos que sobraron.\nPonelos sobre la tierra de una maceta, sin tocar el tallo.",
+   "title_es": "Revisá que ninguna canilla quede goteando",
+   "short_es": "Una gota por segundo son más de 20 litros por día que nadie usa.",
+   "description_es": "Una canilla que gotea tira agua todo el día sin que nadie lo note, y de noche, con la casa en silencio, se escucha. Antes de dormir o de salir, recorré el baño, la cocina y el lavadero y cerralas bien. Si alguna sigue goteando aunque la cierres, avisá: casi siempre es un cuerito gastado y se arregla en minutos.",
+   "instructions_es": "Recorré el baño, la cocina y el lavadero.\nCerrá bien las canillas que gotean.\nSi alguna sigue goteando, avisale a un adulto o anotala para arreglarla.",
    "effort": "easy",
    "impact": "low",
    "base_points": 40,
@@ -1189,16 +1213,18 @@
    "repeat_cooldown_hours": 0,
    "min_rank_slug": "semilla",
    "age_groups": [
-    "kid"
+    "kid",
+    "teen",
+    "adult"
    ],
-   "impact_water_l": 1,
+   "impact_water_l": 2,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 L de agua",
-   "routine_eligible": false,
+   "impact_equivalency_es": "Cada vez: ~2 L de agua",
+   "routine_eligible": true,
    "formato": "gesto",
-   "minutos": 1,
+   "minutos": 2,
    "costo": "gratis",
    "ahorra": false,
    "requiere": [],
@@ -1213,12 +1239,14 @@
    "camino_slug": null,
    "camino_paso": null,
    "tags": [
-    "chicos",
-    "plantas"
+    "canilla",
+    "perdidas",
+    "chicos"
    ],
    "otorga": null,
    "sort_order": 25,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-medi-tu-ducha",
@@ -1266,7 +1294,8 @@
    ],
    "otorga": null,
    "sort_order": 26,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-revisar-el-medidor",
@@ -1314,7 +1343,8 @@
    "sort_order": 27,
    "hereda": [
     "agua-leer-medidor"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-revisar-perdida-inodoro",
@@ -1363,7 +1393,8 @@
    ],
    "otorga": null,
    "sort_order": 28,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "arregla-una-canilla-o-inodoro-que-pierde",
@@ -1383,11 +1414,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 900,
+   "impact_water_l": 600,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~900 L de agua",
+   "impact_equivalency_es": "Cada vez: ~600 L de agua",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -1410,7 +1441,8 @@
    ],
    "otorga": null,
    "sort_order": 29,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-aireador-canilla",
@@ -1430,11 +1462,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 300,
+   "impact_water_l": 240,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 L de agua",
+   "impact_equivalency_es": "Cada vez: ~240 L de agua",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -1458,7 +1490,8 @@
    ],
    "otorga": null,
    "sort_order": 30,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-botella-en-mochila-inodoro",
@@ -1504,7 +1537,10 @@
    ],
    "otorga": null,
    "sort_order": 31,
-   "hereda": []
+   "hereda": [
+    "instala-un-inodoro-de-doble-descarga"
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-revisar-tanque",
@@ -1550,7 +1586,8 @@
    ],
    "otorga": null,
    "sort_order": 32,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-juntar-lluvia",
@@ -1570,11 +1607,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 400,
+   "impact_water_l": 0,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~400 L de agua",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 45,
@@ -1602,7 +1639,8 @@
    "sort_order": 33,
    "hereda": [
     "instala-un-sistema-de-recoleccion-de-agua-de-llu"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-balde-de-lluvia",
@@ -1650,7 +1688,8 @@
    ],
    "otorga": null,
    "sort_order": 34,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "reutiliza-aguas-grises-para-el-jardin",
@@ -1700,7 +1739,8 @@
    ],
    "otorga": null,
    "sort_order": 35,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-pelopincho-reusar",
@@ -1721,11 +1761,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 300,
+   "impact_water_l": 200,
    "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 L de agua",
+   "impact_equivalency_es": "Cada vez: ~200 L de agua",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -1753,7 +1793,8 @@
    ],
    "otorga": null,
    "sort_order": 36,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-balde-lavar-auto",
@@ -1803,7 +1844,8 @@
    "sort_order": 37,
    "hereda": [
     "agua-balde-en-vez-de-manguera"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "instala-un-cabezal-de-ducha-de-bajo-caudal",
@@ -1823,9 +1865,9 @@
     "adult"
    ],
    "impact_water_l": 500,
-   "impact_co2_kg": 4.062,
+   "impact_co2_kg": 3.16,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 22.5,
+   "impact_energy_kwh": 17.5,
    "impact_equivalency_es": "Cada vez: ~500 L de agua",
    "routine_eligible": false,
    "formato": "tarea",
@@ -1849,7 +1891,8 @@
    ],
    "otorga": null,
    "sort_order": 38,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-avisar-perdida-calle",
@@ -1898,7 +1941,8 @@
    "sort_order": 39,
    "hereda": [
     "reporta-una-perdida-de-agua-en-la-via-publica"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-ensenar-a-alguien",
@@ -1945,7 +1989,8 @@
    ],
    "otorga": null,
    "sort_order": 40,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-calcular-huella",
@@ -1992,7 +2037,8 @@
    ],
    "otorga": null,
    "sort_order": 41,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-acequia-limpia",
@@ -2042,7 +2088,8 @@
    ],
    "otorga": null,
    "sort_order": 42,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-riego-por-goteo-casero",
@@ -2093,7 +2140,8 @@
    ],
    "otorga": null,
    "sort_order": 43,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-azul-no-tirar-toallitas",
@@ -2116,9 +2164,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.01,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~10 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -2142,7 +2190,8 @@
    ],
    "otorga": null,
    "sort_order": 44,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-no-tirar-colillas",
@@ -2164,9 +2213,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.001,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -2189,7 +2238,8 @@
    ],
    "otorga": null,
    "sort_order": 45,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-alcantarilla-limpia",
@@ -2212,9 +2262,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.05,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 3,
@@ -2238,7 +2288,8 @@
    ],
    "otorga": null,
    "sort_order": 46,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "disfruta-afuera-sin-generar-residuos",
@@ -2261,9 +2312,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.05,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 2,
@@ -2288,7 +2339,8 @@
    ],
    "otorga": null,
    "sort_order": 47,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-detergente-justo",
@@ -2311,9 +2363,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.005,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~5 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -2336,7 +2388,8 @@
    ],
    "otorga": null,
    "sort_order": 48,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "participa-de-una-limpieza-de-costa-o-rio",
@@ -2359,9 +2412,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 2,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada bolsa: 2 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "social",
    "minutos": 120,
@@ -2373,18 +2426,7 @@
    "dias": null,
    "regiones": [],
    "con_adulto": true,
-   "medida": {
-    "pregunta": "¿Cuántas bolsas juntaste?",
-    "unidad": "bolsa",
-    "unidades": "bolsas",
-    "min": 1,
-    "max": 6,
-    "def": 1,
-    "paso": 1,
-    "por": {
-     "waste_kg": 2
-    }
-   },
+   "medida": null,
    "fuente": "Programa de las Naciones Unidas para el Medio Ambiente",
    "fuente_url": "https://www.unep.org/plastic-pollution",
    "camino_slug": null,
@@ -2400,7 +2442,8 @@
    "hereda": [
     "azul-limpiar-una-orilla",
     "sumate-a-un-dia-de-limpieza-submarina-o-costera"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "adopta-una-boca-de-tormenta-y-mantenela-despejad",
@@ -2423,9 +2466,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.3,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 20,
@@ -2449,7 +2492,8 @@
    ],
    "otorga": null,
    "sort_order": 50,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "usa-una-bolsa-para-microfibras-al-lavar",
@@ -2471,9 +2515,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.01,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~10 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 5,
@@ -2499,7 +2543,12 @@
    "sort_order": 51,
    "hereda": [
     "azul-bolsa-de-lavado"
-   ]
+   ],
+   "mercado": {
+    "categoria": "limpieza-hogar",
+    "subcategoria": null,
+    "texto": "Bolsas filtrantes para lavar ropa sintética. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "azul-cosmeticos-sin-microplastico",
@@ -2546,7 +2595,12 @@
    ],
    "otorga": null,
    "sort_order": 52,
-   "hereda": []
+   "hereda": [],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "cosmetica",
+    "texto": "Si estás cambiando de producto, estos negocios del programa de Brote cuentan qué lleva el suyo."
+   }
   },
   {
    "slug": "agua-azul-detergente-biodegradable",
@@ -2596,7 +2650,12 @@
    "sort_order": 53,
    "hereda": [
     "azul-detergente-biodegradable"
-   ]
+   ],
+   "mercado": {
+    "categoria": "limpieza-hogar",
+    "subcategoria": "detergentes",
+    "texto": "Lo que tirás por la pileta termina en algún lado. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "desecha-medicamentos-correctamente",
@@ -2645,7 +2704,8 @@
    "sort_order": 54,
    "hereda": [
     "azul-no-tirar-medicamentos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "agua-azul-juntar-tanza-y-anzuelos",
@@ -2667,9 +2727,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.05,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 20,
@@ -2695,7 +2755,8 @@
    ],
    "otorga": null,
    "sort_order": 55,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-pesca-responsable",
@@ -2744,7 +2805,8 @@
    ],
    "otorga": null,
    "sort_order": 56,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "elegi-pescado-de-origen-sustentable",
@@ -2794,7 +2856,12 @@
    "sort_order": 57,
    "hereda": [
     "azul-pescado-responsable"
-   ]
+   ],
+   "mercado": {
+    "categoria": "alimentos-frescos",
+    "subcategoria": "carnes-y-huevos",
+    "texto": "Pescaderías y productores que cuentan de dónde viene su pescado. Están en el programa de Brote."
+   }
   },
   {
    "slug": "agua-azul-visita-un-humedal",
@@ -2843,7 +2910,8 @@
    ],
    "otorga": null,
    "sort_order": 58,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-aprender-cuenca",
@@ -2892,7 +2960,8 @@
    ],
    "otorga": null,
    "sort_order": 59,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-azul-nunca-soltar-globos",
@@ -2944,7 +3013,8 @@
    "hereda": [
     "azul-globos-no",
     "ani-no-soltar-globos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "azul-humedales-sin-fuego",
@@ -2994,7 +3064,8 @@
    ],
    "otorga": null,
    "sort_order": 61,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "azul-playa-sin-huella",
@@ -3017,9 +3088,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.05,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 5,
@@ -3045,7 +3116,8 @@
    ],
    "otorga": null,
    "sort_order": 62,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "air-ventilar-al-cocinar",
@@ -3094,7 +3166,8 @@
    ],
    "otorga": null,
    "sort_order": 63,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aire-ventilar-corto",
@@ -3143,7 +3216,8 @@
    "sort_order": 64,
    "hereda": [
     "aire-ventilar-en-el-momento-justo"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "air-limpieza-sin-aerosol",
@@ -3190,7 +3264,8 @@
    ],
    "otorga": null,
    "sort_order": 65,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-lena-seca",
@@ -3212,10 +3287,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 2,
@@ -3244,7 +3319,8 @@
    ],
    "otorga": null,
    "sort_order": 66,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aire-asado-sin-plastico",
@@ -3294,7 +3370,8 @@
    ],
    "otorga": null,
    "sort_order": 67,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "evita-quemar-residuos-al-aire-libre",
@@ -3346,7 +3423,8 @@
    "sort_order": 68,
    "hereda": [
     "aire-no-quemar-basura"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "air-no-quemar-hojas",
@@ -3367,10 +3445,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 2.5,
-   "impact_waste_kg": 5,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2,5 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 20,
@@ -3399,7 +3477,8 @@
    ],
    "otorga": null,
    "sort_order": 69,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aire-campo-no-quemar-pastizal",
@@ -3448,7 +3527,8 @@
    ],
    "otorga": null,
    "sort_order": 70,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aire-sierras-sin-fuego",
@@ -3504,7 +3584,8 @@
    ],
    "otorga": null,
    "sort_order": 71,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "reduci-el-uso-de-lena-o-usa-cocinas-mas-limpias",
@@ -3525,10 +3606,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 2,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -3556,7 +3637,8 @@
    ],
    "otorga": null,
    "sort_order": 72,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "usa-cortadora-manual-o-electrica-en-vez-de-nafta",
@@ -3605,7 +3687,12 @@
    ],
    "otorga": null,
    "sort_order": 73,
-   "hereda": []
+   "hereda": [],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "macetas-y-herramientas",
+    "texto": "Cortadoras de pasto manuales y eléctricas. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "mejora-la-salud-del-suelo-sin-labranza",
@@ -3654,7 +3741,8 @@
    ],
    "otorga": null,
    "sort_order": 74,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aire-cubri-la-tierra-desnuda",
@@ -3704,7 +3792,8 @@
    ],
    "otorga": null,
    "sort_order": 75,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "arma-un-cantero-alimentado-con-compost",
@@ -3725,10 +3814,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1.5,
-   "impact_waste_kg": 3,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,5 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 60,
@@ -3753,7 +3842,8 @@
    ],
    "otorga": null,
    "sort_order": 76,
-   "hereda": []
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "air-vinagre-y-bicarbonato",
@@ -3800,55 +3890,12 @@
    ],
    "otorga": null,
    "sort_order": 77,
-   "hereda": []
-  },
-  {
-   "slug": "aire-medir-la-calidad-del-aire",
-   "type": "catalog",
-   "domain_slug": "aire_suelo",
-   "title_es": "Consultá la calidad del aire de tu ciudad",
-   "short_es": "Saber cuándo el aire está peor cambia cuándo salís a correr o ventilás.",
-   "description_es": "Varias ciudades argentinas publican mediciones de calidad del aire, y hay mapas mundiales con estaciones y sensores. Mirarlo te dice qué horas y qué días conviene evitar las avenidas para hacer ejercicio o ventilar.",
-   "instructions_es": "Buscá si tu ciudad publica la calidad del aire.\nMirá cómo cambia en el día.\nAjustá cuándo ventilás o salís a hacer ejercicio.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "one_time",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "aprender",
-   "minutos": 10,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": "Organización Mundial de la Salud",
-   "fuente_url": "https://www.who.int/es/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health",
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "aire"
-   ],
-   "otorga": null,
-   "sort_order": 78,
-   "hereda": [
-    "cie-calidad-aire"
-   ]
+   "hereda": [],
+   "mercado": {
+    "categoria": "limpieza-hogar",
+    "subcategoria": "limpiadores",
+    "texto": "Si preferís comprarlo hecho, estos negocios del programa de Brote hacen limpieza con menos química."
+   }
   },
   {
    "slug": "aire-analiza-el-suelo-antes-de-plantar",
@@ -3898,10 +3945,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 79,
+   "sort_order": 78,
    "hereda": [
     "hace-un-test-de-calidad-de-tu-suelo"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "res-primero-lo-que-vence",
@@ -3922,11 +3970,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 38,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.375,
+   "impact_waste_kg": 0.15,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~375 g de CO₂",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 3,
@@ -3948,8 +3996,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 80,
-   "hereda": []
+   "sort_order": 79,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "aprovecha-las-sobras-dia-sin-desperdicio",
@@ -3970,7 +4019,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.75,
    "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
@@ -3996,8 +4045,9 @@
     "sobras"
    ],
    "otorga": null,
-   "sort_order": 81,
-   "hereda": []
+   "sort_order": 80,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-porcion-justa",
@@ -4018,7 +4068,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 19,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.25,
    "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
@@ -4044,8 +4094,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 82,
-   "hereda": []
+   "sort_order": 81,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "alim-congela-lo-que-sobro",
@@ -4066,7 +4117,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.75,
    "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
@@ -4092,11 +4143,12 @@
     "freezer"
    ],
    "otorga": null,
-   "sort_order": 83,
+   "sort_order": 82,
    "hereda": [
     "res-congelar-lo-que-sobra",
     "ali-congelar-en-porciones"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ali-pan-duro",
@@ -4117,7 +4169,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 19,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.25,
    "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
@@ -4143,8 +4195,9 @@
     "pan"
    ],
    "otorga": null,
-   "sort_order": 84,
-   "hereda": []
+   "sort_order": 83,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-verduras-de-estacion",
@@ -4166,10 +4219,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.2,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 2,
@@ -4192,10 +4245,15 @@
     "verduleria"
    ],
    "otorga": null,
-   "sort_order": 85,
+   "sort_order": 84,
    "hereda": [
     "come-una-comida-sin-carne-hoy"
-   ]
+   ],
+   "mercado": {
+    "categoria": "alimentos-frescos",
+    "subcategoria": "frutas-y-verduras",
+    "texto": "De estación y de cerca. Estos productores y comercios están en el programa de Brote."
+   }
   },
   {
    "slug": "ali-legumbres-hoy",
@@ -4217,10 +4275,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.3,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 5,
@@ -4242,59 +4300,15 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 86,
+   "sort_order": 85,
    "hereda": [
     "alim-cocina-con-legumbres"
-   ]
-  },
-  {
-   "slug": "ali-menos-ultraprocesados",
-   "type": "daily",
-   "domain_slug": "alimentacion",
-   "title_es": "Elegí un producto sin sellos de \"exceso en\"",
-   "short_es": "Los octógonos negros marcan lo ultraprocesado: menos envase, menos industria, mejor para vos.",
-   "description_es": "Por la ley de etiquetado frontal, los productos con exceso de azúcar, grasas o sodio llevan sellos negros. Elegir hoy una opción sin sellos (fruta, un yogur natural, algo casero) es mejor para la salud y casi siempre viene con menos envoltorio.",
-   "instructions_es": "En la próxima compra, mirá los sellos negros del frente.\nReemplazá un producto con sellos por uno sin sellos o por algo casero.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
    ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.025,
-   "impact_waste_kg": 0.01,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~25 g de CO₂",
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 2,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "compras",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": "Congreso de la Nación Argentina",
-   "fuente_url": "https://www.argentina.gob.ar/normativa/nacional/ley-27642-356607",
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "salud",
-    "compras",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 87,
-   "hereda": []
+   "mercado": {
+    "categoria": "almacen-granel",
+    "subcategoria": "legumbres-y-cereales",
+    "texto": "Legumbres sueltas, a granel. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "alim-cocina-solo-con-lo-que-hay",
@@ -4315,11 +4329,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 76,
-   "impact_co2_kg": 1,
-   "impact_waste_kg": 0.4,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 20,
@@ -4341,10 +4355,11 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 88,
+   "sort_order": 86,
    "hereda": [
     "ali-receta-con-lo-que-hay"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ali-cocinar-de-mas-para-manana",
@@ -4390,8 +4405,9 @@
     "vianda"
    ],
    "otorga": null,
-   "sort_order": 89,
-   "hereda": []
+   "sort_order": 87,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-cascaras-y-tallos",
@@ -4411,7 +4427,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 19,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.25,
    "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
@@ -4437,10 +4453,11 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 90,
+   "sort_order": 88,
    "hereda": [
     "res-usar-tallos-y-cascaras"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ali-fruta-madura-licuado",
@@ -4461,11 +4478,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
-   "impact_co2_kg": 0.75,
-   "impact_waste_kg": 0.3,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 10,
@@ -4488,8 +4505,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 91,
-   "hereda": []
+   "sort_order": 89,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "alim-llevate-la-vianda",
@@ -4538,8 +4556,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 92,
-   "hereda": []
+   "sort_order": 90,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-feria-o-verduleria",
@@ -4561,10 +4580,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.1,
+   "impact_co2_kg": 0.05,
    "impact_waste_kg": 0.02,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~50 g de CO₂",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 15,
@@ -4587,10 +4606,15 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 93,
+   "sort_order": 91,
    "hereda": [
     "reduci-los-lacteos-hoy"
-   ]
+   ],
+   "mercado": {
+    "categoria": "alimentos-frescos",
+    "subcategoria": "frutas-y-verduras",
+    "texto": "Si no tenés feria cerca, estos productores del programa de Brote venden directo."
+   }
   },
   {
    "slug": "ali-fruta-fea",
@@ -4611,11 +4635,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 38,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.25,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~250 g de CO₂",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 1,
@@ -4637,10 +4661,11 @@
     "verduleria"
    ],
    "otorga": null,
-   "sort_order": 94,
+   "sort_order": 92,
    "hereda": [
     "alim-compra-fruta-fea"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ali-menos-desperdicio-pan",
@@ -4661,7 +4686,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 19,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.25,
    "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
@@ -4687,8 +4712,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 95,
-   "hereda": []
+   "sort_order": 93,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-media-porcion",
@@ -4708,11 +4734,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 38,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.375,
+   "impact_waste_kg": 0.15,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~375 g de CO₂",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 1,
@@ -4733,8 +4759,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 96,
-   "hereda": []
+   "sort_order": 94,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-asado-justo",
@@ -4754,7 +4781,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.75,
    "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
@@ -4782,8 +4809,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 97,
-   "hereda": []
+   "sort_order": 95,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-sobras-asado",
@@ -4804,7 +4832,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
+   "impact_water_l": 0,
    "impact_co2_kg": 0.75,
    "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
@@ -4833,8 +4861,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 98,
-   "hereda": []
+   "sort_order": 96,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "planifica-tus-comidas-para-no-comprar-de-mas",
@@ -4854,11 +4883,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 190,
-   "impact_co2_kg": 2.5,
-   "impact_waste_kg": 1,
+   "impact_water_l": 0,
+   "impact_co2_kg": 1.25,
+   "impact_waste_kg": 0.5,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2,5 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 20,
@@ -4881,10 +4910,11 @@
     "planificar"
    ],
    "otorga": null,
-   "sort_order": 99,
+   "sort_order": 97,
    "hereda": [
     "res-planificar-compra"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ali-heladera-ordenada",
@@ -4905,11 +4935,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 95,
-   "impact_co2_kg": 1.25,
-   "impact_waste_kg": 0.5,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.75,
+   "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -4932,8 +4962,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 100,
-   "hereda": []
+   "sort_order": 98,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "alim-guarda-bien-cada-alimento",
@@ -4954,11 +4985,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 95,
-   "impact_co2_kg": 1.25,
-   "impact_waste_kg": 0.5,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "aprender",
    "minutos": 15,
@@ -4980,8 +5011,9 @@
     "heladera"
    ],
    "otorga": null,
-   "sort_order": 101,
-   "hereda": []
+   "sort_order": 99,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "alim-entende-las-fechas-de-vencimiento",
@@ -5002,11 +5034,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 57,
-   "impact_co2_kg": 0.75,
-   "impact_waste_kg": 0.3,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "aprender",
    "minutos": 10,
@@ -5028,8 +5060,9 @@
     "etiquetas"
    ],
    "otorga": null,
-   "sort_order": 102,
-   "hereda": []
+   "sort_order": 100,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-caldo-con-restos",
@@ -5049,11 +5082,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 95,
-   "impact_co2_kg": 1.25,
-   "impact_waste_kg": 0.5,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.75,
+   "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 60,
@@ -5075,8 +5108,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 103,
-   "hereda": []
+   "sort_order": 101,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "compra-en-una-feria-de-productores",
@@ -5098,10 +5132,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.3,
+   "impact_co2_kg": 0.125,
    "impact_waste_kg": 0.05,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~125 g de CO₂",
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 60,
@@ -5124,10 +5158,15 @@
     "productores"
    ],
    "otorga": null,
-   "sort_order": 104,
+   "sort_order": 102,
    "hereda": [
     "pasa-una-semana-100-a-base-de-plantas"
-   ]
+   ],
+   "mercado": {
+    "categoria": "alimentos-frescos",
+    "subcategoria": null,
+    "texto": "Si no tenés feria cerca, estos productores del programa de Brote venden directo."
+   }
   },
   {
    "slug": "ali-leer-etiqueta",
@@ -5174,10 +5213,15 @@
     "etiquetas"
    ],
    "otorga": null,
-   "sort_order": 105,
+   "sort_order": 103,
    "hereda": [
     "compra-productos-locales-y-de-estacion"
-   ]
+   ],
+   "mercado": {
+    "categoria": "alimentos-frescos",
+    "subcategoria": null,
+    "texto": "Estos negocios del programa de Brote cuentan de dónde viene lo que venden, con su nivel de evidencia."
+   }
   },
   {
    "slug": "rescata-comida-excedente-con-apps",
@@ -5197,7 +5241,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 190,
+   "impact_water_l": 0,
    "impact_co2_kg": 2.5,
    "impact_waste_kg": 1,
    "impact_energy_kwh": 0,
@@ -5223,8 +5267,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 106,
-   "hereda": []
+   "sort_order": 104,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-banco-alimentos",
@@ -5271,8 +5316,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 107,
-   "hereda": []
+   "sort_order": 105,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "lleva-un-diario-de-desperdicio-de-comida",
@@ -5318,8 +5364,9 @@
     "experimento"
    ],
    "otorga": null,
-   "sort_order": 108,
-   "hereda": []
+   "sort_order": 106,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "alim-cocina-de-mas-para-la-semana",
@@ -5366,8 +5413,9 @@
     "vianda"
    ],
    "otorga": null,
-   "sort_order": 109,
-   "hereda": []
+   "sort_order": 107,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-aprovechamiento-receta",
@@ -5388,11 +5436,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 95,
-   "impact_co2_kg": 1.25,
-   "impact_waste_kg": 0.5,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.75,
+   "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 40,
@@ -5415,8 +5463,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 110,
-   "hereda": []
+   "sort_order": 108,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-conservas",
@@ -5436,11 +5485,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 190,
-   "impact_co2_kg": 2.5,
-   "impact_waste_kg": 1,
+   "impact_water_l": 0,
+   "impact_co2_kg": 1.25,
+   "impact_waste_kg": 0.5,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2,5 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~1,3 kg de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 90,
@@ -5466,8 +5515,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 111,
-   "hereda": []
+   "sort_order": 109,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ali-dia-de-legumbres",
@@ -5488,10 +5538,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "reto",
    "minutos": 30,
@@ -5514,8 +5564,13 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 112,
-   "hereda": []
+   "sort_order": 110,
+   "hereda": [],
+   "mercado": {
+    "categoria": "almacen-granel",
+    "subcategoria": "legumbres-y-cereales",
+    "texto": "Legumbres sueltas, a granel. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "deja-agua-para-las-aves-o-animales-hoy",
@@ -5566,8 +5621,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 113,
-   "hereda": []
+   "sort_order": 111,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-agua-perros-calle",
@@ -5618,8 +5674,9 @@
     "calle"
    ],
    "otorga": null,
-   "sort_order": 114,
-   "hereda": []
+   "sort_order": 112,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-no-alimentar-fauna",
@@ -5666,10 +5723,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 115,
+   "sort_order": 113,
    "hereda": [
     "anim-no-alimentes-fauna-silvestre"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "anim-levanta-la-caca-del-perro",
@@ -5718,8 +5776,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 116,
-   "hereda": []
+   "sort_order": 114,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-perro-con-correa-en-reservas",
@@ -5769,8 +5828,9 @@
     "reserva"
    ],
    "otorga": null,
-   "sort_order": 117,
-   "hereda": []
+   "sort_order": 115,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mantene-a-los-gatos-adentro-para-proteger-aves",
@@ -5819,8 +5879,9 @@
     "aves"
    ],
    "otorga": null,
-   "sort_order": 118,
-   "hereda": []
+   "sort_order": 116,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "anim-apaga-las-luces-de-noche",
@@ -5868,8 +5929,9 @@
     "aves"
    ],
    "otorga": null,
-   "sort_order": 119,
-   "hereda": []
+   "sort_order": 117,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-sacar-insecto-afuera",
@@ -5914,8 +5976,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 120,
-   "hereda": []
+   "sort_order": 118,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pone-un-comedero-o-bebedero-para-aves",
@@ -5964,10 +6027,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 121,
+   "sort_order": 119,
    "hereda": [
     "ani-bebedero-aves"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "pone-calcomanias-anti-choque-en-las-ventanas",
@@ -6014,10 +6078,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 122,
+   "sort_order": 120,
    "hereda": [
     "ani-cinta-en-ventanas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "anim-pone-una-caja-nido",
@@ -6070,8 +6135,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 123,
-   "hereda": []
+   "sort_order": 121,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "construi-un-hotel-de-insectos-o-casa-para-abejas",
@@ -6121,10 +6187,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 124,
+   "sort_order": 122,
    "hereda": [
     "ani-refugio-insectos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "planta-especies-hospederas-para-mariposas",
@@ -6177,8 +6244,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 125,
-   "hereda": []
+   "sort_order": 123,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "evita-pesticidas-y-herbicidas-en-tu-jardin",
@@ -6226,10 +6294,11 @@
     "jardin"
    ],
    "otorga": null,
-   "sort_order": 126,
+   "sort_order": 124,
    "hereda": [
     "air-no-usar-veneno"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "anim-castra-a-tu-mascota",
@@ -6277,8 +6346,9 @@
     "mascota"
    ],
    "otorga": null,
-   "sort_order": 127,
-   "hereda": []
+   "sort_order": 125,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "adopta-una-mascota-de-un-refugio",
@@ -6324,8 +6394,9 @@
     "gato"
    ],
    "otorga": null,
-   "sort_order": 128,
-   "hereda": []
+   "sort_order": 126,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-de-hogar-de-transito-para-animales",
@@ -6371,8 +6442,9 @@
     "gato"
    ],
    "otorga": null,
-   "sort_order": 129,
-   "hereda": []
+   "sort_order": 127,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-voluntariado-en-un-refugio-o-santuario",
@@ -6419,8 +6491,9 @@
     "gato"
    ],
    "otorga": null,
-   "sort_order": 130,
-   "hereda": []
+   "sort_order": 128,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-adoptar-no-comprar",
@@ -6466,8 +6539,9 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 131,
-   "hereda": []
+   "sort_order": 129,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "reporta-fauna-herida-a-un-centro-de-rescate",
@@ -6514,8 +6588,9 @@
     "rescate"
    ],
    "otorga": null,
-   "sort_order": 132,
-   "hereda": []
+   "sort_order": 130,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-pichon-caido",
@@ -6563,8 +6638,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 133,
-   "hereda": []
+   "sort_order": 131,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-no-comprar-fauna-silvestre",
@@ -6612,8 +6688,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 134,
-   "hereda": []
+   "sort_order": 132,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-tortuga-no-liberar",
@@ -6660,8 +6737,9 @@
     "fauna"
    ],
    "otorga": null,
-   "sort_order": 135,
-   "hereda": []
+   "sort_order": 133,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-sin-pirotecnia",
@@ -6712,8 +6790,9 @@
     "aves"
    ],
    "otorga": null,
-   "sort_order": 136,
-   "hereda": []
+   "sort_order": 134,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-ruta-con-fauna",
@@ -6761,8 +6840,9 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 137,
-   "hereda": []
+   "sort_order": 135,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "anim-elegi-cosmetica-sin-testeo",
@@ -6808,8 +6888,13 @@
     "animales"
    ],
    "otorga": null,
-   "sort_order": 138,
-   "hereda": []
+   "sort_order": 136,
+   "hereda": [],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "cosmetica",
+    "texto": "Estos negocios del programa de Brote cuentan cómo hacen su cosmética, con su nivel de evidencia."
+   }
   },
   {
    "slug": "anim-revisa-antes-de-podar",
@@ -6861,10 +6946,11 @@
     "poda"
    ],
    "otorga": null,
-   "sort_order": 139,
+   "sort_order": 137,
    "hereda": [
     "ani-revisar-antes-de-podar"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "saca-especies-invasoras-de-tu-zona",
@@ -6913,8 +6999,9 @@
     "jardin"
    ],
    "otorga": null,
-   "sort_order": 140,
-   "hereda": []
+   "sort_order": 138,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "deja-un-corredor-para-fauna-en-tu-jardin",
@@ -6962,8 +7049,9 @@
     "jardin"
    ],
    "otorga": null,
-   "sort_order": 141,
-   "hereda": []
+   "sort_order": 139,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "crea-un-pequeno-estanque-para-anfibios",
@@ -7011,8 +7099,9 @@
     "biodiversidad"
    ],
    "otorga": null,
-   "sort_order": 142,
-   "hereda": []
+   "sort_order": 140,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ani-collar-con-cascabel",
@@ -7061,8 +7150,9 @@
     "aves"
    ],
    "otorga": null,
-   "sort_order": 143,
-   "hereda": []
+   "sort_order": 141,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-cinco-minutos-ventana",
@@ -7109,17 +7199,18 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 144,
-   "hereda": []
+   "sort_order": 142,
+   "hereda": [],
+   "mercado": null
   },
   {
-   "slug": "cie-diario-clima",
+   "slug": "cie-bicho-de-cerca",
    "type": "daily",
    "domain_slug": "ciencia",
-   "title_es": "Anotá cómo está el tiempo hoy",
-   "short_es": "Un registro diario simple, sostenido en el tiempo, se vuelve un dato.",
-   "description_es": "Temperatura aproximada, si llovió, si hubo viento o nubes: anotarlo cada día en un cuaderno o el celular te entrena a observar, y después de unos meses muestra cómo cambian las estaciones en tu lugar.",
-   "instructions_es": "A la misma hora cada día, mirá el cielo y la temperatura.\nAnotá: temperatura, nubes, lluvia y viento.",
+   "title_es": "Buscá un bicho y miralo de cerca cinco minutos",
+   "short_es": "Una vaquita de San Antonio, un bicho bolita, una hormiga cargando una hoja: todos tienen algo que hacer.",
+   "description_es": "Debajo de una hoja, en una flor o en la corteza de un árbol siempre hay alguien. Mirarlo de cerca un rato, sin tocarlo ni sacarlo de su lugar, enseña más de cómo funciona la naturaleza que cualquier libro: qué come, adónde va, quién se lo quiere comer.",
+   "instructions_es": "Buscá en el patio, la vereda o la plaza: debajo de una hoja, en una flor, en un tronco.\nMiralo cinco minutos sin tocarlo: qué hace, adónde va.\nSi querés, sacale una foto y averiguá cómo se llama.",
    "effort": "easy",
    "impact": "low",
    "base_points": 40,
@@ -7136,13 +7227,13 @@
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
    "impact_equivalency_es": null,
-   "routine_eligible": true,
+   "routine_eligible": false,
    "formato": "observar",
-   "minutos": 2,
+   "minutos": 5,
    "costo": "gratis",
    "ahorra": false,
    "requiere": [],
-   "lugar": "casa",
+   "lugar": "naturaleza",
    "estaciones": [],
    "dias": null,
    "regiones": [],
@@ -7153,13 +7244,13 @@
    "camino_slug": null,
    "camino_paso": null,
    "tags": [
-    "clima",
-    "chicos",
-    "experimento"
+    "insectos",
+    "chicos"
    ],
    "otorga": null,
-   "sort_order": 145,
-   "hereda": []
+   "sort_order": 143,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "registra-una-observacion-de-biodiversidad",
@@ -7206,8 +7297,9 @@
     "argentinat"
    ],
    "otorga": null,
-   "sort_order": 146,
-   "hereda": []
+   "sort_order": 144,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-un-conteo-de-aves",
@@ -7252,10 +7344,11 @@
     "aves"
    ],
    "otorga": null,
-   "sort_order": 147,
+   "sort_order": 145,
    "hereda": [
     "cie-registrar-ave"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "anim-identifica-las-aves-de-tu-cuadra",
@@ -7302,8 +7395,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 148,
-   "hereda": []
+   "sort_order": 146,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-hornero-nido",
@@ -7353,8 +7447,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 149,
-   "hereda": []
+   "sort_order": 147,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-fotografiar-planta",
@@ -7402,8 +7497,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 150,
-   "hereda": []
+   "sort_order": 148,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fotografia-fenologia-floracion-migracion",
@@ -7451,8 +7547,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 151,
-   "hereda": []
+   "sort_order": 149,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-medir-temperatura",
@@ -7504,8 +7601,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 152,
-   "hereda": []
+   "sort_order": 150,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-contar-insectos",
@@ -7556,10 +7654,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 153,
+   "sort_order": 151,
    "hereda": [
     "monitorea-una-poblacion-local-de-polinizadores"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ciencia-registra-la-lluvia",
@@ -7608,8 +7707,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 154,
-   "hereda": []
+   "sort_order": 152,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ciencia-noche-de-polillas",
@@ -7660,8 +7760,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 155,
-   "hereda": []
+   "sort_order": 153,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ciencia-mide-la-contaminacion-luminica",
@@ -7709,8 +7810,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 156,
-   "hereda": []
+   "sort_order": 154,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ciencia-medi-un-arbol",
@@ -7758,8 +7860,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 157,
-   "hereda": []
+   "sort_order": 155,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-mapear-arboles",
@@ -7805,8 +7908,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 158,
-   "hereda": []
+   "sort_order": 156,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ciencia-transcribi-registros-historicos",
@@ -7853,8 +7957,9 @@
     "biodiversidad"
    ],
    "otorga": null,
-   "sort_order": 159,
-   "hereda": []
+   "sort_order": 157,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "participa-de-un-bioblitz-urbano",
@@ -7902,8 +8007,9 @@
     "grupo"
    ],
    "otorga": null,
-   "sort_order": 160,
-   "hereda": []
+   "sort_order": 158,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "reporta-avistajes-de-especies-invasoras",
@@ -7949,8 +8055,9 @@
     "argentinat"
    ],
    "otorga": null,
-   "sort_order": 161,
-   "hereda": []
+   "sort_order": 159,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "subi-un-geo-tag-de-basura-encontrada",
@@ -7997,8 +8104,9 @@
     "mapa"
    ],
    "otorga": null,
-   "sort_order": 162,
-   "hereda": []
+   "sort_order": 160,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "sumate-a-un-programa-de-monitoreo-de-cuencas",
@@ -8045,8 +8153,9 @@
     "grupo"
    ],
    "otorga": null,
-   "sort_order": 163,
-   "hereda": []
+   "sort_order": 161,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-sapos-noche",
@@ -8097,8 +8206,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 164,
-   "hereda": []
+   "sort_order": 162,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cie-cuaderno-de-campo",
@@ -8146,8 +8256,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 165,
-   "hereda": []
+   "sort_order": 163,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "recoge-un-poco-de-basura-que-viste-en-la-calle",
@@ -8170,9 +8281,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.1,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada cosa: 20 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 5,
@@ -8184,18 +8295,7 @@
    "dias": null,
    "regiones": [],
    "con_adulto": true,
-   "medida": {
-    "pregunta": "¿Cuántas cosas levantaste?",
-    "unidad": "cosa",
-    "unidades": "cosas",
-    "min": 1,
-    "max": 50,
-    "def": 5,
-    "paso": 1,
-    "por": {
-     "waste_kg": 0.02
-    }
-   },
+   "medida": null,
    "fuente": null,
    "fuente_url": null,
    "camino_slug": "vecino-activo",
@@ -8206,105 +8306,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 166,
-   "hereda": []
-  },
-  {
-   "slug": "com-agradecer-a-quien-cuida",
-   "type": "daily",
-   "domain_slug": "comunidad",
-   "title_es": "Agradecele a quien cuida tu calle",
-   "short_es": "Barrenderos, recuperadores, jardineros de la plaza: el trabajo invisible sostiene el barrio.",
-   "description_es": "Saludar y agradecer a quien barre tu cuadra, recoge los reciclables o cuida la plaza es reconocer un trabajo esencial y casi nunca visto. También es una buena forma de preguntar cómo ayudar.",
-   "instructions_es": "Cuando veas a quien barre, recicla o cuida la plaza, saludalo.\nAgradecele, y si querés, preguntale cómo podés hacerle el trabajo más fácil.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 1,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "calle",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": "vecino-activo",
-   "camino_paso": 2,
-   "tags": [
-    "barrio",
-    "cartoneros",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 167,
-   "hereda": []
-  },
-  {
-   "slug": "com-contale-a-alguien",
-   "type": "daily",
-   "domain_slug": "comunidad",
-   "title_es": "Contale a alguien algo que hiciste por el ambiente",
-   "short_es": "Lo que se cuenta se copia: la mayoría empieza porque vio a alguien cercano.",
-   "description_es": "No hace falta convencer a nadie: contar con naturalidad que hoy hiciste algo (el balde en la ducha, la vianda, la bici) planta la idea. Las costumbres se contagian más por ejemplo que por discurso.",
-   "instructions_es": "Elegí algo que hiciste hoy o esta semana.\nContáselo a alguien en una charla, sin sermonear.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 2,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "casa",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "compartir",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 168,
-   "hereda": []
+   "sort_order": 164,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-dengue-descacharrado",
@@ -8356,8 +8360,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 169,
-   "hereda": []
+   "sort_order": 165,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-vecino-mayor-calor",
@@ -8408,10 +8413,11 @@
     "solidario"
    ],
    "otorga": null,
-   "sort_order": 170,
+   "sort_order": 166,
    "hereda": [
     "com-ayuda-a-un-vecino-mayor"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "organiza-o-sumate-a-una-limpieza-del-barrio",
@@ -8434,9 +8440,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 2,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada bolsa: 2 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "social",
    "minutos": 120,
@@ -8448,18 +8454,7 @@
    "dias": null,
    "regiones": [],
    "con_adulto": true,
-   "medida": {
-    "pregunta": "¿Cuántas bolsas juntaste?",
-    "unidad": "bolsa",
-    "unidades": "bolsas",
-    "min": 1,
-    "max": 6,
-    "def": 1,
-    "paso": 1,
-    "por": {
-     "waste_kg": 2
-    }
-   },
+   "medida": null,
    "fuente": null,
    "fuente_url": null,
    "camino_slug": "vecino-activo",
@@ -8470,8 +8465,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 171,
-   "hereda": []
+   "sort_order": 167,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "crea-o-sumate-a-un-grupo-ambiental-local",
@@ -8517,8 +8513,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 172,
-   "hereda": []
+   "sort_order": 168,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "escribi-a-un-representante-por-un-tema-ambiental",
@@ -8562,10 +8559,11 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 173,
+   "sort_order": 169,
    "hereda": [
     "junta-firmas-por-ciclovias-o-espacios-verdes"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "com-presupuesto-participativo",
@@ -8611,8 +8609,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 174,
-   "hereda": []
+   "sort_order": 170,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "dicta-un-taller-o-charla-ambiental",
@@ -8658,8 +8657,9 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 175,
-   "hereda": []
+   "sort_order": 171,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "organiza-un-cafe-de-reparacion-comunitario",
@@ -8705,8 +8705,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 176,
-   "hereda": []
+   "sort_order": 172,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "arma-una-biblioteca-de-herramientas-o-de-semilla",
@@ -8752,8 +8753,9 @@
     "semillas"
    ],
    "otorga": null,
-   "sort_order": 177,
-   "hereda": []
+   "sort_order": 173,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-mapea-los-puntos-verdes",
@@ -8792,16 +8794,17 @@
    "medida": null,
    "fuente": null,
    "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
+   "camino_slug": "vecino-activo",
+   "camino_paso": 2,
    "tags": [
     "reciclaje",
     "barrio",
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 178,
-   "hereda": []
+   "sort_order": 174,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-reportar-basural",
@@ -8848,8 +8851,9 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 179,
-   "hereda": []
+   "sort_order": 175,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-pedir-cesto",
@@ -8896,8 +8900,9 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 180,
-   "hereda": []
+   "sort_order": 176,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-avisar-luminaria",
@@ -8944,8 +8949,9 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 181,
-   "hereda": []
+   "sort_order": 177,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-ayudar-vecino-reciclar",
@@ -8992,8 +8998,9 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 182,
-   "hereda": []
+   "sort_order": 178,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-llevalo-al-consorcio",
@@ -9040,10 +9047,11 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 183,
+   "sort_order": 179,
    "hereda": [
     "com-arreglar-algo-comun"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "com-proponer-en-el-trabajo",
@@ -9090,8 +9098,9 @@
     "participacion"
    ],
    "otorga": null,
-   "sort_order": 184,
-   "hereda": []
+   "sort_order": 180,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-propone-el-tema-en-la-escuela",
@@ -9140,8 +9149,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 185,
-   "hereda": []
+   "sort_order": 181,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-adopta-una-plaza",
@@ -9189,8 +9199,9 @@
     "grupo"
    ],
    "otorga": null,
-   "sort_order": 186,
-   "hereda": []
+   "sort_order": 182,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-organiza-una-salida-a-la-naturaleza",
@@ -9238,61 +9249,9 @@
     "reserva"
    ],
    "otorga": null,
-   "sort_order": 187,
-   "hereda": []
-  },
-  {
-   "slug": "com-sumar-a-alguien",
-   "type": "catalog",
-   "domain_slug": "comunidad",
-   "title_es": "Invitá a alguien a sumarse a Brote",
-   "short_es": "De a dos cuesta menos sostener un hábito.",
-   "description_es": "Invitar a un amigo, a alguien de tu familia o de tu trabajo a hacer las acciones del día juntos hace que los dos las sostengan más. Pueden armar una competencia entre ustedes o con su grupo.",
-   "instructions_es": "Pensá quién podría sumarse con vos.\nMandale tu código o el link de invitación.\nPropongan hacer juntos las acciones de una semana.",
-   "effort": "easy",
-   "impact": "medium",
-   "base_points": 100,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 720,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "social",
-   "minutos": 5,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "compartir",
-    "amigos"
-   ],
-   "otorga": null,
-   "sort_order": 188,
-   "hereda": [
-    "se-mentor-de-alguien-nuevo-en-la-plataforma",
-    "com-compartir-tu-mundo",
-    "com-armar-grupo",
-    "lanza-un-reto-de-barrio-contra-barrio"
-   ]
+   "sort_order": 183,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-cartelera-barrio",
@@ -9340,8 +9299,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 189,
-   "hereda": []
+   "sort_order": 184,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-voluntariado-en-restauracion-de-habitats",
@@ -9388,8 +9348,9 @@
     "nativas"
    ],
    "otorga": null,
-   "sort_order": 190,
-   "hereda": []
+   "sort_order": 185,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-lista-y-nada-mas",
@@ -9410,10 +9371,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.1,
-   "impact_waste_kg": 0.05,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 2,
@@ -9434,8 +9395,9 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 191,
-   "hereda": []
+   "sort_order": 186,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-cuidar-para-que-dure",
@@ -9482,8 +9444,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 192,
-   "hereda": []
+   "sort_order": 187,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-espera-24-horas",
@@ -9529,8 +9492,9 @@
     "impulso"
    ],
    "otorga": null,
-   "sort_order": 193,
-   "hereda": []
+   "sort_order": 188,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-usa-lo-que-ya-tenes",
@@ -9577,8 +9541,9 @@
     "reuso"
    ],
    "otorga": null,
-   "sort_order": 194,
-   "hereda": []
+   "sort_order": 189,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-cose-un-boton",
@@ -9600,10 +9565,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.2,
-   "impact_waste_kg": 0.02,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~20 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 10,
@@ -9626,8 +9591,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 195,
-   "hereda": []
+   "sort_order": 190,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "elegi-productos-con-minimo-packaging",
@@ -9674,8 +9640,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 196,
-   "hereda": []
+   "sort_order": 191,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "compra-ropa-de-segunda-mano-o-vintage",
@@ -9695,11 +9662,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 900,
-   "impact_co2_kg": 4,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 2,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada prenda: 900 L de agua",
+   "impact_equivalency_es": "Cada prenda: 2 kg de CO₂",
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 30,
@@ -9720,9 +9687,8 @@
     "def": 1,
     "paso": 1,
     "por": {
-     "water_l": 900,
-     "co2_kg": 4,
-     "waste_kg": 0.2
+     "co2_kg": 2,
+     "waste_kg": 0.1
     }
    },
    "fuente": "Programa de las Naciones Unidas para el Medio Ambiente",
@@ -9734,10 +9700,15 @@
     "usado"
    ],
    "otorga": null,
-   "sort_order": 197,
+   "sort_order": 192,
    "hereda": [
     "agua-ropa-segunda-mano"
-   ]
+   ],
+   "mercado": {
+    "categoria": "indumentaria",
+    "subcategoria": "segunda-mano",
+    "texto": "Usada, reparada o hecha para durar. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "revende-o-dona-lo-que-no-usas",
@@ -9759,10 +9730,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
-   "impact_waste_kg": 1,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.5,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de residuos",
+   "impact_equivalency_es": "Cada vez: ~500 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 30,
@@ -9784,11 +9755,12 @@
     "usado"
    ],
    "otorga": null,
-   "sort_order": 198,
+   "sort_order": 193,
    "hereda": [
     "dona-cosas-que-ya-no-usas-en-vez-de-tirarlas",
     "res-donar-lo-que-no-usas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "pedi-prestado-o-alquila-en-vez-de-comprar",
@@ -9810,10 +9782,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3,
-   "impact_waste_kg": 0.5,
+   "impact_co2_kg": 2,
+   "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~300 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 15,
@@ -9835,10 +9807,11 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 199,
+   "sort_order": 194,
    "hereda": [
     "res-prestar-en-vez-de-comprar"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "repara-algo-en-vez-de-tirarlo",
@@ -9883,11 +9856,16 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 200,
+   "sort_order": 195,
    "hereda": [
     "res-reparar-algo-roto",
     "con-reparar-antes-de-reemplazar"
-   ]
+   ],
+   "mercado": {
+    "categoria": "reparacion-y-reuso",
+    "subcategoria": null,
+    "texto": "Antes de tirarlo, alguien puede arreglarlo. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "con-arreglo-en-el-barrio",
@@ -9933,8 +9911,13 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 201,
-   "hereda": []
+   "sort_order": 196,
+   "hereda": [],
+   "mercado": {
+    "categoria": "reparacion-y-reuso",
+    "subcategoria": null,
+    "texto": "Si no conocés a nadie que lo arregle, estos talleres del programa de Brote lo hacen."
+   }
   },
   {
    "slug": "repara-tu-ropa-con-zurcido-visible",
@@ -9954,11 +9937,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 450,
-   "impact_co2_kg": 2,
-   "impact_waste_kg": 0.1,
+   "impact_water_l": 0,
+   "impact_co2_kg": 1,
+   "impact_waste_kg": 0.05,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -9980,10 +9963,11 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 202,
+   "sort_order": 197,
    "hereda": [
     "agua-arreglar-prenda"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "organiza-o-participa-de-un-intercambio-de-ropa",
@@ -10004,11 +9988,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 1800,
-   "impact_co2_kg": 8,
-   "impact_waste_kg": 0.4,
+   "impact_water_l": 0,
+   "impact_co2_kg": 4,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~400 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 90,
@@ -10030,10 +10014,11 @@
     "intercambio"
    ],
    "otorga": null,
-   "sort_order": 203,
+   "sort_order": 198,
    "hereda": [
     "con-intercambio-con-amigos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "con-utiles-del-ano-pasado",
@@ -10083,10 +10068,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 204,
+   "sort_order": 199,
    "hereda": [
     "cons-usa-una-lapicera-recargable"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "con-guardapolvo-heredado",
@@ -10107,11 +10093,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 900,
-   "impact_co2_kg": 4,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 2,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 15,
@@ -10137,8 +10123,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 205,
-   "hereda": []
+   "sort_order": 200,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-juguetes-intercambio",
@@ -10160,7 +10147,7 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
+   "impact_co2_kg": 0.5,
    "impact_waste_kg": 0.5,
    "impact_energy_kwh": 0,
    "impact_equivalency_es": "Cada vez: ~500 g de residuos",
@@ -10186,8 +10173,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 206,
-   "hereda": []
+   "sort_order": 201,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "usa-una-biblioteca-de-libros-o-de-cosas",
@@ -10209,10 +10197,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
-   "impact_waste_kg": 0.3,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 30,
@@ -10234,8 +10222,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 207,
-   "hereda": []
+   "sort_order": 202,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "compra-electronica-reacondicionada",
@@ -10280,8 +10269,13 @@
     "usado"
    ],
    "otorga": null,
-   "sort_order": 208,
-   "hereda": []
+   "sort_order": 203,
+   "hereda": [],
+   "mercado": {
+    "categoria": "reparacion-y-reuso",
+    "subcategoria": "reacondicionados",
+    "texto": "Reacondicionado, con garantía y sin fabricar uno nuevo. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "con-regla-30-dias",
@@ -10327,10 +10321,11 @@
     "impulso"
    ],
    "otorga": null,
-   "sort_order": 209,
+   "sort_order": 204,
    "hereda": [
     "cons-espera-antes-de-comprar"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "cons-elegi-lo-que-se-puede-reparar",
@@ -10376,10 +10371,15 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 210,
+   "sort_order": 205,
    "hereda": [
     "con-elegir-durable"
-   ]
+   ],
+   "mercado": {
+    "categoria": "reparacion-y-reuso",
+    "subcategoria": null,
+    "texto": "Lo que se puede abrir y arreglar dura más. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "cons-regala-una-experiencia",
@@ -10425,8 +10425,9 @@
     "regalos"
    ],
    "otorga": null,
-   "sort_order": 211,
-   "hereda": []
+   "sort_order": 206,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cons-envolve-sin-papel-nuevo",
@@ -10473,10 +10474,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 212,
+   "sort_order": 207,
    "hereda": [
     "res-regalo-sin-papel"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "con-regalo-hecho-a-mano",
@@ -10523,8 +10525,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 213,
-   "hereda": []
+   "sort_order": 208,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cambia-a-productos-recargables-del-hogar",
@@ -10570,10 +10573,15 @@
     "limpieza"
    ],
    "otorga": null,
-   "sort_order": 214,
+   "sort_order": 209,
    "hereda": [
     "agua-jabon-concentrado"
-   ]
+   ],
+   "mercado": {
+    "categoria": "limpieza-hogar",
+    "subcategoria": "recargas",
+    "texto": "Pasarse a recargable necesita alguien que te recargue. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-pila-recargable",
@@ -10594,10 +10602,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
-   "impact_waste_kg": 0.2,
+   "impact_co2_kg": 0.1,
+   "impact_waste_kg": 0.05,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -10618,8 +10626,9 @@
     "pilas"
    ],
    "otorga": null,
-   "sort_order": 215,
-   "hereda": []
+   "sort_order": 210,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-cepillo-recargable",
@@ -10666,8 +10675,13 @@
     "baño"
    ],
    "otorga": null,
-   "sort_order": 216,
-   "hereda": []
+   "sort_order": 211,
+   "hereda": [],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "higiene-bucal",
+    "texto": "Cabezal recambiable, mango que dura. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "con-gestion-menstrual-reutilizable",
@@ -10688,10 +10702,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3.75,
-   "impact_waste_kg": 1.5,
+   "impact_co2_kg": 0.375,
+   "impact_waste_kg": 0.15,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1,5 kg de residuos",
+   "impact_equivalency_es": "Cada vez: ~150 g de residuos",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -10713,8 +10727,13 @@
     "baño"
    ],
    "otorga": null,
-   "sort_order": 217,
-   "hereda": []
+   "sort_order": 212,
+   "hereda": [],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "higiene-menstrual",
+    "texto": "Copa, toallitas de tela o ropa interior absorbente. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "cons-desuscribite-de-promociones",
@@ -10760,10 +10779,11 @@
     "digital"
    ],
    "otorga": null,
-   "sort_order": 218,
+   "sort_order": 213,
    "hereda": [
     "con-desuscribirse-promos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "compra-productos-con-contenido-reciclado",
@@ -10784,10 +10804,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -10809,8 +10829,13 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 219,
-   "hereda": []
+   "sort_order": 214,
+   "hereda": [],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": null,
+    "texto": "Con contenido reciclado declarado y su nivel de evidencia a la vista. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "hace-un-mes-sin-compras-innecesarias",
@@ -10831,10 +10856,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 10,
-   "impact_waste_kg": 2,
+   "impact_co2_kg": 5,
+   "impact_waste_kg": 1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2 kg de residuos",
+   "impact_equivalency_es": "Cada vez: ~1 kg de residuos",
    "routine_eligible": false,
    "formato": "reto",
    "minutos": 30,
@@ -10856,8 +10881,11 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 220,
-   "hereda": []
+   "sort_order": 215,
+   "hereda": [
+    "evita-la-moda-rapida-toda-una-temporada"
+   ],
+   "mercado": null
   },
   {
    "slug": "res-cajas-para-mudanza",
@@ -10903,8 +10931,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 221,
-   "hereda": []
+   "sort_order": 216,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "con-alquila-ropa-de-fiesta",
@@ -10924,11 +10953,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 900,
-   "impact_co2_kg": 4,
-   "impact_waste_kg": 0.2,
+   "impact_water_l": 0,
+   "impact_co2_kg": 2,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 30,
@@ -10950,8 +10979,9 @@
     "prestar"
    ],
    "otorga": null,
-   "sort_order": 222,
-   "hereda": []
+   "sort_order": 217,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "baja-la-resolucion-del-streaming",
@@ -10998,8 +11028,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 223,
-   "hereda": []
+   "sort_order": 218,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "dig-audio-en-vez-de-video",
@@ -11047,58 +11078,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 224,
-   "hereda": []
-  },
-  {
-   "slug": "dig-usa-wifi-en-vez-de-datos",
-   "type": "daily",
-   "domain_slug": "digital",
-   "title_es": "Usá wifi en vez de datos móviles cuando puedas",
-   "short_es": "La red móvil consume más energía por cada dato que el wifi de tu casa.",
-   "description_es": "Descargar fotos, actualizaciones o videos con datos móviles usa más energía que hacerlo por wifi, y además gasta tu plan. Dejá lo pesado para cuando estés en casa o en la escuela.",
-   "instructions_es": "Configurá las actualizaciones y las copias de fotos \"sólo con wifi\".\nDejá las descargas grandes para cuando tengas wifi.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.003,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.01,
-   "impact_equivalency_es": "Cada vez: ~3 g de CO₂",
-   "routine_eligible": true,
-   "formato": "gesto",
-   "minutos": 1,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "celular",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 225,
-   "hereda": [
-    "dig-wifi-en-vez-de-datos"
-   ]
+   "sort_order": 219,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "dig-apaga-la-camara-en-reuniones",
@@ -11144,8 +11126,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 226,
-   "hereda": []
+   "sort_order": 220,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "dig-no-imprimas",
@@ -11192,299 +11175,11 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 227,
+   "sort_order": 221,
    "hereda": [
     "res-no-imprimir"
-   ]
-  },
-  {
-   "slug": "energia-pantalla-brillo",
-   "type": "daily",
-   "domain_slug": "digital",
-   "title_es": "Bajá el brillo del celu y de la compu",
-   "short_es": "La pantalla es de lo que más batería gasta.",
-   "description_es": "El brillo al máximo gasta batería y cansa la vista. Con el brillo automático o en un nivel cómodo, el celular dura más entre cargas, y la batería envejece más lento.",
-   "instructions_es": "Activá el brillo automático.\nSi no, bajalo a un nivel cómodo para el lugar donde estás.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
    ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.003,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.01,
-   "impact_equivalency_es": "Cada vez: ~3 g de CO₂",
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 1,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "celular",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 228,
-   "hereda": []
-  },
-  {
-   "slug": "ene-cargar-celu-de-dia",
-   "type": "daily",
-   "domain_slug": "digital",
-   "title_es": "No dejes el celular cargando toda la noche",
-   "short_es": "Ocho horas enchufado para dos de carga gasta la batería antes de tiempo.",
-   "description_es": "Cargar de día y desenchufar cerca del 80-90% cuida la batería, que es lo primero que hace cambiar un celular. Muchos celulares tienen una opción de \"carga optimizada\" que lo hace solo.",
-   "instructions_es": "Cargá el celu de día, cuando puedas desenchufarlo.\nActivá la \"carga optimizada\" o \"protección de batería\" si tu celular la tiene.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.003,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.01,
-   "impact_equivalency_es": "Cada vez: ~3 g de CO₂",
-   "routine_eligible": true,
-   "formato": "gesto",
-   "minutos": 1,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "celular",
-    "bateria"
-   ],
-   "otorga": null,
-   "sort_order": 229,
-   "hereda": [
-    "ene-cargar-al-80"
-   ]
-  },
-  {
-   "slug": "borra-mails-y-archivos-viejos-que-no-usas",
-   "type": "daily",
-   "domain_slug": "digital",
-   "title_es": "Borrá fotos repetidas y videos que no vas a volver a ver",
-   "short_es": "Todo lo guardado ocupa discos encendidos en algún lado.",
-   "description_es": "Las fotos en ráfaga, los videos de grupos y los archivos duplicados ocupan espacio en tu celu y en la nube. Borrarlos de a poco libera lugar y alarga la vida del teléfono, que se pone lento cuando está lleno.",
-   "instructions_es": "Abrí la galería y borrá 20 fotos repetidas o videos que no vas a mirar.\nVaciá la papelera de la galería.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 5,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "nube",
-    "celular",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 230,
-   "hereda": []
-  },
-  {
-   "slug": "dig-buscar-antes-de-preguntar-ia",
-   "type": "daily",
-   "domain_slug": "digital",
-   "title_es": "Usá la inteligencia artificial cuando suma, no por costumbre",
-   "short_es": "Cada consulta a un modelo de IA corre en centros de datos que consumen energía real.",
-   "description_es": "La IEA calcula que el consumo de los centros de datos crece rápido por la inteligencia artificial. Para un dato simple, un buscador o una página oficial alcanzan; dejá la IA para lo que de verdad la necesita.",
-   "instructions_es": "Para un dato simple, buscalo directamente.\nUsá la IA para tareas que la necesiten de verdad, con una consulta clara.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 40,
-   "frequency": "daily",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "gesto",
-   "minutos": 1,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": "Agencia Internacional de Energía",
-   "fuente_url": "https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai",
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "ia",
-    "digital"
-   ],
-   "otorga": null,
-   "sort_order": 231,
-   "hereda": []
-  },
-  {
-   "slug": "limpia-tu-nube-y-borra-archivos-viejos",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Limpiá tu nube de duplicados y archivos que no usás",
-   "short_es": "Las copias duplicadas se acumulan sin que las veas, en servidores que nunca se apagan.",
-   "description_es": "Las copias automáticas de fotos, los archivos adjuntos y las carpetas viejas ocupan espacio en servidores que funcionan día y noche. Una limpieza cada tanto ordena tu nube y muchas veces te evita pagar más espacio.",
-   "instructions_es": "Entrá a tu nube y ordená por tamaño.\nBorrá videos y archivos grandes que no necesitás.\nBuscá y borrá duplicados.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 2160,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 30,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": "Agencia Internacional de Energía",
-   "fuente_url": "https://www.iea.org/energy-system/buildings/data-centres-and-data-transmission-networks",
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "nube"
-   ],
-   "otorga": null,
-   "sort_order": 232,
-   "hereda": [
-    "dig-limpiar-nube"
-   ]
-  },
-  {
-   "slug": "desuscribite-de-newsletters-que-no-lees",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Desuscribite de los mails que no leés",
-   "short_es": "Cada mail que no abrís igual se envió, se guardó y te robó un segundo.",
-   "description_es": "Newsletters, avisos y notificaciones que nunca abrís llenan la casilla y los servidores. Darte de baja de los que no lees deja tu mail más ordenado y con menos distracciones.",
-   "instructions_es": "Buscá en tu mail los envíos que nunca abrís.\nTocá \"desuscribirse\" al pie de cada uno.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 2160,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 15,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "mail"
-   ],
-   "otorga": null,
-   "sort_order": 233,
-   "hereda": [
-    "dig-desuscribirse"
-   ]
+   "mercado": null
   },
   {
    "slug": "alarga-la-vida-de-tu-celular-un-ano-mas",
@@ -11505,10 +11200,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 15,
+   "impact_co2_kg": 1.2,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~15 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~1,2 kg de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -11530,10 +11225,11 @@
     "bateria"
    ],
    "otorga": null,
-   "sort_order": 234,
+   "sort_order": 222,
    "hereda": [
     "dig-alargar-vida-celular"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "dig-cambia-bateria",
@@ -11580,8 +11276,13 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 235,
-   "hereda": []
+   "sort_order": 223,
+   "hereda": [],
+   "mercado": {
+    "categoria": "reparacion-y-reuso",
+    "subcategoria": "electronica",
+    "texto": "Técnicos que cambian la batería y reparan celulares. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "activa-los-modos-de-ahorro-de-energia",
@@ -11629,58 +11330,9 @@
     "stand-by"
    ],
    "otorga": null,
-   "sort_order": 236,
-   "hereda": []
-  },
-  {
-   "slug": "dig-descarga-en-vez-de-repetir",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Descargá la música que escuchás todos los días",
-   "short_es": "Escuchar lo mismo por streaming lo transmite entero cada vez.",
-   "description_es": "Tus playlists de siempre, descargadas, se escuchan sin datos y sin volver a transmitirse cada vez. Funciona también para los podcasts y las series que mirás más de una vez.",
-   "instructions_es": "Descargá tus listas favoritas con wifi.\nActivá el modo sin conexión cuando salgas.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 2160,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.155,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.5,
-   "impact_equivalency_es": "Cada vez: ~155 g de CO₂",
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 10,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "streaming",
-    "musica"
-   ],
-   "otorga": null,
-   "sort_order": 237,
-   "hereda": [
-    "dig-descargar-en-vez-de-stream"
-   ]
+   "sort_order": 224,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pasate-a-facturacion-digital",
@@ -11700,10 +11352,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.1,
-   "impact_waste_kg": 0.1,
+   "impact_co2_kg": 0.02,
+   "impact_waste_kg": 0.02,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~20 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -11725,104 +11377,9 @@
     "factura"
    ],
    "otorga": null,
-   "sort_order": 238,
-   "hereda": []
-  },
-  {
-   "slug": "dig-reproduccion-automatica",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Desactivá la reproducción automática de videos",
-   "short_es": "Los videos que arrancan solos en redes y apps transmiten aunque no los mires.",
-   "description_es": "En redes sociales y apps de video, la reproducción automática descarga videos que pasás de largo. Desactivarla (o dejarla sólo con wifi) ahorra datos, batería y tiempo.",
-   "instructions_es": "En cada red social, buscá \"reproducción automática\" en la configuración.\nElegí \"nunca\" o \"sólo con wifi\".",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "one_time",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.155,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.5,
-   "impact_equivalency_es": "Cada vez: ~155 g de CO₂",
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 5,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "redes",
-    "streaming"
-   ],
-   "otorga": null,
-   "sort_order": 239,
-   "hereda": []
-  },
-  {
-   "slug": "dig-modo-oscuro",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Usá el modo oscuro si tu pantalla es OLED",
-   "short_es": "En las pantallas OLED, el negro es un píxel apagado.",
-   "description_es": "Muchos celulares de gama media y alta tienen pantalla OLED, donde el negro no consume. El modo oscuro ahí estira la batería, y de noche cansa menos la vista.",
-   "instructions_es": "Fijate si tu celular tiene pantalla OLED o AMOLED.\nActivá el modo oscuro en la configuración y en tus apps.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "one_time",
-   "repeat_cooldown_hours": 0,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.062,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.2,
-   "impact_equivalency_es": "Cada vez: ~62 g de CO₂",
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 5,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "celular",
-    "bateria"
-   ],
-   "otorga": null,
-   "sort_order": 240,
-   "hereda": []
+   "sort_order": 225,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "dig-dona-compu-vieja",
@@ -11870,104 +11427,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 241,
-   "hereda": []
-  },
-  {
-   "slug": "dig-apps-que-no-usas",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Borrá las apps que no usás",
-   "short_es": "Muchas apps se actualizan y trabajan en segundo plano aunque no las abras.",
-   "description_es": "Las apps que no abrís hace meses igual se actualizan, mandan notificaciones y consumen batería. Borrarlas libera espacio y hace que el celu ande mejor por más tiempo.",
-   "instructions_es": "Revisá la lista de apps instaladas.\nBorrá las que no abriste en los últimos tres meses.",
-   "effort": "easy",
-   "impact": "low",
-   "base_points": 80,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 2160,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "tarea",
-   "minutos": 10,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "celular"
-   ],
-   "otorga": null,
-   "sort_order": 242,
-   "hereda": []
-  },
-  {
-   "slug": "dig-tarde-sin-pantallas",
-   "type": "catalog",
-   "domain_slug": "digital",
-   "title_es": "Hacé una tarde sin pantallas",
-   "short_es": "Una tarde afuera, con un libro o con amigos: el mejor modo ahorro.",
-   "description_es": "Una tarde sin celular, tele ni consola es energía que no se gasta y tiempo para otra cosa: salir a la plaza, jugar, cocinar, leer, mirar el cielo. Hacela en familia o con amigos, es más fácil.",
-   "instructions_es": "Elegí una tarde y avisale a tu familia o amigos.\nApagá o guardá las pantallas.\nHacé algo afuera o con las manos.",
-   "effort": "medium",
-   "impact": "low",
-   "base_points": 130,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 168,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "kid",
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0.093,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.3,
-   "impact_equivalency_es": "Cada vez: ~93 g de CO₂",
-   "routine_eligible": false,
-   "formato": "reto",
-   "minutos": 180,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "casa",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": null,
-   "fuente_url": null,
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "reto",
-    "familia",
-    "chicos"
-   ],
-   "otorga": null,
-   "sort_order": 243,
-   "hereda": []
+   "sort_order": 226,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "apaga-las-luces-de-los-ambientes-vacios",
@@ -12014,8 +11476,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 244,
-   "hereda": []
+   "sort_order": 227,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-luz-natural",
@@ -12061,10 +11524,11 @@
     "luz"
    ],
    "otorga": null,
-   "sort_order": 245,
+   "sort_order": 228,
    "hereda": [
     "ener-aprovecha-la-luz-natural"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-lampara-donde-estas",
@@ -12110,8 +11574,9 @@
     "luz"
    ],
    "otorga": null,
-   "sort_order": 246,
-   "hereda": []
+   "sort_order": 229,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "desenchufa-los-aparatos-que-no-estas-usando",
@@ -12157,10 +11622,11 @@
     "stand-by"
    ],
    "otorga": null,
-   "sort_order": 247,
+   "sort_order": 230,
    "hereda": [
     "energia-apagar-standby-tv"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "energia-desenchufar-cargadores",
@@ -12207,8 +11673,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 248,
-   "hereda": []
+   "sort_order": 231,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-regleta-al-salir",
@@ -12253,8 +11720,9 @@
     "stand-by"
    ],
    "otorga": null,
-   "sort_order": 249,
-   "hereda": []
+   "sort_order": 232,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-apagar-router-noche",
@@ -12300,8 +11768,9 @@
     "digital"
    ],
    "otorga": null,
-   "sort_order": 250,
-   "hereda": []
+   "sort_order": 233,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-pc-suspender",
@@ -12346,8 +11815,58 @@
     "compu"
    ],
    "otorga": null,
-   "sort_order": 251,
-   "hereda": []
+   "sort_order": 234,
+   "hereda": [],
+   "mercado": null
+  },
+  {
+   "slug": "ene-consola-apagada",
+   "type": "daily",
+   "domain_slug": "energia",
+   "title_es": "Apagá del todo la consola cuando terminás de jugar",
+   "short_es": "En \"reposo\" o \"encendido rápido\" una consola sigue gastando toda la noche.",
+   "description_es": "Muchas consolas y televisores quedan en un modo de espera que mantiene todo listo para arrancar al instante, y eso gasta luz las horas que nadie juega. Apagarla del todo (y la tele del botón, no sólo del control) corta ese gasto; en la configuración de energía se puede elegir que el reposo gaste lo mínimo.",
+   "instructions_es": "Al terminar, apagá la consola desde el menú, no la dejes en reposo.\nApagá la tele del botón.\nSi tiene \"encendido rápido\" o \"modo instantáneo\", desactivalo en la configuración de energía.",
+   "effort": "easy",
+   "impact": "low",
+   "base_points": 40,
+   "frequency": "daily",
+   "repeat_cooldown_hours": 0,
+   "min_rank_slug": "semilla",
+   "age_groups": [
+    "kid",
+    "teen",
+    "adult"
+   ],
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.031,
+   "impact_waste_kg": 0,
+   "impact_energy_kwh": 0.1,
+   "impact_equivalency_es": "Cada vez: ~0,1 kWh de energía",
+   "routine_eligible": true,
+   "formato": "gesto",
+   "minutos": 1,
+   "costo": "gratis",
+   "ahorra": false,
+   "requiere": [],
+   "lugar": "casa",
+   "estaciones": [],
+   "dias": null,
+   "regiones": [],
+   "con_adulto": false,
+   "medida": null,
+   "fuente": null,
+   "fuente_url": null,
+   "camino_slug": null,
+   "camino_paso": null,
+   "tags": [
+    "stand-by",
+    "chicos"
+   ],
+   "otorga": null,
+   "sort_order": 235,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ener-apaga-la-tele-de-fondo",
@@ -12394,8 +11913,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 252,
-   "hereda": []
+   "sort_order": 236,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "subi-por-la-escalera-en-vez-del-ascensor",
@@ -12441,8 +11961,9 @@
     "edificio"
    ],
    "otorga": null,
-   "sort_order": 253,
-   "hereda": []
+   "sort_order": 237,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-heladera-cerrar-rapido",
@@ -12489,8 +12010,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 254,
-   "hereda": []
+   "sort_order": 238,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-no-guardes-caliente",
@@ -12537,8 +12059,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 255,
-   "hereda": []
+   "sort_order": 239,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cocina-con-tapa-y-aprovecha-el-calor",
@@ -12585,10 +12108,11 @@
     "gas"
    ],
    "otorga": null,
-   "sort_order": 256,
+   "sort_order": 240,
    "hereda": [
     "ene-tapar-ollas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ener-elegi-la-hornalla-del-tamano-justo",
@@ -12635,10 +12159,11 @@
     "gas"
    ],
    "otorga": null,
-   "sort_order": 257,
+   "sort_order": 241,
    "hereda": [
     "ene-hornalla-del-tamano"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ener-no-abras-el-horno",
@@ -12684,10 +12209,11 @@
     "horno"
    ],
    "otorga": null,
-   "sort_order": 258,
+   "sort_order": 242,
    "hereda": [
     "ene-horno-no-abrir"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "energia-microondas-vs-horno",
@@ -12733,8 +12259,9 @@
     "horno"
    ],
    "otorga": null,
-   "sort_order": 259,
-   "hereda": []
+   "sort_order": 243,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-aprovechar-horno-caliente",
@@ -12780,8 +12307,9 @@
     "horno"
    ],
    "otorga": null,
-   "sort_order": 260,
-   "hereda": []
+   "sort_order": 244,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ener-cocina-con-olla-a-presion",
@@ -12827,8 +12355,9 @@
     "legumbres"
    ],
    "otorga": null,
-   "sort_order": 261,
-   "hereda": []
+   "sort_order": 245,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-apagar-antes",
@@ -12874,8 +12403,9 @@
     "gas"
    ],
    "otorga": null,
-   "sort_order": 262,
-   "hereda": []
+   "sort_order": 246,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-pava-justa",
@@ -12922,8 +12452,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 263,
-   "hereda": []
+   "sort_order": 247,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-mate-sin-hervir",
@@ -12968,8 +12499,9 @@
     "mate"
    ],
    "otorga": null,
-   "sort_order": 264,
-   "hereda": []
+   "sort_order": 248,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-termo-no-recalentar",
@@ -13015,8 +12547,9 @@
     "mate"
    ],
    "otorga": null,
-   "sort_order": 265,
-   "hereda": []
+   "sort_order": 249,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "lava-la-ropa-con-agua-fria",
@@ -13038,10 +12571,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.248,
+   "impact_co2_kg": 0.155,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.8,
-   "impact_equivalency_es": "Cada vez: ~0,8 kWh de energía",
+   "impact_energy_kwh": 0.5,
+   "impact_equivalency_es": "Cada vez: ~0,5 kWh de energía",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 1,
@@ -13062,10 +12595,11 @@
     "lavarropas"
    ],
    "otorga": null,
-   "sort_order": 266,
+   "sort_order": 250,
    "hereda": [
     "agua-lavarropas-carga-agua-fria"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "colga-la-ropa-al-aire-en-vez-de-usar-secadora",
@@ -13096,7 +12630,9 @@
    "minutos": 5,
    "costo": "gratis",
    "ahorra": true,
-   "requiere": [],
+   "requiere": [
+    "secarropas"
+   ],
    "lugar": "casa",
    "estaciones": [],
    "dias": null,
@@ -13112,10 +12648,11 @@
     "sol"
    ],
    "otorga": null,
-   "sort_order": 267,
+   "sort_order": 251,
    "hereda": [
     "ene-secar-al-sol"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-planchar-todo-junto",
@@ -13160,8 +12697,9 @@
     "ropa"
    ],
    "otorga": null,
-   "sort_order": 268,
-   "hereda": []
+   "sort_order": 252,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-ventilador-antes-aire",
@@ -13192,7 +12730,9 @@
    "minutos": 1,
    "costo": "gratis",
    "ahorra": true,
-   "requiere": [],
+   "requiere": [
+    "aire"
+   ],
    "lugar": "casa",
    "estaciones": [
     "primavera",
@@ -13211,8 +12751,9 @@
     "calor"
    ],
    "otorga": null,
-   "sort_order": 269,
-   "hereda": []
+   "sort_order": 253,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-aire-24",
@@ -13265,8 +12806,9 @@
     "aire"
    ],
    "otorga": null,
-   "sort_order": 270,
-   "hereda": []
+   "sort_order": 254,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "energia-cerrar-puertas-clima",
@@ -13313,8 +12855,9 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 271,
-   "hereda": []
+   "sort_order": 255,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ener-cortinas-segun-la-estacion",
@@ -13336,10 +12879,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.155,
+   "impact_co2_kg": 0.062,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.5,
-   "impact_equivalency_es": "Cada vez: ~0,5 kWh de energía",
+   "impact_energy_kwh": 0.2,
+   "impact_equivalency_es": "Cada vez: ~0,2 kWh de energía",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 2,
@@ -13362,10 +12905,11 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 272,
+   "sort_order": 256,
    "hereda": [
     "ene-cortina-al-sol"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-ventilar-noche-verano",
@@ -13387,10 +12931,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.155,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.5,
-   "impact_equivalency_es": "Cada vez: ~0,5 kWh de energía",
+   "impact_energy_kwh": 0,
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 2,
@@ -13414,8 +12958,9 @@
     "calor"
    ],
    "otorga": null,
-   "sort_order": 273,
-   "hereda": []
+   "sort_order": 257,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-apagar-antes-de-irte",
@@ -13462,8 +13007,9 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 274,
-   "hereda": []
+   "sort_order": 258,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "baja-un-poco-la-calefaccion-o-el-aire",
@@ -13514,8 +13060,9 @@
     "gas"
    ],
    "otorga": null,
-   "sort_order": 275,
-   "hereda": []
+   "sort_order": 259,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-abrigate-antes",
@@ -13537,10 +13084,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.271,
+   "impact_co2_kg": 0.181,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 1.5,
-   "impact_equivalency_es": "Cada vez: ~1,5 kWh de energía",
+   "impact_energy_kwh": 1,
+   "impact_equivalency_es": "Cada vez: ~1 kWh de energía",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -13565,8 +13112,9 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 276,
-   "hereda": []
+   "sort_order": 260,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-bolsa-agua-caliente",
@@ -13588,10 +13136,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.271,
+   "impact_co2_kg": 0.181,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 1.5,
-   "impact_equivalency_es": "Cada vez: ~1,5 kWh de energía",
+   "impact_energy_kwh": 1,
+   "impact_equivalency_es": "Cada vez: ~1 kWh de energía",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 3,
@@ -13615,8 +13163,9 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 277,
-   "hereda": []
+   "sort_order": 261,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-apagar-estufa-dormir",
@@ -13665,8 +13214,9 @@
     "seguridad"
    ],
    "otorga": null,
-   "sort_order": 278,
-   "hereda": []
+   "sort_order": 262,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-no-calefaccionar-vacios",
@@ -13716,8 +13266,9 @@
     "gas"
    ],
    "otorga": null,
-   "sort_order": 279,
-   "hereda": []
+   "sort_order": 263,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-aprovecha-las-brasas",
@@ -13766,8 +13317,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 280,
-   "hereda": []
+   "sort_order": 264,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-oficina-apagar-puesto",
@@ -13813,8 +13365,9 @@
     "trabajo"
    ],
    "otorga": null,
-   "sort_order": 281,
-   "hereda": []
+   "sort_order": 265,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-aula-luces-recreo",
@@ -13862,8 +13415,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 282,
-   "hereda": []
+   "sort_order": 266,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-apagar-piloto-estufa",
@@ -13914,8 +13468,9 @@
     "verano"
    ],
    "otorga": null,
-   "sort_order": 283,
-   "hereda": []
+   "sort_order": 267,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-piloto-calefon-viaje",
@@ -13963,8 +13518,9 @@
     "viaje"
    ],
    "otorga": null,
-   "sort_order": 284,
-   "hereda": []
+   "sort_order": 268,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ajusta-el-termotanque-a-una-temperatura-eficient",
@@ -14009,10 +13565,11 @@
     "agua caliente"
    ],
    "otorga": null,
-   "sort_order": 285,
+   "sort_order": 269,
    "hereda": [
     "ener-poné-timer-al-termotanque"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-heladera-lejos-del-calor",
@@ -14033,10 +13590,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.93,
+   "impact_co2_kg": 0.465,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 3,
-   "impact_equivalency_es": "Cada vez: ~3 kWh de energía",
+   "impact_energy_kwh": 1.5,
+   "impact_equivalency_es": "Cada vez: ~1,5 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -14057,8 +13614,9 @@
     "heladera"
    ],
    "otorga": null,
-   "sort_order": 286,
-   "hereda": []
+   "sort_order": 270,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ener-limpia-la-parrilla-de-la-heladera",
@@ -14079,10 +13637,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.93,
+   "impact_co2_kg": 0.465,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 3,
-   "impact_equivalency_es": "Cada vez: ~3 kWh de energía",
+   "impact_energy_kwh": 1.5,
+   "impact_equivalency_es": "Cada vez: ~1,5 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -14103,8 +13661,9 @@
     "heladera"
    ],
    "otorga": null,
-   "sort_order": 287,
-   "hereda": []
+   "sort_order": 271,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-descongelar-freezer",
@@ -14125,10 +13684,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1.55,
+   "impact_co2_kg": 1.24,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 5,
-   "impact_equivalency_es": "Cada vez: ~5 kWh de energía",
+   "impact_energy_kwh": 4,
+   "impact_equivalency_es": "Cada vez: ~4 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 60,
@@ -14149,10 +13708,11 @@
     "heladera"
    ],
    "otorga": null,
-   "sort_order": 288,
+   "sort_order": 272,
    "hereda": [
     "ener-descongela-el-freezer"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-burlete-heladera",
@@ -14174,10 +13734,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.62,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 2,
-   "impact_equivalency_es": "Cada vez: ~2 kWh de energía",
+   "impact_energy_kwh": 0,
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "aprender",
    "minutos": 5,
@@ -14200,8 +13760,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 289,
-   "hereda": []
+   "sort_order": 273,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-limpiar-filtro-aire",
@@ -14252,8 +13813,9 @@
     "verano"
    ],
    "otorga": null,
-   "sort_order": 290,
-   "hereda": []
+   "sort_order": 274,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-burletes-caseros",
@@ -14304,10 +13866,11 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 291,
+   "sort_order": 275,
    "hereda": [
     "mejora-la-aislacion-y-burletes-de-tu-casa"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-mantenimiento-gas",
@@ -14357,8 +13920,9 @@
     "invierno"
    ],
    "otorga": null,
-   "sort_order": 292,
-   "hereda": []
+   "sort_order": 276,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-llama-azul",
@@ -14407,8 +13971,9 @@
     "experimento"
    ],
    "otorga": null,
-   "sort_order": 293,
-   "hereda": []
+   "sort_order": 277,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cambia-todas-las-lamparas-a-led",
@@ -14429,10 +13994,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1.55,
+   "impact_co2_kg": 0.93,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 5,
-   "impact_equivalency_es": "Cada vez: ~5 kWh de energía",
+   "impact_energy_kwh": 3,
+   "impact_equivalency_es": "Cada vez: ~3 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 15,
@@ -14453,8 +14018,13 @@
     "luz"
    ],
    "otorga": null,
-   "sort_order": 294,
-   "hereda": []
+   "sort_order": 278,
+   "hereda": [],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": "iluminacion",
+    "texto": "Lámparas LED que duran años. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "hace-una-auditoria-energetica-de-tu-casa",
@@ -14498,10 +14068,11 @@
     "factura"
    ],
    "otorga": null,
-   "sort_order": 295,
+   "sort_order": 279,
    "hereda": [
     "ene-revisar-consumo"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "ene-detective-stand-by",
@@ -14521,10 +14092,10 @@
     "kid"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.155,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 0.5,
-   "impact_equivalency_es": "Cada vez: ~0,5 kWh de energía",
+   "impact_energy_kwh": 0,
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "aprender",
    "minutos": 15,
@@ -14547,8 +14118,9 @@
     "mision"
    ],
    "otorga": null,
-   "sort_order": 296,
-   "hereda": []
+   "sort_order": 280,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ener-usa-el-ventilador-de-techo-al-reves",
@@ -14569,10 +14141,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.903,
+   "impact_co2_kg": 0.181,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 5,
-   "impact_equivalency_es": "Cada vez: ~5 kWh de energía",
+   "impact_energy_kwh": 1,
+   "impact_equivalency_es": "Cada vez: ~1 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 5,
@@ -14597,8 +14169,9 @@
     "frio"
    ],
    "otorga": null,
-   "sort_order": 297,
-   "hereda": []
+   "sort_order": 281,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "agua-aislar-canos-agua-caliente",
@@ -14618,10 +14191,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3.611,
+   "impact_co2_kg": 1.806,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 20,
-   "impact_equivalency_es": "Cada vez: ~20 kWh de energía",
+   "impact_energy_kwh": 10,
+   "impact_equivalency_es": "Cada vez: ~10 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 40,
@@ -14644,8 +14217,9 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 298,
-   "hereda": []
+   "sort_order": 282,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "camina-un-trayecto-en-vez-de-ir-en-auto",
@@ -14702,8 +14276,11 @@
     "caminar"
    ],
    "otorga": null,
-   "sort_order": 299,
-   "hereda": []
+   "sort_order": 283,
+   "hereda": [
+    "aire-transporte-caminar-corto"
+   ],
+   "mercado": null
   },
   {
    "slug": "anda-en-bici-a-algun-lado-hoy",
@@ -14762,8 +14339,9 @@
     "bici"
    ],
    "otorga": null,
-   "sort_order": 300,
-   "hereda": []
+   "sort_order": 284,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "usa-transporte-publico-hoy",
@@ -14822,8 +14400,11 @@
     "sube"
    ],
    "otorga": null,
-   "sort_order": 301,
-   "hereda": []
+   "sort_order": 285,
+   "hereda": [
+    "air-elegir-transporte-limpio"
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-bajar-una-parada-antes",
@@ -14870,8 +14451,9 @@
     "colectivo"
    ],
    "otorga": null,
-   "sort_order": 302,
-   "hereda": []
+   "sort_order": 286,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-caminar-a-comprar",
@@ -14919,10 +14501,11 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 303,
+   "sort_order": 287,
    "hereda": [
     "com-comprar-en-el-barrio"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-combinar-mandados",
@@ -14969,10 +14552,11 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 304,
+   "sort_order": 288,
    "hereda": [
     "mov-junta-los-mandados-en-un-viaje"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-maneja-suave",
@@ -15019,10 +14603,11 @@
     "manejo"
    ],
    "otorga": null,
-   "sort_order": 305,
+   "sort_order": 289,
    "hereda": [
     "mov-manejar-suave"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "aire-no-dejar-el-motor-en-ralenti",
@@ -15069,10 +14654,11 @@
     "aire"
    ],
    "otorga": null,
-   "sort_order": 306,
+   "sort_order": 290,
    "hereda": [
     "aire-no-ralenti"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-compartir-auto",
@@ -15120,8 +14706,9 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 307,
-   "hereda": []
+   "sort_order": 291,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-videollamada",
@@ -15167,8 +14754,9 @@
     "digital"
    ],
    "otorga": null,
-   "sort_order": 308,
-   "hereda": []
+   "sort_order": 292,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-lleva-a-los-chicos-caminando",
@@ -15216,8 +14804,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 309,
-   "hereda": []
+   "sort_order": 293,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-escuela-a-pie",
@@ -15266,8 +14855,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 310,
-   "hereda": []
+   "sort_order": 294,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-mochila-en-vez-de-delivery",
@@ -15313,8 +14903,11 @@
     "caminar"
    ],
    "otorga": null,
-   "sort_order": 311,
-   "hereda": []
+   "sort_order": 295,
+   "hereda": [
+    "mov-agrupar-delivery"
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-ruta-sin-embotellamiento",
@@ -15360,8 +14953,9 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 312,
-   "hereda": []
+   "sort_order": 296,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-dia-sin-auto",
@@ -15408,8 +15002,9 @@
     "sin-auto"
    ],
    "otorga": null,
-   "sort_order": 313,
-   "hereda": []
+   "sort_order": 297,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pasa-una-semana-sin-auto",
@@ -15456,8 +15051,9 @@
     "reto"
    ],
    "otorga": null,
-   "sort_order": 314,
-   "hereda": []
+   "sort_order": 298,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-tren-en-vez-de-avion",
@@ -15515,12 +15111,13 @@
     "tren"
    ],
    "otorga": null,
-   "sort_order": 315,
+   "sort_order": 299,
    "hereda": [
     "evita-un-vuelo-de-corta-distancia",
     "mov-elegi-tren-o-micro",
     "hace-el-compromiso-de-un-ano-sin-volar"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-presion-neumaticos",
@@ -15566,10 +15163,11 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 316,
+   "sort_order": 300,
    "hereda": [
     "mantene-la-presion-de-los-neumaticos"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-saca-el-peso-de-mas-del-baul",
@@ -15615,10 +15213,11 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 317,
+   "sort_order": 301,
    "hereda": [
     "mov-sacar-peso-baul"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "mov-saca-el-portaequipaje",
@@ -15664,8 +15263,9 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 318,
-   "hereda": []
+   "sort_order": 302,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-mantene-la-bici",
@@ -15713,10 +15313,15 @@
     "bici"
    ],
    "otorga": null,
-   "sort_order": 319,
+   "sort_order": 303,
    "hereda": [
     "mov-mantener-bici"
-   ]
+   ],
+   "mercado": {
+    "categoria": "movilidad",
+    "subcategoria": "repuestos-y-service",
+    "texto": "Un service a tiempo alarga la vida de la bici. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "mov-taller-de-bici",
@@ -15765,8 +15370,9 @@
     "arreglo"
    ],
    "otorga": null,
-   "sort_order": 320,
-   "hereda": []
+   "sort_order": 304,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-ensenar-ruta-segura",
@@ -15813,8 +15419,9 @@
     "bici"
    ],
    "otorga": null,
-   "sort_order": 321,
-   "hereda": []
+   "sort_order": 305,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-ensenar-a-andar-en-bici",
@@ -15860,8 +15467,9 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 322,
-   "hereda": []
+   "sort_order": 306,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "sumate-a-un-esquema-de-bicis-compartidas",
@@ -15906,8 +15514,9 @@
     "bici"
    ],
    "otorga": null,
-   "sort_order": 323,
-   "hereda": []
+   "sort_order": 307,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "organiza-un-grupo-de-auto-compartido",
@@ -15954,10 +15563,11 @@
     "compartir"
    ],
    "otorga": null,
-   "sort_order": 324,
+   "sort_order": 308,
    "hereda": [
     "coordina-auto-compartido-en-el-trabajo-o-escuela"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "trabaja-desde-casa-y-reduci-dias-de-viaje",
@@ -15977,10 +15587,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3.4,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~3,4 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "social",
    "minutos": 30,
@@ -16003,8 +15613,9 @@
     "trabajo"
    ],
    "otorga": null,
-   "sort_order": 325,
-   "hereda": []
+   "sort_order": 309,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-aprende-la-ruta-en-colectivo",
@@ -16051,8 +15662,9 @@
     "auto"
    ],
    "otorga": null,
-   "sort_order": 326,
-   "hereda": []
+   "sort_order": 310,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mov-semana-a-pie-o-bici",
@@ -16100,8 +15712,9 @@
     "reto"
    ],
    "otorga": null,
-   "sort_order": 327,
-   "hereda": []
+   "sort_order": 311,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-regar-segun-dedo",
@@ -16148,8 +15761,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 328,
-   "hereda": []
+   "sort_order": 312,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-no-pisar-cantero",
@@ -16196,8 +15810,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 329,
-   "hereda": []
+   "sort_order": 313,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-huerta-cosecha",
@@ -16219,10 +15834,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.1,
-   "impact_waste_kg": 0.02,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 5,
@@ -16246,8 +15861,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 330,
-   "hereda": []
+   "sort_order": 314,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "plant-rega-el-arbol-de-la-vereda",
@@ -16298,8 +15914,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 331,
-   "hereda": []
+   "sort_order": 315,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "planta-un-arbol-nativo",
@@ -16321,10 +15938,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 2,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 60,
@@ -16352,8 +15969,13 @@
     "nativas"
    ],
    "otorga": null,
-   "sort_order": 332,
-   "hereda": []
+   "sort_order": 316,
+   "hereda": [],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Viveros con árboles nativos de tu zona. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "sumate-a-una-jornada-de-plantacion-de-arboles",
@@ -16375,10 +15997,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 2,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~2 kg de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 120,
@@ -16404,8 +16026,9 @@
     "grupo"
    ],
    "otorga": null,
-   "sort_order": 333,
-   "hereda": []
+   "sort_order": 317,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-adopta-arbol-vereda",
@@ -16453,8 +16076,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 334,
-   "hereda": []
+   "sort_order": 318,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "empeza-una-huerta-en-el-balcon-o-ventana",
@@ -16500,8 +16124,13 @@
     "huerta"
    ],
    "otorga": "huerta",
-   "sort_order": 335,
-   "hereda": []
+   "sort_order": 319,
+   "hereda": [],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Semillas, tierra y macetas para empezar. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "pla-semillas-prohuerta",
@@ -16550,8 +16179,9 @@
     "semillas"
    ],
    "otorga": null,
-   "sort_order": 336,
-   "hereda": []
+   "sort_order": 320,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cultiva-tus-propias-verduras-o-hierbas",
@@ -16573,10 +16203,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -16601,8 +16231,13 @@
     "semillas"
    ],
    "otorga": null,
-   "sort_order": 337,
-   "hereda": []
+   "sort_order": 321,
+   "hereda": [],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Semillas y plantines de estación. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "ali-huerta-aromaticas",
@@ -16650,10 +16285,15 @@
     "chicos"
    ],
    "otorga": "huerta",
-   "sort_order": 338,
+   "sort_order": 322,
    "hereda": [
     "cultiva-hierbas-para-reemplazar-las-envasadas"
-   ]
+   ],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Plantines de aromáticas y macetas. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "pla-germinar-poroto",
@@ -16700,8 +16340,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 339,
-   "hereda": []
+   "sort_order": 323,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-semillas-de-lo-que-comes",
@@ -16749,8 +16390,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 340,
-   "hereda": []
+   "sort_order": 324,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "plant-multiplica-por-esqueje",
@@ -16798,10 +16440,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 341,
+   "sort_order": 325,
    "hereda": [
     "pla-esqueje"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "plant-guarda-semillas",
@@ -16850,8 +16493,9 @@
     "huerta"
    ],
    "otorga": null,
-   "sort_order": 342,
-   "hereda": []
+   "sort_order": 326,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "plant-intercambia-semillas-o-gajos",
@@ -16899,8 +16543,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 343,
-   "hereda": []
+   "sort_order": 327,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "planta-flores-nativas-para-polinizadores",
@@ -16953,10 +16598,15 @@
     "flores"
    ],
    "otorga": null,
-   "sort_order": 344,
+   "sort_order": 328,
    "hereda": [
     "ani-plantas-para-polinizadores"
-   ]
+   ],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Plantines y semillas de nativas para abejas y mariposas. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "pla-nativa-en-vez-de-exotica",
@@ -17002,10 +16652,15 @@
     "nativas"
    ],
    "otorga": null,
-   "sort_order": 345,
+   "sort_order": 329,
    "hereda": [
     "elegi-plantas-nativas-resistentes-a-la-sequia"
-   ]
+   ],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "semillas-y-plantines",
+    "texto": "Viveros que crían nativas de tu región. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "cubri-los-canteros-con-mantillo",
@@ -17053,10 +16708,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 346,
+   "sort_order": 330,
    "hereda": [
     "agua-mulch-macetas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "pla-abono-casero",
@@ -17104,8 +16760,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 347,
-   "hereda": []
+   "sort_order": 331,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "plant-prepara-te-de-compost",
@@ -17153,8 +16810,9 @@
     "suelo"
    ],
    "otorga": null,
-   "sort_order": 348,
-   "hereda": []
+   "sort_order": 332,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-rescatar-planta",
@@ -17200,8 +16858,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 349,
-   "hereda": []
+   "sort_order": 333,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "plant-elegi-macetas-de-material-recuperado",
@@ -17248,8 +16907,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 350,
-   "hereda": []
+   "sort_order": 334,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pla-sombra-para-la-casa",
@@ -17300,10 +16960,11 @@
     "calor"
    ],
    "otorga": null,
-   "sort_order": 351,
+   "sort_order": 335,
    "hereda": [
     "planta-para-dar-sombra-y-enfriar-la-ciudad"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "plant-poda-en-el-momento-correcto",
@@ -17353,8 +17014,9 @@
     "invierno"
    ],
    "otorga": null,
-   "sort_order": 352,
-   "hereda": []
+   "sort_order": 336,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "deja-un-sector-sin-cortar-para-la-biodiversidad",
@@ -17403,10 +17065,11 @@
     "jardin"
    ],
    "otorga": null,
-   "sort_order": 353,
+   "sort_order": 337,
    "hereda": [
     "ani-dejar-rincon-silvestre"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "converti-parte-del-cesped-en-plantas-nativas",
@@ -17457,8 +17120,9 @@
     "biodiversidad"
    ],
    "otorga": null,
-   "sort_order": 354,
-   "hereda": []
+   "sort_order": 338,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "sumate-a-una-huerta-comunitaria",
@@ -17506,8 +17170,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 355,
-   "hereda": []
+   "sort_order": 339,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-bombas-de-semillas-para-espacios-descuidado",
@@ -17558,8 +17223,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 356,
-   "hereda": []
+   "sort_order": 340,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "air-plantas-de-interior",
@@ -17606,10 +17272,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 357,
+   "sort_order": 341,
    "hereda": [
     "aire-plantas-de-interior"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "pla-planta-en-la-escuela",
@@ -17663,8 +17330,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 358,
-   "hereda": []
+   "sort_order": 342,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "separa-bien-tus-residuos-hoy",
@@ -17686,10 +17354,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.24,
-   "impact_waste_kg": 0.3,
+   "impact_co2_kg": 0.16,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~300 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 3,
@@ -17712,8 +17380,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 359,
-   "hereda": []
+   "sort_order": 343,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-enjuagar-reciclables",
@@ -17735,10 +17404,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.04,
-   "impact_waste_kg": 0.05,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 1,
@@ -17760,8 +17429,9 @@
     "separar"
    ],
    "otorga": null,
-   "sort_order": 360,
-   "hereda": []
+   "sort_order": 344,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-aplastar-envases",
@@ -17808,10 +17478,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 361,
+   "sort_order": 345,
    "hereda": [
     "res-aplasta-los-envases"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "lleva-tu-botella-reutilizable",
@@ -17858,12 +17529,17 @@
     "botella"
    ],
    "otorga": null,
-   "sort_order": 362,
+   "sort_order": 346,
    "hereda": [
     "agua-termo-en-vez-de-botella",
     "ali-tomar-agua-de-canilla",
     "toma-agua-de-la-canilla-en-vez-de-embotellada"
-   ]
+   ],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": "cocina",
+    "texto": "Si todavía no tenés una, estos negocios del programa de Brote las venden."
+   }
   },
   {
    "slug": "lleva-tus-bolsas-reutilizables-a-comprar",
@@ -17910,8 +17586,13 @@
     "bolsa"
    ],
    "otorga": null,
-   "sort_order": 363,
-   "hereda": []
+   "sort_order": 347,
+   "hereda": [],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": "textiles",
+    "texto": "Bolsas de tela, de red o un changuito que duran años. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "usa-tu-vaso-o-termo-reutilizable",
@@ -17957,10 +17638,15 @@
     "cafe"
    ],
    "otorga": null,
-   "sort_order": 364,
+   "sort_order": 348,
    "hereda": [
     "ali-tomar-sin-descartable"
-   ]
+   ],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": "cocina",
+    "texto": "Si todavía no tenés un vaso o un termo que viaje con vos, estos negocios del programa de Brote los venden."
+   }
   },
   {
    "slug": "res-sin-sorbete",
@@ -18007,8 +17693,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 365,
-   "hereda": []
+   "sort_order": 349,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-sin-servilletas-de-mas",
@@ -18054,8 +17741,9 @@
     "papel"
    ],
    "otorga": null,
-   "sort_order": 366,
-   "hereda": []
+   "sort_order": 350,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-decile-que-no-al-ticket",
@@ -18100,10 +17788,11 @@
     "papel"
    ],
    "otorga": null,
-   "sort_order": 367,
+   "sort_order": 351,
    "hereda": [
     "res-rechaza-ticket"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "alim-pedi-sin-cubiertos-descartables",
@@ -18149,8 +17838,9 @@
     "delivery"
    ],
    "otorga": null,
-   "sort_order": 368,
-   "hereda": []
+   "sort_order": 352,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-tupper-para-sobras",
@@ -18196,8 +17886,9 @@
     "comida"
    ],
    "otorga": null,
-   "sort_order": 369,
-   "hereda": []
+   "sort_order": 353,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-sin-monodosis",
@@ -18243,8 +17934,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 370,
-   "hereda": []
+   "sort_order": 354,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-trapo-en-vez-de-rollo",
@@ -18291,8 +17983,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 371,
-   "hereda": []
+   "sort_order": 355,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-papel-de-los-dos-lados",
@@ -18340,8 +18033,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 372,
-   "hereda": []
+   "sort_order": 356,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-yerba-a-la-planta",
@@ -18388,10 +18082,11 @@
     "compost"
    ],
    "otorga": null,
-   "sort_order": 373,
+   "sort_order": 357,
    "hereda": [
     "alim-composta-la-yerba"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "composta-tus-restos-de-comida",
@@ -18413,10 +18108,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.25,
-   "impact_waste_kg": 0.5,
+   "impact_co2_kg": 0.2,
+   "impact_waste_kg": 0.4,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~400 g de residuos",
    "routine_eligible": true,
    "formato": "gesto",
    "minutos": 2,
@@ -18439,8 +18134,9 @@
     "compost"
    ],
    "otorga": null,
-   "sort_order": 374,
-   "hereda": []
+   "sort_order": 358,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "reutiliza-un-frasco-o-envase",
@@ -18462,10 +18158,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.1,
-   "impact_waste_kg": 0.2,
+   "impact_co2_kg": 0.05,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 2,
@@ -18487,10 +18183,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 375,
+   "sort_order": 359,
    "hereda": [
     "res-frasco-organizador"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "res-reutiliza-las-bolsas-de-pan",
@@ -18538,8 +18235,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 376,
-   "hereda": []
+   "sort_order": 360,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "evita-un-plastico-de-un-solo-uso-hoy",
@@ -18586,8 +18284,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 377,
-   "hereda": []
+   "sort_order": 361,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-envase-grande",
@@ -18633,8 +18332,13 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 378,
-   "hereda": []
+   "sort_order": 362,
+   "hereda": [],
+   "mercado": {
+    "categoria": "almacen-granel",
+    "subcategoria": null,
+    "texto": "Si comprás más cantidad y menos envase, estos negocios del programa de Brote lo hacen posible."
+   }
   },
   {
    "slug": "res-recuperador-urbano",
@@ -18655,10 +18359,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.8,
-   "impact_waste_kg": 1,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 10,
@@ -18681,8 +18385,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 379,
-   "hereda": []
+   "sort_order": 363,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "compra-a-granel-o-en-estaciones-de-recarga",
@@ -18729,10 +18434,15 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 380,
+   "sort_order": 364,
    "hereda": [
     "res-comprar-a-granel"
-   ]
+   ],
+   "mercado": {
+    "categoria": "almacen-granel",
+    "subcategoria": null,
+    "texto": "Comprar a granel es fácil cuando sabés dónde. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-devolve-los-envases-retornables",
@@ -18753,10 +18463,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.3,
-   "impact_waste_kg": 0.4,
+   "impact_co2_kg": 0.25,
+   "impact_waste_kg": 0.1,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~400 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 5,
@@ -18779,10 +18489,15 @@
     "compras"
    ],
    "otorga": null,
-   "sort_order": 381,
+   "sort_order": 365,
    "hereda": [
     "res-comprar-a-quien-recibe-envase"
-   ]
+   ],
+   "mercado": {
+    "categoria": "almacen-granel",
+    "subcategoria": null,
+    "texto": "Estos comercios trabajan con envase propio o retornable, y están en el programa de Brote."
+   }
   },
   {
    "slug": "res-soderia",
@@ -18802,10 +18517,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1.5,
-   "impact_waste_kg": 0.6,
+   "impact_co2_kg": 0.75,
+   "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~600 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~300 g de residuos",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -18828,8 +18543,13 @@
     "soda"
    ],
    "otorga": null,
-   "sort_order": 382,
-   "hereda": []
+   "sort_order": 366,
+   "hereda": [],
+   "mercado": {
+    "categoria": "bebidas",
+    "subcategoria": "jugos-y-aguas",
+    "texto": "Sifones y bidones retornables, con reparto. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-ecobotella",
@@ -18851,7 +18571,7 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.24,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 0.3,
    "impact_energy_kwh": 0,
    "impact_equivalency_es": "Cada vez: ~300 g de residuos",
@@ -18877,8 +18597,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 383,
-   "hereda": []
+   "sort_order": 367,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-tapitas-garrahan",
@@ -18927,10 +18648,11 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 384,
+   "sort_order": 368,
    "hereda": [
     "res-separar-tapitas"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "res-papel-garrahan",
@@ -18979,8 +18701,9 @@
     "escuela"
    ],
    "otorga": null,
-   "sort_order": 385,
-   "hereda": []
+   "sort_order": 369,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "lleva-pilas-y-baterias-a-un-punto-de-recoleccion",
@@ -19026,10 +18749,11 @@
     "especiales"
    ],
    "otorga": null,
-   "sort_order": 386,
+   "sort_order": 370,
    "hereda": [
     "res-pilas-a-punto-limpio"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "lleva-tus-residuos-electronicos-a-un-punto-certi",
@@ -19075,10 +18799,11 @@
     "especiales"
    ],
    "otorga": null,
-   "sort_order": 387,
+   "sort_order": 371,
    "hereda": [
     "recicla-tus-dispositivos-viejos-responsablemente"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "recicla-correctamente-el-aceite-de-cocina-usado",
@@ -19125,10 +18850,11 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 388,
+   "sort_order": 372,
    "hereda": [
     "res-aceite-usado"
-   ]
+   ],
+   "mercado": null
   },
   {
    "slug": "res-no-tires-pintura-ni-solventes",
@@ -19172,8 +18898,9 @@
     "especiales"
    ],
    "otorga": null,
-   "sort_order": 389,
-   "hereda": []
+   "sort_order": 373,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-saca-las-pilas-de-lo-que-tiras",
@@ -19221,8 +18948,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 390,
-   "hereda": []
+   "sort_order": 374,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "arma-una-estacion-de-separacion-de-residuos-en-c",
@@ -19270,8 +18998,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 391,
-   "hereda": []
+   "sort_order": 375,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-averigua-dia-reciclables",
@@ -19318,8 +19047,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 392,
-   "hereda": []
+   "sort_order": 376,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "empeza-a-compostar-en-casa",
@@ -19340,10 +19070,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 1,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 45,
@@ -19366,11 +19096,16 @@
     "compost"
    ],
    "otorga": "compost",
-   "sort_order": 393,
+   "sort_order": 377,
    "hereda": [
     "res-compost-balcon",
     "evita-compost-a-base-de-turba"
-   ]
+   ],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "composteras",
+    "texto": "Compostera, lombrices o el curso para arrancar. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "arma-una-compostera-con-lombrices-vermicompost",
@@ -19391,10 +19126,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 1,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 60,
@@ -19418,8 +19153,13 @@
     "lombrices"
    ],
    "otorga": "compost",
-   "sort_order": 394,
-   "hereda": []
+   "sort_order": 378,
+   "hereda": [],
+   "mercado": {
+    "categoria": "jardin-y-huerta",
+    "subcategoria": "composteras",
+    "texto": "Lombrices, composteras de pisos o un taller para arrancar. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-compost-cosecha",
@@ -19441,10 +19181,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3,
-   "impact_waste_kg": 6,
+   "impact_co2_kg": 0,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~6 kg de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -19469,8 +19209,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 395,
-   "hereda": []
+   "sort_order": 379,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "hace-una-auditoria-de-tu-basura",
@@ -19516,8 +19257,9 @@
     "experimento"
    ],
    "otorga": null,
-   "sort_order": 396,
-   "hereda": []
+   "sort_order": 380,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "pasa-una-semana-de-residuo-cero",
@@ -19538,10 +19280,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 2.55,
-   "impact_waste_kg": 3.3,
+   "impact_co2_kg": 1.64,
+   "impact_waste_kg": 2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~3,3 kg de residuos",
+   "impact_equivalency_es": "Cada vez: ~2 kg de residuos",
    "routine_eligible": false,
    "formato": "reto",
    "minutos": 30,
@@ -19563,8 +19305,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 397,
-   "hereda": []
+   "sort_order": 381,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "cambia-a-jabon-o-champu-en-barra",
@@ -19610,10 +19353,15 @@
     "baño"
    ],
    "otorga": null,
-   "sort_order": 398,
+   "sort_order": 382,
    "hereda": [
     "res-jabon-en-barra"
-   ]
+   ],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "solidos",
+    "texto": "La barra viene sin botella. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-ropa-a-trapos",
@@ -19661,8 +19409,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 399,
-   "hereda": []
+   "sort_order": 383,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-lleva-los-textiles-a-un-punto",
@@ -19708,8 +19457,9 @@
     "reciclaje"
    ],
    "otorga": null,
-   "sort_order": 400,
-   "hereda": []
+   "sort_order": 384,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-usa-servilletas-de-tela",
@@ -19731,10 +19481,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.5,
-   "impact_waste_kg": 0.5,
+   "impact_co2_kg": 0.1,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~500 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -19756,8 +19506,13 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 401,
-   "hereda": []
+   "sort_order": 385,
+   "hereda": [],
+   "mercado": {
+    "categoria": "hogar-y-deco",
+    "subcategoria": "textiles",
+    "texto": "Servilletas y repasadores de tela que duran años. Estos negocios están en el programa de Brote."
+   }
   },
   {
    "slug": "res-helado-en-tu-pote",
@@ -19806,8 +19561,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 402,
-   "hereda": []
+   "sort_order": 386,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-campo-envases-agroquimicos",
@@ -19854,8 +19610,9 @@
     "agroquimicos"
    ],
    "otorga": null,
-   "sort_order": 403,
-   "hereda": []
+   "sort_order": 387,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-camping-sin-rastro",
@@ -19878,9 +19635,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.2,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 15,
@@ -19906,8 +19663,9 @@
     "naturaleza"
    ],
    "otorga": null,
-   "sort_order": 404,
-   "hereda": []
+   "sort_order": 388,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-fogon-habilitado",
@@ -19958,8 +19716,9 @@
     "camping"
    ],
    "otorga": null,
-   "sort_order": 405,
-   "hereda": []
+   "sort_order": 389,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-hotel-toallas",
@@ -20008,8 +19767,9 @@
     "hotel"
    ],
    "otorga": null,
-   "sort_order": 406,
-   "hereda": []
+   "sort_order": 390,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-cerro-basura",
@@ -20032,9 +19792,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.1,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "salida",
    "minutos": 5,
@@ -20060,8 +19820,9 @@
     "naturaleza"
    ],
    "otorga": null,
-   "sort_order": 407,
-   "hereda": []
+   "sort_order": 391,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-sendero-marcado",
@@ -20109,8 +19870,9 @@
     "naturaleza"
    ],
    "otorga": null,
-   "sort_order": 408,
-   "hereda": []
+   "sort_order": 392,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-souvenir-local",
@@ -20161,8 +19923,9 @@
     "artesania"
    ],
    "otorga": null,
-   "sort_order": 409,
-   "hereda": []
+   "sort_order": 393,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "vac-conservadora-sin-descartables",
@@ -20212,8 +19975,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 410,
-   "hereda": []
+   "sort_order": 394,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiesta-vajilla-reutilizable",
@@ -20261,8 +20025,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 411,
-   "hereda": []
+   "sort_order": 395,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiesta-sobras-repartir",
@@ -20282,7 +20047,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 190,
+   "impact_water_l": 0,
    "impact_co2_kg": 2.5,
    "impact_waste_kg": 1,
    "impact_energy_kwh": 0,
@@ -20309,8 +20074,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 412,
-   "hereda": []
+   "sort_order": 396,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiesta-cotillon-reutilizable",
@@ -20358,10 +20124,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 413,
-   "hereda": [
-    "azul-globos-no"
-   ]
+   "sort_order": 397,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiesta-separar-en-evento",
@@ -20409,8 +20174,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 414,
-   "hereda": []
+   "sort_order": 398,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiestas-comida-justa",
@@ -20430,7 +20196,7 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 190,
+   "impact_water_l": 0,
    "impact_co2_kg": 2.5,
    "impact_waste_kg": 1,
    "impact_energy_kwh": 0,
@@ -20459,8 +20225,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 415,
-   "hereda": []
+   "sort_order": 399,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "fiestas-luces-led-timer",
@@ -20509,8 +20276,9 @@
     "luz"
    ],
    "otorga": null,
-   "sort_order": 416,
-   "hereda": []
+   "sort_order": 400,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "club-limpieza-cancha",
@@ -20533,9 +20301,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.2,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~200 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "gesto",
    "minutos": 5,
@@ -20558,8 +20326,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 417,
-   "hereda": []
+   "sort_order": 401,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "club-ropa-deportiva-chica",
@@ -20580,11 +20349,11 @@
     "teen",
     "adult"
    ],
-   "impact_water_l": 450,
-   "impact_co2_kg": 2,
-   "impact_waste_kg": 0.1,
+   "impact_water_l": 0,
+   "impact_co2_kg": 1,
+   "impact_waste_kg": 0.05,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
+   "impact_equivalency_es": "Cada vez: ~50 g de residuos",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 15,
@@ -20608,8 +20377,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 418,
-   "hereda": []
+   "sort_order": 402,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "trabajo-taza-propia",
@@ -20656,8 +20426,9 @@
     "plastico"
    ],
    "otorga": null,
-   "sort_order": 419,
-   "hereda": []
+   "sort_order": 403,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "trabajo-impresora-doble-faz",
@@ -20704,8 +20475,9 @@
     "papel"
    ],
    "otorga": null,
-   "sort_order": 420,
-   "hereda": []
+   "sort_order": 404,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "trabajo-heladera-compartida",
@@ -20724,11 +20496,11 @@
    "age_groups": [
     "adult"
    ],
-   "impact_water_l": 57,
-   "impact_co2_kg": 0.75,
-   "impact_waste_kg": 0.3,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 10,
@@ -20753,8 +20525,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 421,
-   "hereda": []
+   "sort_order": 405,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "escuela-colacion-sin-envoltorio",
@@ -20803,8 +20576,9 @@
     "chicos"
    ],
    "otorga": null,
-   "sort_order": 422,
-   "hereda": []
+   "sort_order": 406,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "facu-apuntes-digitales",
@@ -20853,8 +20627,9 @@
     "papel"
    ],
    "otorga": null,
-   "sort_order": 423,
-   "hereda": []
+   "sort_order": 407,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "lluvia-no-sacar-basura",
@@ -20877,9 +20652,9 @@
    ],
    "impact_water_l": 0,
    "impact_co2_kg": 0,
-   "impact_waste_kg": 0.1,
+   "impact_waste_kg": 0,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~100 g de residuos",
+   "impact_equivalency_es": null,
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 2,
@@ -20902,8 +20677,9 @@
     "barrio"
    ],
    "otorga": null,
-   "sort_order": 424,
-   "hereda": []
+   "sort_order": 408,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-guardian-de-luces",
@@ -20949,8 +20725,9 @@
     "luz"
    ],
    "otorga": null,
-   "sort_order": 425,
-   "hereda": []
+   "sort_order": 409,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-detective-basura",
@@ -20996,8 +20773,9 @@
     "basura"
    ],
    "otorga": null,
-   "sort_order": 426,
-   "hereda": []
+   "sort_order": 410,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-cartel-en-casa",
@@ -21043,8 +20821,9 @@
     "familia"
    ],
    "otorga": null,
-   "sort_order": 427,
-   "hereda": []
+   "sort_order": 411,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-juguete-arreglado",
@@ -21091,8 +20870,9 @@
     "juguetes"
    ],
    "otorga": null,
-   "sort_order": 428,
-   "hereda": []
+   "sort_order": 412,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-chef-de-sobras",
@@ -21111,11 +20891,11 @@
    "age_groups": [
     "kid"
    ],
-   "impact_water_l": 57,
-   "impact_co2_kg": 0.75,
-   "impact_waste_kg": 0.3,
+   "impact_water_l": 0,
+   "impact_co2_kg": 0.5,
+   "impact_waste_kg": 0.2,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~750 g de CO₂",
+   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 30,
@@ -21139,8 +20919,9 @@
     "desperdicio"
    ],
    "otorga": null,
-   "sort_order": 429,
-   "hereda": []
+   "sort_order": 413,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-mapa-del-camino",
@@ -21189,8 +20970,9 @@
     "caminar"
    ],
    "otorga": null,
-   "sort_order": 430,
-   "hereda": []
+   "sort_order": 414,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-un-metro-cuadrado",
@@ -21237,8 +21019,9 @@
     "experimento"
    ],
    "otorga": null,
-   "sort_order": 431,
-   "hereda": []
+   "sort_order": 415,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "mision-dibuja-un-animal",
@@ -21284,8 +21067,9 @@
     "animales"
    ],
    "otorga": null,
-   "sort_order": 432,
-   "hereda": []
+   "sort_order": 416,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-pava-sin-sarro",
@@ -21331,8 +21115,9 @@
     "cocina"
    ],
    "otorga": null,
-   "sort_order": 433,
-   "hereda": []
+   "sort_order": 417,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "ene-heladera-temperatura",
@@ -21353,10 +21138,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 0.62,
+   "impact_co2_kg": 0.465,
    "impact_waste_kg": 0,
-   "impact_energy_kwh": 2,
-   "impact_equivalency_es": "Cada vez: ~2 kWh de energía",
+   "impact_energy_kwh": 1.5,
+   "impact_equivalency_es": "Cada vez: ~1,5 kWh de energía",
    "routine_eligible": false,
    "formato": "tarea",
    "minutos": 5,
@@ -21377,8 +21162,9 @@
     "heladera"
    ],
    "otorga": null,
-   "sort_order": 434,
-   "hereda": []
+   "sort_order": 418,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "com-feria-trueque",
@@ -21400,10 +21186,10 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 1,
+   "impact_co2_kg": 0.5,
    "impact_waste_kg": 0.5,
    "impact_energy_kwh": 0,
-   "impact_equivalency_es": "Cada vez: ~1 kg de CO₂",
+   "impact_equivalency_es": "Cada vez: ~500 g de CO₂",
    "routine_eligible": false,
    "formato": "social",
    "minutos": 90,
@@ -21426,8 +21212,9 @@
     "trueque"
    ],
    "otorga": null,
-   "sort_order": 435,
-   "hereda": []
+   "sort_order": 419,
+   "hereda": [],
+   "mercado": null
   },
   {
    "slug": "res-panales-de-tela",
@@ -21447,7 +21234,7 @@
     "adult"
    ],
    "impact_water_l": 0,
-   "impact_co2_kg": 3.75,
+   "impact_co2_kg": 0,
    "impact_waste_kg": 1.5,
    "impact_energy_kwh": 0,
    "impact_equivalency_es": "Cada vez: ~1,5 kg de residuos",
@@ -21475,56 +21262,13 @@
     "familia"
    ],
    "otorga": null,
-   "sort_order": 436,
-   "hereda": []
-  },
-  {
-   "slug": "teen-dato-verificado",
-   "type": "catalog",
-   "domain_slug": "comunidad",
-   "title_es": "Compartí en tus redes un dato ambiental verificado",
-   "short_es": "En temas ambientales circula mucha desinformación: un dato bien chequeado vale oro.",
-   "description_es": "Antes de compartir algo sobre el clima o el ambiente, chequeá de dónde sale (un organismo público, una universidad, un medio que cite fuentes). Compartir un dato verificado y útil, con su fuente, ayuda más que diez cadenas alarmistas.",
-   "instructions_es": "Elegí un dato ambiental que te haya sorprendido.\nBuscá la fuente original y chequeá que sea seria.\nCompartilo con la fuente.",
-   "effort": "easy",
-   "impact": "medium",
-   "base_points": 100,
-   "frequency": "recurring",
-   "repeat_cooldown_hours": 168,
-   "min_rank_slug": "semilla",
-   "age_groups": [
-    "teen",
-    "adult"
-   ],
-   "impact_water_l": 0,
-   "impact_co2_kg": 0,
-   "impact_waste_kg": 0,
-   "impact_energy_kwh": 0,
-   "impact_equivalency_es": null,
-   "routine_eligible": false,
-   "formato": "social",
-   "minutos": 10,
-   "costo": "gratis",
-   "ahorra": false,
-   "requiere": [],
-   "lugar": "celular",
-   "estaciones": [],
-   "dias": null,
-   "regiones": [],
-   "con_adulto": false,
-   "medida": null,
-   "fuente": "Chequeado",
-   "fuente_url": "https://chequeado.com/",
-   "camino_slug": null,
-   "camino_paso": null,
-   "tags": [
-    "redes",
-    "compartir",
-    "informacion"
-   ],
-   "otorga": null,
-   "sort_order": 437,
-   "hereda": []
+   "sort_order": 420,
+   "hereda": [],
+   "mercado": {
+    "categoria": "cuidado-personal",
+    "subcategoria": "bebes",
+    "texto": "Pañales de tela, cobertores y absorbentes. Estos negocios están en el programa de Brote."
+   }
   }
  ],
  "caminos": [
@@ -21748,7 +21492,7 @@
    "desc": "De levantar una botella de la vereda a organizar la limpieza del barrio.",
    "pasos": [
     "recoge-un-poco-de-basura-que-viste-en-la-calle",
-    "com-agradecer-a-quien-cuida",
+    "com-mapea-los-puntos-verdes",
     "com-ayudar-vecino-reciclar",
     "com-reportar-basural",
     "organiza-o-sumate-a-una-limpieza-del-barrio"

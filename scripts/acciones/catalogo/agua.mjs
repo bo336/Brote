@@ -17,7 +17,7 @@ export default [
     corto: 'El shampoo y el jabón no necesitan el agua corriendo: son dos minutos de ducha que se van solos.',
     desc: 'Mientras te enjabonás el pelo o el cuerpo, la ducha abierta tira agua caliente que nadie usa. Cerrarla esos dos minutos ahorra unos 20 litros y el gas de calentarlos, sin que la ducha sea más corta.',
     pasos: ['Mojate y cerrá la canilla.', 'Enjabonate el pelo y el cuerpo con la ducha cerrada.', 'Abrí de nuevo sólo para enjuagarte.'],
-    ef: aguaCaliente(20), fuente: 'aysa', tags: ['ducha'],
+    ef: aguaCaliente(15), fuente: 'aysa', tags: ['ducha'],
   }),
   d('agua-balde-ducha-fria', 'Juntá en un balde el agua fría de la ducha', {
     dom, e: 'easy', i: 'medium', min: 2, rut: true,
@@ -31,7 +31,7 @@ export default [
     corto: 'Dos minutos de canilla abierta son unos 10 litros que se van sin tocarte.',
     desc: 'Lavarse los dientes lleva dos minutos y la canilla abierta tira unos 5 litros por minuto. Abrirla sólo para mojar el cepillo y para enjuagarte alcanza de sobra. Si lo hacés dos veces por día, son más de 7.000 litros al año.',
     pasos: ['Mojá el cepillo y cerrá la canilla.', 'Cepillate con la canilla cerrada.', 'Enjuagate con un vaso o abriendo un momento.'],
-    ef: agua(10), fuente: 'aysa', tags: ['baño', 'chicos'],
+    ef: agua(6), fuente: 'aysa', tags: ['baño', 'chicos'],
   }),
   d('agua-manos-canilla-cerrada', 'Enjabonate las manos con la canilla cerrada', {
     dom, e: 'easy', i: 'low', min: 1, rut: true,
@@ -136,7 +136,7 @@ export default [
     corto: 'Un rato de manguera abierta son cientos de litros.',
     desc: 'En verano dan ganas de jugar con la manguera, pero abierta tira más de 10 litros por minuto. Un balde, una pileta chica o una toalla mojada refrescan igual y el agua alcanza para todos, sobre todo en los días en que la red no da abasto.',
     pasos: ['Llená un balde o una pileta chica.', 'Jugá o refrescate con esa agua.', 'Cuando termines, regá las plantas con lo que quedó.'],
-    ef: agua(100), tags: ['verano', 'chicos'],
+    ef: agua(40), tags: ['verano', 'chicos'],
   }),
   d('agua-tapa-pileta', 'Tapá la pileta a la noche', {
     dom, e: 'easy', i: 'medium', min: 3, req: ['pileta'], est: ['verano'],
@@ -150,7 +150,7 @@ export default [
     corto: 'Cuando hace mucho calor, las plantas potabilizadoras trabajan al límite.',
     desc: 'En las olas de calor el consumo se dispara y AySA pide priorizar el agua para tomar, cocinar y la higiene. Lavar el auto, baldear o llenar la pileta pueden esperar a un día fresco, y así no le falta presión a nadie.',
     pasos: ['Si hoy hace mucho calor, no laves el auto ni baldees la vereda.', 'Si tenés que llenar algo grande, hacelo de noche.', 'Guardá agua en la heladera para tomar.'],
-    ef: agua(50), fuente: 'aysa', tags: ['verano', 'calor'],
+    fuente: 'aysa', tags: ['verano', 'calor'],
   }),
   d('agua-deshumidificador', 'Juntá el agua que gotea del aire acondicionado', {
     dom, e: 'easy', i: 'low', min: 2, req: ['aire'], est: ['verano'],
@@ -173,12 +173,12 @@ export default [
     pasos: ['Tapá la pileta o llená un vaso.', 'Enjuagá ahí la maquinita entre pasada y pasada.'],
     ef: agua(8), tags: ['baño'],
   }),
-  d('agua-hielo-a-la-planta', 'Los hielos que sobran, a una maceta', {
-    dom, e: 'easy', i: 'low', min: 1, edad: 'k',
-    corto: 'Se derriten despacio y riegan sin encharcar.',
-    desc: 'Cuando sobran hielos del vaso o de la cubetera, en vez de tirarlos en la pileta podés ponerlos en una maceta. Se derriten de a poco y la planta toma el agua sin que se escurra.',
-    pasos: ['Juntá los hielos que sobraron.', 'Ponelos sobre la tierra de una maceta, sin tocar el tallo.'],
-    ef: agua(1), tags: ['chicos', 'plantas'],
+  d('agua-revisa-las-canillas', 'Revisá que ninguna canilla quede goteando', {
+    dom, e: 'easy', i: 'low', min: 2, rut: true,
+    corto: 'Una gota por segundo son más de 20 litros por día que nadie usa.',
+    desc: 'Una canilla que gotea tira agua todo el día sin que nadie lo note, y de noche, con la casa en silencio, se escucha. Antes de dormir o de salir, recorré el baño, la cocina y el lavadero y cerralas bien. Si alguna sigue goteando aunque la cierres, avisá: casi siempre es un cuerito gastado y se arregla en minutos.',
+    pasos: ['Recorré el baño, la cocina y el lavadero.', 'Cerrá bien las canillas que gotean.', 'Si alguna sigue goteando, avisale a un adulto o anotala para arreglarla.'],
+    ef: agua(2), tags: ['canilla', 'perdidas', 'chicos'],
   }),
 
   // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -208,14 +208,14 @@ export default [
     corto: 'Una gota por segundo son unos 30 litros por día, todos los días.',
     desc: 'Casi siempre es el cuerito o el vástago, que cuestan poco y se cambian con una llave. AySA pide reparar rápido cualquier pérdida: una canilla que gotea tira en un mes lo que una familia toma en meses.',
     pasos: ['Cerrá la llave de paso de esa canilla o de la casa.', 'Desarmá la canilla y cambiá el cuerito o el vástago (en la ferretería te dan el mismo).', 'Si no te animás, pedile a alguien que sepa: el arreglo es corto.'],
-    ef: agua(900), fuente: 'aysa', tags: ['perdidas', 'arreglo'],
+    ef: agua(600), fuente: 'aysa', tags: ['perdidas', 'arreglo'],
   }),
   c('agua-aireador-canilla', 'Poné aireadores en las canillas', {
     dom, e: 'easy', i: 'high', min: 10, edad: 'ta', costo: 'bajo', ahorra: true, frec: 'one_time',
     corto: 'Cuestan poco, se enroscan a mano y bajan el caudal entre 35% y 50%.',
     desc: 'El aireador mezcla aire con el agua: el chorro se siente igual pero sale bastante menos. La Guía de Ahorro de Energía de la Ciudad calcula entre un 35% y un 50% menos de consumo en esa canilla.',
     pasos: ['Fijate si tu canilla tiene rosca en la punta (casi todas tienen).', 'Comprá un aireador de la medida en la ferretería.', 'Enroscalo a mano en lugar del que tiene.'],
-    ef: agua(300), fuente: 'gcba-energia', tags: ['arreglo', 'cocina', 'baño'],
+    ef: agua(240), fuente: 'gcba-energia', tags: ['arreglo', 'cocina', 'baño'],
   }),
   c('agua-botella-en-mochila-inodoro', 'Poné una botella con agua en la mochila del inodoro', {
     dom, e: 'easy', i: 'medium', min: 10, edad: 'ta', frec: 'one_time',
@@ -223,6 +223,7 @@ export default [
     desc: 'En los inodoros de descarga única, una botella llena dentro de la mochila hace que cada descarga use menos agua sin que se note. Con cinco descargas diarias, son unos 150 litros por mes.',
     pasos: ['Llená una botella de 1 litro con agua (o con arena para que no flote) y tapala.', 'Abrí la tapa de la mochila y ponela en un costado, lejos del flotante y la válvula.', 'Descargá y fijate que todo funcione igual.'],
     ef: agua(150), tags: ['baño'],
+    hereda: ['instala-un-inodoro-de-doble-descarga'],
   }),
   c('agua-revisar-tanque', 'Revisá que el tanque no rebalse', {
     dom, e: 'easy', i: 'medium', min: 15, edad: 'a', cool: 4320,
@@ -236,7 +237,7 @@ export default [
     corto: 'Un tacho bajo la bajada del techo junta cientos de litros en una tormenta.',
     desc: 'Un milímetro de lluvia sobre un metro cuadrado de techo es un litro de agua. Un tacho o bidón con tapa bajo la bajada pluvial junta agua de sobra para regar todo el mes. Tapado y vaciado seguido, no cría mosquitos.',
     pasos: ['Conseguí un tacho o bidón grande con tapa.', 'Ponelo bajo la bajada del techo o de la canaleta, con una malla arriba para frenar hojas.', 'Usá esa agua para regar y vaciala dentro de la semana para que no críe mosquitos.'],
-    ef: agua(400), tags: ['lluvia', 'riego', 'dengue'], hereda: ['instala-un-sistema-de-recoleccion-de-agua-de-llu'],
+    tags: ['lluvia', 'riego', 'dengue'], hereda: ['instala-un-sistema-de-recoleccion-de-agua-de-llu'],
   }),
   c('agua-balde-de-lluvia', 'Poné un balde a juntar lluvia', {
     dom, e: 'easy', i: 'low', min: 2, edad: 'kta', cool: 72,
@@ -257,7 +258,7 @@ export default [
     corto: 'Una pelopincho son cientos de litros: no hace falta tirarlos por la rejilla.',
     desc: 'Cuando la vacíes, esa agua todavía sirve: para regar, para limpiar el patio o el auto, para el inodoro. Y si le cambiás menos seguido el agua (con un colador de hojas y tapándola), dura más.',
     pasos: ['Antes de vaciarla, regá con baldes las plantas y el pasto.', 'Usá otra parte para limpiar el patio o el auto.', 'Vaciá el resto en tierra, no en la vereda.'],
-    ef: agua(300), tags: ['pileta', 'verano', 'reuso'],
+    ef: agua(200), tags: ['pileta', 'verano', 'reuso'],
   }),
   c('agua-balde-lavar-auto', 'Lavá el auto con balde, no con manguera', {
     dom, e: 'easy', i: 'high', min: 30, req: ['auto'], edad: 'ta', cool: 168,

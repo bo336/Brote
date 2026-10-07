@@ -10,22 +10,8 @@ export default [
     corto: 'Levantar lo que ves rompe la señal de que ahí se puede tirar.',
     desc: 'Una botella, un paquete o una colilla en la vereda terminan en la alcantarilla y en el río con la primera lluvia. Levantar unas cuantas cosas camino a algún lado (con una bolsa o guantes) mejora tu cuadra y contagia.',
     pasos: ['Llevá una bolsa (y guantes, si tenés).', 'Levantá lo que veas en tu camino: botellas, paquetes, latas.', 'Tiralo al cesto o separá lo reciclable.'],
-    medida: medida('¿Cuántas cosas levantaste?', 'cosa', 'cosas', { min: 1, max: 50, def: 5, por: { waste_kg: 0.02 } }),
+    
     tags: ['basura', 'barrio', 'chicos'],
-  }),
-  d('com-agradecer-a-quien-cuida', 'Agradecele a quien cuida tu calle', {
-    dom, e: 'easy', i: 'low', min: 1, lugar: 'calle',
-    corto: 'Barrenderos, recuperadores, jardineros de la plaza: el trabajo invisible sostiene el barrio.',
-    desc: 'Saludar y agradecer a quien barre tu cuadra, recoge los reciclables o cuida la plaza es reconocer un trabajo esencial y casi nunca visto. También es una buena forma de preguntar cómo ayudar.',
-    pasos: ['Cuando veas a quien barre, recicla o cuida la plaza, saludalo.', 'Agradecele, y si querés, preguntale cómo podés hacerle el trabajo más fácil.'],
-    ef: nada(), tags: ['barrio', 'cartoneros', 'chicos'],
-  }),
-  d('com-contale-a-alguien', 'Contale a alguien algo que hiciste por el ambiente', {
-    dom, e: 'easy', i: 'low', min: 2,
-    corto: 'Lo que se cuenta se copia: la mayoría empieza porque vio a alguien cercano.',
-    desc: 'No hace falta convencer a nadie: contar con naturalidad que hoy hiciste algo (el balde en la ducha, la vianda, la bici) planta la idea. Las costumbres se contagian más por ejemplo que por discurso.',
-    pasos: ['Elegí algo que hiciste hoy o esta semana.', 'Contáselo a alguien en una charla, sin sermonear.'],
-    ef: nada(), tags: ['compartir', 'chicos'],
   }),
   d('com-dengue-descacharrado', 'Vaciá todo lo que junta agua en tu casa', {
     dom, e: 'easy', i: 'high', min: 10, est: ['primavera', 'verano', 'otono'], rut: true,
@@ -48,7 +34,7 @@ export default [
     corto: 'Un espacio limpio se mantiene limpio mucho más tiempo.',
     desc: 'Escuelas, clubes, ONG y vecinos organizan jornadas de limpieza en plazas, costas y arroyos; el Día Mundial de la Limpieza es en septiembre. Sumarte una mañana es dejar un lugar mejor y conocer gente del barrio que se ocupa.',
     pasos: ['Buscá una jornada en tu municipio, escuela u organizaciones (o armala con amigos).', 'Llevá guantes, bolsas y agua.', 'Separá lo reciclable y contá cuántas bolsas juntaron.'],
-    medida: medida('¿Cuántas bolsas juntaste?', 'bolsa', 'bolsas', { min: 1, max: 6, def: 1, por: { waste_kg: 2 } }),
+    
     tags: ['basura', 'grupo', 'barrio'],
   }),
   c('crea-o-sumate-a-un-grupo-ambiental-local', 'Sumate a un grupo ambiental de tu zona', {
@@ -162,13 +148,6 @@ export default [
     desc: 'Una salida con amigos o en familia a una reserva natural, un parque nacional o provincial, un humedal o una costa es la mejor forma de que lo verde deje de ser abstracto. Muchas reservas tienen visitas guiadas gratuitas.',
     pasos: ['Elegí una reserva o un parque cercano (muchos son gratuitos).', 'Invitá a amigos o a tu familia.', 'Llevá agua, comida sin descartables y volvé con tu basura.'],
     ef: nada(), fuente: 'parques-nacionales', tags: ['naturaleza', 'familia', 'reserva'],
-  }),
-  c('com-sumar-a-alguien', 'Invitá a alguien a sumarse a Brote', {
-    dom, e: 'easy', i: 'medium', min: 5, formato: 'social', edad: 'kta', lugar: 'celular', cool: 720,
-    corto: 'De a dos cuesta menos sostener un hábito.',
-    desc: 'Invitar a un amigo, a alguien de tu familia o de tu trabajo a hacer las acciones del día juntos hace que los dos las sostengan más. Pueden armar una competencia entre ustedes o con su grupo.',
-    pasos: ['Pensá quién podría sumarse con vos.', 'Mandale tu código o el link de invitación.', 'Propongan hacer juntos las acciones de una semana.'],
-    ef: nada(), tags: ['compartir', 'amigos'], hereda: ['se-mentor-de-alguien-nuevo-en-la-plataforma', 'com-compartir-tu-mundo', 'com-armar-grupo', 'lanza-un-reto-de-barrio-contra-barrio'],
   }),
   c('com-cartelera-barrio', 'Dejá un dato útil en la cartelera del edificio o el barrio', {
     dom, e: 'easy', i: 'medium', min: 15, formato: 'social', edad: 'kta', cool: 720,

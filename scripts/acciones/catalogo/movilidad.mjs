@@ -12,6 +12,7 @@ export default [
     pasos: ['Elegí un trayecto de hasta 20 cuadras que hoy harías en auto, taxi o colectivo.', 'Hacelo caminando.', 'Contá cuántas cuadras fueron.'],
     medida: medida('¿Cuántas cuadras caminaste?', 'cuadra', 'cuadras', { min: 1, max: 60, def: 10, por: por(km(0.07)) }),
     fuente: 'oms-actividad-fisica', tags: ['caminar'],
+    hereda: ['aire-transporte-caminar-corto'],
   }),
   d('anda-en-bici-a-algun-lado-hoy', 'Andá en bici a algún lado hoy', {
     dom, e: 'medium', i: 'high', min: 20, req: ['bici'], lugar: 'calle', rut: true,
@@ -28,6 +29,7 @@ export default [
     pasos: ['Elegí un viaje de hoy que harías en auto, taxi o app.', 'Buscá cómo hacerlo en transporte público.', 'Contá los kilómetros del viaje.'],
     medida: medida('¿De cuántos kilómetros fue el viaje?', 'km', 'km', { min: 1, max: 60, def: 6, por: por(km(0.75)) }),
     fuente: 'owid-transporte', tags: ['colectivo', 'tren', 'sube'],
+    hereda: ['air-elegir-transporte-limpio'],
   }),
   d('mov-bajar-una-parada-antes', 'Bajate una parada antes y caminá', {
     dom, e: 'easy', i: 'low', min: 5, lugar: 'calle', rut: true,
@@ -98,6 +100,7 @@ export default [
     desc: 'Si el local está cerca, ir a buscar la comida o el pedido caminando o en bici evita un viaje de moto ida y vuelta (y muchas veces sale más barato y llega más caliente).',
     pasos: ['Hacé el pedido "para retirar".', 'Andá a buscarlo caminando o en bici.'],
     ef: { c: 0.1 }, tags: ['delivery', 'caminar'],
+    hereda: ['mov-agrupar-delivery'],
   }),
   d('mov-ruta-sin-embotellamiento', 'Salí fuera del horario pico si podés', {
     dom, e: 'easy', i: 'low', min: 1, req: ['auto'], edad: 'a',
@@ -157,6 +160,7 @@ export default [
     desc: 'Las gomas bien infladas, la cadena aceitada y los frenos firmes hacen que andar sea fácil y seguro. Una bici lista es una bici que se usa en vez del auto o el colectivo.',
     pasos: ['Inflá las cubiertas a la presión que dice el costado.', 'Limpiá y aceitá la cadena.', 'Probá los frenos y ajustalos si hace falta.'],
     ef: nada(), tags: ['bici'], hereda: ['mov-mantener-bici'],
+    mercado: ['movilidad', 'repuestos-y-service', 'Un service a tiempo alarga la vida de la bici. Estos negocios están en el programa de Brote.'],
   }),
   c('mov-taller-de-bici', 'Aprendé a parchar una cámara', {
     dom, e: 'medium', i: 'medium', min: 40, formato: 'aprender', frec: 'one_time', req: ['bici'], edad: 'kta', adulto: true,
@@ -198,7 +202,7 @@ export default [
     corto: 'Un día menos de viaje por semana es un 20% menos de traslados.',
     desc: 'Si tu trabajo se puede hacer a distancia aunque sea en parte, proponer un día fijo desde casa ahorra el viaje de ida y vuelta cada semana, y tiempo de vida.',
     pasos: ['Pensá qué tareas se pueden hacer bien desde casa.', 'Proponé un día fijo por semana, con un plan concreto.'],
-    ef: km(20), tags: ['trabajo'],
+    tags: ['trabajo'],
   }),
   c('mov-aprende-la-ruta-en-colectivo', 'Averiguá cómo hacer en colectivo un viaje que hacés en auto', {
     dom, e: 'easy', i: 'medium', min: 15, formato: 'aprender', frec: 'one_time', req: ['auto'], edad: 'a',

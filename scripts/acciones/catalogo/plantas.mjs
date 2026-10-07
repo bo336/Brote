@@ -25,7 +25,7 @@ export default [
     corto: 'Lo que crece en casa no viaja, no viene envasado y está en su punto.',
     desc: 'Unas hojas de lechuga, perejil, albahaca o un tomate de tu huerta son comida sin kilómetros ni envases. Cosechar seguido, además, hace que muchas plantas produzcan más.',
     pasos: ['Mirá qué está listo en la huerta.', 'Cortá sólo lo que vas a comer hoy, sin arrancar la planta.', 'Sumalo a una comida.'],
-    ef: { c: 0.1, r: 0.02 }, tags: ['huerta', 'cocina'],
+    tags: ['huerta', 'cocina'],
   }),
   d('plant-rega-el-arbol-de-la-vereda', 'Regá el árbol de tu vereda', {
     dom, e: 'easy', i: 'medium', min: 5, est: ['primavera', 'verano'], lugar: 'calle', adulto: true, rut: true,
@@ -41,14 +41,15 @@ export default [
     corto: 'Un árbol nativo sostiene mucha más vida que uno exótico, y está hecho para tu clima.',
     desc: 'Lapacho, jacarandá, tipa, ceibo, algarrobo, chañar, molle, timbó: cada región tiene sus árboles. Uno nativo da sombra, refugio y alimento a aves e insectos que evolucionaron con él, y pide menos riego. El mejor momento para plantar es de otoño a principios de primavera.',
     pasos: ['Averiguá qué árboles nativos son de tu ecorregión (y cuánto crecen).', 'Hacé un pozo del doble del pan de tierra y plantalo con compost.', 'Regalo seguido el primer año, sobre todo en verano.'],
-    ef: { c: 2 }, fuente: 'plantas-nativas', tags: ['arbol', 'nativas'],
+    fuente: 'plantas-nativas', tags: ['arbol', 'nativas'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Viveros con árboles nativos de tu zona. Estos negocios están en el programa de Brote.'],
   }),
   c('sumate-a-una-jornada-de-plantacion-de-arboles', 'Sumate a una plantación de árboles', {
     dom, e: 'medium', i: 'high', min: 120, formato: 'salida', est: plantar, edad: 'kta', adulto: true, lugar: 'naturaleza', cool: 720,
     corto: 'Plantar en grupo cubre en un día lo que en soledad llevaría meses.',
     desc: 'Municipios, escuelas, ONG y grupos de vecinos organizan plantaciones en plazas, costas y reservas, sobre todo alrededor del Día del Árbol (29 de agosto). Sumarte es plantar y además conocer a quienes cuidan el verde de tu zona.',
     pasos: ['Buscá plantaciones en tu municipio, escuela u organizaciones ambientales.', 'Anotate y llevá guantes, agua y gorra.', 'Volvé en unos meses a ver cómo crecen.'],
-    ef: { c: 2 }, tags: ['arbol', 'grupo'],
+    tags: ['arbol', 'grupo'],
   }),
   c('pla-adopta-arbol-vereda', 'Adoptá el árbol de tu vereda', {
     dom, e: 'easy', i: 'medium', min: 30, formato: 'tarea', edad: 'kta', adulto: true, lugar: 'calle', cool: 2160,
@@ -63,6 +64,7 @@ export default [
     desc: 'Lechuga, rúcula, acelga, perejil o tomates cherry crecen en macetas o cajones en un balcón o una ventana con sol. El ProHuerta del INTA recomienda empezar con pocas especies de la estación y sumar de a poco.',
     pasos: ['Conseguí macetas o cajones con agujeros abajo y tierra con compost.', 'Elegí dos o tres especies de la estación y sembralas o plantá plantines.', 'Ponelas donde les dé al menos 5 horas de sol.'],
     ef: nada(), fuente: 'prohuerta', tags: ['huerta'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Semillas, tierra y macetas para empezar. Estos negocios están en el programa de Brote.'],
   }),
   c('pla-semillas-prohuerta', 'Conseguí semillas del ProHuerta en tu municipio', {
     dom, e: 'easy', i: 'medium', min: 30, formato: 'salida', est: ['otono', 'primavera'], edad: 'ta', cool: 2160,
@@ -76,7 +78,8 @@ export default [
     corto: 'En otoño, hojas y habas; en primavera, tomates y zapallos.',
     desc: 'Cada estación tiene lo suyo: en otoño-invierno, acelga, lechuga, espinaca, arvejas y habas; en primavera-verano, tomate, zapallo, choclo, albahaca. Sembrar de a poco cada dos o tres semanas te da cosecha continua.',
     pasos: ['Fijate qué se siembra este mes en tu región.', 'Sembrá una tanda chica.', 'Anotá la fecha para sembrar la siguiente en dos o tres semanas.'],
-    ef: { c: 0.5 }, fuente: 'prohuerta', tags: ['huerta', 'estacion', 'semillas'],
+    fuente: 'prohuerta', tags: ['huerta', 'estacion', 'semillas'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Semillas y plantines de estación. Estos negocios están en el programa de Brote.'],
   }),
   c('ali-huerta-aromaticas', 'Plantá aromáticas en una maceta', {
     dom, e: 'easy', i: 'low', min: 20, frec: 'one_time', edad: 'kta', otorga: 'huerta',
@@ -84,6 +87,7 @@ export default [
     desc: 'Las hierbas compradas vienen en atados o en plástico y se echan a perder en días. En una maceta junto a la ventana de la cocina, cortás lo que necesitás y la planta sigue creciendo.',
     pasos: ['Conseguí una maceta con agujeros y tierra buena.', 'Plantá perejil, albahaca, orégano, menta o romero (mejor de plantín).', 'Ponela al sol y cortá desde arriba para que se ramifique.'],
     ef: nada(), tags: ['huerta', 'cocina', 'chicos'], hereda: ['cultiva-hierbas-para-reemplazar-las-envasadas'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Plantines de aromáticas y macetas. Estos negocios están en el programa de Brote.'],
   }),
   c('pla-germinar-poroto', 'Germiná un poroto en un algodón', {
     dom, e: 'easy', i: 'low', min: 10, formato: 'observar', edad: 'k', cool: 720,
@@ -126,6 +130,7 @@ export default [
     desc: 'Verbenas, salvias, pasionarias, margaritas y otras nativas atraen abejas, mariposas y picaflores. Según la IPBES, la pérdida de flores es una de las causas del declive de los polinizadores, de los que depende buena parte de lo que comemos.',
     pasos: ['Averiguá qué flores nativas crecen en tu región.', 'Plantá varias en macetas o canteros al sol.', 'No uses insecticidas cerca.'],
     ef: nada(), fuente: 'ipbes-polinizadores', tags: ['polinizadores', 'nativas', 'flores'], hereda: ['ani-plantas-para-polinizadores'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Plantines y semillas de nativas para abejas y mariposas. Estos negocios están en el programa de Brote.'],
   }),
   c('pla-nativa-en-vez-de-exotica', 'Elegí una planta nativa para tu próxima maceta', {
     dom, e: 'easy', i: 'medium', min: 20, formato: 'salida', edad: 'kta', cool: 720,
@@ -133,6 +138,7 @@ export default [
     desc: 'En lugar de una ornamental importada, elegí una especie nativa de tu ecorregión: está adaptada al clima, pide menos riego y sostiene insectos y aves locales. Muchos viveros ya tienen sección de nativas.',
     pasos: ['Buscá qué plantas son nativas de tu región.', 'En el vivero, preguntá por esas.', 'Plantala en una maceta o cantero al sol.'],
     ef: agua(20), fuente: 'plantas-nativas', tags: ['nativas'], hereda: ['elegi-plantas-nativas-resistentes-a-la-sequia'],
+    mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Viveros que crían nativas de tu región. Estos negocios están en el programa de Brote.'],
   }),
   c('cubri-los-canteros-con-mantillo', 'Cubrí la tierra con hojas secas', {
     dom, e: 'easy', i: 'medium', min: 15, edad: 'kta', cool: 720,

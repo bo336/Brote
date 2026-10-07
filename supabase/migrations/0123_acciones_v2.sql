@@ -10,9 +10,10 @@
 --      fuente, camino, tags), todas con valor por omisión.
 --   2. Caminos (`caminos`, `user_caminos`), feedback (`acciones_feedback`),
 --      motivos y cambios del día (`daily_sets.razones/cambios`).
---   3. El impacto de cada acción hecha queda CONGELADO en su fila
---      (`activity_completions.impact_*`, con la cantidad si es medible), así
---      corregir el catálogo no reescribe el pasado de nadie.
+--   3. El impacto de cada acción hecha queda en su fila
+--      (`activity_completions.impact_*`, con la cantidad si es medible). 0124
+--      lo recalcula una vez con los números corregidos: no se sostiene una
+--      cifra inflada sólo porque ya se mostró.
 --   4. Una sola elegibilidad (`brote_accion_apta`) para el set, "Más", Para
 --      vos, la rutina, la Plaza y la Academia.
 --   5. El generador del día v2 (`brote_candidatas` + `brote_armar_dia`), con
@@ -20,6 +21,8 @@
 --   6. RPCs: `acciones_de_hoy`, `acciones_cambiar`, `acciones_sugeridas`,
 --      `acciones_ocultar`, `mis_acciones_ocultas`, `acciones_mostrar_de_nuevo`,
 --      `mis_caminos`; `complete_activity` con cantidad y caminos.
+--   7. El puente al Mercado con subcategoría y un botón: `mercado_para_accion`
+--      devuelve cuántos listados hay aunque sean menos de 3, sólo a adultos.
 --
 -- El espejo de las reglas en TypeScript es `lib/acciones/reglas.ts`; los
 -- tests de `lib/acciones/__tests__` comparan los dos.
@@ -61,7 +64,7 @@ alter table public.activities drop constraint if exists activities_dias_chk;
 alter table public.activities add constraint activities_dias_chk check (dias is null or dias in ('habil','finde'));
 alter table public.activities drop constraint if exists activities_requiere_chk;
 alter table public.activities add constraint activities_requiere_chk check (requiere <@ array[
-  'balcon','jardin','pileta','edificio','auto','bici','gas','aire','lena','parrilla',
+  'balcon','jardin','pileta','edificio','auto','bici','gas','aire','secarropas','lena','parrilla',
   'perro','gato','chicos','trabajo','estudio','campo','costa','compost','huerta','mascota']::text[]);
 alter table public.activities drop constraint if exists activities_otorga_chk;
 alter table public.activities add constraint activities_otorga_chk check (otorga is null or otorga in ('compost','huerta'));
@@ -78,8 +81,9 @@ alter table public.activities add constraint activities_medida_chk
 -- Hasta que llegue el catálogo nuevo (0124), algo razonable para lo que hay.
 update public.activities set formato = 'tarea', minutos = 30 where type = 'catalog' and formato = 'gesto';
 
--- "Regá tu mundo" es del juego, no del mundo real: fuera del set y del catálogo.
-update public.activities set active = false where slug = 'cuida-tu-mundo';
+-- "Regá tu mundo" es del juego, no del mundo real: fuera del set y del
+-- catálogo, y lo que ya se marcó no cuenta como acción real ni suma impacto.
+update public.activities set active = false, tags = array['interno','juego'] where slug = 'cuida-tu-mundo';
 
 -- ── 2 · Caminos, feedback y el día ──────────────────────────────────────────
 
@@ -149,8 +153,8 @@ alter table public.activity_completions
   add column if not exists impact_waste_kg   numeric,
   add column if not exists impact_energy_kwh numeric;
 
--- Lo ya hecho conserva exactamente lo que mostraba: se copia antes de que el
--- catálogo nuevo (0124) corrija los números.
+-- Se copia lo que hay para que nada quede en blanco; 0124 lo recalcula con
+-- los números corregidos (había acciones que sumaban 22.000 L de una vez).
 update public.activity_completions ac
    set impact_water_l = a.impact_water_l, impact_co2_kg = a.impact_co2_kg,
        impact_waste_kg = a.impact_waste_kg, impact_energy_kwh = a.impact_energy_kwh
@@ -172,7 +176,7 @@ as $$
   )
   from activity_completions ac
   join activities a on a.id = ac.activity_id
-  where ac.user_id = p_uid and ac.status in ('honor','verified');
+  where ac.user_id = p_uid and ac.status in ('honor','verified') and not ('juego' = any(a.tags));
 $$;
 
 create or replace function public.brote_user_impact_since(p_uid uuid, p_days integer default 7)
@@ -190,7 +194,7 @@ as $$
   )
   from activity_completions ac
   join activities a on a.id = ac.activity_id
-  where ac.user_id = p_uid and ac.status in ('honor','verified')
+  where ac.user_id = p_uid and ac.status in ('honor','verified') and not ('juego' = any(a.tags))
     and ac.local_date >= ((now() at time zone 'America/Argentina/Buenos_Aires')::date
                           - greatest(0, p_days - 1));
 $$;
@@ -217,7 +221,7 @@ begin
                count(distinct ac.user_id)                                            as people
           from activity_completions ac
           join activities a on a.id = ac.activity_id
-         where ac.status in ('honor', 'verified')
+         where ac.status in ('honor', 'verified') and not ('juego' = any(a.tags))
       ) agg
      where c.id = 1
     returning c.* into v_row;
@@ -874,7 +878,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'Formato inválido');
   end if;
   for k, v in select * from jsonb_each(p_ctx) loop
-    if k in ('balcon','jardin','pileta','edificio','auto','bici','gas','aire','lena','parrilla',
+    if k in ('balcon','jardin','pileta','edificio','auto','bici','gas','aire','secarropas','lena','parrilla',
              'perro','gato','chicos','trabajo','estudio','campo','costa','compost','huerta','respondido')
        and jsonb_typeof(v) = 'boolean' then
       v_limpio := v_limpio || jsonb_build_object(k, v);
@@ -1340,6 +1344,76 @@ as $function$
   );
 $function$;
 
+-- ── 9b · El puente al Mercado (02 §6.1) ─────────────────────────────────────
+-- Cada acción que pide un producto (detergente biodegradable, legumbres a
+-- granel, plantines nativos…) declara su categoría y, si hace falta, su
+-- subcategoría. La ficha de la acción muestra:
+--   · 3 listados o más (uno por empresa): las tarjetas y el botón;
+--   · 1 o 2: sólo el botón a la búsqueda filtrada (una tarjeta sola parece
+--     publicidad de esa tienda; un botón a la categoría, no);
+--   · 0: nada (un botón a una búsqueda vacía es una promesa rota).
+-- Sólo adultos (08 §9: ni `kid` ni `teen` ven "Dónde conseguirlo"). Nunca en
+-- el set del día ni al completar, y comprar no da puntos: esta función no
+-- toca `complete_activity`.
+
+alter table public.activity_market_hints add column if not exists subcategoria text;
+grant select (subcategoria) on public.activity_market_hints to authenticated, anon;
+
+create or replace function public.mercado_para_accion(p_slug text, p_limit int default 3)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $fn$
+declare
+  v_act uuid; v_cat text; v_sub text; v_texto text; v_total int; v_items jsonb;
+begin
+  if coalesce(brote_mercado_cuenta(), 'adult') <> 'adult' then return null; end if;
+
+  select id into v_act from activities where slug = p_slug and active;
+  if v_act is null then return null; end if;
+
+  select h.categoria, h.subcategoria, h.texto_puente into v_cat, v_sub, v_texto
+    from activity_market_hints h
+   where h.activity_id = v_act and h.activo
+   order by h.subcategoria is null, h.categoria
+   limit 1;
+  if v_cat is null then return null; end if;
+
+  -- Si la subcategoría todavía no tiene nada, la categoría entera.
+  if v_sub is not null and not exists (
+       select 1 from listings l join businesses b on b.id = l.business_id and b.status = 'approved'
+        where l.status = 'publicado' and l.categoria = v_cat and l.subcategoria = v_sub) then
+    v_sub := null;
+  end if;
+
+  select count(*) into v_total
+    from listings l join businesses b on b.id = l.business_id and b.status = 'approved'
+   where l.status = 'publicado' and l.categoria = v_cat and (v_sub is null or l.subcategoria = v_sub);
+  if v_total = 0 then return null; end if;
+
+  select jsonb_agg(t order by (t->>'score')::numeric desc)
+    into v_items
+    from (
+      select distinct on (l.business_id) brote_listado_tarjeta(l, b) as t
+        from listings l
+        join businesses b on b.id = l.business_id and b.status = 'approved'
+       where l.status = 'publicado' and l.categoria = v_cat and (v_sub is null or l.subcategoria = v_sub)
+       order by l.business_id, l.score desc
+    ) x;
+
+  return jsonb_build_object(
+    'texto', v_texto,
+    'categoria', v_cat,
+    'subcategoria', v_sub,
+    'total', v_total,
+    'items', case when coalesce(jsonb_array_length(v_items), 0) < 3 then '[]'::jsonb
+                  else (select jsonb_agg(v) from (
+                          select v from jsonb_array_elements(v_items) v
+                           limit greatest(1, least(coalesce(p_limit, 3), 6))) z) end);
+end $fn$;
+
 -- ── 10 · Permisos ───────────────────────────────────────────────────────────
 -- Por omisión la base le da EXECUTE a todos sobre lo nuevo: se cierra todo y
 -- se abre sólo lo que la app llama.
@@ -1377,6 +1451,7 @@ revoke all on function public.my_habits() from public, anon;
 revoke all on function public.academia_accion_sugerida(uuid) from public, anon;
 revoke all on function public.feed_ladder() from public, anon;
 revoke all on function public.world_collective_impact() from public, anon;
+revoke all on function public.mercado_para_accion(text, int) from public, anon;
 
 grant execute on function public.ensure_daily_set() to authenticated;
 grant execute on function public.acciones_de_hoy() to authenticated;
@@ -1393,3 +1468,4 @@ grant execute on function public.my_habits() to authenticated;
 grant execute on function public.academia_accion_sugerida(uuid) to authenticated;
 grant execute on function public.feed_ladder() to authenticated;
 grant execute on function public.world_collective_impact() to authenticated;
+grant execute on function public.mercado_para_accion(text, int) to authenticated;

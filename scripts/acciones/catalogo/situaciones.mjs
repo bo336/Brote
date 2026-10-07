@@ -11,7 +11,7 @@ export default [
     corto: 'No dejar rastro es la regla de oro de cualquier salida a la naturaleza.',
     desc: 'En campings, orillas de ríos y lagos, lo que queda (latas, bolsas, colillas, restos de fogón) se lo lleva el viento o la crecida. Antes de irte, recorré el lugar: que no quede nada tuyo, y si podés, llevate algo que no era tuyo.',
     pasos: ['Llevá bolsas para tu basura desde el principio.', 'Antes de irte, recorré el lugar y juntá todo.', 'Llevate la basura hasta un contenedor de verdad, no la dejes junto a uno lleno.'],
-    ef: { r: 0.2 }, tags: ['vacaciones', 'camping', 'naturaleza'],
+    tags: ['vacaciones', 'camping', 'naturaleza'],
   }),
   c('vac-fogon-habilitado', 'Hacé fuego sólo en fogones habilitados y apagalo con agua', {
     dom: 'aire_suelo', e: 'easy', i: 'high', min: 10, formato: 'salida', est: vacaciones, edad: 'kta', adulto: true, lugar: 'naturaleza', cool: 72,
@@ -32,7 +32,7 @@ export default [
     corto: 'En la altura, hasta una cáscara de banana tarda años en desaparecer.',
     desc: 'En cerros y senderos de montaña, el frío y la sequedad hacen que todo tarde muchísimo en degradarse, incluso la comida. Además atrae animales que se acostumbran a la gente. Todo lo que sube, baja con vos.',
     pasos: ['Llevá una bolsa en la mochila para la basura.', 'Guardá también cáscaras, carozos y restos de comida.', 'Tirala al volver, en un contenedor.'],
-    ef: { r: 0.1 }, fuente: 'parques-nacionales', tags: ['vacaciones', 'montaña', 'naturaleza'],
+    fuente: 'parques-nacionales', tags: ['vacaciones', 'montaña', 'naturaleza'],
   }),
   c('vac-sendero-marcado', 'Caminá por los senderos marcados en parques y reservas', {
     dom: 'animales', e: 'easy', i: 'medium', min: 5, formato: 'salida', edad: 'kta', lugar: 'naturaleza', cool: 72,
@@ -76,7 +76,7 @@ export default [
     corto: 'El cotillón descartable dura una noche y va todo a la basura.',
     desc: 'Banderines de tela, guirnaldas de papel hecho a mano, luces, plantas o dibujos de los chicos decoran igual y se guardan para la próxima. Sin globos sueltos ni papel picado, que terminan en desagües.',
     pasos: ['Armá decoración con tela, papel reusado o dibujos.', 'Guardala en una caja para la próxima fiesta.'],
-    ef: { r: 0.2 }, tags: ['fiestas', 'cumpleaños', 'chicos'], hereda: ['azul-globos-no'],
+    ef: { r: 0.2 }, tags: ['fiestas', 'cumpleaños', 'chicos'],
   }),
   c('fiesta-separar-en-evento', 'En la fiesta, poné dos bolsas: reciclables y resto', {
     dom: 'residuos', e: 'easy', i: 'medium', min: 5, formato: 'social', edad: 'kta', cool: 168,
@@ -106,7 +106,7 @@ export default [
     corto: 'Botellas, envoltorios y vasos quedan en cada cancha después de jugar.',
     desc: 'Al terminar el partido, entrenamiento o la clase de gimnasia en la plaza, cada uno junta lo suyo y un poco más. Es un gesto de equipo que cuida el lugar donde juegan todos.',
     pasos: ['Al terminar, recorré la cancha o la tribuna.', 'Juntá botellas, envoltorios y vasos.', 'Separá lo reciclable si hay dónde.'],
-    ef: { r: 0.2 }, tags: ['club', 'deporte', 'chicos'],
+    tags: ['club', 'deporte', 'chicos'],
   }),
   c('club-ropa-deportiva-chica', 'Pasá los botines y la ropa deportiva que te quedó chica', {
     dom: 'consumo', e: 'easy', i: 'medium', min: 15, formato: 'social', edad: 'kta', adulto: true, cool: 2160,
@@ -134,7 +134,7 @@ export default [
     corto: 'La heladera de la oficina es donde las viandas olvidadas se pudren.',
     desc: 'Una vez por semana, revisá la heladera compartida: avisá qué está por vencer, comé lo tuyo antes de que se pase y proponé un día fijo de limpieza. Se tira menos comida y la heladera funciona mejor.',
     pasos: ['Revisá qué hay tuyo y comelo o llevatelo.', 'Avisá en el grupo lo que está por vencer.', 'Proponé un día de limpieza semanal.'],
-    ef: comida(0.3), tags: ['trabajo', 'heladera', 'desperdicio'],
+    ef: comida(0.2), tags: ['trabajo', 'heladera', 'desperdicio'],
   }),
   d('escuela-colacion-sin-envoltorio', 'Llevá la colación en un tupper, sin envoltorios', {
     dom: 'alimentacion', e: 'easy', i: 'low', min: 2, req: ['estudio'], dias: 'habil', lugar: 'escuela', edad: 'kt', rut: true,
@@ -157,7 +157,7 @@ export default [
     corto: 'Las bolsas en la vereda durante una tormenta tapan las bocas de tormenta.',
     desc: 'En las tormentas fuertes, las bolsas de basura en la calle se rompen o las arrastra el agua hasta las bocas de tormenta, que se tapan y la cuadra se inunda. Ante un alerta, esperá a que pase para sacarla.',
     pasos: ['Si hay alerta de tormenta, guardá la basura adentro.', 'Sacala cuando pase, en el horario de recolección.', 'Revisá que la boca de tormenta de tu esquina esté despejada.'],
-    ef: { r: 0.1 }, fuente: 'smn-alertas', tags: ['tormenta', 'inundacion', 'barrio'],
+    fuente: 'smn-alertas', tags: ['tormenta', 'inundacion', 'barrio'],
   }),
 
   // ── Misiones para chicos ───────────────────────────────────────────────────
@@ -194,7 +194,7 @@ export default [
     corto: 'Sos chef por un día: tu ingrediente secreto es lo que hay en la heladera.',
     desc: 'Con un adulto, buscá en la heladera lo que hay que usar (verdura, arroz, pan) e inventen algo juntos: un revuelto, unas tortillas, unos bocaditos. Es comida que no se tira y una receta propia.',
     pasos: ['Con un adulto, buscá en la heladera lo que hay que usar.', 'Elijan juntos qué preparar.', 'Ayudá a cocinar y ponele un nombre a tu receta.'],
-    ef: comida(0.3), tags: ['chicos', 'mision', 'cocina', 'desperdicio'],
+    ef: comida(0.2), tags: ['chicos', 'mision', 'cocina', 'desperdicio'],
   }),
   c('mision-mapa-del-camino', 'Misión: dibujá el mapa de tu camino a la escuela', {
     dom: 'movilidad', e: 'easy', i: 'low', min: 30, formato: 'aprender', req: ['estudio'], edad: 'k', frec: 'one_time',
@@ -231,27 +231,21 @@ export default [
     corto: 'Al máximo de frío gasta más y congela la verdura.',
     desc: 'La heladera conserva bien entre 4 y 5 °C y el freezer a unos −18 °C. Muchas están al máximo "por las dudas": gastan más y queman los alimentos. Poné la perilla en el medio y comprobalo con un termómetro si tenés.',
     pasos: ['Buscá la perilla de temperatura de la heladera.', 'Ponela en un punto medio (no en el máximo).', 'Si tenés termómetro, verificá que adentro esté entre 4 y 5 °C.'],
-    ef: elec(2), fuente: 'gcba-energia', tags: ['heladera'],
+    ef: elec(1.5), fuente: 'gcba-energia', tags: ['heladera'],
   }),
   c('com-feria-trueque', 'Sumate a una feria de trueque', {
     dom: 'comunidad', e: 'easy', i: 'medium', min: 90, formato: 'social', edad: 'kta', adulto: true, cool: 720,
     corto: 'Cambiar lo que te sobra por lo que te falta, sin plata de por medio.',
     desc: 'Las ferias de trueque e intercambio tienen historia en la Argentina. Llevás lo que no usás (libros, ropa, plantas, objetos, comida casera) y te llevás algo que necesitás. Es consumo sin fabricar nada nuevo, y barrio.',
     pasos: ['Buscá una feria de trueque o intercambio en tu ciudad.', 'Llevá cosas en buen estado que ya no uses.', 'Cambiá por algo que vayas a usar.'],
-    ef: { r: 0.5, c: 1 }, tags: ['intercambio', 'barrio', 'trueque'],
+    ef: { r: 0.5, c: 0.5 }, tags: ['intercambio', 'barrio', 'trueque'],
   }),
   c('res-panales-de-tela', 'Probá pañales de tela', {
     dom: 'residuos', e: 'medium', i: 'high', min: 30, req: ['chicos'], edad: 'a', frec: 'one_time', ahorra: true,
     corto: 'Un bebé usa miles de pañales descartables antes de dejarlos.',
     desc: 'Los pañales descartables son una parte grande de la basura de una casa con bebés y tardan siglos en degradarse. Los de tela modernos (con broches y absorbentes) se lavan y duran hasta para hermanos. Combinarlos, aunque sea en casa, ya baja mucho la basura.',
     pasos: ['Informate sobre los pañales de tela modernos.', 'Probá con algunos para usar en casa.', 'Lavalos en frío, con carga completa.'],
-    ef: plastico(1.5), tags: ['bebes', 'plastico', 'familia'],
-  }),
-  c('teen-dato-verificado', 'Compartí en tus redes un dato ambiental verificado', {
-    dom: 'comunidad', e: 'easy', i: 'medium', min: 10, formato: 'social', edad: 'ta', lugar: 'celular', cool: 168,
-    corto: 'En temas ambientales circula mucha desinformación: un dato bien chequeado vale oro.',
-    desc: 'Antes de compartir algo sobre el clima o el ambiente, chequeá de dónde sale (un organismo público, una universidad, un medio que cite fuentes). Compartir un dato verificado y útil, con su fuente, ayuda más que diez cadenas alarmistas.',
-    pasos: ['Elegí un dato ambiental que te haya sorprendido.', 'Buscá la fuente original y chequeá que sea seria.', 'Compartilo con la fuente.'],
-    ef: nada(), fuente: 'chequeado', tags: ['redes', 'compartir', 'informacion'],
+    ef: { r: 1.5 }, tags: ['bebes', 'plastico', 'familia'],
+    mercado: ['cuidado-personal', 'bebes', 'Pañales de tela, cobertores y absorbentes. Estos negocios están en el programa de Brote.'],
   }),
 ];

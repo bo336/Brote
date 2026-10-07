@@ -10,35 +10,35 @@ export default [
     corto: 'Las toallitas no se deshacen: tapan cloacas y llegan a los ríos.',
     desc: 'Toallitas húmedas (aunque digan "biodegradables"), hisopos, hilo dental, pelos y algodones no se desintegran en el agua. Tapan las cloacas del barrio y, cuando desbordan, terminan en arroyos y ríos. Van al tacho del baño.',
     pasos: ['Dejá un tacho con tapa en el baño.', 'Tirá ahí toallitas, hisopos, algodones y pelos.'],
-    ef: { r: 0.01 }, tags: ['baño', 'cloacas', 'chicos'],
+    tags: ['baño', 'cloacas', 'chicos'],
   }),
   d('azul-no-tirar-colillas', 'No tires colillas al piso ni a la alcantarilla', {
     dom, e: 'easy', i: 'medium', min: 1, edad: 'ta', lugar: 'calle', rut: true,
     corto: 'Una colilla tiene un filtro de plástico y tóxicos que se lavan con la lluvia.',
     desc: 'Las colillas son de los residuos que más se encuentran en playas y costas: el filtro es de acetato (un plástico) y está cargado de químicos que se van al agua. Si fumás, apagala y guardala hasta un cesto, o usá un cenicero de bolsillo.',
     pasos: ['Llevá un cenicero de bolsillo o una latita con tapa.', 'Apagá la colilla ahí y tirala en un cesto.'],
-    ef: { r: 0.001 }, tags: ['colillas', 'calle'],
+    tags: ['colillas', 'calle'],
   }),
   d('azul-alcantarilla-limpia', 'Que nada de tu vereda vaya a la alcantarilla', {
     dom, e: 'easy', i: 'medium', min: 3, lugar: 'calle', adulto: true,
     corto: 'Lo que cae en la boca de tormenta no se trata: va directo al arroyo.',
     desc: 'Las bocas de tormenta llevan el agua de lluvia, sin tratar, a arroyos y ríos. Hojas, bolsas, colillas o el agua con detergente de lavar la vereda viajan con ella. Juntá lo que haya en tu cordón antes de que llegue ahí.',
     pasos: ['Barré tu cordón y juntá lo que haya.', 'No barras basura ni hojas hacia la boca de tormenta.', 'No tires agua con detergente o aceite a la calle.'],
-    ef: { r: 0.05 }, tags: ['alcantarilla', 'barrio', 'chicos'],
+    tags: ['alcantarilla', 'barrio', 'chicos'],
   }),
   d('disfruta-afuera-sin-generar-residuos', 'En la playa, el río o la plaza, volvé con tu basura', {
     dom, e: 'easy', i: 'medium', min: 2, lugar: 'naturaleza',
     corto: 'Lo que entra a un espacio natural tiene que volver a salir con vos.',
     desc: 'En la costa, el río, el camping o la plaza, los cestos se desbordan y el viento se lleva todo al agua. Llevá una bolsa y volvé con tu basura, aunque haya cestos. Si podés, sumá algo que no era tuyo.',
     pasos: ['Llevá una bolsa para tu basura.', 'Antes de irte, revisá que no quede nada.', 'Si ves basura cerca, juntala también.'],
-    ef: { r: 0.05 }, tags: ['playa', 'rio', 'naturaleza', 'chicos'],
+    tags: ['playa', 'rio', 'naturaleza', 'chicos'],
   }),
   d('azul-detergente-justo', 'Usá la cantidad justa de detergente y jabón', {
     dom, e: 'easy', i: 'low', min: 1, rut: true, ahorra: true,
     corto: 'Más espuma no lava más: lo que sobra se va al río.',
     desc: 'La mayoría usamos bastante más detergente y jabón de lo necesario. Todo lo que sobra se va por la cloaca, y en muchas ciudades llega a ríos sin tratar del todo. Medir la dosis ahorra plata y química en el agua.',
     pasos: ['En el lavarropas, usá la medida que dice el envase para tu carga (no más).', 'Para los platos, unas gotas en la esponja o en un bowl con agua alcanzan.'],
-    ef: { r: 0.005 }, tags: ['detergente', 'cocina'],
+    tags: ['detergente', 'cocina'],
   }),
 
   // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ export default [
     corto: 'Lo que se junta en la orilla es lo que no llega al mar.',
     desc: 'Organizaciones, clubes de remo, escuelas y municipios hacen limpiezas en costas, ríos y arroyos de todo el país. Además de sacar plástico, muchas registran qué se encontró: esos datos sirven para exigir cambios.',
     pasos: ['Buscá una limpieza en tu zona o armala con amigos.', 'Llevá guantes, bolsas y agua.', 'Separá lo reciclable y anotá qué encontraron más.'],
-    medida: medida('¿Cuántas bolsas juntaste?', 'bolsa', 'bolsas', { min: 1, max: 6, def: 1, por: { waste_kg: 2 } }),
+    
     fuente: 'unep-plasticos', tags: ['playa', 'rio', 'basura', 'grupo'], hereda: ['azul-limpiar-una-orilla', 'sumate-a-un-dia-de-limpieza-submarina-o-costera'],
   }),
   c('adopta-una-boca-de-tormenta-y-mantenela-despejad', 'Adoptá la boca de tormenta de tu esquina', {
@@ -55,14 +55,15 @@ export default [
     corto: 'Una boca tapada convierte una lluvia normal en una cuadra inundada.',
     desc: 'Antes de cada tormenta, sacar hojas, bolsas y botellas de la reja de la boca de tormenta de tu esquina ayuda a que el agua corra y evita que la basura llegue al arroyo. Si está tapada por dentro, reportala al municipio.',
     pasos: ['Con guantes, sacá hojas y basura de la reja.', 'Tiralo al cesto (no a la calle).', 'Si está tapada por dentro, reportala al municipio.'],
-    ef: { r: 0.3 }, tags: ['alcantarilla', 'inundacion', 'barrio'],
+    tags: ['alcantarilla', 'inundacion', 'barrio'],
   }),
   c('usa-una-bolsa-para-microfibras-al-lavar', 'Lavá la ropa sintética en una bolsa filtrante', {
     dom, e: 'easy', i: 'medium', min: 5, edad: 'ta', costo: 'bajo', frec: 'one_time',
     corto: 'Cada lavado de ropa sintética suelta miles de microfibras de plástico.',
     desc: 'Polar, poliéster y ropa deportiva largan microfibras en cada lavado que las plantas de tratamiento no filtran. Lavarlas dentro de una bolsa especial (o una funda de almohada cerrada), en frío y con carga completa, retiene buena parte.',
     pasos: ['Juntá la ropa sintética (polar, deportiva, poliéster).', 'Lavala dentro de una bolsa filtrante o una funda cerrada, en frío.', 'Sacá las fibras que queden en la bolsa y tiralas a la basura, no a la pileta.'],
-    ef: { r: 0.01 }, fuente: 'unep-plasticos', tags: ['microplasticos', 'ropa', 'lavarropas'], hereda: ['azul-bolsa-de-lavado'],
+    fuente: 'unep-plasticos', tags: ['microplasticos', 'ropa', 'lavarropas'], hereda: ['azul-bolsa-de-lavado'],
+    mercado: ['limpieza-hogar', null, 'Bolsas filtrantes para lavar ropa sintética. Estos negocios están en el programa de Brote.'],
   }),
   c('azul-cosmeticos-sin-microplastico', 'Revisá si tus cosméticos tienen microplásticos', {
     dom, e: 'easy', i: 'medium', min: 10, formato: 'aprender', edad: 'ta', frec: 'one_time',
@@ -70,6 +71,7 @@ export default [
     desc: 'En la lista de ingredientes, "polyethylene", "polypropylene" o "nylon" indican microplásticos. Esos productos se enjuagan y terminan en ríos y mares. La próxima vez, elegí alternativas sin ellos.',
     pasos: ['Leé los ingredientes de exfoliantes, pastas dentales y cremas.', 'Buscá "polyethylene", "polypropylene" o "nylon".', 'Cuando se terminen, reemplazalos por opciones sin microplásticos.'],
     ef: nada(), tags: ['microplasticos', 'baño'],
+    mercado: ['cuidado-personal', 'cosmetica', 'Si estás cambiando de producto, estos negocios del programa de Brote cuentan qué lleva el suyo.'],
   }),
   c('agua-azul-detergente-biodegradable', 'Pasate a un detergente biodegradable', {
     dom, e: 'easy', i: 'medium', min: 10, formato: 'salida', edad: 'ta', lugar: 'compras', cool: 2160,
@@ -77,6 +79,7 @@ export default [
     desc: 'Lo que baja por la pileta y el lavarropas llega, tarde o temprano, a un río. Los detergentes biodegradables y sin fosfatos se degradan más rápido y no disparan las algas verdes que dejan sin oxígeno al agua.',
     pasos: ['Cuando se te termine el detergente, buscá uno biodegradable y sin fosfatos.', 'Si podés, comprálo en recarga.'],
     ef: nada(), tags: ['detergente', 'rios', 'compras'], hereda: ['azul-detergente-biodegradable'],
+    mercado: ['limpieza-hogar', 'detergentes', 'Lo que tirás por la pileta termina en algún lado. Estos negocios están en el programa de Brote.'],
   }),
   c('desecha-medicamentos-correctamente', 'Llevá los remedios vencidos a la farmacia', {
     dom, e: 'easy', i: 'medium', min: 15, formato: 'salida', edad: 'ta', cool: 2160,
@@ -90,7 +93,7 @@ export default [
     corto: 'La tanza abandonada enreda aves, tortugas y peces durante años.',
     desc: 'En muelles, escolleras y orillas de ríos y lagunas quedan tanzas, anzuelos y plomadas. Son trampas para aves y tortugas. Juntarlos con cuidado (con guantes) y tirarlos cortados en un cesto salva animales.',
     pasos: ['Con guantes, juntá tanza, anzuelos y plomadas de la orilla.', 'Cortá la tanza en pedazos chicos antes de tirarla.', 'Si pescás, llevate siempre lo tuyo.'],
-    ef: { r: 0.05 }, tags: ['pesca', 'rio', 'aves'],
+    tags: ['pesca', 'rio', 'aves'],
   }),
   c('azul-pesca-responsable', 'Si pescás, devolvé los chicos y respetá la veda', {
     dom, e: 'easy', i: 'high', min: 10, formato: 'aprender', req: ['costa'], edad: 'ta', frec: 'one_time',
@@ -105,6 +108,7 @@ export default [
     desc: 'La merluza, la caballa, la anchoíta o el abadejo son del Mar Argentino y muchas veces más baratas que lo importado. Preguntá en la pescadería qué entró fresco y de dónde viene.',
     pasos: ['En la pescadería, preguntá qué hay fresco y de dónde viene.', 'Probá especies del Mar Argentino, como la anchoíta o la caballa.'],
     ef: nada(), fuente: 'inidep', tags: ['pescado', 'compras', 'mar'], hereda: ['azul-pescado-responsable'],
+    mercado: ['alimentos-frescos', 'carnes-y-huevos', 'Pescaderías y productores que cuentan de dónde viene su pescado. Están en el programa de Brote.'],
   }),
   c('agua-azul-visita-un-humedal', 'Conocé un humedal de tu zona', {
     dom, e: 'easy', i: 'medium', min: 120, formato: 'salida', edad: 'kta', lugar: 'naturaleza', cool: 720,
@@ -139,6 +143,6 @@ export default [
     corto: 'Los médanos protegen la costa; las colillas y tapitas en la arena terminan en el mar.',
     desc: 'En las vacaciones en la costa: los médanos con vegetación frenan la erosión y no se pisan ni se cruzan con vehículos; la basura (sobre todo colillas, tapitas y sorbetes) vuelve con vos; y la fauna, como lobos marinos o aves, se mira de lejos.',
     pasos: ['Bajá a la playa por los accesos marcados, no por el médano.', 'Llevá bolsa para tu basura y volvé con ella.', 'Mirá a la fauna de lejos, sin alimentarla.'],
-    ef: { r: 0.05 }, tags: ['playa', 'vacaciones', 'mar'],
+    tags: ['playa', 'vacaciones', 'mar'],
   }),
 ];

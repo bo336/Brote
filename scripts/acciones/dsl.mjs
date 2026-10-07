@@ -8,9 +8,17 @@
 //
 // IMPACTO. Los números salen de los factores de abajo, cada uno con su origen,
 // y se escriben con los ayudantes (`elec(0.2)`, `aguaCaliente(40)`, `km(1.5)`)
-// para que cada cifra se pueda rastrear. Criterio: conservador. Si una acción
-// no mueve un recurso medible (aprender, observar, organizar), va en cero: la
-// pantalla no inventa.
+// para que cada cifra se pueda rastrear. Criterio (docs/ACCIONES.md §6):
+//   · Una vez = lo que esa vez ahorra. Lo que dura (arreglar una pérdida,
+//     cambiar una lámpara) cuenta 30 días de ahorro, no la vida útil.
+//   · "Agua" es agua de tu canilla o tu manguera. La huella hídrica de la
+//     comida o la ropa (riego, fábrica) no se suma: no la ahorraste vos.
+//   · "Residuos" es lo que no fue a la basura común: lo que no se generó, se
+//     reusó, se recicló o se compostó. Juntar basura de la calle es muy bueno,
+//     pero eso va a la basura: no suma ahí.
+//   · Aprender, observar, avisar, organizar: cero. La pantalla no inventa.
+//   · Sin el aparato no hay ahorro: lo que ahorra aire acondicionado o
+//     secarropas pide ese contexto.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Factores. Ver docs/ACCIONES.md §6 y las fuentes citadas. */
@@ -23,12 +31,13 @@ export const K = {
   CO2_M3_GAS: 1.95,
   /** kg CO₂ por km de auto a nafta (~7 L/100 km × 2,3 kg/L; EPA lo da en ~0,25 para EE. UU.). */
   CO2_KM_AUTO: 0.17,
-  /** kWh térmicos para calentar 1 litro de agua ~35 °C, con pérdidas del calefón/termotanque. */
-  KWH_LITRO_CALIENTE: 0.045,
+  /**
+   * kWh térmicos por litro de agua de ducha o pileta: agua mezclada a ~38 °C
+   * desde ~17 °C (21 °C × 1,163 Wh) con un calefón de ~70% de rendimiento.
+   */
+  KWH_LITRO_CALIENTE: 0.035,
   /** Comida tirada: kg CO₂e por kg (FAO, huella del desperdicio ≈ 3,3 Gt / 1,3 Gt). */
   CO2_KG_COMIDA: 2.5,
-  /** Comida tirada: litros de agua de riego ("agua azul") por kg (FAO ≈ 250 km³ / 1,3 Gt). */
-  AGUA_KG_COMIDA: 190,
   /** Orgánico que no va al relleno: kg CO₂e evitado por kg (metano evitado, prudente). */
   CO2_KG_ORGANICO: 0.5,
   /** Plástico que no se fabrica: kg CO₂e por kg. */
@@ -36,12 +45,12 @@ export const K = {
   /** Plástico/papel/vidrio/lata que se recicla en vez de enterrarse (promedio prudente). */
   CO2_KG_RECICLABLE: 0.8,
   /**
-   * Una remera de algodón: kg CO₂e, y litros de agua DE RIEGO. La huella hídrica
-   * total que se cita (~2.700 L, Water Footprint Network) es casi toda lluvia;
-   * contamos sólo la de riego (~un tercio) para no inflar "agua ahorrada".
+   * Una prenda que no se fabrica: una remera de algodón ronda 4 kg CO₂e, pero
+   * comprar usada (o heredar, o cambiar) reemplaza una nueva más o menos la
+   * mitad de las veces (WRAP). Contamos 2 kg y 0,1 kg de textil que no se tira.
    */
-  AGUA_REMERA: 900,
-  CO2_REMERA: 4,
+  CO2_PRENDA: 2,
+  RESIDUO_PRENDA: 0.1,
 };
 
 const r3 = (n) => Math.round(n * 1000) / 1000;
@@ -65,16 +74,16 @@ export const gasKwh = (kwh) => ({ e: r3(kwh), c: r3((kwh / K.KWH_POR_M3_GAS) * K
 export const gasM3 = (m3) => gasKwh(m3 * K.KWH_POR_M3_GAS);
 /** km de auto que no se hicieron. */
 export const km = (n) => ({ c: r3(n * K.CO2_KM_AUTO) });
-/** kg de comida que no se tiró. */
-export const comida = (kg) => ({ r: r3(kg), c: r3(kg * K.CO2_KG_COMIDA), w: r3(kg * K.AGUA_KG_COMIDA) });
+/** kg de comida que no se tiró (sin el agua de riego: no salió de tu canilla). */
+export const comida = (kg) => ({ r: r3(kg), c: r3(kg * K.CO2_KG_COMIDA) });
 /** kg de orgánico fuera del relleno. */
 export const organico = (kg) => ({ r: r3(kg), c: r3(kg * K.CO2_KG_ORGANICO) });
 /** kg de plástico que no se usó. */
 export const plastico = (kg) => ({ r: r3(kg), c: r3(kg * K.CO2_KG_PLASTICO) });
 /** kg de reciclables que vuelven al circuito. */
 export const reciclable = (kg) => ({ r: r3(kg), c: r3(kg * K.CO2_KG_RECICLABLE) });
-/** Prendas que no se fabricaron (equivalente remera). */
-export const prendas = (n) => ({ w: n * K.AGUA_REMERA, c: r3(n * K.CO2_REMERA), r: r3(n * 0.2) });
+/** Prendas que no se fabricaron (equivalente remera, con el reemplazo real). */
+export const prendas = (n) => ({ c: r3(n * K.CO2_PRENDA), r: r3(n * K.RESIDUO_PRENDA) });
 /** Nada medible: aprender, observar, organizar. */
 export const nada = () => ({});
 
@@ -116,6 +125,9 @@ function base(tipo, slug, titulo, o) {
     rango: o.rango ?? 'semilla',
     hereda: o.hereda ?? [],
     otorga: o.otorga ?? null,
+    // [categoría, subcategoría | null, texto]: la acción necesita un producto
+    // y el Mercado lo tiene (02 §6.1). Sólo acciones de sustitución.
+    mercado: o.mercado ?? null,
   };
 }
 
