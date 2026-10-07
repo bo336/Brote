@@ -30,6 +30,9 @@ const NOT_SCORE_RELATED = [
   'feed-pulse',
   'catalog',
   'ai-recs',
+  // "Más acciones" / "Para vos": lo que hiciste tiene que quedar a la vista,
+  // tachado, no desaparecer de la lista apenas lo marcás.
+  'sugeridas',
   'mercado',
   'mundo-enabled',
 ];

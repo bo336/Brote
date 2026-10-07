@@ -71,6 +71,33 @@ export function celebrateCompletion(result: CompleteActivityResult) {
     }
   }
 
+  // Caminos (0123): en qué paso vas, o el premio por terminarlo.
+  if (result.camino) {
+    const c = result.camino;
+    if (c.completado) {
+      toast.show({
+        variant: 'success',
+        glyph: '🧭',
+        title: '¡Terminaste un camino!',
+        description: `${c.titulo_es}${c.puntos ? ` · +${c.puntos} pts` : ''}`,
+        durationMs: 5000,
+      });
+    } else if (c.total > 0) {
+      toast.show({ variant: 'default', glyph: '🧭', title: c.titulo_es, description: `Llevás ${c.hechos} de ${c.total} pasos del camino.` });
+    }
+  }
+  // Lo que esta acción dejó armado abre acciones nuevas (una compostera, una huerta).
+  if (result.otorga === 'compost' || result.otorga === 'huerta') {
+    const { profile: p } = useSession.getState();
+    if (p) setProfile({ ...p, context: { ...(p.context ?? {}), [result.otorga]: true } });
+    toast.show({
+      variant: 'default',
+      glyph: result.otorga === 'compost' ? '🪱' : '🥬',
+      title: result.otorga === 'compost' ? 'Tu compost abrió acciones nuevas' : 'Tu huerta abrió acciones nuevas',
+      description: 'Desde mañana te van a aparecer en tu día.',
+    });
+  }
+
   const events: Parameters<typeof enqueue>[0] = [];
   // World completion leads the queue — it's the flagship moment.
   if (result.world_completed) {

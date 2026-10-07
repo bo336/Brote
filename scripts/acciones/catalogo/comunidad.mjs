@@ -1,0 +1,166 @@
+// Comunidad — el barrio, la escuela, el trabajo, el edificio: lo que se hace con otros.
+import { d, c, nada, medida, por } from '../dsl.mjs';
+
+const dom = 'comunidad';
+
+export default [
+  // ── Del día ────────────────────────────────────────────────────────────────
+  d('recoge-un-poco-de-basura-que-viste-en-la-calle', 'Levantá basura de la calle y tirala al cesto', {
+    dom, e: 'easy', i: 'medium', min: 5, lugar: 'calle', adulto: true,
+    corto: 'Levantar lo que ves rompe la señal de que ahí se puede tirar.',
+    desc: 'Una botella, un paquete o una colilla en la vereda terminan en la alcantarilla y en el río con la primera lluvia. Levantar unas cuantas cosas camino a algún lado (con una bolsa o guantes) mejora tu cuadra y contagia.',
+    pasos: ['Llevá una bolsa (y guantes, si tenés).', 'Levantá lo que veas en tu camino: botellas, paquetes, latas.', 'Tiralo al cesto o separá lo reciclable.'],
+    
+    tags: ['basura', 'barrio', 'chicos'],
+  }),
+  d('com-dengue-descacharrado', 'Vaciá todo lo que junta agua en tu casa', {
+    dom, e: 'easy', i: 'high', min: 10, est: ['primavera', 'verano', 'otono'], rut: true,
+    corto: 'Sin agua estancada no hay mosquitos del dengue: es lo más efectivo que hay.',
+    desc: 'El mosquito del dengue pone sus huevos en agua limpia acumulada en recipientes: platos de macetas, baldes, botellas, cubiertas, canaletas. El Ministerio de Salud recomienda "descacharrar" al menos una vez por semana. Es la prevención más efectiva, y protege a todo el barrio.',
+    pasos: ['Recorré patio, balcón y terraza buscando recipientes con agua.', 'Vaciá, dá vuelta o tirá lo que no uses (platos de macetas, baldes, botellas).', 'Cambiá el agua de bebederos y floreros y tapá tanques.'],
+    ef: nada(), fuente: 'msal-dengue', tags: ['dengue', 'salud', 'barrio'],
+  }),
+  d('com-vecino-mayor-calor', 'En días de mucho calor, fijate cómo está tu vecino mayor', {
+    dom, e: 'easy', i: 'medium', min: 5, est: ['verano'], adulto: true,
+    corto: 'En una ola de calor, las personas mayores que viven solas son las más expuestas.',
+    desc: 'El calor extremo es un riesgo real para personas mayores, sobre todo si viven solas. Tocar el timbre, preguntar si necesita algo, si tiene agua fresca o si se cortó la luz, es cuidado comunitario frente al clima.',
+    pasos: ['Pensá en un vecino o familiar mayor que viva solo.', 'Llamalo o tocá el timbre.', 'Preguntale si necesita agua, algo de la farmacia o ayuda.'],
+    ef: nada(), tags: ['calor', 'verano', 'barrio', 'solidario'], hereda: ['com-ayuda-a-un-vecino-mayor'],
+  }),
+
+  // ── Catálogo ───────────────────────────────────────────────────────────────
+  c('organiza-o-sumate-a-una-limpieza-del-barrio', 'Sumate a una limpieza de la plaza, el arroyo o el barrio', {
+    dom, e: 'medium', i: 'high', min: 120, formato: 'social', edad: 'kta', adulto: true, lugar: 'naturaleza', cool: 720,
+    corto: 'Un espacio limpio se mantiene limpio mucho más tiempo.',
+    desc: 'Escuelas, clubes, ONG y vecinos organizan jornadas de limpieza en plazas, costas y arroyos; el Día Mundial de la Limpieza es en septiembre. Sumarte una mañana es dejar un lugar mejor y conocer gente del barrio que se ocupa.',
+    pasos: ['Buscá una jornada en tu municipio, escuela u organizaciones (o armala con amigos).', 'Llevá guantes, bolsas y agua.', 'Separá lo reciclable y contá cuántas bolsas juntaron.'],
+    
+    tags: ['basura', 'grupo', 'barrio'],
+  }),
+  c('crea-o-sumate-a-un-grupo-ambiental-local', 'Sumate a un grupo ambiental de tu zona', {
+    dom, e: 'medium', i: 'high', min: 90, formato: 'social', edad: 'ta', frec: 'one_time',
+    corto: 'Lo que no se sostiene en soledad se sostiene en grupo.',
+    desc: 'En casi todas las ciudades hay asambleas, ONG, grupos de vecinos o de jóvenes que trabajan por un arroyo, una reserva, el arbolado o el reciclaje. Ir a una reunión es la forma de pasar de acciones sueltas a cambios del lugar donde vivís.',
+    pasos: ['Buscá grupos ambientales de tu ciudad (redes, municipio, universidades).', 'Andá a una reunión o una actividad abierta.', 'Elegí una tarea concreta para sumarte.'],
+    ef: nada(), tags: ['grupo', 'barrio'],
+  }),
+  c('escribi-a-un-representante-por-un-tema-ambiental', 'Escribile a un concejal o legislador por un tema ambiental', {
+    dom, e: 'medium', i: 'high', min: 30, formato: 'social', edad: 'a', lugar: 'celular', cool: 2160,
+    corto: 'Muy poca gente escribe, así que cada mensaje pesa más de lo que parece.',
+    desc: 'Un pedido concreto (una ciclovía, más arbolado, recolección diferenciada, proteger un humedal) enviado al concejo deliberante o a un legislador, con datos y propuesta, entra en la agenda. Muchos concejos tienen además una "banca del vecino" para presentar ideas.',
+    pasos: ['Elegí un tema concreto de tu ciudad.', 'Escribí un mensaje corto: qué pasa, qué proponés y por qué.', 'Mandalo al concejal o legislador por mail o por la web del concejo.'],
+    ef: nada(), fuente: 'ley-25675-ambiente', tags: ['participacion'], hereda: ['junta-firmas-por-ciclovias-o-espacios-verdes'],
+  }),
+  c('com-presupuesto-participativo', 'Votá o proponé un proyecto verde en el presupuesto participativo', {
+    dom, e: 'easy', i: 'high', min: 20, formato: 'social', edad: 'ta', cool: 4320,
+    corto: 'Muchos municipios dejan que los vecinos decidan en qué se gasta una parte del presupuesto.',
+    desc: 'Rosario, Córdoba, la Ciudad de Buenos Aires y muchos municipios tienen presupuesto participativo: los vecinos proponen y votan obras. Una plaza, árboles, una bicisenda o un punto verde pueden salir de ahí.',
+    pasos: ['Averiguá si tu municipio tiene presupuesto participativo y cuándo se vota.', 'Mirá los proyectos ambientales propuestos o proponé uno.', 'Votá y contale a tus vecinos.'],
+    ef: nada(), tags: ['participacion', 'barrio'],
+  }),
+  c('dicta-un-taller-o-charla-ambiental', 'Enseñá algo que sabés hacer en un taller', {
+    dom, e: 'hard', i: 'high', min: 120, formato: 'social', edad: 'ta', rango: 'brote', cool: 2160,
+    corto: 'Enseñar algo es la forma más rápida de multiplicarlo.',
+    desc: 'Compostar, armar una huerta, reparar ropa, separar bien o andar en bici: lo que vos sabés hacer, otros quieren aprenderlo. Una charla en la escuela, el club, la biblioteca o la plaza llega a mucha gente.',
+    pasos: ['Elegí algo que sepas hacer bien.', 'Proponé un taller corto en una escuela, club, biblioteca o grupo de vecinos.', 'Prepará algo práctico para que todos hagan con las manos.'],
+    ef: nada(), tags: ['taller', 'compartir'],
+  }),
+  c('organiza-un-cafe-de-reparacion-comunitario', 'Organizá una jornada de reparación en el barrio', {
+    dom, e: 'hard', i: 'high', min: 180, formato: 'social', edad: 'a', rango: 'plantula', cool: 2160,
+    corto: 'La mayoría de lo que se tira sólo necesita un tornillo, una costura o una soldadura.',
+    desc: 'Un "café de reparación" junta vecinos que saben arreglar (ropa, electrodomésticos, bicis, muebles) con vecinos que traen cosas rotas. Se arregla gratis, se aprende y se evita tirar.',
+    pasos: ['Conseguí un lugar (club, biblioteca, centro comunitario).', 'Sumá a vecinos que sepan arreglar cosas.', 'Difundí el día y armá mesas por tipo de arreglo.'],
+    ef: nada(), tags: ['arreglo', 'grupo', 'barrio'],
+  }),
+  c('arma-una-biblioteca-de-herramientas-o-de-semilla', 'Armá una biblioteca de herramientas o de semillas', {
+    dom, e: 'hard', i: 'high', min: 180, formato: 'social', edad: 'a', rango: 'plantula', frec: 'one_time',
+    corto: 'Una sola máquina puede servir a veinte casas.',
+    desc: 'En un edificio, un club o una biblioteca popular, una caja de herramientas compartidas (taladro, escalera, pinza) o un banco de semillas evita que cada casa compre lo que usa una vez por año.',
+    pasos: ['Elegí un lugar y una persona responsable.', 'Juntá herramientas o semillas donadas y armá un registro de préstamos.', 'Difundilo entre vecinos.'],
+    ef: nada(), tags: ['prestar', 'grupo', 'semillas'],
+  }),
+  c('com-mapea-los-puntos-verdes', 'Mapeá los puntos de reciclaje de tu barrio', {
+    dom, e: 'easy', i: 'medium', min: 30, formato: 'aprender', edad: 'ta', frec: 'one_time',
+    corto: 'Mucha gente no separa simplemente porque no sabe dónde llevar las cosas.',
+    desc: 'Puntos verdes, contenedores de pilas, de aceite, de electrónicos, cooperativas, campañas de tapitas: armá un mapa o una lista con los de tu zona y compartila en el grupo del edificio o del barrio.',
+    pasos: ['Buscá en la web del municipio y preguntá a vecinos dónde se recibe cada cosa.', 'Armá una lista o un mapa simple.', 'Compartilo en el grupo del edificio, la escuela o el barrio.'],
+    ef: nada(), tags: ['reciclaje', 'barrio', 'compartir'],
+  }),
+  c('com-reportar-basural', 'Reportá un basural o un microbasural', {
+    dom, e: 'easy', i: 'high', min: 15, formato: 'social', edad: 'ta', lugar: 'calle', cool: 720,
+    corto: 'Denunciarlo suele ser lo que hace que se limpie.',
+    desc: 'Los basurales a cielo abierto y los microbasurales en esquinas y baldíos contaminan, atraen roedores y se queman. Reportarlos al municipio con la ubicación y una foto, y volver a insistir, es lo que más funciona para que se limpien.',
+    pasos: ['Sacá una foto y anotá la ubicación exacta.', 'Reportalo al municipio por su app, web o teléfono.', 'Guardá el número de reclamo y volvé a preguntar si no se resuelve.'],
+    ef: nada(), fuente: 'basurales-ar', tags: ['basura', 'barrio', 'participacion'],
+  }),
+  c('com-pedir-cesto', 'Pedile al municipio un cesto donde falta', {
+    dom, e: 'easy', i: 'medium', min: 10, formato: 'social', edad: 'ta', lugar: 'calle', cool: 2160,
+    corto: 'Sin cesto, la basura queda en el piso.',
+    desc: 'Una parada de colectivo, la puerta de una escuela o una esquina con comercios sin cesto se llenan de basura. Pedirlo al municipio con la ubicación es un reclamo simple que muchas veces se resuelve.',
+    pasos: ['Identificá un lugar con mucha basura y sin cesto.', 'Pedilo por el canal de reclamos del municipio, con la ubicación.'],
+    ef: nada(), tags: ['basura', 'barrio', 'participacion'],
+  }),
+  c('com-avisar-luminaria', 'Reportá una luz de la calle prendida de día', {
+    dom, e: 'easy', i: 'medium', min: 5, formato: 'social', edad: 'ta', lugar: 'calle', cool: 720,
+    corto: 'El alumbrado prendido de día es energía tirada que pagan todos.',
+    desc: 'Una fotocélula rota deja un poste prendido las 24 horas. Avisar al municipio o a la distribuidora con la dirección exacta es un minuto y ahorra semanas de luz.',
+    pasos: ['Anotá la dirección del poste.', 'Reportalo por el canal de reclamos del municipio o la distribuidora eléctrica.'],
+    ef: nada(), tags: ['energia', 'barrio', 'participacion'],
+  }),
+  c('com-ayudar-vecino-reciclar', 'Ayudá a alguien de tu edificio o tu cuadra a separar', {
+    dom, e: 'easy', i: 'high', min: 15, formato: 'social', edad: 'ta', cool: 720,
+    corto: 'Mucha gente no separa porque no sabe cómo ni dónde llevarlo.',
+    desc: 'Explicarle a un vecino qué va en cada bolsa, qué día pasa el camión o dónde está el punto verde, con buena onda y sin sermón, suma una casa más que separa todos los días.',
+    pasos: ['Elegí a alguien con quien tengas confianza.', 'Contale cómo separás vos y dónde lo llevás.', 'Pasale la lista de días o puntos verdes.'],
+    ef: nada(), tags: ['reciclaje', 'barrio', 'compartir'],
+  }),
+  c('com-llevalo-al-consorcio', 'Llevá una propuesta ambiental al consorcio', {
+    dom, e: 'medium', i: 'high', min: 60, formato: 'social', req: ['edificio'], edad: 'a', cool: 4320,
+    corto: 'Un edificio decide de una vez lo que cuarenta casas discuten por separado.',
+    desc: 'Separación de reciclables en la planta baja, sensores de movimiento en los pasillos, una compostera común, revisar pérdidas de agua del edificio o regar con agua de lluvia: en la reunión de consorcio, una propuesta concreta con costos suele salir.',
+    pasos: ['Elegí una propuesta concreta y averiguá cuánto cuesta (muchas cuestan poco o ahorran).', 'Hablalo antes con algunos vecinos.', 'Presentala en la reunión de consorcio o al administrador.'],
+    ef: nada(), tags: ['edificio', 'participacion'], hereda: ['com-arreglar-algo-comun'],
+  }),
+  c('com-proponer-en-el-trabajo', 'Proponé una mejora ambiental en tu trabajo', {
+    dom, e: 'medium', i: 'high', min: 30, formato: 'social', req: ['trabajo'], edad: 'a', cool: 2160,
+    corto: 'Un cambio en un lugar de trabajo vale por el de cientos de casas.',
+    desc: 'Separar residuos, dejar de comprar vasos descartables, apagar equipos de noche, imprimir menos o ajustar el aire: en una oficina, un local o una fábrica, una propuesta concreta tiene mucho más alcance que un gesto individual.',
+    pasos: ['Elegí un cambio concreto y fácil de empezar.', 'Calculá qué ahorra (plata, papel, luz).', 'Proponelo a quien decide, con un plan simple.'],
+    ef: nada(), tags: ['trabajo', 'participacion'],
+  }),
+  c('com-propone-el-tema-en-la-escuela', 'Llevá una propuesta ambiental a tu escuela', {
+    dom, e: 'medium', i: 'high', min: 30, formato: 'social', req: ['estudio'], edad: 'kt', lugar: 'escuela', cool: 2160,
+    corto: 'Una escuela que cambia arrastra a cientos de familias.',
+    desc: 'Separar en las aulas, una huerta, un kiosco sin descartables, juntar tapitas o papel, apagar luces en los recreos: con tu curso, proponelo a tu docente o al centro de estudiantes. Muchas de las campañas más grandes empezaron así.',
+    pasos: ['Con tu curso, elijan una propuesta concreta.', 'Preséntenla a la docente, la dirección o el centro de estudiantes.', 'Armen un equipo para llevarla adelante.'],
+    ef: nada(), tags: ['escuela', 'participacion', 'chicos'],
+  }),
+  c('com-adopta-una-plaza', 'Adoptá una plaza o un cantero', {
+    dom, e: 'medium', i: 'medium', min: 60, formato: 'social', edad: 'kta', adulto: true, lugar: 'naturaleza', cool: 2160,
+    corto: 'Un espacio con alguien a cargo se mantiene; uno de todos se abandona.',
+    desc: 'Con vecinos o con tu escuela, hacerse cargo de un cantero, un árbol o un rincón de la plaza (regarlo, limpiarlo, plantar nativas, avisar al municipio cuando algo se rompe) lo transforma. Muchos municipios tienen programas de padrinazgo.',
+    pasos: ['Elegí un cantero o rincón descuidado cerca.', 'Averiguá si el municipio tiene un programa de padrinazgo.', 'Armá un grupo y turnos para cuidarlo.'],
+    ef: nada(), tags: ['plaza', 'barrio', 'grupo'],
+  }),
+  c('com-organiza-una-salida-a-la-naturaleza', 'Organizá una salida a una reserva o un parque', {
+    dom, e: 'easy', i: 'medium', min: 180, formato: 'social', edad: 'kta', adulto: true, lugar: 'naturaleza', dias: 'finde', cool: 720,
+    corto: 'Nadie cuida un lugar en el que nunca estuvo.',
+    desc: 'Una salida con amigos o en familia a una reserva natural, un parque nacional o provincial, un humedal o una costa es la mejor forma de que lo verde deje de ser abstracto. Muchas reservas tienen visitas guiadas gratuitas.',
+    pasos: ['Elegí una reserva o un parque cercano (muchos son gratuitos).', 'Invitá a amigos o a tu familia.', 'Llevá agua, comida sin descartables y volvé con tu basura.'],
+    ef: nada(), fuente: 'parques-nacionales', tags: ['naturaleza', 'familia', 'reserva'],
+  }),
+  c('com-cartelera-barrio', 'Dejá un dato útil en la cartelera del edificio o el barrio', {
+    dom, e: 'easy', i: 'medium', min: 15, formato: 'social', edad: 'kta', cool: 720,
+    corto: 'Un papel bien puesto llega a mucha gente que no está en ningún grupo.',
+    desc: 'Los días de recolección de reciclables, el punto verde más cercano, la campaña de tapitas o cómo descacharrar contra el dengue: un cartel claro en la cartelera del edificio, el almacén o la escuela llega a quienes no se enteran por redes.',
+    pasos: ['Elegí un dato útil y concreto.', 'Hacé un cartel claro y corto.', 'Pedí permiso y pegalo en la cartelera del edificio, el almacén o la escuela.'],
+    ef: nada(), tags: ['barrio', 'compartir', 'chicos'],
+  }),
+  c('hace-voluntariado-en-restauracion-de-habitats', 'Hacé voluntariado en una reserva natural', {
+    dom, e: 'medium', i: 'high', min: 240, formato: 'social', edad: 'ta', lugar: 'naturaleza', cool: 720,
+    corto: 'Restaurar es más lento que conservar, pero recupera lo que ya se perdió.',
+    desc: 'Muchas reservas urbanas y provinciales reciben voluntarios para plantar nativas, sacar invasoras, limpiar costas o guiar visitas. Es aprender de quienes saben y ver el resultado con el tiempo.',
+    pasos: ['Buscá reservas o parques cerca que reciban voluntarios.', 'Anotate en una jornada.', 'Llevá ropa cómoda, guantes y agua.'],
+    ef: nada(), fuente: 'vida-silvestre', tags: ['voluntariado', 'reserva', 'nativas'],
+  }),
+];

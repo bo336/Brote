@@ -11,23 +11,27 @@ import { MiRutina } from '@/components/inicio/MiRutina';
 import { SeguiEnBrote } from '@/components/inicio/SeguiEnBrote';
 import { RetoDelDia } from '@/components/inicio/RetoDelDia';
 import { ParaVos } from '@/components/inicio/ParaVos';
+import { ContanosDeTuCasa } from '@/components/inicio/ContanosDeTuCasa';
+import { HojaAccion } from '@/components/acciones/HojaAccion';
 import { LinkRow } from '@/components/ui/link-row';
 import { Pip } from '@/components/pip/Pip';
 import { useSession } from '@/stores/session';
 import { greetingKey } from '@/lib/utils/dates';
 import { isStreakAtRisk } from '@/lib/streak';
-import { useDailySet, useTodayCompletions, useDailyPool, useCompleteActivity } from '@/hooks/use-daily-set';
+import { useTodayCompletions, useCompleteActivity } from '@/hooks/use-daily-set';
+import { useAccionesDeHoy, useCambiarAccion, useSugeridas } from '@/hooks/use-acciones';
 import { fetchProjects } from '@/lib/api/plaza';
 import { parseImpact } from '@/lib/impact';
 import type { ConImpacto } from '@/lib/inicio/impacto';
 import type { Habit } from '@/lib/api/competencias';
-import type { ActivityRow } from '@/lib/supabase/rows';
+import type { AccionConRazon } from '@/lib/api/acciones';
 import type { CompleteActivityResult } from '@/lib/types';
+import type { MotivoCambio } from '@/lib/acciones/reglas';
 import { cn } from '@/lib/utils/cn';
 
-type Accion = ActivityRow & ConImpacto;
+type Accion = AccionConRazon & ConImpacto;
 
-/** How many extra daily actions the "más" row offers (the pool has ~180). */
+/** How many extra daily actions the "más" row offers (the pool has ~170). */
 const EXTRAS = 6;
 
 /**
@@ -57,13 +61,15 @@ export default function InicioPage() {
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
 
-  const dailySet = useDailySet();
+  const dia = useAccionesDeHoy();
   const completions = useTodayCompletions();
-  const pool = useDailyPool();
+  const masQ = useSugeridas('daily', EXTRAS);
   const complete = useCompleteActivity();
+  const cambiarM = useCambiarAccion();
 
   const [ultima, setUltima] = useState<Accion | null>(null);
   const [pendiente, setPendiente] = useState<string | null>(null);
+  const [abierta, setAbierta] = useState<Accion | null>(null);
 
   // Real count, so the row never claims projects that are not there.
   const projectsQ = useQuery({
@@ -92,7 +98,7 @@ export default function InicioPage() {
     return s.charAt(0).toUpperCase() + s.slice(1);
   }, []);
 
-  const set = useMemo(() => (dailySet.data ?? []) as Accion[], [dailySet.data]);
+  const set = useMemo(() => (dia.data?.acciones ?? []) as Accion[], [dia.data]);
   const done = useMemo(() => completions.data ?? new Set<string>(), [completions.data]);
   const hechas = set.filter((a) => done.has(a.id)).length;
   const total = set.length;
@@ -100,17 +106,13 @@ export default function InicioPage() {
   const racha = profile?.currentStreak ?? 0;
   const atRisk = isStreakAtRisk(profile?.lastStreakDate ?? null, racha);
 
-  // A handful of extra daily actions: the ones already done today first (so
-  // they stay visible), then the person's topics, then the catalogue order.
-  const extra = useMemo(() => {
-    const intereses = new Set(profile?.interests ?? []);
-    return ((pool.data ?? []) as Accion[])
-      .filter((a) => !set.some((s) => s.id === a.id))
-      .map((a, i) => ({ a, k: (done.has(a.id) ? 0 : 2) + (intereses.has(a.domain_slug) ? 0 : 1), i }))
-      .sort((x, y) => x.k - y.k || x.i - y.i)
-      .slice(0, EXTRAS)
-      .map((x) => x.a);
-  }, [pool.data, set, done, profile?.interests]);
+  // A handful of extra daily actions, picked by the server with the same rules
+  // as the day (age, context, season, what was swapped away). The list is not
+  // refetched on each completion, so what was done stays visible, ticked.
+  const extra = useMemo(
+    () => ((masQ.data ?? []) as Accion[]).filter((a) => !set.some((s) => s.id === a.id)),
+    [masQ.data, set],
+  );
 
   // What "Antes de cerrar" talks about: the action just marked, or — coming
   // back later the same day — one that was done earlier.
@@ -126,18 +128,23 @@ export default function InicioPage() {
     return { ...base, impact_water_l: p.water_l, impact_co2_kg: p.co2_kg, impact_waste_kg: p.waste_kg, impact_energy_kwh: p.energy_kwh };
   }
 
-  function completar(a: Accion) {
+  function completar(a: Accion, cantidad?: number) {
     if (done.has(a.id) || complete.isPending) return;
     setPendiente(a.id);
     complete.mutate(
-      { activityId: a.id },
+      { activityId: a.id, cantidad: cantidad ?? null },
       {
         onSuccess: (res) => {
           if (res.status === 'honor' || res.status === 'verified') setUltima(conImpactoReal(a, res));
+          setAbierta(null);
         },
         onSettled: () => setPendiente(null),
       },
     );
+  }
+
+  function cambiar(a: Accion, motivo: MotivoCambio, contexto?: string | null) {
+    return cambiarM.mutateAsync({ activityId: a.id, motivo, contexto });
   }
 
   function completarHabito(h: Habit) {
@@ -161,7 +168,7 @@ export default function InicioPage() {
   }
 
   const nombre = profile?.displayName ? `, ${profile.displayName.split(' ')[0]}` : '';
-  const estado = dailySet.isLoading
+  const estado = dia.isLoading
     ? tp('homeGreeting')
     : atRisk && hechas === 0
       ? t('estado.enRiesgo', { n: racha })
@@ -199,9 +206,32 @@ export default function InicioPage() {
       <ImpactoReal />
 
       <div className="space-y-3">
-        <AccionesDeHoy set={set} extra={extra} done={done} loading={dailySet.isLoading} onComplete={completar} />
+        <AccionesDeHoy
+          set={set}
+          extra={extra}
+          done={done}
+          loading={dia.isLoading}
+          onComplete={completar}
+          onAbrir={setAbierta}
+          efemeride={dia.data?.efemeride ?? null}
+        />
         <AntesDeCerrar ultima={contexto} reciente={!!ultima} hechasHoy={done.size} completo={completo} />
+        <ContanosDeTuCasa />
       </div>
+
+      <HojaAccion
+        accion={abierta}
+        open={!!abierta}
+        onOpenChange={(v) => !v && setAbierta(null)}
+        hecha={!!abierta && done.has(abierta.id)}
+        completando={!!abierta && pendiente === abierta.id}
+        cambiable={!!abierta && set.some((s) => s.id === abierta.id) && !done.has(abierta.id)}
+        cambiosRestantes={dia.data?.cambiosRestantes ?? 0}
+        efemeride={dia.data?.efemeride ?? null}
+        esChico={profile?.accountType === 'kid'}
+        onCompletar={(a, cantidad) => completar(a as Accion, cantidad)}
+        onCambiar={(a, motivo, ctx) => cambiar(a as Accion, motivo, ctx)}
+      />
 
       <MiRutina onDo={completarHabito} pendingId={pendiente} />
 

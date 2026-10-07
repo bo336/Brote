@@ -181,7 +181,9 @@
       "extrasHechas": "{n, plural, one {# hecha} other {# hechas}}",
       "hechaAria": "{titulo}: hecha",
       "marcarAria": "Marcar como hecha: {titulo}",
-      "sumaste": "sumaste {v}"
+      "sumaste": "sumaste {v}",
+      "detalleAria": "Ver qué es y cómo se hace: {titulo}",
+      "medirAria": "Contar cuánto y marcar: {titulo}"
     },
     "antes": {
       "diaCompleto": "¡Cerraste el día!",
@@ -3542,7 +3544,8 @@
     "puente": {
       "titulo": "Dónde conseguirlo",
       "ayuda": "Estas acciones se hacen más fáciles con buenos proveedores. Estos negocios están en el programa de Brote.",
-      "ver": "Ver más en el Mercado",
+      "boton": "Buscalo en el Mercado",
+      "cuantos": "{n, plural, one {# opción} other {# opciones}}",
       "aclaracion": "Comprar no suma puntos. Brote no vende ni intermedia: cada listado lleva al sitio del comercio."
     },
     "plaza": {
