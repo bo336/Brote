@@ -306,3 +306,13 @@ puntos. Lo decide `mercado_para_accion` (0123) en la base.
   contexto `secarropas`; historia recalculada en 0124; "Regá tu mundo" fuera
   de los totales. 43 acciones con botón al Mercado (§6c), sólo adultos.
   420 acciones, 39 tests propios, 633 en total, build ok, PGlite ok.
+- 2026-10-12 — Aplicadas en la base viva (OK del dueño): 0123 en 5 tandas, 0124 en 12
+  (las filas pasan por una tabla de paso y se vuelcan de una vez) y 0125. El
+  catálogo vivo coincide con `catalogo.json` fila por fila (huella idéntica).
+  Totales de impacto de lo ya hecho: de 98.056 L / 3.787 kg CO₂ / 86 kg residuos /
+  8.314 kWh a 1.639 L / 40 kg CO₂ / 10 kg / 46 kWh. 421 activas (420 + la jornada
+  interna), 0 rutinas y 0 puentes sobre acciones dadas de baja. Dos pasos con
+  "Regalo"/"Regala" en vez de "Regá" corregidos en la fuente.
+  **Pendiente (no urgente):** fijar `search_path` en `brote_region`, `brote_estacion`,
+  `brote_efemeride` y `brote_contexto_tiene` (aviso del linter; no son invocables
+  por nadie de afuera).

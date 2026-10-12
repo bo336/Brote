@@ -40,7 +40,7 @@ export default [
     dom, e: 'medium', i: 'high', min: 60, req: ['jardin'], est: plantar, edad: 'kta', adulto: true, cool: 4320,
     corto: 'Un árbol nativo sostiene mucha más vida que uno exótico, y está hecho para tu clima.',
     desc: 'Lapacho, jacarandá, tipa, ceibo, algarrobo, chañar, molle, timbó: cada región tiene sus árboles. Uno nativo da sombra, refugio y alimento a aves e insectos que evolucionaron con él, y pide menos riego. El mejor momento para plantar es de otoño a principios de primavera.',
-    pasos: ['Averiguá qué árboles nativos son de tu ecorregión (y cuánto crecen).', 'Hacé un pozo del doble del pan de tierra y plantalo con compost.', 'Regalo seguido el primer año, sobre todo en verano.'],
+    pasos: ['Averiguá qué árboles nativos son de tu ecorregión (y cuánto crecen).', 'Hacé un pozo del doble del pan de tierra y plantalo con compost.', 'Regá seguido el primer año, sobre todo en verano.'],
     fuente: 'plantas-nativas', tags: ['arbol', 'nativas'],
     mercado: ['jardin-y-huerta', 'semillas-y-plantines', 'Viveros con árboles nativos de tu zona. Estos negocios están en el programa de Brote.'],
   }),
@@ -221,7 +221,7 @@ export default [
     dom, e: 'easy', i: 'low', min: 15, edad: 'kta', cool: 2160,
     corto: 'Una planta adentro mejora el ánimo y te conecta con lo vivo todos los días.',
     desc: 'Potus, sansevierias, helechos o una suculenta en la ventana: una planta de interior es fácil de cuidar y es una forma de empezar si nunca tuviste plantas. Mejor de esqueje o regalada que comprada.',
-    pasos: ['Pedí un gajo de potus o de alguna planta fácil, o elegí una en un vivero.', 'Ponela cerca de una ventana con luz indirecta.', 'Regala sólo cuando la tierra esté seca.'],
+    pasos: ['Pedí un gajo de potus o de alguna planta fácil, o elegí una en un vivero.', 'Ponela cerca de una ventana con luz indirecta.', 'Regá sólo cuando la tierra esté seca.'],
     ef: nada(), tags: ['interior', 'chicos'], hereda: ['aire-plantas-de-interior'],
   }),
   c('pla-planta-en-la-escuela', 'Plantá algo en la escuela con tu curso', {
