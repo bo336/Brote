@@ -36,6 +36,30 @@ export interface ActivityRow {
   sort_order: number;
   /** Only a curated subset may be pinned as a daily routine (F14.5). */
   routine_eligible?: boolean;
+  // ── Acciones v2 (0123): opcionales, para no romper filas viejas en caché ──
+  age_groups?: string[];
+  formato?: string;
+  minutos?: number;
+  costo?: 'gratis' | 'bajo';
+  ahorra?: boolean;
+  requiere?: string[];
+  lugar?: string;
+  estaciones?: string[];
+  dias?: 'habil' | 'finde' | null;
+  regiones?: string[];
+  con_adulto?: boolean;
+  medida?: import('@/lib/acciones/presentar').Medida | null;
+  fuente?: string | null;
+  fuente_url?: string | null;
+  camino_slug?: string | null;
+  camino_paso?: number | null;
+  tags?: string[];
+  otorga?: string | null;
+  repeat_cooldown_hours?: number;
+  impact_water_l?: number | string | null;
+  impact_co2_kg?: number | string | null;
+  impact_waste_kg?: number | string | null;
+  impact_energy_kwh?: number | string | null;
 }
 
 export interface CompletionRow {

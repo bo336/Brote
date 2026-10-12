@@ -1,5 +1,6 @@
 'use client';
 
+import { ContextoChips, contextoRespondido } from '@/components/acciones/ContextoChips';
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -37,15 +38,6 @@ import type { ActivityRow } from '@/lib/supabase/rows';
 const STEPS = 7;
 const FOLLOW_STEP = 3;
 
-interface Ctx {
-  balcon: boolean;
-  jardin: boolean;
-  auto: boolean;
-  bici: boolean;
-  mascota: boolean;
-  /** How they usually shop for food — personalizes seasonal/local recs. */
-  compra: 'super' | 'mixto' | 'local' | null;
-}
 
 export function OnboardingFlow({ initialName }: { initialName: string }) {
   const t = useTranslations('onboarding');
@@ -57,7 +49,8 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   const [city, setCity] = useState('');
   const [otherCity, setOtherCity] = useState('');
   const [interests, setInterests] = useState<Set<string>>(new Set());
-  const [ctx, setCtx] = useState<Ctx>({ balcon: false, jardin: false, auto: false, bici: false, mascota: false, compra: null });
+  // "Tu casa y tu día" (docs/ACCIONES.md §3) + cómo compra la comida.
+  const [ctx, setCtx] = useState<Record<string, unknown>>({});
   const [suggested, setSuggested] = useState<SocialAccount[] | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState(false);
@@ -65,17 +58,21 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
   const [actionDone, setActionDone] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  // Preload an easy first daily action for the final step.
+  // The first action is one anybody can do right now, from the sofa, at any
+  // age: unplug the chargers left alone. Falls back to any easy daily one.
   useEffect(() => {
-    createClient()
+    const supabase = createClient();
+    supabase
       .from('activities')
       .select('*')
-      .eq('type', 'daily')
-      .eq('effort', 'easy')
-      .order('sort_order')
-      .limit(1)
+      .eq('slug', 'energia-desenchufar-cargadores')
+      .eq('active', true)
       .maybeSingle()
-      .then(({ data }) => setFirstAction((data as ActivityRow | null) ?? null));
+      .then(async ({ data }) => {
+        if (data) return setFirstAction(data as ActivityRow);
+        const r = await supabase.from('activities').select('*').eq('type', 'daily').eq('effort', 'easy').eq('active', true).order('sort_order').limit(1).maybeSingle();
+        setFirstAction((r.data as ActivityRow | null) ?? null);
+      });
   }, []);
 
   const isKid = accountType === 'kid';
@@ -117,7 +114,8 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
     });
   }
 
-  function persist() {
+  /** `contexto`: sólo cuando contestó el paso 4 (saltearlo no marca todo como "no"). */
+  function persist(contexto?: Record<string, unknown>) {
     const resolvedCity = city === OTHER_CITY ? otherCity : city;
     startTransition(async () => {
       await saveOnboardingProfile({
@@ -125,7 +123,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
         city: resolvedCity,
         accountType,
         interests: Array.from(interests),
-        context: ctx as unknown as Record<string, unknown>,
+        ...(contexto ? { context: contexto } : {}),
       });
     });
   }
@@ -143,7 +141,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
       setStep(isKid ? FOLLOW_STEP + 1 : FOLLOW_STEP);
       return;
     }
-    if (current === 4) persist(); // save the context before showing the world
+    if (current === 4) persist(contextoRespondido(ctx, accountType)); // save the context before showing the world
     setStep((s) => Math.min(STEPS - 1, s + 1));
   }
 
@@ -391,12 +389,8 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
             {step === 4 && (
               <div className="flex flex-1 flex-col">
                 <StepTitle pip="happy" title={t('contextTitle')} subtitle={t('contextHelp')} />
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {(['balcon', 'jardin', 'auto', 'bici', 'mascota'] as const).map((k) => (
-                    <Chip key={k} active={ctx[k]} onClick={() => setCtx((c) => ({ ...c, [k]: !c[k] }))}>
-                      {t(`has${k[0]!.toUpperCase()}${k.slice(1)}` as never)}
-                    </Chip>
-                  ))}
+                <div className="mt-5">
+                  <ContextoChips cuenta={accountType} valor={ctx} onChange={setCtx} />
                 </div>
                 <p className="mt-6 mb-2 text-small font-medium">{t('compraQuestion')}</p>
                 <div className="flex gap-2">
@@ -408,7 +402,7 @@ export function OnboardingFlow({ initialName }: { initialName: string }) {
                 </div>
                 <Spacer />
                 <div className="flex gap-3">
-                  <Button variant="ghost" className="flex-1" onClick={() => nextFrom(4)}>
+                  <Button variant="ghost" className="flex-1" onClick={() => setStep(5)}>
                     {tc('skip')}
                   </Button>
                   <Button variant="primary" className="flex-[2]" onClick={() => nextFrom(4)}>

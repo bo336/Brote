@@ -181,7 +181,9 @@
       "extrasHechas": "{n} done",
       "hechaAria": "{titulo}: done",
       "marcarAria": "Mark as done: {titulo}",
-      "sumaste": "added {v}"
+      "sumaste": "added {v}",
+      "detalleAria": "What it is and how to do it: {titulo}",
+      "medirAria": "Count and mark: {titulo}"
     },
     "antes": {
       "diaCompleto": "You closed the day!",
@@ -3542,7 +3544,8 @@
     "puente": {
       "titulo": "Where to get it",
       "ayuda": "These actions are easier with good suppliers. These businesses are in the Brote programme.",
-      "ver": "See more in the Market",
+      "boton": "Find it in the Market",
+      "cuantos": "{n, plural, one {# option} other {# options}}",
       "aclaracion": "Buying earns no points. Brote does not sell or broker: every listing leads to the shop's own site."
     },
     "plaza": {

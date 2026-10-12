@@ -175,3 +175,46 @@ export async function adminMundoErrores(pass: string): Promise<Res<{ resumen: Re
   if (error) return { ok: false, error: error.message };
   return data as Res<{ resumen: Record<string, number>; filas: ErrorMundo[] }>;
 }
+
+// ── Acciones (0125) ─────────────────────────────────────────────────────────
+
+export interface FilaAccionPanel {
+  slug: string;
+  titulo: string;
+  dominio?: string;
+  total?: number;
+  hoy_no?: number;
+  no_aplica?: number;
+  ya_lo_hago?: number;
+  no_me_gusta?: number;
+  ofrecida?: number;
+  hecha?: number;
+  tasa?: number;
+}
+
+export interface PanelAcciones {
+  reglas: import('@/lib/acciones/reglas').Reglas;
+  reglas_guardadas: Record<string, unknown>;
+  catalogo: { dominio: string; dia: number; catalogo: number; chicos: number; con_contexto: number; de_temporada: number }[];
+  cambiadas: FilaAccionPanel[];
+  ofrecidas: { menos_hechas: FilaAccionPanel[]; mas_hechas: FilaAccionPanel[]; sets: number; cambios: number };
+  contexto: { personas: number; respondieron: number; claves: Record<string, number> };
+  caminos: { slug: string; titulo: string; terminados: number }[];
+}
+
+/** Cómo funcionan las acciones de verdad: catálogo, cambios, ofrecidas vs hechas, contexto. */
+export async function adminAcciones(pass: string): Promise<Res<PanelAcciones>> {
+  const { data, error } = await createClient().rpc('admin_acciones', { p_pass: pass });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<PanelAcciones>;
+}
+
+/** Guarda las reglas del día (sólo claves conocidas, en rangos sanos). */
+export async function adminAccionesReglasGuardar(
+  pass: string,
+  reglas: Record<string, unknown>,
+): Promise<Res<{ reglas: PanelAcciones['reglas'] }>> {
+  const { data, error } = await createClient().rpc('admin_acciones_reglas_guardar', { p_pass: pass, p_reglas: reglas });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<{ reglas: PanelAcciones['reglas'] }>;
+}

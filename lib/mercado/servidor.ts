@@ -156,13 +156,18 @@ export const getNegocioPublico = cache(async (slug: string): Promise<NegocioPubl
 });
 
 /**
- * "Dónde conseguirlo" de una acción (02 §6.1). Las cinco reglas duras las
- * aplica `mercado_para_accion` en la base: menores, categorías sensibles, el
- * mínimo de 3 listados y uno por empresa. Acá no se decide nada.
+ * "Dónde conseguirlo" de una acción (02 §6.1). Las reglas las aplica
+ * `mercado_para_accion` en la base (0123): sólo adultos, `null` si no hay
+ * ningún listado, tarjetas sólo con 3 empresas o más (una por empresa) y si
+ * no, `items` vacío y nada más que el botón. Acá no se decide nada.
  */
 export interface Puente {
   texto: string | null;
   categoria: string;
+  /** La subcategoría del botón; `null` si la de la acción todavía no tiene nada. */
+  subcategoria?: string | null;
+  /** Cuántos listados hay detrás del botón. */
+  total?: number;
   items: TarjetaMercado[];
 }
 

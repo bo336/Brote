@@ -3,20 +3,23 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { TarjetaListado } from '@/components/mercado/TarjetaListado';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { getPuenteAccion, marcarVistas } from '@/lib/mercado/acciones';
+import { urlBusqueda } from '@/lib/mercado/busqueda';
 import type { Puente } from '@/lib/mercado/servidor';
 
 /**
- * "Dónde conseguirlo" (02 §6.1), debajo de las instrucciones de una acción.
+ * "Dónde conseguirlo" (02 §6.1), debajo de las instrucciones de una acción que
+ * pide un producto (detergente biodegradable, legumbres a granel, plantines
+ * nativos…).
  *
- * Las cinco reglas duras de la fase 4 §2.2 —nunca en el camino de completar,
- * nunca para `kid`, nada de categorías sensibles para `teen`, solo con 3
- * listados o más, y cero puntos por comprar— se cumplen en la base:
- * `mercado_para_accion` devuelve null y acá no se dibuja nada. Este componente
- * NO llama a `complete_activity` ni suma un solo punto; comprar no es una
- * acción de Brote.
+ * Lo decide la base (`mercado_para_accion`, 0123): sólo adultos; con 3
+ * empresas o más, las tarjetas y el botón; con 1 o 2, sólo el botón a la
+ * búsqueda filtrada; con ninguna, nada. Nunca en el camino de completar, y
+ * este componente NO llama a `complete_activity` ni suma un solo punto:
+ * comprar no es una acción de Brote.
  *
  * Se renderiza VISIBLE y recién después anima. El repo ya perdió dos
  * componentes por arrancar en `opacity: 0` con el frame loop estrangulado
@@ -43,26 +46,32 @@ export function DondeConseguirlo({ slugAccion }: { slugAccion: string }) {
     );
   }, [datos]);
 
-  if (!datos || datos.items.length < 3) return null;
+  if (!datos) return null;
+  const conTarjetas = datos.items.length >= 3;
+  const total = datos.total ?? datos.items.length;
+  if (!conTarjetas && total < 1) return null;
 
   return (
     <section aria-labelledby="donde-conseguirlo">
-      <span className="eyebrow mb-1 block text-muted-foreground" id="donde-conseguirlo">
-        {t('titulo')}
+      <span className="eyebrow mb-1 block text-muted-foreground tnum" id="donde-conseguirlo">
+        {t('titulo')} · {t('cuantos', { n: total })}
       </span>
       <p className="mb-3 text-small leading-relaxed text-muted-foreground">{datos.texto ?? t('ayuda')}</p>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
-        {datos.items.slice(0, 3).map((item) => (
-          <TarjetaListado key={item.id} t={item} origen="accion" />
-        ))}
-      </div>
+      {conTarjetas && (
+        <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+          {datos.items.slice(0, 3).map((item) => (
+            <TarjetaListado key={item.id} t={item} origen="accion" />
+          ))}
+        </div>
+      )}
       <Link
-        href={`/mercado/buscar?categoria=${datos.categoria}`}
+        href={urlBusqueda({ categoria: datos.categoria, subcategoria: datos.subcategoria ?? null })}
         prefetch={false}
-        className="press mt-3 inline-flex items-center gap-1.5 text-small font-semibold text-primary"
+        className={buttonVariants({ variant: 'secondary', block: true })}
       >
-        {t('ver')}
-        <ArrowRight className="h-4 w-4" />
+        <ShoppingBag className="h-4 w-4" aria-hidden />
+        {t('boton')}
+        <ArrowRight className="h-4 w-4" aria-hidden />
       </Link>
       <p className="mt-2 text-caption leading-relaxed text-muted-foreground">{t('aclaracion')}</p>
     </section>

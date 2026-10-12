@@ -34,8 +34,8 @@ export function useDailyPool() {
 export function useCompleteActivity() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ activityId, photoUrl, note }: { activityId: string; photoUrl?: string; note?: string }) =>
-      completeActivity(activityId, photoUrl, note),
+    mutationFn: ({ activityId, photoUrl, note, cantidad }: { activityId: string; photoUrl?: string; note?: string; cantidad?: number | null }) =>
+      completeActivity(activityId, photoUrl, note, cantidad),
     onMutate: async ({ activityId }) => {
       await qc.cancelQueries({ queryKey: KEYS.done });
       const prev = qc.getQueryData<Set<string>>(KEYS.done);

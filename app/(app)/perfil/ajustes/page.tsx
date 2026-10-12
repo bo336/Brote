@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, LogOut, Download, Trash2, Compass, ShieldOff, ChevronRight } from 'lucide-react';
+import { ArrowLeft, LogOut, Download, Trash2, Compass, ShieldOff, ChevronRight, Home } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -272,6 +272,24 @@ export default function AjustesPage() {
       </Section>
 
       {/* Profile: name + city */}
+      <Section title="Tus acciones">
+        <Link
+          href="/perfil/ajustes/acciones"
+          className="press flex items-center gap-3 rounded-card border border-border bg-surface p-3.5 shadow-soft hover:border-primary/30 hover:shadow-lift"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/15 text-primary">
+            <Home className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-small font-semibold">Tu casa y tu día</p>
+            <p className="mt-0.5 text-caption leading-relaxed text-muted-foreground">
+              Lo que tenés, para que tus acciones te sirvan. Y las que sacaste.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      </Section>
+
       <Section title="Tu perfil">
         <Card className="space-y-3.5 p-4">
           <Field label={tpp('usernameLabel')} htmlFor="ajustes-usuario" help={tpp('usernameHelp')}>
