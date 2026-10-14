@@ -25,6 +25,7 @@ import { usePanelPass } from '@/components/panel/PanelPass';
 import { AccesoPanel } from '@/components/panel/AccesoPanel';
 import { PanelPendientes } from '@/components/panel/PanelPendientes';
 import { CuentasPanel } from '@/components/panel/CuentasPanel';
+import { EstadoAvisos } from '@/components/panel/EstadoAvisos';
 import { toast } from '@/stores/toast';
 
 /**
@@ -278,6 +279,8 @@ export default function PanelPage() {
           </div>
         </Card>
       </section>
+
+      <EstadoAvisos pass={pass} refresco={refresco} />
 
       <CuentasPanel pass={pass} />
 

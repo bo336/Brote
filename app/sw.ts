@@ -105,13 +105,19 @@ self.addEventListener('push', (event) => {
       return { body: event.data?.text() };
     }
   })();
+  // `tag` agrupa por tipo: dos avisos de la Plaza no se apilan, el nuevo
+  // reemplaza al viejo. Los del equipo (`admin`) vuelven a sonar igual.
+  const tag = typeof data.tag === 'string' ? `brote-${data.tag}` : undefined;
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'Brote', {
       body: data.body ?? '',
       icon: '/icons/icon-192.png',
       badge: '/icons/badge-96.png',
-      data: { url: data.url ?? '/' },
-    }),
+      tag,
+      renotify: tag === 'brote-admin',
+      timestamp: Date.now(),
+      data: { url: typeof data.url === 'string' && data.url.startsWith('/') ? data.url : '/' },
+    } as NotificationOptions),
   );
 });
 

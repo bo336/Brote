@@ -7,6 +7,7 @@ import { Users } from 'lucide-react';
 import { ImpactoReal } from '@/components/inicio/ImpactoReal';
 import { AccionesDeHoy } from '@/components/inicio/AccionesDeHoy';
 import { AntesDeCerrar } from '@/components/inicio/AntesDeCerrar';
+import { InvitacionAvisos } from '@/components/avisos/InvitacionAvisos';
 import { MiRutina } from '@/components/inicio/MiRutina';
 import { SeguiEnBrote } from '@/components/inicio/SeguiEnBrote';
 import { RetoDelDia } from '@/components/inicio/RetoDelDia';
@@ -216,6 +217,8 @@ export default function InicioPage() {
           efemeride={dia.data?.efemeride ?? null}
         />
         <AntesDeCerrar ultima={contexto} reciente={!!ultima} hechasHoy={done.size} completo={completo} />
+        {/* Sólo cuando ya hay algo que cuidar: una racha o una acción de hoy. */}
+        {(racha > 0 || hechas > 0) && <InvitacionAvisos motivo={racha > 0 ? 'racha' : 'hoy'} />}
         <ContanosDeTuCasa />
       </div>
 

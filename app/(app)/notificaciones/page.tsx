@@ -20,6 +20,11 @@ import {
   ShieldAlert,
   UserRoundCheck,
   Store,
+  Megaphone,
+  Medal,
+  Sprout,
+  ShieldCheck,
+  Droplets,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -55,6 +60,11 @@ const ICON: Record<string, typeof Bell> = {
   repost: Repeat2,
   moderation: ShieldAlert,
   follow_request: UserRoundCheck,
+  plaza: Megaphone,
+  rango: Medal,
+  reenganche: Sprout,
+  admin: ShieldCheck,
+  academia_riego: Droplets,
 };
 
 /**
@@ -80,11 +90,16 @@ const TINT: Record<string, string> = {
   repost: '#1FB57A',
   moderation: '#FF6B5E',
   follow_request: '#5B6CF0',
+  plaza: '#FF8A3D',
+  rango: '#FFB23E',
+  reenganche: '#1FB57A',
+  admin: '#0E7A52',
+  academia_riego: '#2DB4D4',
 };
 
 /** Which filter chip each type belongs under. */
-const SOCIAL = new Set(['like', 'reply', 'follow', 'mention', 'repost', 'friend', 'follow_request']);
-const PROGRESS = new Set(['rank_up', 'title', 'points', 'streak_risk', 'streak_lost', 'challenge', 'project']);
+const SOCIAL = new Set(['like', 'reply', 'follow', 'mention', 'repost', 'friend', 'follow_request', 'plaza']);
+const PROGRESS = new Set(['rank_up', 'rango', 'title', 'points', 'streak_risk', 'streak_lost', 'challenge', 'project', 'academia_riego']);
 
 type Filter = 'todo' | 'social' | 'progreso' | 'sistema';
 

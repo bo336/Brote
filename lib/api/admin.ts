@@ -402,3 +402,25 @@ export async function adminAnaliticaUsuarios(
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
   return ((data as { usuarios?: UsuarioAnalitica[] }).usuarios ?? []) as UsuarioAnalitica[];
 }
+
+// ── Avisos (0129) ───────────────────────────────────────────────────────────
+
+export interface EstadoAvisos {
+  ok: boolean;
+  claves: boolean;
+  clave_origen: 'generada' | 'secretos' | null;
+  dispositivos: number;
+  personas_con_avisos: number;
+  pendientes: number;
+  vencidas: number;
+  enviadas_24h: number;
+  fallidas_24h: number;
+  omitidas_24h: number;
+  por_categoria_7d: Record<string, number>;
+}
+
+export async function adminAvisosEstado(pass: string): Promise<EstadoAvisos | null> {
+  const { data, error } = await createClient().rpc('admin_avisos_estado', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as EstadoAvisos;
+}

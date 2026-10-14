@@ -107,14 +107,14 @@
 - [x] Bandeja "Pendientes" arriba del panel (todas las colas con su número).
 
 ### F3 · Notificaciones reales
-- [ ] Cola de push (`push_estado`, `push_programada_at`), trigger nuevo, `send-push` v2 (por id,
+- [x] Cola de push (`push_estado`, `push_programada_at`), trigger nuevo, `send-push` v2 (por id,
       drenado, VAPID propia), cron por minuto. Cerrar el agujero del push con texto libre.
-- [ ] Tipos nuevos: `racha` 20 h, `plaza` (novedades de gente que seguís), `rango` (cierre de
+- [x] Tipos nuevos: `racha` 20 h, `plaza` (novedades de gente que seguís), `rango` (cierre de
       período), `recap` empujado, `reenganche` (3 y 14 días), `admin`, `empresa`.
-- [ ] Preferencias por categoría + horario de silencio en Ajustes; tope diario de enganche.
-- [ ] Pedido de permiso en buenos momentos (primera acción, Inicio una vez, Ajustes) y guía para
+- [x] Preferencias por categoría + horario de silencio en Ajustes; tope diario de enganche.
+- [x] Pedido de permiso en buenos momentos (primera acción, Inicio una vez, Ajustes) y guía para
       iPhone (sólo con la app instalada).
-- [ ] Realtime con plan B (si el canal falla, consulta cada 60 s) por el límite de 200 conexiones.
+- [x] Realtime con plan B (si el canal falla, consulta cada 60 s) por el límite de 200 conexiones.
 
 ### F4 · Avisos para el dueño
 - [ ] `brote_avisar_admins()` y enganches: alta/verificación de empresa, listado a revisar, cierre de
@@ -242,3 +242,9 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   vistas; sin datos) y corre migraciones + tests con NOTICE. Así se prueban las migraciones sin
   tocar producción. Las funciones que llevan la anon key o leen vault se excluyen a propósito.
   `verify-business` pasa a verificar la contraseña como la persona (redeploy pendiente).
+- 2026-10-14 — F3 hecha: 0129 (cola de avisos, reglas, silencio, tope, VAPID propia, racha 20 h,
+  Plaza 18 h, reenganche 3/14 días, `registrar_dispositivo`, prueba desde Ajustes, estado en el
+  panel) + `send-push` v2 (sólo manda lo que está en la cola; ya no acepta textos). Probado en
+  PGlite: dispositivos que cambian de cuenta, tope diario, horario de silencio, reintentos, cierre
+  y generadores sin duplicar. **Falta en vivo:** aplicar 0129 y desplegar `send-push` v2 (las
+  claves se generan solas en el primer minuto).

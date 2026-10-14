@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useSession } from '@/stores/session';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/stores/toast';
+import { fetchUnreadCount } from '@/lib/api/notifications';
+import { asegurarAvisos } from '@/lib/api/push';
 import type { ProfileSummary } from '@/lib/types';
 
 /**
@@ -26,6 +28,12 @@ export function SessionHydrator({
     setUnread(unread);
   }, [profile, unread, setProfile, setUnread]);
 
+  // Avisos: si ya hay permiso, que este dispositivo siga suscripto y a nombre
+  // de esta cuenta (lib/api/push.ts). No pregunta nada.
+  useEffect(() => {
+    if (profile?.id) void asegurarAvisos();
+  }, [profile?.id]);
+
   useEffect(() => {
     if (!profile?.id) return;
     let supabase: ReturnType<typeof createClient>;
@@ -34,6 +42,22 @@ export function SessionHydrator({
     } catch {
       return; // never let a client-init issue crash the app shell
     }
+    // Plan B: Realtime del plan gratis acepta 200 conexiones a la vez. Si el
+    // canal no entra (o se cae), la campana se actualiza consultando cada
+    // minuto mientras la pestaña está a la vista. Nada se rompe, sólo llega
+    // un poco más tarde.
+    const uid = profile.id;
+    let sondeo: ReturnType<typeof setInterval> | null = null;
+    const consultar = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchUnreadCount(uid)
+        .then((n) => useSession.getState().setUnread(n))
+        .catch(() => null);
+    };
+    const empezarSondeo = () => {
+      if (sondeo) return;
+      sondeo = setInterval(consultar, 60_000);
+    };
     const channel = supabase
       .channel(`notif:${profile.id}`)
       .on(
@@ -48,8 +72,15 @@ export function SessionHydrator({
           if (row.title_es) toast.show({ variant: 'default', glyph: '🔔', title: row.title_es, description: row.body_es ?? undefined });
         },
       )
-      .subscribe();
+      .subscribe((estado) => {
+        if (estado === 'CHANNEL_ERROR' || estado === 'TIMED_OUT' || estado === 'CLOSED') empezarSondeo();
+        if (estado === 'SUBSCRIBED' && sondeo) {
+          clearInterval(sondeo);
+          sondeo = null;
+        }
+      });
     return () => {
+      if (sondeo) clearInterval(sondeo);
       supabase.removeChannel(channel);
     };
   }, [profile?.id]);

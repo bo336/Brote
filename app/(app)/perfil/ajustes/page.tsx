@@ -23,14 +23,9 @@ import { signOut } from '@/app/(auth)/auth/actions';
 import { exportMyData, deleteMyAccount } from '@/lib/api/profile';
 import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, pushSupported } from '@/lib/api/push';
 import { setMyUsername } from '@/lib/api/perfil-publico';
+import { AvisosAjustes } from '@/components/perfil/AvisosAjustes';
 import { toast } from '@/stores/toast';
 
-const NOTIF_KEYS = [
-  { key: 'streak', label: 'notifStreak' },
-  { key: 'challenges', label: 'notifChallenges' },
-  { key: 'projects', label: 'notifProjects' },
-  { key: 'news', label: 'notifNews' },
-] as const;
 
 /**
  * The Plaza's own switches. `brote_notify_social` reads
@@ -378,24 +373,16 @@ export default function AjustesPage() {
         </div>
       </Section>
 
-      {/* Notifications */}
+      {/* Notifications (docs/LANZAMIENTO.md §5) */}
       <Section title={t('notifications')}>
-        <Card className="divide-y divide-border">
-          <div className="flex items-center justify-between p-3.5">
-            <span className="text-small font-medium">{t('notifPush')}</span>
-            <Switch checked={pushOn} onCheckedChange={togglePush} />
-          </div>
-          {NOTIF_KEYS.map(({ key, label }) => (
-            <div key={key} className="flex items-center justify-between p-3.5">
-              <span className="text-small">{t(label)}</span>
-              <Switch
-                checked={notif(key, key !== 'news')}
-                disabled={!prefsLoaded}
-                onCheckedChange={(v) => toggleNotif(key, v)}
-              />
-            </div>
-          ))}
-        </Card>
+        <AvisosAjustes
+          pushOn={pushOn}
+          onPush={togglePush}
+          prefsListas={prefsLoaded}
+          valor={notif}
+          cambiar={toggleNotif}
+          esChico={isKid}
+        />
       </Section>
 
       {/* Kids have no social surface, so none of these would control anything
