@@ -117,7 +117,7 @@
 - [x] Realtime con plan B (si el canal falla, consulta cada 60 s) por el límite de 200 conexiones.
 
 ### F4 · Avisos para el dueño
-- [ ] `brote_avisar_admins()` y enganches: alta/verificación de empresa, listado a revisar, cierre de
+- [x] `brote_avisar_admins()` y enganches: alta/verificación de empresa, listado a revisar, cierre de
       objetivo, compromiso, reporte de contenido, entrega de desafío, alta/baja/fallo de pago de
       cualquier suscripción, errores del mundo en racha, hitos de usuarios. `notificar_revisores`
       pasa a ir a las cuentas admin.
@@ -248,3 +248,6 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   PGlite: dispositivos que cambian de cuenta, tope diario, horario de silencio, reintentos, cierre
   y generadores sin duplicar. **Falta en vivo:** aplicar 0129 y desplegar `send-push` v2 (las
   claves se generan solas en el primer minuto).
+- 2026-10-14 — F4 hecha: 0130 (avisos al equipo). Empresas que piden revisión, productos, objetivos,
+  reportes, compromisos, altas/bajas/cobros rechazados de Brote+ y de empresas, y un resumen a las
+  9 h. Una ráfaga se junta en un solo aviso (misma clave, sin leer, < 30 min). Probado en PGlite.
