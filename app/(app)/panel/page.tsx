@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, RefreshCw, FlaskConical, ListChecks, BarChart3, ChevronRight, CreditCard } from 'lucide-react';
+import { ShieldCheck, RefreshCw, FlaskConical, ListChecks, BarChart3, ChevronRight, CreditCard, Award } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -117,6 +117,7 @@ export default function PanelPage() {
         {[
           { href: '/panel/analitica', Icon: BarChart3, titulo: 'Analítica', bajada: 'Cuánta gente, quién usa qué, retención y embudos' },
           { href: '/panel/suscripciones', Icon: CreditCard, titulo: 'Suscripciones', bajada: 'Brote+, tiendas y empresas: precios, cobros y lo que falta' },
+          { href: '/panel/desafios', Icon: Award, titulo: 'Desafíos para empresas', bajada: 'Publicar metas, revisar entregas y emitir certificados' },
         ].map(({ href, Icon, titulo, bajada }) => (
           <Link
             key={href}

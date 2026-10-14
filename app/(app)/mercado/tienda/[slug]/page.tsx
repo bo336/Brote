@@ -6,6 +6,7 @@ import { ArrowLeft, BadgeCheck, CalendarDays, Globe, MapPin, Store } from 'lucid
 import { BotonCompartir } from '@/components/mercado/BotonCompartir';
 import { BotonSeguir } from '@/components/mercado/BotonSeguir';
 import { CompromisosTienda } from '@/components/mercado/CompromisosTienda';
+import { CertificadosPublicos } from '@/components/negocio/desafios/CertificadosPublicos';
 import { GrillaInfinita } from '@/components/mercado/GrillaInfinita';
 import { visualCategoria } from '@/components/mercado/categoria-visual';
 import { buscar, getCuentaMercado, getNegocioPublico, type FiltrosBusqueda } from '@/lib/mercado/servidor';
@@ -161,6 +162,8 @@ export default async function TiendaPage({
           </ul>
         </section>
       )}
+
+      <CertificadosPublicos slug={params.slug} />
 
       <section className="mt-10">
         <h2 className="font-display text-h3 font-bold">{t('todoLoQuePublica')}</h2>

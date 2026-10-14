@@ -132,11 +132,11 @@
       bajas, en gracia, ingresos mensuales estimados por producto, lista.
 
 ### F6 · Desafíos y certificados para PyMEs
-- [ ] Tablas, RPC y RLS: desafíos, inscripciones, evidencias, certificados.
-- [ ] Panel: crear/editar/publicar desafíos, cola de entregas, aprobar/observar/rechazar, revocar.
-- [ ] Empresa: `/negocio/desafios` (lista, detalle, inscribirse, subir evidencia, enviar, estado).
-- [ ] Certificado: página pública `/certificados/[codigo]`, versión imprimible, sello SVG.
-- [ ] Sembrar ~15 desafíos razonables por categoría y nivel.
+- [x] Tablas, RPC y RLS: desafíos, inscripciones, evidencias, certificados.
+- [x] Panel: crear/editar/publicar desafíos, cola de entregas, aprobar/observar/rechazar, revocar.
+- [x] Empresa: `/negocio/desafios` (lista, detalle, inscribirse, subir evidencia, enviar, estado).
+- [x] Certificado: página pública `/certificados/[codigo]`, versión imprimible, sello SVG.
+- [x] Sembrar ~15 desafíos razonables por categoría y nivel.
 
 ### F7 · Rangos por período
 - [ ] Tablas `rangos`, `rango_periodos`, `rango_usuario`, `rango_historial`, `rango_puntos`
@@ -194,11 +194,19 @@ Enganche = racha, plaza, rango, recap, reenganche: máximo 2 por día; entre 22 
 
 ## 6. Certificados — los desafíos sembrados
 
-Ver `supabase/migrations/0130_desafios_empresas.sql` (se llena en F6).
+17 desafíos en `0132_desafios_empresas.sql`, todos publicados: Energía (Luz eficiente, Apagado
+inteligente, Medir para bajar, Energía renovable), Residuos (Separación en origen, Reciclado con
+destino, Cero descartables, Compostaje), Agua (Agua sin pérdidas, Agua medida), Compras (Compras
+locales y responsables, Envases que vuelven), Movilidad (Movilidad del equipo, Logística limpia),
+Equipo (Equipo que sabe) y Gestión (Huella de carbono básica, Comunicación honesta). Niveles 1 a 3.
+Cada requisito pide foto, documento, dato, enlace o declaración. Se inscriben empresas
+verificadas (máximo 5 en curso), el certificado vence a los 12 meses y su página pública dice qué
+es y qué no es (no es auditoría ni certificación oficial).
 
 ## 7. Analítica — de dónde sale cada número
 
-Ver `admin_analitica` en `0127_panel_analitica.sql` (se llena en F2).
+`admin_analitica` y `admin_analitica_usuarios` en `0128_analitica.sql`. Día activo = `uso_diario`
+con clave `activo` (abrir la app) o una acción marcada. Las cuentas `es_prueba` no cuentan.
 
 ## 8. Lo que queda del dueño (se completa al cerrar)
 
@@ -260,3 +268,7 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   exclusivos" se sacó de la lista. **Bugs de producción encontrados:** `apply_subscription_event`
   fallaba en toda baja (enum sin castear) y mandaba la bienvenida con cada cobro; `pip-chat` y
   `_shared/gemini.ts` usaban `gemini-1.5-flash`, retirado por Google (todo caía al respaldo).
+- 2026-10-14 — F6 hecha: 0132 (desafíos, inscripciones, evidencias, certificados con código
+  BRT-XXXX-XXXX, vencimiento y revocación, cron de vencimiento) + `/negocio/desafios`,
+  `/negocio/desafios/[slug]`, `/certificados/[codigo]` (pública, imprimible), certificados en la
+  ficha de la tienda, `/panel/desafios` (cola, editor, certificados). Probado en PGlite.

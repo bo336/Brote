@@ -75,8 +75,8 @@ test('the SQL scores with the same constants', () => {
 });
 
 test('each business sees the sections of what it came to do', () => {
-  assert.deepEqual(seccionesDe('vender', 'vendedor'), ['resumen', 'productos', 'preguntas', 'tienda', 'analitica', 'plan']);
-  assert.deepEqual(seccionesDe('mejorar', 'empresa'), ['resumen', 'mejora', 'liga', 'verificacion']);
+  assert.deepEqual(seccionesDe('vender', 'vendedor'), ['resumen', 'productos', 'preguntas', 'tienda', 'analitica', 'desafios', 'plan']);
+  assert.deepEqual(seccionesDe('mejorar', 'empresa'), ['resumen', 'mejora', 'liga', 'desafios', 'verificacion']);
   const ambos = seccionesDe('ambos', 'legacy');
   assert.ok(ambos.includes('mejora') && ambos.includes('productos') && ambos.includes('liga'));
   assert.ok(!seccionesDe('vender', 'vendedor').includes('liga'));

@@ -40,6 +40,9 @@ const PUBLIC_PREFIXES = [
   // La página pública del programa: es lo que se manda por WhatsApp a una
   // PyME antes de que exista cualquier relación (fase 5 §8.2).
   '/negocios',
+  // Un certificado de Brote se verifica sin cuenta: lo abre un cliente, un
+  // proveedor o un municipio desde el enlace o el código (LANZAMIENTO F6).
+  '/certificados/',
 ];
 
 function isPublic(pathname: string): boolean {

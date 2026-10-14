@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { BarChart3, CreditCard, LayoutDashboard, MessageCircleQuestion, Package, ShieldCheck, Store, Target, Trophy, type LucideIcon } from 'lucide-react';
+import { Award, BarChart3, CreditCard, LayoutDashboard, MessageCircleQuestion, Package, ShieldCheck, Store, Target, Trophy, type LucideIcon } from 'lucide-react';
 import { ChipRail } from '@/components/ui/chip-rail';
 import { cn } from '@/lib/utils/cn';
 import { normalizarObjetivo, seccionesDe, type SeccionNegocio } from '@/lib/negocio/objetivo';
@@ -26,6 +26,7 @@ const SECCION: Record<SeccionNegocio, Omit<Seccion, 'clave'>> = {
   analitica: { href: '/negocio/analitica', icono: BarChart3 },
   verificacion: { href: '/negocio/verificacion', icono: ShieldCheck },
   plan: { href: '/negocio/plan', icono: CreditCard },
+  desafios: { href: '/negocio/desafios', icono: Award },
 };
 
 type Props = { modelo?: string | null; objetivo?: string | null };

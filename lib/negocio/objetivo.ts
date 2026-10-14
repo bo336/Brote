@@ -21,6 +21,7 @@ export type SeccionNegocio =
   | 'tienda'
   | 'analitica'
   | 'verificacion'
+  | 'desafios'
   | 'plan';
 
 export function normalizarObjetivo(v: unknown, modelo?: string | null): ObjetivoNegocio {
@@ -42,8 +43,10 @@ export function seccionesDe(objetivo: ObjetivoNegocio, modelo?: string | null): 
   const venta: SeccionNegocio[] = tiendaV2
     ? ['productos', 'preguntas', 'tienda', 'analitica', 'plan']
     : ['productos', 'analitica', 'plan'];
-  const programa: SeccionNegocio[] = ['mejora', 'liga', 'verificacion'];
-  if (objetivo === 'vender') return ['resumen', ...venta];
+  // Desafíos y certificados (LANZAMIENTO F6): para todas, con lo que le toca a
+  // cada una (la base filtra por `para`).
+  const programa: SeccionNegocio[] = ['mejora', 'liga', 'desafios', 'verificacion'];
+  if (objetivo === 'vender') return ['resumen', ...venta.slice(0, -1), 'desafios', 'plan'];
   if (objetivo === 'mejorar') return ['resumen', ...programa];
-  return ['resumen', 'mejora', 'liga', ...venta, 'verificacion'];
+  return ['resumen', 'mejora', 'liga', 'desafios', ...venta, 'verificacion'];
 }
