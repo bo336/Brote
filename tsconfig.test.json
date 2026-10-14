@@ -37,7 +37,9 @@
     "lib/inicio/puentes.ts",
     "lib/inicio/__tests__/**/*.ts",
     "lib/acciones/**/*.ts",
-    "lib/data/cities.ts"
+    "lib/data/cities.ts",
+    "lib/rangos.ts",
+    "lib/rangos/__tests__/**/*.ts"
   ],
   "exclude": [
     "node_modules"

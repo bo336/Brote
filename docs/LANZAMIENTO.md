@@ -60,7 +60,9 @@
   además piden haber tenido el rango anterior el período previo: nadie llega arriba de un salto.
 - **D3 · Mantener sin regalar.** Al cerrar el período: rango nuevo = el más alto cuyos requisitos
   cumpliste. Si no llegaste al tuyo pero sí al de abajo, lo conservás **una vez** (margen); el
-  período siguiente sin cumplirlo, bajás. Nada se paga: Brote+ no protege rangos.
+  período siguiente sin cumplirlo, bajás — como mucho dos rangos por período, así una semana de
+  vacaciones no te tira al fondo, pero nadie se queda arriba sin hacer el trabajo. Nada se paga:
+  Brote+ no protege rangos.
 - **D4 · Cambiar semana ↔ mes** es un valor en el panel; se aplica desde el próximo período, sin
   romper el que está en curso.
 - **D5 · Las ligas viejas se retiran**: "tu liga" pasa a ser el tablero de la gente de tu mismo rango
@@ -139,13 +141,13 @@
 - [x] Sembrar ~15 desafíos razonables por categoría y nivel.
 
 ### F7 · Rangos por período
-- [ ] Tablas `rangos`, `rango_periodos`, `rango_usuario`, `rango_historial`, `rango_puntos`
+- [x] Tablas `rangos`, `rango_periodos`, `rango_usuario`, `rango_historial`, `rango_puntos`
       (mantenida por trigger), funciones de métricas, cierre, `mi_rango()`, tableros del período.
-- [ ] Cron diario de cierre; interruptor semana/mes y edición de rangos en el panel.
+- [x] Cron diario de cierre (`brote-rangos-cerrar`); RPC del panel (`admin_rangos`, `admin_rango_guardar`, `admin_rango_periodo`). **Falta la pantalla `/panel/rangos`.**
 - [ ] UI: tarjeta "Tu rango" con requisitos y progreso, `/ranking` nuevo (este período: global,
       ciudad, amigos, tu rango; historial), chip de rango en perfil; "rango" → "nivel" donde se
       habla de la escalera de por vida.
-- [ ] Tests espejo (TS ↔ SQL) de requisitos y prorrateo.
+- [x] Tests espejo (TS ↔ SQL) de requisitos y prorrateo (`lib/rangos.ts`, `lib/rangos/__tests__`).
 
 ### F8 · Pulido y lanzamiento
 - [ ] Errores del cliente a `app_errores`, visibles en el panel.
@@ -158,8 +160,9 @@
 
 ## 4. Rangos — la tabla (fuente: `lib/rangos.ts`, espejo en SQL)
 
-Requisitos **por semana**. En un período de N días se piden `ceil(valor × N / 7)`, y los días
-activos nunca más que N.
+Requisitos **por semana**. En un período de N días se piden `ceil(valor × N / 7)`; los días
+activos nunca más que N, y los temas no crecen con un mes (son amplitud: hay 13) — sólo se achican
+en un período de menos de 7 días.
 
 | # | Rango | Qué tipo de persona es | días | acciones | temas | medidas | comunidad | aprendizaje | previo |
 |---|---|---|---|---|---|---|---|---|---|
@@ -272,3 +275,11 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   BRT-XXXX-XXXX, vencimiento y revocación, cron de vencimiento) + `/negocio/desafios`,
   `/negocio/desafios/[slug]`, `/certificados/[codigo]` (pública, imprimible), certificados en la
   ficha de la tienda, `/panel/desafios` (cola, editor, certificados). Probado en PGlite.
+- 2026-10-14 — F7 (base) hecha: 0133 probado en PGlite (decisión, calificación con rango previo,
+  prorrateo, arranque desde la semana anterior, puntos en vivo, tableros sin chicos, cierre y paso
+  a mensual, textos "nivel" en proyectos y en el aviso de subir de nivel). **SIGUIENTE (retomar
+  acá):** UI de F7 — `lib/api/rangos.ts` (`mi_rango`, `ranking_periodo`, `rangos_de`), tarjeta
+  "Tu rango" + `/ranking` nuevo (pestaña Tu rango; tableros del período: todos / provincia /
+  amigos / tu rango / de siempre), `/panel/rangos`, y renombrar en la interfaz la escalera de por
+  vida a "nivel" (`/perfil/rangos`, RankBadge, RewardLayer, TopBar, Ajustes, proyectos/nuevo,
+  panel/pruebas, `common.rank`). Después F8 completo.
