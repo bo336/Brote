@@ -5,9 +5,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.46.1';
 import { corsHeaders, json } from '../_shared/cors.ts';
 
-const MODEL = 'gemini-1.5-flash';
+// gemini-1.5-flash fue retirado por Google: con él, toda charla caía en las
+// respuestas de respaldo sin que nadie se enterara.
+const MODEL = 'gemini-2.5-flash';
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+// Brote+ promete "cinco veces más charlas por día" (LANZAMIENTO F5).
 const DAILY_LIMIT = 30;
+const DAILY_LIMIT_PLUS = 150;
 
 interface ChatMessage {
   role: 'user' | 'pip';
@@ -41,7 +45,8 @@ Deno.serve(async (req) => {
     const { data: rl } = await admin.from('app_state').select('value').eq('key', key).maybeSingle();
     const state = (rl?.value ?? {}) as { day?: string; count?: number };
     const count = state.day === today ? (state.count ?? 0) : 0;
-    if (count >= DAILY_LIMIT) {
+    const { data: esPlus } = await admin.rpc('brote_is_pro', { p_uid: user.id });
+    if (count >= (esPlus === true ? DAILY_LIMIT_PLUS : DAILY_LIMIT)) {
       return json({ reply: 'Por hoy charlamos un montón 🌱 Volvé mañana — mejor usá esa energía en una acción real 💪', limited: true });
     }
 
@@ -69,8 +74,16 @@ Deno.serve(async (req) => {
       `intereses=${(prof?.interests ?? []).join(', ') || 'varios'}; contexto=${JSON.stringify(prof?.context ?? {})}. ` +
       `Usá el contexto solo cuando sume; no lo recites.`;
 
+    // Eco-Experto (Brote+): lo pide la app, lo confirma el servidor.
+    const experto = body.mode === 'experto' && esPlus === true;
+    const modo = experto
+      ? `MODO ECO-EXPERTO: respondé con más profundidad (hasta ~220 palabras): explicá el porqué, dá órdenes de magnitud ` +
+        `y comparaciones, distinguí lo establecido de lo debatido, y cerrá con una acción concreta. ` +
+        `Nunca inventes cifras exactas ni fuentes: si no estás seguro, decilo.`
+      : '';
+
     const contents = [
-      { role: 'user', parts: [{ text: persona }] },
+      { role: 'user', parts: [{ text: modo ? `${persona} ${modo}` : persona }] },
       { role: 'model', parts: [{ text: '¡Entendido! Soy Pip 🌱 ¿En qué te ayudo?' }] },
       ...messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: String(m.text).slice(0, 1000) }] })),
     ];
@@ -82,7 +95,12 @@ Deno.serve(async (req) => {
       const res = await fetch(`${ENDPOINT}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents, generationConfig: { temperature: 0.8, maxOutputTokens: 260 } }),
+        body: JSON.stringify({
+          contents,
+          generationConfig: experto
+            ? { temperature: 0.5, maxOutputTokens: 900, thinkingConfig: { thinkingBudget: 0 } }
+            : { temperature: 0.8, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } },
+        }),
         signal: controller.signal,
       });
       if (res.ok) {

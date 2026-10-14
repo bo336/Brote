@@ -12,6 +12,7 @@ import { useSession } from '@/stores/session';
 import { fetchImpact } from '@/lib/api/profile';
 import { DOMAINS, getDomainColor } from '@/lib/domains';
 import { formatPoints } from '@/lib/points';
+import { ImpactoMensual } from '@/components/perfil/ImpactoMensual';
 
 export default function EstadisticasPage() {
   const t = useTranslations('perfil');
@@ -45,6 +46,8 @@ export default function EstadisticasPage() {
           <span className="font-display text-h2 font-bold tnum">{impactQ.data?.totalCompletions ?? 0}</span>
         </Stat>
       </div>
+
+      <ImpactoMensual />
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Puntos por tema</h2>

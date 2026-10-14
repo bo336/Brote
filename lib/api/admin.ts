@@ -424,3 +424,44 @@ export async function adminAvisosEstado(pass: string): Promise<EstadoAvisos | nu
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
   return data as EstadoAvisos;
 }
+
+// ── Suscripciones (0131) ────────────────────────────────────────────────────
+
+export interface PrecioCotizado {
+  usd?: number;
+  ars: number | null;
+  tipo_cambio?: number | null;
+  fecha?: string | null;
+}
+
+export interface PanelSuscripciones {
+  ok: boolean;
+  ajustes: Record<string, { value: boolean | number | string; description: string | null }>;
+  tipo_cambio: { venta: number; fecha: string } | null;
+  precios: {
+    plus_mes: PrecioCotizado;
+    plus_anio: PrecioCotizado;
+    tienda: PrecioCotizado;
+    semilla: number | null;
+    raiz: number | null;
+    bosque: number | null;
+  };
+  plus: {
+    activas: number;
+    anuales: number;
+    pendientes: number;
+    pausadas: number;
+    bajas_30d: number;
+    con_beneficio: number;
+    ingreso_mes_ars: number;
+  };
+  negocios: Record<string, { activas: number; en_gracia: number; pendientes: number; bajas_30d: number; ingreso_mes_ars: number }>;
+  eventos_sin_procesar: number;
+  ultimas: { producto: 'plus' | 'tienda' | 'empresa'; estado: string; monto: number | null; cuando: string; quien: string | null; detalle: string }[];
+}
+
+export async function adminSuscripciones(pass: string): Promise<PanelSuscripciones | null> {
+  const { data, error } = await createClient().rpc('admin_suscripciones', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelSuscripciones;
+}

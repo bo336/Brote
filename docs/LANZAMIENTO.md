@@ -123,12 +123,12 @@
       pasa a ir a las cuentas admin.
 
 ### F5 · Suscripciones
-- [ ] Brote+ mensual y anual por servidor (Next), cancelar desde la app, estado y próximo cobro,
+- [x] Brote+ mensual y anual por servidor (Next), cancelar desde la app, estado y próximo cobro,
       interruptor de venta y precios en el panel. Revisar cada beneficio: lo que no existe no se
       promete.
-- [ ] Tiendas (vendedor) y Empresas (semilla/raíz/bosque): revisar el circuito completo contra el
+- [x] Tiendas (vendedor) y Empresas (semilla/raíz/bosque): revisar el circuito completo contra el
       webhook unificado.
-- [ ] `/panel/suscripciones`: estado de la configuración (sin mostrar secretos), precios, altas,
+- [x] `/panel/suscripciones`: estado de la configuración (sin mostrar secretos), precios, altas,
       bajas, en gracia, ingresos mensuales estimados por producto, lista.
 
 ### F6 · Desafíos y certificados para PyMEs
@@ -251,3 +251,12 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
 - 2026-10-14 — F4 hecha: 0130 (avisos al equipo). Empresas que piden revisión, productos, objetivos,
   reportes, compromisos, altas/bajas/cobros rechazados de Brote+ y de empresas, y un resumen a las
   9 h. Una ráfaga se junta en un solo aviso (misma clave, sin leer, < 30 min). Probado en PGlite.
+- 2026-10-14 — F5 hecha: 0131 + servidor. Brote+ mensual/anual en USD al oficial (2,99 / 24,99 por
+  omisión, `plus_venta_activa` apagado hasta que el dueño lo prenda), alta y baja desde la app
+  (`lib/pagos/plus-acciones.ts`), planes de empresa cobrados desde Next como la tienda (una sola
+  credencial, en Vercel; `mp-subscribe`, `mp-webhook` y `mp-negocio` quedan retiradas),
+  `/panel/suscripciones`. Beneficios que no existían: protectores mensuales (`brote_plus_protectores`),
+  impacto mes a mes (`mi_impacto_mensual`), Eco-Experto real y 5× charlas en `pip-chat`; "biomas
+  exclusivos" se sacó de la lista. **Bugs de producción encontrados:** `apply_subscription_event`
+  fallaba en toda baja (enum sin castear) y mandaba la bienvenida con cada cobro; `pip-chat` y
+  `_shared/gemini.ts` usaban `gemini-1.5-flash`, retirado por Google (todo caía al respaldo).

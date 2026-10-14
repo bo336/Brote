@@ -2557,7 +2557,8 @@
         "no_aprobada": "Your business isn't approved yet.",
         "no_configurado": "Payments aren't configured yet.",
         "sin_suscripcion": "We couldn't find a subscription to cancel.",
-        "no_disponible": "Try again in a bit."
+        "no_disponible": "Try again in a bit.",
+        "mp_error": "Mercado Pago did not respond. Try again in a while."
       },
       "estados": {
         "pendiente": "Pending",

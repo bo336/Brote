@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils/cn';
  * ni tarjeta: es el modo fundador, y la pantalla lo dice en vez de esconderlo.
  */
 /** Los motivos que sabemos explicar; cualquier otro se cuenta como "no disponible". */
-const MOTIVOS = ['cobro_apagado', 'precio_sin_definir', 'solo_owner', 'no_aprobada', 'no_configurado', 'sin_suscripcion'];
+const MOTIVOS = ['cobro_apagado', 'precio_sin_definir', 'solo_owner', 'no_aprobada', 'no_configurado', 'sin_suscripcion', 'mp_error'];
 
 function motivo(e: string): string {
   return MOTIVOS.includes(e) ? e : 'no_disponible';

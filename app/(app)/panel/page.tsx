@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, RefreshCw, FlaskConical, ListChecks, BarChart3, ChevronRight } from 'lucide-react';
+import { ShieldCheck, RefreshCw, FlaskConical, ListChecks, BarChart3, ChevronRight, CreditCard } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -116,6 +116,7 @@ export default function PanelPage() {
       <nav aria-label="Secciones del panel" className="grid gap-2 sm:grid-cols-2">
         {[
           { href: '/panel/analitica', Icon: BarChart3, titulo: 'Analítica', bajada: 'Cuánta gente, quién usa qué, retención y embudos' },
+          { href: '/panel/suscripciones', Icon: CreditCard, titulo: 'Suscripciones', bajada: 'Brote+, tiendas y empresas: precios, cobros y lo que falta' },
         ].map(({ href, Icon, titulo, bajada }) => (
           <Link
             key={href}

@@ -2557,7 +2557,8 @@
         "no_aprobada": "Tu empresa todavía no está aprobada.",
         "no_configurado": "Los pagos todavía no están configurados.",
         "sin_suscripcion": "No encontramos una suscripción para dar de baja.",
-        "no_disponible": "Probá de nuevo en un rato."
+        "no_disponible": "Probá de nuevo en un rato.",
+        "mp_error": "Mercado Pago no respondió. Probá de nuevo en un rato."
       },
       "estados": {
         "pendiente": "Pendiente",

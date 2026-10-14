@@ -1,8 +1,10 @@
 // Shared Gemini helper (BUILD_SPEC §10.4): timeout, retry-once, JSON-fence
-// stripping, and a typed fallback signal. Uses gemini-1.5-flash via REST so no
+// stripping, and a typed fallback signal. Uses gemini-2.5-flash via REST so no
 // SDK is needed in the Deno runtime. The API key lives only in function secrets.
 
-const MODEL = 'gemini-1.5-flash';
+// gemini-1.5-flash fue retirado: las funciones que lo usaban caían siempre
+// en su respaldo (LANZAMIENTO F5/F8).
+const MODEL = 'gemini-2.5-flash';
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 export interface GeminiPart {
