@@ -6,9 +6,10 @@
 // se puede empujar lo que existe en `notifications`, que escribe la base.
 //
 // La llaman: el cron `brote-push` (cada minuto, sólo si hay algo vencido) y el
-// trigger `notifications_push_despertar` (como mucho cada 10 s). Con la anon
-// key alcanza: lo peor que puede hacer quien la llame es adelantar un envío
-// que igual iba a salir.
+// trigger `notifications_push_despertar` (como mucho cada 10 s), sin clave:
+// SE DESPLIEGA CON "Verify JWT" APAGADO. Es seguro porque no confía en nada del
+// pedido: lo peor que puede hacer quien la llame es adelantar un envío que
+// igual iba a salir.
 //
 // Claves VAPID: si están los secretos (VAPID_PUBLIC_KEY o
 // NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY), mandan ellos y la pública

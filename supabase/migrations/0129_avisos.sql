@@ -79,8 +79,11 @@ revoke all on function public.brote_push_clave_publica() from public;
 grant execute on function public.brote_push_clave_publica() to anon, authenticated;
 
 -- ── Llamar a una edge function desde la base ────────────────────────────────
--- Un solo lugar con la URL del proyecto y la anon key (pública: es la misma que
--- viaja en el bundle de la app y en 0090/0108).
+-- Sin clave: sólo para funciones desplegadas con "Verify JWT" apagado que no
+-- confían en nada de lo que reciben. `send-push` es una: ignora el cuerpo y
+-- sólo vacía la cola de la base, así que lo peor que puede hacer quien la
+-- llame es adelantar un envío que igual iba a salir. Así la base no guarda
+-- ninguna clave en el código.
 
 create or replace function public.brote_llamar_funcion(p_funcion text, p_cuerpo jsonb default '{}'::jsonb)
 returns bigint
@@ -88,12 +91,11 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  v_key constant text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3ZHd1bG91YXNkbnlvcmZocmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjUyMTAsImV4cCI6MjA5ODQwMTIxMH0.KbWP_LYJ4o2H-ITyyeNPR0FovBhuy3jfijnDYmgEjF4';
 begin
+  if p_funcion !~ '^[a-z0-9-]{1,40}$' then return null; end if;
   return net.http_post(
     url := 'https://swdwulouasdnyorfhrjt.supabase.co/functions/v1/' || p_funcion,
-    headers := jsonb_build_object('Content-Type', 'application/json', 'apikey', v_key, 'Authorization', 'Bearer ' || v_key),
+    headers := jsonb_build_object('Content-Type', 'application/json'),
     body := coalesce(p_cuerpo, '{}'::jsonb));
 end $$;
 revoke all on function public.brote_llamar_funcion(text, jsonb) from public, anon, authenticated;
