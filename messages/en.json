@@ -86,7 +86,45 @@
     "orEmail": "or with your email",
     "terms": "By continuing you agree to care for the planet (and our terms).",
     "signOut": "Sign out",
-    "checking": "Checking your session…"
+    "checking": "Checking your session…",
+    "eyebrow": "Living field log",
+    "heroA": "Caring for the planet,",
+    "heroB": "one day at a time.",
+    "heroBody": "Real actions you can measure, a world that grows with you and people doing the same near you.",
+    "heroBodyShort": "Real actions you can measure and a world that grows with you.",
+    "pillar1Title": "Actions you can measure",
+    "pillar1Body": "A few things you can really do each day, with the water, energy and waste you save.",
+    "pillar2Title": "Your world grows with you",
+    "pillar2Body": "An island that starts as bare soil and fills with life with every action. What you build is never lost.",
+    "pillar3Title": "People and businesses who care",
+    "pillar3Body": "The Plaza, projects in your city and a Market of shops that show how they back their claims.",
+    "pulseLive": "Live on Brote",
+    "pulseShort": "{n} real actions done on Brote",
+    "pulseActions": "actions done",
+    "pulseWater": "water not wasted",
+    "pulseCo2": "CO₂ avoided",
+    "tabsLabel": "Sign in or create an account",
+    "tabSignIn": "Sign in",
+    "tabSignUp": "Create account",
+    "titleSignIn": "Sign in to {app}",
+    "subSignIn": "Pick up where you left off: your streak, your world and your achievements.",
+    "titleSignUp": "Create your account",
+    "subSignUp": "It is free and takes a minute. Then I will help you take your first step.",
+    "forgot": "Forgot your password?",
+    "resetTitle": "Reset your password",
+    "resetBody": "We will email you a link to choose a new one. It expires in an hour.",
+    "resetCta": "Send me the link",
+    "resetSent": "If there is an account for {email}, a link to choose a new password is on its way.",
+    "magicTitle": "Sign in without a password",
+    "magicBody": "We email you a link: open it and you are in.",
+    "back": "Back",
+    "passwordPlaceholderNew": "Choose a password",
+    "sentTitle": "Check your email",
+    "spamHint": "It can take a minute. If it does not show up, check spam or promotions.",
+    "resend": "Resend",
+    "resendIn": "Resend in {s} s",
+    "resent": "Done, we sent it again.",
+    "otherEmail": "Use another email"
   },
   "onboarding": {
     "cityHelp": "We use it for your local ranking. You can change it later.",
@@ -1287,7 +1325,6 @@
     },
     "cast": {
       "ines": {
-        "name": "Inés",
         "0": "Contá los pétalos de esa margarita. Ahora contá otra. Casi siempre te va a dar el mismo número.",
         "1": "La chilca es la primera en volver a un terreno pelado. No es linda. Es imprescindible.",
         "2": "Ese pasto que parece seco tiene la raíz a un metro. Está esperando, no está muerto.",
@@ -1311,10 +1348,10 @@
         "20": "El aromo florece antes de tener hojas. Le importa más el bicho que la foto.",
         "21": "Si querés que algo prenda, plantá tres. Uno se pierde, uno duda, uno sale.",
         "22": "Las hormigas cortan hojas y siembran hongos abajo. Tienen agricultura hace cincuenta millones de años.",
-        "23": "Este suelo tardó doscientos años en hacerse. Se puede perder en una tarde de lluvia fuerte."
+        "23": "Este suelo tardó doscientos años en hacerse. Se puede perder en una tarde de lluvia fuerte.",
+        "name": "Inés"
       },
       "tuco": {
-        "name": "Tuco",
         "0": "Si la garza está quieta hay peces. Si se fue, no pierdas la tarde.",
         "1": "El río sube antes de que llueva. Yo no sé cómo sabe. Sabe.",
         "2": "Pescar es esperar con un motivo. Sin el motivo también sirve.",
@@ -1338,10 +1375,10 @@
         "20": "Al que se le enreda la línea le va a ir bien después. Es así.",
         "21": "Se pesca mejor sentado. Todo se hace mejor sentado, en realidad.",
         "22": "El río tiene memoria. Si le sacás la curva, la vuelve a hacer.",
-        "23": "Vení temprano alguna vez. No por los peces. Por cómo queda el agua a esa hora."
+        "23": "Vení temprano alguna vez. No por los peces. Por cómo queda el agua a esa hora.",
+        "name": "Tuco"
       },
       "mila": {
-        "name": "Mila",
         "0": "¿Vos sabías que el hornero hace la puerta lejos del viento? Me lo dijo Inés. Lo fui a ver.",
         "1": "¿Por qué las hojas de abajo del árbol son más grandes? Le pregunté a Inés y se puso contenta.",
         "2": "Encontré una pluma azul. La guardé. Después la puse de vuelta porque capaz la necesitaba alguien.",
@@ -1365,10 +1402,10 @@
         "20": "Si todos plantaran una, ¿cuántas habría? Hice la cuenta y me dio muchísimo.",
         "21": "¿Por qué el pasto crece si nadie lo planta? Esa la voy a averiguar yo sola.",
         "22": "Traje a mi hermano. Se aburrió a los dos minutos. Yo me quedé.",
-        "23": "Cuando sea grande quiero saber los nombres de todo. Ya me sé nueve."
+        "23": "Cuando sea grande quiero saber los nombres de todo. Ya me sé nueve.",
+        "name": "Mila"
       },
       "don_beto": {
-        "name": "Don Beto",
         "0": "Antes del río acá había un camino. El agua se acuerda de por dónde iba.",
         "1": "El faro lo encendíamos a mano. Uno subía, uno esperaba abajo. Nunca supe cuál de los dos era el trabajo.",
         "2": "Mi padre plantó ese árbol para no tener que explicarle nada a nadie. Funcionó.",
@@ -1392,7 +1429,8 @@
         "20": "El primer barco que vi hundirse fue de día, con sol. Uno se imagina esas cosas de noche.",
         "21": "Este lugar tuvo cuatro nombres que yo sepa. Ninguno se lo puso el lugar.",
         "22": "Cuando no sepas qué hacer, sentate a mirar el agua. Después vas a saber.",
-        "23": "Ya casi no subo la escalera. Pero de acá abajo el faro se ve mejor."
+        "23": "Ya casi no subo la escalera. Pero de acá abajo el faro se ve mejor.",
+        "name": "Don Beto"
       }
     },
     "fact": {

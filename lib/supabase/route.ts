@@ -41,6 +41,8 @@ export function createRouteClient(request: NextRequest, response: NextResponse) 
  * open redirect.
  */
 export function safeNext(next: string | null): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//')) return '/';
+  // `/\evil.example` is read by browsers as `//evil.example`, so a backslash
+  // anywhere is refused too, along with control characters.
+  if (!next || !next.startsWith('/') || next.startsWith('//') || /[\\\u0000-\u001f]/.test(next)) return '/';
   return next;
 }
