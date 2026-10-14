@@ -87,14 +87,14 @@
 ## 3. Fases y casillas
 
 ### F1 · Login y onboarding
-- [ ] Login nuevo: panel de marca (tinta, Pip, titular con el degradado, números reales vía RPC
+- [x] Login nuevo: panel de marca (tinta, Pip, titular con el degradado, números reales vía RPC
       pública), pestañas Entrar/Crear cuenta con píldora deslizante, mostrar/ocultar contraseña,
       errores de Supabase traducidos, enlace mágico como alternativa.
-- [ ] Olvidé mi contraseña: pedir enlace + `/auth/nueva-clave` para fijarla.
-- [ ] Onboarding: barra de progreso con "Paso N de M", CTA fijo abajo con safe-area, pasos con la
+- [x] Olvidé mi contraseña: pedir enlace + `/auth/nueva-clave` para fijarla.
+- [x] Onboarding: barra de progreso con "Paso N de M", CTA fijo abajo con safe-area, pasos con la
       misma estructura, guardado que **sí** reporta errores, paso final con la primera acción y el
       pedido de avisos ("¿Te avisamos antes de que se corte tu racha?").
-- [ ] Capturas a 390 px y 1280 px, claro y oscuro.
+- [x] Capturas a 390 px y 1280 px, claro y oscuro.
 
 ### F2 · Panel: cuentas, contraseña y analítica
 - [ ] `brote_admins` + `admin_check` que exige cuenta vinculada cuando hay alguna + vincular cuenta +
@@ -207,3 +207,7 @@ Ver `admin_analitica` en `0127_panel_analitica.sql` (se llena en F2).
 ## 9. Diario
 
 - 2026-10-14 — Relevamiento (§1), decisiones (§2), plan. Rama creada.
+- 2026-10-14 — F1 hecha (849de47): login nuevo + recuperar contraseña + onboarding. Verificado a
+  390 px y 1280 px, claro y oscuro, con `scratchpad/cdp-shot.mjs` (CDP) y una ruta de prueba
+  temporal con las acciones del servidor inyectadas (`OnboardingFlow acciones=`). Hallazgo: un
+  `overflow-hidden` en un ancestro rompe `position: sticky` (la barra de acción quedaba abajo).
