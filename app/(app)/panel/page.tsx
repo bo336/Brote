@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Lock, ShieldCheck, RefreshCw, KeyRound, FlaskConical, ListChecks } from 'lucide-react';
+import { ShieldCheck, RefreshCw, FlaskConical, ListChecks, BarChart3, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import {
-  adminIsConfigured,
   adminSetPassword,
   adminDashboard,
   adminSetSetting,
@@ -23,6 +22,9 @@ import { NegociosResumen } from '@/components/panel/NegociosResumen';
 import { ObjetivosResumen } from '@/components/panel/ObjetivosResumen';
 import { MercadoResumen } from '@/components/panel/MercadoResumen';
 import { usePanelPass } from '@/components/panel/PanelPass';
+import { AccesoPanel } from '@/components/panel/AccesoPanel';
+import { PanelPendientes } from '@/components/panel/PanelPendientes';
+import { CuentasPanel } from '@/components/panel/CuentasPanel';
 import { toast } from '@/stores/toast';
 
 /**
@@ -53,23 +55,19 @@ const STAT_LABELS: Record<string, string> = {
 };
 
 export default function PanelPage() {
-  const [configured, setConfigured] = useState<boolean | null>(null);
   // La contraseña ya verificada vive en el layout de /panel, para no pedirla
   // de nuevo al volver de la cola de negocios. Lo que se tipea queda acá.
   const panel = usePanelPass();
   const [pass, setPass] = useState(panel.pass);
   const [data, setData] = useState<AdminDashboard | null>(null);
   const [busy, setBusy] = useState(false);
+  const [refresco, setRefresco] = useState(0);
 
-  // First-run setup
-  const [newPass, setNewPass] = useState('');
-  const [newPass2, setNewPass2] = useState('');
   // Change passphrase
   const [changeTo, setChangeTo] = useState('');
   const [simCount, setSimCount] = useState('');
 
   useEffect(() => {
-    adminIsConfigured().then(setConfigured);
     if (panel.pass) void enter(panel.pass);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,20 +82,10 @@ export default function PanelPage() {
       return;
     }
     panel.setPass(p);
+    setPass(p);
     setData(res);
+    setRefresco((n) => n + 1);
     setSimCount(String(res.stats.simulated_players ?? 0));
-  }
-
-  async function firstRun() {
-    if (newPass !== newPass2) return toast.error('No coinciden', 'Las dos contraseñas tienen que ser iguales');
-    setBusy(true);
-    const res = await adminSetPassword(newPass);
-    setBusy(false);
-    if (!res.ok) return toast.error('No se pudo guardar', res.error);
-    toast.success('Contraseña creada');
-    setConfigured(true);
-    setPass(newPass);
-    await enter(newPass);
   }
 
   async function toggle(key: string, value: boolean) {
@@ -106,75 +94,8 @@ export default function PanelPage() {
     await enter();
   }
 
-  if (configured === null) {
-    return (
-      <div className="mx-auto max-w-md space-y-3 py-10">
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
-  }
-
-  // ── First run: nobody has set a passphrase yet ────────────────────────────
-  if (!configured) {
-    return (
-      <div className="mx-auto max-w-md py-10">
-        <Card className="space-y-3 p-5">
-          <div className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5 text-primary" />
-            <h1 className="font-display text-h2 font-bold">Crear contraseña del panel</h1>
-          </div>
-          <p className="text-small text-muted-foreground">
-            Todavía no hay contraseña. La primera que pongas queda guardada (encriptada) y después vas a poder
-            cambiarla desde acá.
-          </p>
-          <Input
-            type="password"
-            value={newPass}
-            onChange={(e) => setNewPass(e.target.value)}
-            placeholder="Contraseña nueva (mínimo 8)"
-          />
-          <Input
-            type="password"
-            value={newPass2}
-            onChange={(e) => setNewPass2(e.target.value)}
-            placeholder="Repetila"
-            invalid={newPass2.length > 0 && newPass !== newPass2}
-          />
-          <Button block variant="primary" onClick={firstRun} loading={busy} disabled={newPass.length < 8}>
-            Guardar
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
-  // ── Locked ────────────────────────────────────────────────────────────────
-  if (!data) {
-    return (
-      <div className="mx-auto max-w-md py-10">
-        <Card className="space-y-3 p-5">
-          <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-muted-foreground" />
-            <h1 className="font-display text-h2 font-bold">Panel</h1>
-          </div>
-          <Input
-            type="password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && enter()}
-            placeholder="Contraseña"
-            autoFocus
-          />
-          <Button block variant="primary" onClick={() => enter()} loading={busy} disabled={!pass}>
-            Entrar
-          </Button>
-          <p className="text-caption text-muted-foreground">
-            Después de 8 intentos fallidos se bloquea por 15 minutos.
-          </p>
-        </Card>
-      </div>
-    );
-  }
+  // ── Locked: crear, entrar o recuperar ────────────────────────────────────
+  if (!data) return <AccesoPanel onEntrar={(p) => enter(p)} ocupado={busy} />;
 
   // ── Console ───────────────────────────────────────────────────────────────
   return (
@@ -188,6 +109,29 @@ export default function PanelPage() {
           <RefreshCw className="h-4 w-4" /> Actualizar
         </Button>
       </header>
+
+      <PanelPendientes pass={pass} refresco={refresco} />
+
+      <nav aria-label="Secciones del panel" className="grid gap-2 sm:grid-cols-2">
+        {[
+          { href: '/panel/analitica', Icon: BarChart3, titulo: 'Analítica', bajada: 'Cuánta gente, quién usa qué, retención y embudos' },
+        ].map(({ href, Icon, titulo, bajada }) => (
+          <Link
+            key={href}
+            href={href}
+            className="press group flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary/15 text-primary">
+              <Icon className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-h3 font-bold">{titulo}</span>
+              <span className="block text-caption text-muted-foreground">{bajada}</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        ))}
+      </nav>
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Números</h2>
@@ -254,7 +198,9 @@ export default function PanelPage() {
 
       {/* Moderation sits high on this screen on purpose: it is the only part
           of the panel where somebody is waiting on the other side. */}
-      <ModerationQueue pass={pass} />
+      <div id="moderacion" className="scroll-mt-20">
+        <ModerationQueue pass={pass} />
+      </div>
 
       {/* Negocios y cierres de objetivos: igual que la moderación, del otro
           lado hay alguien esperando una respuesta. */}
@@ -295,7 +241,9 @@ export default function PanelPage() {
       {/* La Academia. La cola va antes que los números por el mismo motivo que
           la moderación: es lo único de acá que bloquea contenido. Nada generado
           llega a nadie hasta que alguien lo mira. */}
-      <ColaAcademia pass={pass} />
+      <div id="academia" className="scroll-mt-20">
+        <ColaAcademia pass={pass} />
+      </div>
       <MetricasAcademia pass={pass} />
 
       <section>
@@ -330,6 +278,8 @@ export default function PanelPage() {
           </div>
         </Card>
       </section>
+
+      <CuentasPanel pass={pass} />
 
       <section>
         <h2 className="mb-2 font-display text-h3 font-bold">Cambiar contraseña</h2>

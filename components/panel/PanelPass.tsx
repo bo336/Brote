@@ -21,8 +21,8 @@ const PanelPassContext = createContext<{ pass: string; setPass: (p: string) => v
   setPass: () => {},
 });
 
-export function PanelPassProvider({ children }: { children: ReactNode }) {
-  const [pass, setPass] = useState('');
+export function PanelPassProvider({ children, inicial = '' }: { children: ReactNode; inicial?: string }) {
+  const [pass, setPass] = useState(inicial);
   return <PanelPassContext.Provider value={{ pass, setPass }}>{children}</PanelPassContext.Provider>;
 }
 

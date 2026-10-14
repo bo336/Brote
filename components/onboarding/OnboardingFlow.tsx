@@ -35,6 +35,7 @@ import { completeActivity } from '@/lib/api/activities';
 import { triggerRecommendations } from '@/lib/api/catalog';
 import { pushSupported, subscribeToPush } from '@/lib/api/push';
 import { celebrateCompletion } from '@/lib/rewards';
+import { registrarEvento } from '@/lib/analitica';
 import { toast } from '@/stores/toast';
 import { saveOnboardingProfile, finishOnboarding } from '@/app/onboarding/actions';
 import type { ActivityRow } from '@/lib/supabase/rows';
@@ -144,6 +145,8 @@ export function OnboardingFlow({
   function go(to: number) {
     setDir(to > step ? 1 : -1);
     setStep(to);
+    // Hasta qué paso llega la gente: el embudo del onboarding en el panel.
+    if (to > step) registrarEvento(`onb_${to}`);
   }
 
   function togglePick(id: string) {
@@ -262,6 +265,7 @@ export function OnboardingFlow({
         toast.error('No pudimos terminar', 'Probá de nuevo en un momento.');
         return;
       }
+      registrarEvento('onb_fin');
       router.push('/');
       router.refresh();
     });

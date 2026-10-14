@@ -349,7 +349,14 @@ Deno.serve(async (req) => {
 
     // ── Pedidos del revisor ─────────────────────────────────────────────────
     if (body.action === 'sitio' || body.action === 'firmar') {
-      const { data: autorizado } = await admin.rpc('admin_check', { p_pass: String(body.pass ?? '') });
+      // Se verifica COMO la persona, no con la clave de servicio: desde 0127 la
+      // contraseña del panel sólo vale desde una cuenta vinculada (brote_admins),
+      // y con la clave de servicio `auth.uid()` es nulo.
+      const comoPersona = createClient(url, anonKey, {
+        global: { headers: { Authorization: `Bearer ${jwt}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: autorizado } = await comoPersona.rpc('admin_check', { p_pass: String(body.pass ?? '') });
       if (autorizado !== true) return json({ ok: false, error: 'no_autorizado' });
 
       if (body.action === 'firmar') {

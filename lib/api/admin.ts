@@ -218,3 +218,187 @@ export async function adminAccionesReglasGuardar(
   if (error) return { ok: false, error: error.message };
   return data as Res<{ reglas: PanelAcciones['reglas'] }>;
 }
+
+// ── Cuentas del panel (0127) ────────────────────────────────────────────────
+
+export interface EstadoAcceso {
+  configurado: boolean;
+  con_cuentas: boolean;
+  soy_admin: boolean;
+  ingreso_reciente: boolean;
+}
+
+export async function adminEstadoAcceso(): Promise<EstadoAcceso | null> {
+  const { data, error } = await createClient().rpc('admin_estado_acceso');
+  if (error) return null;
+  return data as EstadoAcceso;
+}
+
+export async function adminRecuperarClave(nueva: string): Promise<{ ok: boolean; error?: string; reingresar?: boolean }> {
+  const { data, error } = await createClient().rpc('admin_recuperar_clave', { p_nueva: nueva });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; reingresar?: boolean };
+}
+
+export interface CuentaPanel {
+  user_id: string;
+  email: string;
+  nombre: string | null;
+  username: string | null;
+  vinculado_at: string;
+  soy_yo: boolean;
+  avisos: boolean;
+}
+
+export async function adminCuentas(pass: string): Promise<{ ok: boolean; error?: string; cuentas?: CuentaPanel[] }> {
+  const { data, error } = await createClient().rpc('admin_cuentas', { p_pass: pass });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; cuentas?: CuentaPanel[] };
+}
+
+export async function adminVincularCuenta(pass: string, email?: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_vincular_cuenta', { p_pass: pass, p_email: email ?? null });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function adminDesvincularCuenta(pass: string, userId: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_desvincular_cuenta', { p_pass: pass, p_user: userId });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+// ── Bandeja y analítica (0128) ──────────────────────────────────────────────
+
+export async function adminPendientes(pass: string): Promise<Record<string, number> | null> {
+  const { data, error } = await createClient().rpc('admin_pendientes', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  const resto = { ...(data as Record<string, number>) };
+  delete resto.ok;
+  return resto;
+}
+
+export interface FilaSerie {
+  dia: string;
+  altas: number;
+  activos: number;
+  acciones: number;
+}
+
+export interface Analitica {
+  ok: boolean;
+  error?: string;
+  hoy: string;
+  dias: number;
+  resumen: {
+    usuarios: number;
+    nuevos_hoy: number;
+    nuevos_7d: number;
+    nuevos_30d: number;
+    onboarding: number;
+    activos_hoy: number;
+    activos_7d: number;
+    activos_30d: number;
+    con_avisos: number;
+    app_instalada: number;
+    brote_plus: number;
+    acciones_hoy: number;
+    acciones_7d: number;
+    empresas_mejora: number;
+    tiendas: number;
+    empresas_en_alta: number;
+  };
+  serie: FilaSerie[];
+  cohortes: { semana: string; tamano: number; retencion: (number | null)[] }[];
+  embudo: {
+    registrados: number;
+    onboarding: number;
+    primera_accion: number;
+    volvio: number;
+    siete_dias: number;
+    racha_7: number;
+  };
+  secciones: { clave: string; usuarios_7d: number; usuarios_30d: number; vistas_7d: number }[];
+  eventos: { clave: string; usuarios_7d: number; usuarios_30d: number; veces_30d: number }[];
+  segmentos: {
+    tipo: Record<string, number>;
+    ciudad: { ciudad: string; usuarios: number }[];
+    plataforma: Record<string, number>;
+    sistema: Record<string, number>;
+    navegador: Record<string, number>;
+  };
+  contenido: {
+    acciones_top: { titulo: string; dominio: string; veces: number; personas: number }[];
+    dominios: Record<string, number>;
+    academia_sesiones_7d: number;
+    academia_personas_7d: number;
+    plaza_publicaciones_7d: number;
+    plaza_autores_7d: number;
+    plaza_reacciones_7d: number;
+    mercado_clics_7d: number;
+    mercado_impresiones_7d: number;
+    mundo_jugadores_7d: number;
+    proyectos_sumados_7d: number;
+  };
+  rachas: { cero: number; de_1_a_2: number; de_3_a_6: number; de_7_a_29: number; de_30_mas: number };
+  niveles: Record<string, number>;
+  avisos_7d: Record<string, number>;
+  recientes: {
+    id: string;
+    username: string | null;
+    display_name: string | null;
+    alta_at: string;
+    account_type: string;
+    city: string | null;
+    onboarding: boolean;
+    acciones: number;
+    ultimo_dia: string | null;
+  }[];
+}
+
+export async function adminAnalitica(pass: string, dias = 30): Promise<Analitica | null> {
+  const { data, error } = await createClient().rpc('admin_analitica', { p_pass: pass, p_dias: dias });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as Analitica;
+}
+
+export interface UsuarioAnalitica {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  email: string;
+  alta_at: string;
+  account_type: string;
+  city: string | null;
+  plan: string;
+  es_prueba: boolean;
+  onboarding: boolean;
+  racha: number;
+  nivel: string;
+  puntos: number;
+  ultima_vez: string | null;
+  plataforma: string | null;
+  sistema: string | null;
+  instalada: boolean | null;
+  avisos: boolean;
+  dias_activos_30d: number;
+  acciones_30d: number;
+  secciones_30d: Record<string, number>;
+  negocios: number;
+}
+
+export async function adminAnaliticaUsuarios(
+  pass: string,
+  q: string,
+  orden: 'recientes' | 'activos' | 'inactivos',
+  limite = 50,
+): Promise<UsuarioAnalitica[] | null> {
+  const { data, error } = await createClient().rpc('admin_analitica_usuarios', {
+    p_pass: pass,
+    p_q: q || null,
+    p_orden: orden,
+    p_limite: limite,
+  });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return ((data as { usuarios?: UsuarioAnalitica[] }).usuarios ?? []) as UsuarioAnalitica[];
+}

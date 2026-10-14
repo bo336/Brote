@@ -97,14 +97,14 @@
 - [x] Capturas a 390 px y 1280 px, claro y oscuro.
 
 ### F2 · Panel: cuentas, contraseña y analítica
-- [ ] `brote_admins` + `admin_check` que exige cuenta vinculada cuando hay alguna + vincular cuenta +
+- [x] `brote_admins` + `admin_check` que exige cuenta vinculada cuando hay alguna + vincular cuenta +
       recuperar contraseña con sesión reciente. Texto para el dueño (cómo volver a entrar hoy).
-- [ ] `uso_diario` + `registrar_uso()` + rastreador en el cliente (secciones y eventos clave).
-- [ ] `admin_analitica(p_pass, p_dias)`: usuarios, altas, DAU/WAU/MAU, retención por cohortes,
+- [x] `uso_diario` + `registrar_uso()` + rastreador en el cliente (secciones y eventos clave).
+- [x] `admin_analitica(p_pass, p_dias)`: usuarios, altas, DAU/WAU/MAU, retención por cohortes,
       embudo, secciones, eventos, tipos de cuenta, ciudades, plataformas, avisos, planes, rachas,
       rangos, top acciones, Academia, Plaza, Mercado; ficha por usuario.
-- [ ] `/panel/analitica` con gráficos (recharts), tablas y exportar CSV.
-- [ ] Bandeja "Pendientes" arriba del panel (todas las colas con su número).
+- [x] `/panel/analitica` con gráficos (recharts), tablas y exportar CSV.
+- [x] Bandeja "Pendientes" arriba del panel (todas las colas con su número).
 
 ### F3 · Notificaciones reales
 - [ ] Cola de push (`push_estado`, `push_programada_at`), trigger nuevo, `send-push` v2 (por id,
@@ -202,7 +202,32 @@ Ver `admin_analitica` en `0127_panel_analitica.sql` (se llena en F2).
 
 ## 8. Lo que queda del dueño (se completa al cerrar)
 
-- (al cierre)
+### 8.1 · Olvidé la contraseña del panel
+
+**Hoy (todavía sin ninguna cuenta vinculada):** en Supabase → proyecto `Brote-SP` → SQL Editor,
+corré esto (reemplazá el correo por el de TU cuenta de Brote):
+
+```sql
+-- 1) Atar tu cuenta al panel (sólo si 0127 ya está aplicada; si no, saltealo).
+insert into brote_admins (user_id)
+select id from auth.users where email = 'TU-CORREO@gmail.com'
+on conflict do nothing;
+
+-- 2) Borrar la contraseña vieja.
+update admin_config
+   set pass_hash = null, pass_salt = null, failed_count = 0, locked_until = null
+ where id = 1;
+```
+
+Después entrá a `/panel` con esa cuenta: aparece "Crear contraseña del panel". Con 0127 aplicada,
+sólo una cuenta vinculada puede crearla; sin 0127, hacelo enseguida (cualquiera que entre a
+`/panel` mientras está vacía podría crearla).
+
+**De ahora en más:** con tu cuenta vinculada, en el candado del panel aparece "Olvidé la
+contraseña". Pide haber entrado a Brote hace menos de 15 minutos (si no, te hace salir y volver a
+entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
+
+- (el resto, al cierre)
 
 ## 9. Diario
 
@@ -211,3 +236,9 @@ Ver `admin_analitica` en `0127_panel_analitica.sql` (se llena en F2).
   390 px y 1280 px, claro y oscuro, con `scratchpad/cdp-shot.mjs` (CDP) y una ruta de prueba
   temporal con las acciones del servidor inyectadas (`OnboardingFlow acciones=`). Hallazgo: un
   `overflow-hidden` en un ancestro rompe `position: sticky` (la barra de acción quedaba abajo).
+- 2026-10-14 — F2 hecha: 0127 (cuentas del panel + recuperar) y 0128 (analítica, bandeja).
+  **Banco de pruebas local:** `scratchpad/pgtest/` arma una copia de la base viva en PGlite (esquema
+  de `information_schema`/`pg_constraint`, las 483 funciones con `pg_get_functiondef`, triggers y
+  vistas; sin datos) y corre migraciones + tests con NOTICE. Así se prueban las migraciones sin
+  tocar producción. Las funciones que llevan la anon key o leen vault se excluyen a propósito.
+  `verify-business` pasa a verificar la contraseña como la persona (redeploy pendiente).

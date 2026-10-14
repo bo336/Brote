@@ -10,6 +10,7 @@ import { FirstRunTour } from '@/components/tutorial/FirstRunTour';
 import { MomentAd } from '@/components/ads/AdSlot';
 import { AdsConsentBanner } from '@/components/ads/AdsConsent';
 import { SessionHydrator } from '@/components/session-hydrator';
+import { Analitica } from '@/components/Analitica';
 import { getSessionData } from '@/lib/supabase/queries';
 
 /**
@@ -44,6 +45,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <MomentAd />
       <AdsConsentBanner />
       <SessionHydrator profile={profile} unread={unread} />
+      <Analitica />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ShellNegocio } from '@/components/negocio/ShellNegocio';
+import { Analitica } from '@/components/Analitica';
 import {
   contextoCookie,
   getActiveBusiness,
@@ -42,6 +43,7 @@ export default async function BusinessLayout({ children }: { children: ReactNode
   return (
     <ShellNegocio perfil={perfil} negocios={negocios} activo={activo} enfocado={enfocado}>
       {children}
+      <Analitica />
     </ShellNegocio>
   );
 }

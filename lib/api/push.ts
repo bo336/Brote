@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import { registrarEvento } from '@/lib/analitica';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -37,7 +38,10 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; er
   if (!reg) return { ok: false, error: 'Tu navegador no soporta notificaciones.' };
 
   const permission = await Notification.requestPermission();
-  if (permission !== 'granted') return { ok: false, error: 'Permiso de notificaciones denegado.' };
+  if (permission !== 'granted') {
+    registrarEvento('avisos_rechazados');
+    return { ok: false, error: 'Permiso de notificaciones denegado.' };
+  }
 
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
@@ -51,6 +55,7 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; er
       { onConflict: 'endpoint' },
     );
   if (error) return { ok: false, error: error.message };
+  registrarEvento('avisos_activados');
   return { ok: true };
 }
 
