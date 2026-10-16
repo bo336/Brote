@@ -48,3 +48,6 @@ yarn-error.log*
 lib/supabase/database.types.ts.tmp
 .test-out/
 /.next-dev/
+
+# Logs de servidores locales (next dev / preview)
+*.log

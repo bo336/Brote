@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import type { FeedItem } from '@/lib/api/feed';
+import { compressImage } from '@/lib/utils/image-compress';
 
 export interface AdminSetting {
   value: boolean | number | string;
@@ -464,4 +465,86 @@ export async function adminSuscripciones(pass: string): Promise<PanelSuscripcion
   const { data, error } = await createClient().rpc('admin_suscripciones', { p_pass: pass });
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
   return data as PanelSuscripciones;
+}
+
+// ── Publicidad (0134) ───────────────────────────────────────────────────────
+
+export interface AnuncioPanel {
+  id: string;
+  nombre: string;
+  anunciante: string;
+  titulo: string;
+  texto: string | null;
+  imagen_url: string | null;
+  cta: string;
+  url_destino: string;
+  ubicaciones: string[];
+  provincias: string[];
+  publico: 'adultos' | 'todos';
+  desde: string;
+  hasta: string | null;
+  peso: number;
+  tope_impresiones: number | null;
+  activo: boolean;
+  notas: string | null;
+  vigente: boolean;
+  impresiones: number;
+  clics: number;
+  impresiones_7d: number;
+}
+
+export interface PanelPublicidad {
+  ok: true;
+  activa: boolean;
+  config: unknown;
+  metricas: {
+    ubicacion: string;
+    proveedor: 'adsense' | 'directo';
+    pedidos_hoy: number | null;
+    pedidos_30d: number;
+    llenos_30d: number;
+    vacios_30d: number;
+  }[];
+  serie: { dia: string; pedidos: number; llenos: number }[];
+  anuncios: AnuncioPanel[];
+}
+
+export async function adminPublicidad(pass: string): Promise<PanelPublicidad | null> {
+  const { data, error } = await createClient().rpc('admin_publicidad', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelPublicidad;
+}
+
+/** `activa` o `config` en null = no se tocan. */
+export async function adminPublicidadConfig(
+  pass: string,
+  activa: boolean | null,
+  config: unknown | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_publicidad_config', {
+    p_pass: pass,
+    p_activa: activa,
+    p_config: config,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function adminAnuncioGuardar(
+  pass: string,
+  anuncio: Partial<AnuncioPanel>,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_anuncio_guardar', { p_pass: pass, p_anuncio: anuncio });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; id?: string; error?: string };
+}
+
+/** Sube la imagen de un anuncio directo (sólo cuentas del panel, 0134). */
+export async function subirImagenAnuncio(archivo: File): Promise<string> {
+  const supabase = createClient();
+  const blob = await compressImage(archivo, 1200, 0.85);
+  const ruta = `${new Date().getFullYear()}/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage.from('anuncios').upload(ruta, blob, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  return supabase.storage.from('anuncios').getPublicUrl(ruta).data.publicUrl;
 }

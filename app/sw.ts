@@ -51,8 +51,12 @@ const runtimeCaching: RuntimeCaching[] = [
     handler: new StaleWhileRevalidate({ cacheName: 'assets' }),
   },
   // Images (icons, uploaded media) — cache with a bounded expiration.
+  // Only our own and Supabase Storage: NEVER cross-origin ad images. An ad
+  // creative or tracking pixel served from cache is an impression Google
+  // never counts — and serving cached ads is against AdSense policy.
   {
-    matcher: ({ request }) => request.destination === 'image',
+    matcher: ({ request, url, sameOrigin }) =>
+      request.destination === 'image' && (sameOrigin || url.hostname.endsWith('.supabase.co')),
     handler: new CacheFirst({
       cacheName: 'images',
       plugins: [new ExpirationPlugin({ maxEntries: 96, maxAgeSeconds: 30 * 24 * 60 * 60 })],

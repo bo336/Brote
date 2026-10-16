@@ -39,7 +39,8 @@
     "lib/acciones/**/*.ts",
     "lib/data/cities.ts",
     "lib/rangos.ts",
-    "lib/rangos/__tests__/**/*.ts"
+    "lib/rangos/__tests__/**/*.ts",
+    "lib/ads/**/*.ts"
   ],
   "exclude": [
     "node_modules"
