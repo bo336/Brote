@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Términos y Condiciones de uso de ${BRAND.name}.`,
 };
 
-const UPDATED = '27 de agosto de 2026';
+const UPDATED = '16 de octubre de 2026';
 
 export default function TerminosPage() {
   return (
@@ -187,8 +187,10 @@ export default function TerminosPage() {
 
       <Section n="10" title="Publicidad">
         <p>
-          La modalidad gratuita puede incluir espacios publicitarios provistos por redes de terceros. La publicidad se
-          identifica como tal y no se muestra a cuentas infantiles ni a personas suscriptas a {BRAND.name}+. Podés
+          La modalidad gratuita puede incluir espacios publicitarios provistos por redes de terceros (Google AdSense)
+          o contratados directamente por anunciantes, marcados como «Patrocinado». La publicidad se identifica como
+          tal y no se muestra a cuentas infantiles ni a personas suscriptas a {BRAND.name}+. {BRAND.name} no respalda
+          los productos anunciados: la relación es con el anunciante. Podés
           gestionar la personalización de anuncios desde la Aplicación, conforme se detalla en la{' '}
           <Link href="/legal/privacidad">Política de Privacidad</Link>.
         </p>

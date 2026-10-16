@@ -24,6 +24,7 @@ import { exportMyData, deleteMyAccount } from '@/lib/api/profile';
 import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, pushSupported } from '@/lib/api/push';
 import { setMyUsername } from '@/lib/api/perfil-publico';
 import { AvisosAjustes } from '@/components/perfil/AvisosAjustes';
+import { PublicidadAjustes } from '@/components/perfil/PublicidadAjustes';
 import { toast } from '@/stores/toast';
 
 
@@ -384,6 +385,13 @@ export default function AjustesPage() {
           esChico={isKid}
         />
       </Section>
+
+      {/* Lo que promete la política de privacidad §5: se revoca desde acá. */}
+      {!isKid && (
+        <Section title="Publicidad">
+          <PublicidadAjustes />
+        </Section>
+      )}
 
       {/* Kids have no social surface, so none of these would control anything
           for them. */}

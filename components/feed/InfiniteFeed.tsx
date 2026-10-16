@@ -10,6 +10,7 @@ import { Reveal } from '@/components/ui/reveal';
 import { Card } from '@/components/ui/card';
 import { Pip } from '@/components/pip/Pip';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { useAds } from '@/components/ads/AdsProvider';
 import { feedAdIndices } from '@/lib/ads/policy';
 import { FeedCard } from './FeedCard';
 import { WhoToFollow } from '@/components/social/WhoToFollow';
@@ -163,7 +164,13 @@ export function InfiniteFeed({
   });
 
   // Ads keep running through the one policy gate; kids never reach it anyway.
-  const adAt = useMemo(() => new Set(feedAdIndices(items.length)), [items.length]);
+  // The rhythm (first after N posts, then every M, at most K) comes from the
+  // panel (`publicidad_config`, 0134).
+  const { estado: estadoAds, canRenderHere } = useAds();
+  const adAt = useMemo(
+    () => new Set(canRenderHere ? feedAdIndices(items.length, estadoAds.config) : []),
+    [items.length, estadoAds.config, canRenderHere],
+  );
 
   if (q.isLoading) return <FeedSkeletons />;
 

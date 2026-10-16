@@ -264,7 +264,9 @@ function RankingInner() {
                   <Flag className="h-4 w-4" /> Crear o unirme a una competencia
                 </Link>
               </Button>
-              <AdSlot placement="ranking-footer" className="pt-1" />
+              {/* Lejos del botón de arriba: AdSense pide no poner anuncios pegados
+                  a botones o navegación (clics accidentales). */}
+              <AdSlot placement="ranking-footer" className="mt-8 border-t border-hairline pt-6" />
             </>
           ) : (
             <EmptyState message="No pudimos cargar tu liga. Probá de nuevo." />

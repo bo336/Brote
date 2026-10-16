@@ -158,6 +158,22 @@
 - [ ] Recorrido de pantallas con capturas.
 - [ ] Lista del dueño (§8) y pedido único de luz verde: migraciones, funciones, merge.
 
+### F9 · Publicidad (pedido del 2026-10-16) — guía del dueño en `docs/PUBLICIDAD.md`
+- [x] 0134: el interruptor `ads_enabled` por fin se lee (nace apagado; antes ninguna migración lo
+      creaba), reglas en `publicidad_config` (topes, días de gracia, lugar por lugar y quién lo llena),
+      anuncios directos con sorteo por peso, provincias, público, fechas y tope de vistas; métricas
+      sin identificar a nadie; `/api/anuncio/[id]` cuenta el clic y redirige con UTM.
+- [x] Cliente: AdSense se descarga recién cuando un espacio está por verse, espacios vacíos que se
+      pliegan, topes por día y sesión, momento sólo con directos (política de AdSense).
+- [x] `/ads.txt` y `/app-ads.txt` servidos desde la variable (antes `/ads.txt` redirigía al login),
+      metaetiqueta de verificación, el service worker ya no guarda imágenes de anuncios.
+- [x] 0135 + `/guia` y `/guia/[slug]`: las acciones públicas, sin cuenta (lo que revisa Google),
+      sitemap con cada acción, `robots.txt` que deja pasar a `Mediapartners-Google`, entrada
+      `/auth/crawler` para el rastreador.
+- [x] `/panel/publicidad`: interruptor, qué falta de AdSense (sin secretos), reglas, números,
+      anuncios directos con imagen y vista previa. Ajustes → Publicidad (consentimiento).
+- [x] Privacidad §5 y Términos §10 al día (Google, directos, cómo desactivar la personalización).
+
 ## 4. Rangos — la tabla (fuente: `lib/rangos.ts`, espejo en SQL)
 
 Requisitos **por semana**. En un período de N días se piden `ceil(valor × N / 7)`; los días
@@ -238,6 +254,14 @@ sólo una cuenta vinculada puede crearla; sin 0127, hacelo enseguida (cualquiera
 contraseña". Pide haber entrado a Brote hace menos de 15 minutos (si no, te hace salir y volver a
 entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
 
+### 8.2 · Publicidad
+
+Todo en `docs/PUBLICIDAD.md`. En corto: (1) aplicar 0134 y 0135 con el resto; (2) dominio propio
+(recomendado); (3) cuenta de AdSense (mayor de 18) y `NEXT_PUBLIC_ADSENSE_CLIENT` en Vercel; (4) pedir
+la revisión verificando con la metaetiqueta; (5) aprobada: **apagar los anuncios automáticos**, crear
+los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prender en
+`/panel/publicidad`.
+
 - (el resto, al cierre)
 
 ## 9. Diario
@@ -283,3 +307,8 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   amigos / tu rango / de siempre), `/panel/rangos`, y renombrar en la interfaz la escalera de por
   vida a "nivel" (`/perfil/rangos`, RankBadge, RewardLayer, TopBar, Ajustes, proyectos/nuevo,
   panel/pruebas, `common.rank`). Después F8 completo.
+- 2026-10-16 — F9 (publicidad) hecha, pedida aparte: ver la casilla F9 y `docs/PUBLICIDAD.md`.
+  0134 y 0135 probados en PGlite (sorteo 146/54 sobre 200 con pesos 3:1, chicos y Brote+ sin
+  anuncio, adolescente sólo con «todos», clic anónimo, interruptor, momento sin AdSense, guía sin
+  acciones internas ni de juego, relacionadas del mismo camino primero). **Bug encontrado:**
+  `ads_enabled` no existía en ninguna migración, así que prenderlo desde el panel no hacía nada.

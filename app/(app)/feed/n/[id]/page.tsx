@@ -224,7 +224,7 @@ export default function NewsDetailPage() {
       </p>
 
       {/* Below the content, never inside it — the reader finishes first. */}
-      <AdSlot placement="news-article" className="pt-2" />
+      <AdSlot placement="news-article" className="mt-4 border-t border-hairline pt-6" />
 
       {/* ── La conversación ───────────────────────────────────────────────── */}
       {postId && (
