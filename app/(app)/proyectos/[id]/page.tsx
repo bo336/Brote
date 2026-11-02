@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare, LogOut } from 'lucide-react';
+import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare, LogOut, PauseCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -20,8 +20,8 @@ import { useSession } from '@/stores/session';
 import { fetchProject, fetchProjectContact, fetchProjectParticipants, joinProject, leaveProject, upvoteProject } from '@/lib/api/plaza';
 import { ProjectSessions } from '@/components/plaza/ProjectSessions';
 import { getDomain } from '@/lib/domains';
-import { meetsRank } from '@/lib/ranks';
-import { lockLabel } from '@/lib/recommendations';
+import { OrganizarProyecto } from '@/components/plaza/OrganizarProyecto';
+import { useCupoProyectos, useNombreRango } from '@/hooks/use-rango';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 
@@ -37,7 +37,8 @@ export default function ProjectDetailPage() {
   const tc = useTranslations('common');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
-  const totalXp = profile?.totalXp ?? 0;
+  const cupo = useCupoProyectos().data;
+  const nombreRango = useNombreRango();
 
   const projectQ = useQuery({
     queryKey: ['project', params.id, profile?.id],
@@ -52,7 +53,9 @@ export default function ProjectDetailPage() {
 
   const pips = usePipStyles((participantsQ.data ?? []).map((u) => u.id));
   const p = projectQ.data;
-  const locked = p ? !meetsRank(totalXp, p.min_rank_slug) : false;
+  // Se mira al sumarse (0137): quien ya está no queda afuera si baja de rango.
+  const locked = p && cupo ? !p.joined && (p.min_rango ?? 1) > cupo.efectivo : false;
+  const esOrganizador = !!p && p.creator_id === profile?.id;
   // A project is a meeting in person: a kid account cannot join one (0120).
   const esKid = profile?.accountType === 'kid';
   const contactQ = useQuery({
@@ -151,6 +154,17 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
+      {esOrganizador ? (
+        <OrganizarProyecto proyectoId={p.id} />
+      ) : (
+        p.pausado_at && (
+          <Card className="flex items-start gap-2.5 border-brote-coral/40 bg-brote-coral/10 p-3.5 text-small leading-relaxed">
+            <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-brote-coral" />
+            <span>Este proyecto está en pausa hasta que tenga quien lo organice. Si ya te sumaste, conservás tu lugar.</span>
+          </Card>
+        )
+      )}
+
       {p.description && <p className="text-body">{p.description}</p>}
 
       {p.lat != null && p.lng != null && <ProjectMap lat={p.lat} lng={p.lng} height={200} />}
@@ -191,9 +205,13 @@ export default function ProjectDetailPage() {
             Los proyectos son encuentros en persona: con una cuenta de chico no te podés sumar. Puede hacerlo una persona
             adulta de tu familia.
           </p>
+        ) : p.pausado_at && !p.joined ? (
+          <Button block variant="secondary" size="lg" disabled>
+            <PauseCircle className="h-4 w-4" /> En pausa
+          </Button>
         ) : locked ? (
           <Button block variant="secondary" size="lg" disabled>
-            <Lock className="h-4 w-4" /> {t('createGated', { rank: lockLabel(p.min_rank_slug) })}
+            <Lock className="h-4 w-4" /> {t('createGated', { rank: nombreRango(p.min_rango) })}
           </Button>
         ) : p.joined && p.creator_id === profile?.id ? (
           // Organisers can't leave their own project (enforced server-side too).

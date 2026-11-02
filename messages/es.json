@@ -32,7 +32,7 @@
     "today": "Hoy",
     "you": "Vos",
     "level": "Nivel",
-    "rank": "Rango",
+    "rank": "Nivel",
     "comingSoon": "Próximamente",
     "optional": "opcional",
     "filters": "Filtros",
@@ -920,7 +920,7 @@
         "residuos": "Los residuos",
         "transporte": "Cómo me muevo"
       },
-      "promise": "Esto aparece cuando subas de rango.",
+      "promise": "Esto aparece cuando subas de nivel.",
       "ask": "Registrá tu primera acción real y guardá tu isla."
     },
     "verb": {

@@ -7,6 +7,7 @@ import { PipAvatar } from '@/components/pip/PipAvatar';
 import { CountUp } from '@/components/ui/count-up';
 import { FollowButton } from '@/components/social/FollowButton';
 import { ProfileMenu } from './ProfileMenu';
+import { ChipRango } from '@/components/ranking/ChipRango';
 import { RANK_BY_SLUG, formatRank } from '@/lib/ranks';
 import { toast } from '@/stores/toast';
 import type { ProfileViewer, PublicProfileV2 } from '@/lib/api/perfil-publico';
@@ -80,6 +81,7 @@ export function ProfileHeader({
               {rank ? ` · ${formatRank(rank.name_es, profile.division ?? 1)}` : ''}
               {profile.city ? ` · ${profile.city}` : ''}
             </p>
+            <ChipRango userId={profile.id} className="mt-1.5" />
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">

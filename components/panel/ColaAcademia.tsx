@@ -70,7 +70,7 @@ export function ColaAcademia({ pass }: { pass: string }) {
   if (cargando && !cola) {
     return (
       <section>
-        <h2 className="mb-2 font-display text-h3 font-bold">Academia · cola de revisión</h2>
+        <h2 className="mb-2 font-display text-h3 font-bold">Cola de revisión</h2>
         <Skeleton className="h-40 w-full" />
       </section>
     );
@@ -82,7 +82,7 @@ export function ColaAcademia({ pass }: { pass: string }) {
     <section>
       <div className="mb-2 flex items-center justify-between gap-3">
         <h2 className="font-display text-h3 font-bold">
-          Academia · cola de revisión{' '}
+          Cola de revisión{' '}
           {cola?.pendientes ? <span className="tnum text-muted-foreground">({cola.pendientes})</span> : null}
         </h2>
         <Button size="sm" variant="secondary" onClick={cargar} loading={cargando}>

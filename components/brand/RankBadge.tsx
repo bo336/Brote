@@ -41,8 +41,8 @@ export function RankBadge({ totalXp, variant = 'compact', size = 44, className }
         </p>
         <p className="text-caption text-muted-foreground tnum">
           {r.nextRankSlug
-            ? `${Math.round(r.progressToNextRankPct * 100)}% al próximo rango`
-            : 'Rango máximo · Leyenda'}
+            ? `${Math.round(r.progressToNextRankPct * 100)}% al próximo nivel`
+            : 'Nivel máximo · Leyenda'}
         </p>
       </div>
     </div>

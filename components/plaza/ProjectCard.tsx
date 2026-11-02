@@ -8,19 +8,21 @@ import { Pill } from '@/components/ui/pill';
 import { DomainIcon } from '@/components/icons/DomainIcon';
 import { SafeImage } from '@/components/ui/safe-image';
 import { getDomain } from '@/lib/domains';
-import { meetsRank } from '@/lib/ranks';
-import { lockLabel } from '@/lib/recommendations';
+import { useCupoProyectos, useNombreRango } from '@/hooks/use-rango';
 import { cn } from '@/lib/utils/cn';
 import { leaveProject, type ProjectWithMeta } from '@/lib/api/plaza';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
 
-export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; totalXp: number }) {
+export function ProjectCard({ project }: { project: ProjectWithMeta }) {
   const qc = useQueryClient();
   const userId = useSession((s) => s.profile?.id);
   const [leaving, setLeaving] = useState(false);
   const domain = getDomain(project.domain_slug ?? '');
-  const locked = !meetsRank(totalXp, project.min_rank_slug);
+  const cupo = useCupoProyectos();
+  const nombreRango = useNombreRango();
+  // Se mira al sumarse: quien ya está no queda afuera si baja de rango.
+  const locked = !project.joined && !!cupo.data && (project.min_rango ?? 1) > cupo.data.efectivo;
   const date = project.event_date ? new Date(project.event_date) : null;
   // Organisers can't leave their own project (enforced server-side too), so
   // the button is only worth showing to someone who actually joined as a guest.
@@ -60,7 +62,7 @@ export function ProjectCard({ project, totalXp }: { project: ProjectWithMeta; to
         />
         {locked && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill bg-brote-ink/70 px-2 py-0.5 text-caption font-semibold text-white">
-            <Lock className="h-3 w-3" /> {lockLabel(project.min_rank_slug)}
+            <Lock className="h-3 w-3" /> Desde {nombreRango(project.min_rango)}
           </span>
         )}
         {canLeave && (

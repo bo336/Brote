@@ -3,12 +3,14 @@
 import { useEffect } from 'react';
 import { Pip } from '@/components/pip/Pip';
 import { Button } from '@/components/ui/button';
+import { reportarError } from '@/lib/errores';
 
 /** Friendly error boundary for the app shell — never a blank screen (§2.7). */
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     // Surface the error for debugging.
     console.error('App error:', error);
+    reportarError(error);
   }, [error]);
 
   return (

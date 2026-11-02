@@ -12,8 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ProjectCard } from '@/components/plaza/ProjectCard';
 import { useSession } from '@/stores/session';
-import { fetchProjects, fetchProjectMinRankTier } from '@/lib/api/plaza';
-import { getRank, RANK_BY_TIER } from '@/lib/ranks';
+import { fetchProjects } from '@/lib/api/plaza';
+import { useCupoProyectos } from '@/hooks/use-rango';
 import { DOMAINS } from '@/lib/domains';
 
 type ProjectSort = 'cerca' | 'proximos' | 'populares';
@@ -35,17 +35,18 @@ const SORT_OPTIONS: { value: ProjectSort; label: string }[] = [
 export function ProjectsSection() {
   const t = useTranslations('proyectos');
   const profile = useSession((s) => s.profile);
-  const totalXp = profile?.totalXp ?? 0;
 
-  // Both the gate and its label come from the server setting, so raising the
-  // bar in /panel updates this screen without a deploy.
-  const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
-  const minTier = minTierQ.data ?? 5;
-  // Adults only, and from the minimum rank (0120): a project is a meeting in
-  // person, with a place and a contact.
+  // Adults only (0120): a project is a meeting in person, with a place and a
+  // contact. How many at once comes from this period's rank (0137), read from
+  // the server so this screen and create_project() can never disagree.
   const adulto = (profile?.accountType ?? 'adult') === 'adult';
-  const canCreate = adulto && getRank(totalXp).tier >= minTier;
-  const createRankName = RANK_BY_TIER[minTier]?.name_es ?? 'Arbusto';
+  const cupo = useCupoProyectos().data;
+  const canCreate = adulto && (cupo?.libres ?? 0) > 0;
+  const motivo = !adulto
+    ? t('createAdults')
+    : cupo && cupo.cupo > 0
+      ? `Ya usaste tu${cupo.cupo === 1 ? ' proyecto' : `s ${cupo.cupo} proyectos`}`
+      : t('createGated', { rank: cupo?.min_nombre ?? 'Referente' });
 
   const projectsQ = useQuery({ queryKey: ['projects', profile?.id], queryFn: () => fetchProjects(profile?.id) });
 
@@ -83,9 +84,9 @@ export function ProjectsSection() {
             </Link>
           </Button>
         ) : (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-pill border border-border bg-surface-2 px-3 py-1 text-caption text-muted-foreground">
-            <Lock className="h-3 w-3" /> {adulto ? t('createGated', { rank: createRankName }) : t('createAdults')}
-          </span>
+          <Link href="/proyectos/nuevo" className="inline-flex shrink-0 items-center gap-1 rounded-pill border border-border bg-surface-2 px-3 py-1 text-caption text-muted-foreground">
+            <Lock className="h-3 w-3" /> {motivo}
+          </Link>
         )}
       </div>
 
@@ -120,7 +121,7 @@ export function ProjectsSection() {
         <div className="space-y-3">
           {projects.map((p, i) => (
             <Reveal key={p.id} index={Math.min(i, 6)}>
-              <ProjectCard project={p} totalXp={totalXp} />
+              <ProjectCard project={p} />
             </Reveal>
           ))}
         </div>

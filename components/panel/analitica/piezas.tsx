@@ -36,8 +36,8 @@ function etiquetaDia(dia: string) {
 /** Un número protagonista con su etiqueta y, si hay, una línea de contexto. */
 export function Cifra({ etiqueta, valor, detalle, destacada }: { etiqueta: string; valor: string; detalle?: string; destacada?: boolean }) {
   return (
-    <div className="min-w-0 p-3.5">
-      <p className="truncate text-caption text-muted-foreground">{etiqueta}</p>
+    <div className="min-w-0 p-4">
+      <p className="text-caption leading-snug text-muted-foreground">{etiqueta}</p>
       <p
         className={cn(
           'mt-0.5 font-display font-bold tnum',
@@ -83,7 +83,8 @@ export function SerieDiaria({
         tickLine={false}
         axisLine={false}
         allowDecimals={false}
-        width={36}
+        width={46}
+        tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)} mil` : v.toLocaleString('es-AR'))}
       />
       <Tooltip
         contentStyle={tooltipEstilo}
@@ -96,10 +97,10 @@ export function SerieDiaria({
   return (
     <figure className="min-w-0">
       <figcaption className="flex items-baseline justify-between gap-2 px-1">
-        <span className="text-small font-semibold">{titulo}</span>
+        <span className="sr-only">{titulo}</span>
         {total && <span className="text-caption text-muted-foreground tnum">{total}</span>}
       </figcaption>
-      <div className="mt-2 h-44 w-full">
+      <div className="mt-2 h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           {forma === 'area' ? (
             <AreaChart data={filas} margin={{ top: 6, right: 6, bottom: 0, left: -12 }}>
@@ -221,10 +222,95 @@ export function Cohortes({ filas }: { filas: { semana: string; tamano: number; r
 /** Una tarjeta de sección del tablero, con eyebrow y título. */
 export function Bloque({ eyebrow, titulo, children, className }: { eyebrow?: string; titulo: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn('rounded-card border border-border bg-surface p-4 shadow-soft', className)}>
+    <section className={cn('rounded-card border border-border bg-surface p-5', className)}>
       {eyebrow && <p className="eyebrow text-muted-foreground">{eyebrow}</p>}
-      <h2 className="mb-3 mt-0.5 font-display text-h3 font-bold">{titulo}</h2>
+      <h2 className="mb-4 mt-0.5 font-display text-h3 font-bold">{titulo}</h2>
       {children}
     </section>
+  );
+}
+
+/**
+ * Un embudo: cada paso con cuántos llegaron y qué parte del primero son. Barras
+ * de un solo tono, y siempre el número escrito.
+ */
+export function Embudo({ pasos }: { pasos: { etiqueta: string; valor: number }[] }) {
+  const base = Math.max(1, Number(pasos[0]?.valor ?? 0));
+  if (!Number(pasos[0]?.valor)) return <p className="py-3 text-small text-muted-foreground">Todavía no hay datos en este período.</p>;
+  return (
+    <ol className="space-y-3">
+      {pasos.map((p) => {
+        const valor = Number(p.valor ?? 0);
+        return (
+          <li key={p.etiqueta}>
+            <div className="flex items-baseline justify-between gap-3 text-small">
+              <span className="min-w-0">{p.etiqueta}</span>
+              <span className="shrink-0 font-semibold tnum">
+                {n(valor)} <span className="ml-1 font-normal text-muted-foreground">{Math.round((100 * valor) / base)} %</span>
+              </span>
+            </div>
+            <div className="mt-1 h-2.5 rounded-pill bg-surface-2">
+              <div className="h-2.5 rounded-pill" style={{ width: `${Math.max(valor > 0 ? 2 : 0, (100 * valor) / base)}%`, backgroundColor: VERDE }} />
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const DIAS_LARGOS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+
+/**
+ * Cuándo pasa: días por horas. Un solo tono, de claro a oscuro. El número está en
+ * cada celda al pasar por encima, y el pico se dice con palabras.
+ */
+export function MapaHorarios({ datos }: { datos: { dow: number; hora: number; n: number }[] }) {
+  const celda = new Map(datos.map((d) => [`${d.dow}-${d.hora}`, Number(d.n)]));
+  const tope = Math.max(0, ...datos.map((d) => Number(d.n)));
+  if (tope === 0) return <p className="py-3 text-small text-muted-foreground">Todavía no hay acciones en estos 30 días.</p>;
+  const pico = datos.reduce((m, d) => (Number(d.n) > Number(m.n) ? d : m), datos[0]!);
+  return (
+    <div>
+      <p className="mb-3 text-small">
+        El momento con más movimiento: <span className="font-semibold">{DIAS_LARGOS[pico.dow - 1]} a las {pico.hora} h</span>
+        <span className="text-muted-foreground"> ({n(pico.n)} acciones).</span>
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[620px] border-separate border-spacing-[2px] text-caption">
+          <thead>
+            <tr>
+              <th />
+              {Array.from({ length: 24 }, (_, h) => (
+                <th key={h} className="w-[3.8%] pb-1 text-center font-normal text-muted-foreground">
+                  {h % 3 === 0 ? h : ''}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DIAS.map((d, i) => (
+              <tr key={d}>
+                <th scope="row" className="pr-2 text-left font-medium text-muted-foreground">
+                  {d}
+                </th>
+                {Array.from({ length: 24 }, (_, h) => {
+                  const v = celda.get(`${i + 1}-${h}`) ?? 0;
+                  return (
+                    <td
+                      key={h}
+                      title={`${DIAS_LARGOS[i]} ${h} h: ${n(v)} acciones`}
+                      className="h-6 rounded-[4px]"
+                      style={{ backgroundColor: v === 0 ? 'rgb(var(--surface-2))' : `rgb(31 181 122 / ${0.15 + (0.85 * v) / tope})` }}
+                    />
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

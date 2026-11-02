@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { History, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress';
 import { Sheet } from '@/components/ui/sheet';
 import { Pip } from '@/components/pip/Pip';
 import { PasoVista } from '@/components/academia/pasos';
+import { PasoSeguro } from '@/components/academia/PasoSeguro';
 import { Retroalimentacion } from '@/components/academia/Retroalimentacion';
 import { Resultados } from '@/components/academia/Resultados';
 import { responder, retomarSesion, salirDeSesion, terminarSesion } from '@/lib/api/academia';
@@ -226,17 +227,27 @@ export function Jugador({ sesion }: { sesion: Sesion }) {
             </p>
           ) : null}
 
-          <AnimatePresence mode="wait" initial={false}>
+          {/*
+            Sin AnimatePresence, a propósito. Con `mode="wait"` el paso nuevo esperaba
+            a que el viejo terminara de salir, y las fichas con `layoutId` (clasificar,
+            ordenar, cadena, ranking) registran su propia salida en esa espera y a veces
+            nunca la cierran: el paso viejo quedaba montado en opacidad 0 y el nuevo no
+            aparecía nunca. La pantalla en blanco que dejaba muerta la lección.
+            Cada paso entra con su animación; el anterior simplemente se va.
+            `LayoutGroup` además evita que una ficha viaje a una ficha de otro paso con
+            el mismo id.
+          */}
+          <LayoutGroup key={paso.entrega_id} id={paso.entrega_id}>
             <motion.div
-              key={paso.entrega_id}
               initial={quieto ? false : { opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={quieto ? undefined : { opacity: 0, x: -24 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             >
-              <PasoVista payload={paso.payload} onCambio={onCambio} bloqueado={correccion !== null} correccion={correccion} color={color} />
+              <PasoSeguro onSalir={() => setPreguntandoSalida(true)}>
+                <PasoVista payload={paso.payload} onCambio={onCambio} bloqueado={correccion !== null} correccion={correccion} color={color} />
+              </PasoSeguro>
             </motion.div>
-          </AnimatePresence>
+          </LayoutGroup>
         </div>
       </div>
 

@@ -24,7 +24,7 @@ export default function RangosPage() {
       <header className="flex items-center gap-4">
         <RankBadge totalXp={xp} size={56} />
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-h1 font-bold leading-tight">Los rangos</h1>
+          <h1 className="font-display text-h1 font-bold leading-tight">Los niveles</h1>
           <p className="text-small text-muted-foreground">
             Estás en <span className="font-semibold text-foreground">{progress.rankName} {divisionRoman(progress.division)}</span>
             {' · '}
@@ -80,7 +80,7 @@ export default function RangosPage() {
                     <div className="mt-2.5">
                       <ProgressBar value={progress.progressToNextRankPct} />
                       <p className="mt-1 text-caption text-muted-foreground tnum">
-                        {Math.round(progress.progressToNextRankPct * 100)}% hacia el próximo rango
+                        {Math.round(progress.progressToNextRankPct * 100)}% hacia el próximo nivel
                       </p>
                     </div>
                   )}
@@ -97,7 +97,7 @@ export default function RangosPage() {
       </div>
 
       <p className="pb-2 text-center text-caption text-muted-foreground">
-        Cada rango tiene 5 divisiones (I → V). Tus puntos nunca bajan: los rangos solo suben.
+        Cada nivel tiene 5 divisiones (I → V). Tus puntos nunca bajan: los niveles solo suben. Tu rango, en cambio, se sostiene período a período: lo ves en Ranking.
       </p>
     </div>
   );

@@ -1,7 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+import { reportarError } from '@/lib/errores';
+
 /** Root error boundary (catches errors in the root layout). Self-contained. */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => reportarError(error), [error]);
+
   return (
     <html lang="es">
       <body
