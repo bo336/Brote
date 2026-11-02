@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Cómo ${BRAND.name} trata tus datos personales.`,
 };
 
-const UPDATED = '20 de septiembre de 2026';
+const UPDATED = '16 de octubre de 2026';
 
 export default function PrivacidadPage() {
   return (
@@ -123,15 +123,34 @@ export default function PrivacidadPage() {
 
       <Section n="5" title="Publicidad y cookies">
         <p>
-          En la modalidad gratuita, y exclusivamente para cuentas de personas mayores de 13 años, mostramos espacios
-          publicitarios provistos por redes de terceros. Por defecto la publicidad es{' '}
-          <strong>no personalizada</strong>: solo se personaliza si prestás tu consentimiento expreso, y podés
-          revocarlo en cualquier momento desde los ajustes de la Aplicación.
+          En la modalidad gratuita, y exclusivamente para cuentas de personas mayores de 13 años, mostramos pocos
+          espacios publicitarios: nunca en el inicio, tu mundo, tu perfil, durante una acción ni en los primeros días
+          de una cuenta. También puede haber un anuncio al pie de la guía pública de acciones, que se lee sin cuenta.
+          Los anuncios pueden ser de dos tipos:
+        </p>
+        <Bullets
+          items={[
+            'De Google AdSense, una red de terceros. Google y sus socios usan cookies para mostrar anuncios y medir su rendimiento, incluso según visitas anteriores a este y a otros sitios.',
+            'Directos de anunciantes que contratan con nosotros, marcados como «Patrocinado». No usan cookies ni reciben datos tuyos: contamos cuántas veces se vieron y se tocaron, sin saber quién.',
+          ]}
+        />
+        <p>
+          Por defecto la publicidad es <strong>no personalizada</strong>: solo se personaliza si prestás tu
+          consentimiento expreso, y podés revocarlo en cualquier momento desde Perfil → Ajustes → Publicidad. Las
+          cuentas de 13 a 17 años reciben siempre anuncios no personalizados. Aun así, Google puede usar cookies para
+          limitar la frecuencia, medir y prevenir el fraude. Podés administrar la personalización de Google en{' '}
+          <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">adssettings.google.com</a>,
+          ver cómo usa Google los datos en{' '}
+          <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+            policies.google.com/technologies/partner-sites
+          </a>{' '}
+          y desactivar cookies de otras redes en{' '}
+          <a href="https://www.aboutads.info/choices" target="_blank" rel="noopener noreferrer">aboutads.info</a>.
         </p>
         <p>
-          Las redes publicitarias pueden utilizar cookies o identificadores propios conforme a sus propias políticas.
-          Las personas suscriptas a {BRAND.name}+ no reciben publicidad y, en su caso, no se carga la biblioteca
-          publicitaria.
+          Las personas suscriptas a {BRAND.name}+ no reciben publicidad y no se carga la biblioteca publicitaria. Si
+          accedés desde el Espacio Económico Europeo, el Reino Unido o Suiza, te pedimos el consentimiento con una
+          herramienta certificada por Google antes de usar cookies publicitarias.
         </p>
         <p>
           Utilizamos además cookies estrictamente necesarias para mantener tu sesión iniciada y recordar preferencias

@@ -3,7 +3,7 @@
 > Rama `claude/lanzamiento` (cortada de `origin/main` d11e59e, 2026-10-14).
 > **Toda sesión que retome este trabajo lee este archivo primero**, sigue desde la
 > primera casilla sin marcar y actualiza las casillas y el diario (§9) antes de cortar.
-> Migraciones nuevas desde `0126`. La base viva llega hasta `0125`.
+> Migraciones nuevas desde `0126`. La base viva llega hasta `0140` (aplicada y verificada el 2026-11-02).
 
 ## 0. El pedido (2026-10-14), tal cual
 
@@ -86,6 +86,22 @@
 - **D11 · Cobro**: un solo webhook (Next) y credenciales en un solo lugar (Vercel). Brote+ deja de
   depender de `mp-subscribe`. Precios en el panel; cada producto con su interruptor de venta.
 
+## 2b. Proyectos por liga — las reglas
+
+"Liga" es el rango del período (Aprendiz → Faro), semanal o mensual según el panel. "Tu liga" en
+`/ranking` es la tabla de quienes tienen tu mismo rango. La liga vieja de 20 personas no se usa más:
+su cambio de semana nunca estuvo programado, así que nadie subía ni bajaba de verdad.
+
+- **Cupo:** Aprendiz, Practicante y Ambientalista 0 · Referente 1 · Agente de cambio 2 · Guía 3 · Faro 5.
+  Vale el rango cerrado o el que ya cumpliste en el período en curso.
+- **Si bajás:** nada se corta. Quien se sumó conserva su lugar. No podés abrir otro hasta tener cupo.
+  Siguen en regla los más próximos; los que sobran tienen 28 días de gracia, con un aviso.
+- **Pasada la gracia:** en pausa (fuera de las listas, sin gente nueva, con aviso a quienes están), salvo
+  que tenga fecha dentro de 14 días. Volver al rango lo reabre solo. Nada se borra.
+- **En cualquier momento:** se le puede pasar a una persona adulta que se sumó y tiene cupo.
+- **Arranque:** la revisión de la noche empieza el 9 de noviembre, con el primer cierre de verdad. Hoy
+  todos son Aprendiz, y el aviso de "tu rango no alcanza" no tendría sentido antes de eso.
+
 ## 3. Fases y casillas
 
 ### F1 · Login y onboarding
@@ -143,20 +159,63 @@
 ### F7 · Rangos por período
 - [x] Tablas `rangos`, `rango_periodos`, `rango_usuario`, `rango_historial`, `rango_puntos`
       (mantenida por trigger), funciones de métricas, cierre, `mi_rango()`, tableros del período.
-- [x] Cron diario de cierre (`brote-rangos-cerrar`); RPC del panel (`admin_rangos`, `admin_rango_guardar`, `admin_rango_periodo`). **Falta la pantalla `/panel/rangos`.**
-- [ ] UI: tarjeta "Tu rango" con requisitos y progreso, `/ranking` nuevo (este período: global,
+- [x] Cron diario de cierre (`brote-rangos-cerrar`); RPC del panel (`admin_rangos`, `admin_rango_guardar`, `admin_rango_periodo`) y su pantalla `/panel/rangos`.
+- [x] UI: tarjeta "Tu rango" con requisitos y progreso, `/ranking` nuevo (este período: global,
       ciudad, amigos, tu rango; historial), chip de rango en perfil; "rango" → "nivel" donde se
       habla de la escalera de por vida.
 - [x] Tests espejo (TS ↔ SQL) de requisitos y prorrateo (`lib/rangos.ts`, `lib/rangos/__tests__`).
 
 ### F8 · Pulido y lanzamiento
-- [ ] Errores del cliente a `app_errores`, visibles en el panel.
-- [ ] Asesores de Supabase (seguridad y rendimiento) en cero de lo nuevo; índices.
-- [ ] Prueba de carga dentro de una transacción que se deshace (miles de usuarios, cientos de miles
-      de acciones) midiendo los RPC calientes.
-- [ ] `npm run typecheck`, `npm test`, `npm run build`, lint.
-- [ ] Recorrido de pantallas con capturas.
+- [x] Errores del cliente a `app_errores`, visibles en `/panel/salud`.
+- [x] Asesores de Supabase revisados sobre lo nuevo; índices.
+- [x] Prueba de carga en el banco PGlite (`test_carga.sql`, 8.000 personas, 160.000 acciones). Lo de la gente
+      responde en menos de 50 ms; `admin_analitica` tardaba 148 s por un nested loop de 1.290 millones
+      de comparaciones → 0140 (1,1 s y 2,8 s). No se probó contra la base viva: tiene 6 personas.
+- [x] `npm run typecheck`, `npm test` (652), `npm run build`, lint.
+- [x] Capturas del panel y de `/ranking` (compu y teléfono, claro y oscuro, lleno y casi vacío) contra datos inventados.
 - [ ] Lista del dueño (§8) y pedido único de luz verde: migraciones, funciones, merge.
+
+### F10 · El panel de nuevo, sólo con tu cuenta (pedido del 2026-11-01)
+- [x] 0136: `admin_check` ignora la contraseña y mira la cuenta (`brote_es_admin(auth.uid())`). Un
+      intento de otra cuenta queda en `panel_intentos` (con tope) y te avisa. `app/panel/layout.tsx`
+      corta en el servidor: sin sesión va al login, otra cuenta recibe un 404.
+- [x] El bug de los certificados: `/panel/desafios` llamaba a una función que no existía todavía
+      (0132 sin aplicar) y el fallo se trataba como contraseña mala. Ahora los fallos se dicen.
+- [x] Fuera del contenedor de la app (`app/panel/*`), con menú agrupado, pendientes en vivo, cajón en
+      el teléfono y un solo kit de piezas (`components/panel/ui.tsx`).
+- [x] Secciones nuevas: Resumen, Analítica en pestañas, Personas y ficha (suspender, regalar Brote+),
+      Rangos, Moderación, Proyectos, Academia, Salud, Avisos, Ajustes. 0138 agrega lo que faltaba.
+- [x] 0140: la analítica aguanta miles de personas (ver F8).
+
+### F11 · Proyectos por liga (pedido del 2026-11-01)
+- [x] 0137 + 0139: cuántos proyectos se pueden organizar a la vez lo decide el rango del período, no
+      el nivel de por vida. Reglas en §2b. Editable en `/panel/proyectos`.
+- [x] Cliente: `proyecto_cupo`, formulario y bloqueos por `min_rango`, aviso de gracia o pausa y
+      pasarle la organización a alguien (`components/plaza/OrganizarProyecto.tsx`).
+
+### F12 · Lecciones en blanco (pedido del 2026-11-01)
+- [x] Causa: `AnimatePresence mode="wait"` en `components/academia/Jugador.tsx`. Las fichas con
+      `layoutId` (clasificar, ordenar, cadena, ranking) registran su salida y a veces nunca la cierran:
+      el paso viejo quedaba en opacidad 0 y el nuevo no se montaba. Se sacó, cada paso tiene su
+      `LayoutGroup` y su `PasoSeguro`. Hay un test que lo cuida.
+- [x] Revisados los 7.381 pasos en el navegador (sin caídas ni pantallas vacías) y 1.701 sesiones
+      contra el SQL, deshechas después (22.383 pasos corregidos bien).
+
+### F9 · Publicidad (pedido del 2026-10-16) — guía del dueño en `docs/PUBLICIDAD.md`
+- [x] 0134: el interruptor `ads_enabled` por fin se lee (nace apagado; antes ninguna migración lo
+      creaba), reglas en `publicidad_config` (topes, días de gracia, lugar por lugar y quién lo llena),
+      anuncios directos con sorteo por peso, provincias, público, fechas y tope de vistas; métricas
+      sin identificar a nadie; `/api/anuncio/[id]` cuenta el clic y redirige con UTM.
+- [x] Cliente: AdSense se descarga recién cuando un espacio está por verse, espacios vacíos que se
+      pliegan, topes por día y sesión, momento sólo con directos (política de AdSense).
+- [x] `/ads.txt` y `/app-ads.txt` servidos desde la variable (antes `/ads.txt` redirigía al login),
+      metaetiqueta de verificación, el service worker ya no guarda imágenes de anuncios.
+- [x] 0135 + `/guia` y `/guia/[slug]`: las acciones públicas, sin cuenta (lo que revisa Google),
+      sitemap con cada acción, `robots.txt` que deja pasar a `Mediapartners-Google`, entrada
+      `/auth/crawler` para el rastreador.
+- [x] `/panel/publicidad`: interruptor, qué falta de AdSense (sin secretos), reglas, números,
+      anuncios directos con imagen y vista previa. Ajustes → Publicidad (consentimiento).
+- [x] Privacidad §5 y Términos §10 al día (Google, directos, cómo desactivar la personalización).
 
 ## 4. Rangos — la tabla (fuente: `lib/rangos.ts`, espejo en SQL)
 
@@ -213,30 +272,19 @@ con clave `activo` (abrir la app) o una acción marcada. Las cuentas `es_prueba`
 
 ## 8. Lo que queda del dueño (se completa al cerrar)
 
-### 8.1 · Olvidé la contraseña del panel
+### 8.1 · Entrar al panel
 
-**Hoy (todavía sin ninguna cuenta vinculada):** en Supabase → proyecto `Brote-SP` → SQL Editor,
-corré esto (reemplazá el correo por el de TU cuenta de Brote):
+Ya no hay contraseña. Entrás a Brote con tu cuenta y vas a `/panel`. Cualquier otra cuenta ve un 404, y
+el intento te llega como aviso y queda en `/panel/salud`. Como ahora la llave es tu cuenta, cuidá el
+correo con el que entrás.
 
-```sql
--- 1) Atar tu cuenta al panel (sólo si 0127 ya está aplicada; si no, saltealo).
-insert into brote_admins (user_id)
-select id from auth.users where email = 'TU-CORREO@gmail.com'
-on conflict do nothing;
+### 8.2 · Publicidad
 
--- 2) Borrar la contraseña vieja.
-update admin_config
-   set pass_hash = null, pass_salt = null, failed_count = 0, locked_until = null
- where id = 1;
-```
-
-Después entrá a `/panel` con esa cuenta: aparece "Crear contraseña del panel". Con 0127 aplicada,
-sólo una cuenta vinculada puede crearla; sin 0127, hacelo enseguida (cualquiera que entre a
-`/panel` mientras está vacía podría crearla).
-
-**De ahora en más:** con tu cuenta vinculada, en el candado del panel aparece "Olvidé la
-contraseña". Pide haber entrado a Brote hace menos de 15 minutos (si no, te hace salir y volver a
-entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
+Todo en `docs/PUBLICIDAD.md`. En corto: (1) 0134 y 0135 ya están aplicadas; (2) dominio propio
+(recomendado); (3) cuenta de AdSense (mayor de 18) y `NEXT_PUBLIC_ADSENSE_CLIENT` en Vercel; (4) pedir
+la revisión verificando con la metaetiqueta; (5) aprobada: **apagar los anuncios automáticos**, crear
+los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prender en
+`/panel/publicidad`.
 
 - (el resto, al cierre)
 
@@ -283,3 +331,16 @@ entrar) y deja elegir una nueva sin saber la anterior. Sin SQL.
   amigos / tu rango / de siempre), `/panel/rangos`, y renombrar en la interfaz la escalera de por
   vida a "nivel" (`/perfil/rangos`, RankBadge, RewardLayer, TopBar, Ajustes, proyectos/nuevo,
   panel/pruebas, `common.rank`). Después F8 completo.
+- 2026-10-16 — F9 (publicidad) hecha, pedida aparte: ver la casilla F9 y `docs/PUBLICIDAD.md`.
+  0134 y 0135 probados en PGlite (sorteo 146/54 sobre 200 con pesos 3:1, chicos y Brote+ sin
+  anuncio, adolescente sólo con «todos», clic anónimo, interruptor, momento sin AdSense, guía sin
+  acciones internas ni de juego, relacionadas del mismo camino primero). **Bug encontrado:**
+  `ads_enabled` no existía en ninguna migración, así que prenderlo desde el panel no hacía nada.
+- 2026-11-01/02 — Pedido nuevo: todo desplegado, lecciones en blanco, proyectos por liga, panel de nuevo.
+  **Aplicadas en vivo 0126–0140 y desplegadas las funciones** (hashes comparados contra los archivos).
+  `ads_enabled` estaba prendido en vivo: lo apagué, como dice `docs/PUBLICIDAD.md`. Al releer 0137 antes
+  de aplicarla aparecieron tres agujeros: la revisión de la noche miraba sólo el rango cerrado (quien
+  ya cumplió Referente creaba un proyecto y esa noche recibía "tu rango no alcanza"), un proyecto en pausa
+  liberaba cupo, y `proyecto_organizacion` calculaba el cupo de todos en cada visita. **Sigue pendiente:**
+  el merge de PR #38 a `main`, sin el cual el dominio no tiene ni el arreglo de las lecciones ni el panel
+  nuevo; y recorrer con una sesión real lo que pide estar logueado.

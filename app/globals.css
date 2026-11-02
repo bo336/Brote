@@ -304,3 +304,12 @@ main:has(> [data-shell='wide']) {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Publicidad (0134): un bloque de AdSense sin anuncio se pliega entero, con
+ * su etiqueta. <AdSlot> ya lo hace con un MutationObserver; esto es la red
+ * por si el script marca el bloque antes de que React lo observe.
+ */
+.brote-ad:has(ins.adsbygoogle[data-ad-status='unfilled']) {
+  display: none !important;
+}

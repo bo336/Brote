@@ -53,6 +53,11 @@ export const metadata: Metadata = {
     description: BRAND.description,
     images: ['/og.png'],
   },
+  // Verificación del sitio en AdSense con la etiqueta meta (no hace falta
+  // cargar el script de anuncios en cada página para que Google lo confirme).
+  ...(process.env.NEXT_PUBLIC_ADSENSE_CLIENT
+    ? { other: { 'google-adsense-account': process.env.NEXT_PUBLIC_ADSENSE_CLIENT } }
+    : {}),
 };
 
 export const viewport: Viewport = {

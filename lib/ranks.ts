@@ -71,7 +71,7 @@ export const RANKS: RankDef[] = [
     name_en: 'Tree',
     enterAt: 30_000,
     color: '#0E7A52',
-    unlock_es: 'Un árbol completo. Acceso a desafíos exclusivos (rango ≥6).',
+    unlock_es: 'Un árbol completo. Acceso a desafíos exclusivos (nivel ≥6).',
   },
   {
     tier: 7,
@@ -89,7 +89,7 @@ export const RANKS: RankDef[] = [
     name_en: 'Guardian',
     enterAt: 120_000,
     color: '#1E88A8',
-    unlock_es: 'Aura de Guardián para Pip. Proyectos exclusivos (rango ≥8).',
+    unlock_es: 'Aura de Guardián para Pip. Proyectos exclusivos (nivel ≥8).',
   },
   {
     tier: 9,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { reportarError } from '@/lib/errores';
 
 /**
  * Root-level error boundary for routes outside the (app) group (e.g.
@@ -11,6 +12,7 @@ import { useEffect } from 'react';
 export default function RootError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error('App error:', error);
+    reportarError(error);
   }, [error]);
 
   return (

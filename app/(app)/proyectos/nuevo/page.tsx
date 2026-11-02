@@ -2,21 +2,20 @@
 
 import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Lock, ImagePlus } from 'lucide-react';
+import { ArrowLeft, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Input, Textarea, Select, Field } from '@/components/ui/input';
 import { Pip } from '@/components/pip/Pip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
-import { getRank, RANKS, RANK_BY_TIER } from '@/lib/ranks';
+import { useCupoProyectos, useNombreRango } from '@/hooks/use-rango';
 import { DOMAINS } from '@/lib/domains';
 import { BARRIOS } from '@/lib/data/barrios';
-import { createProject, uploadProjectImage, fetchProjectMinRankTier } from '@/lib/api/plaza';
+import { createProject, uploadProjectImage } from '@/lib/api/plaza';
 import { toast } from '@/stores/toast';
 
 const ProjectMap = dynamic(() => import('@/components/plaza/ProjectMap'), {
@@ -38,7 +37,8 @@ export default function NuevoProyectoPage() {
   const router = useRouter();
   const profile = useSession((s) => s.profile);
   const fileRef = useRef<HTMLInputElement>(null);
-  const minTierQ = useQuery({ queryKey: ['project-min-tier'], queryFn: fetchProjectMinRankTier, staleTime: 300_000 });
+  const cupoQ = useCupoProyectos();
+  const nombreRango = useNombreRango();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,17 +48,13 @@ export default function NuevoProyectoPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [eventDate, setEventDate] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
-  const [minRank, setMinRank] = useState('semilla');
+  const [minRango, setMinRango] = useState(1);
   const [contactInfo, setContactInfo] = useState('');
   const [contactKind, setContactKind] = useState<'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro'>('whatsapp');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Gate read from the server, so this screen and create_project() can never
-  // disagree about who is allowed to organise.
-  const minTier = minTierQ.data ?? 5;
-  const needed = RANK_BY_TIER[minTier];
   // Organising is for adult accounts (0120): the server refuses anyone else.
   if (profile && (profile.accountType ?? 'adult') !== 'adult') {
     return (
@@ -72,23 +68,29 @@ export default function NuevoProyectoPage() {
       </div>
     );
   }
-  if (profile && getRank(profile.totalXp).tier < minTier) {
-    const missing = Math.max(0, (needed?.enterAt ?? 0) - profile.totalXp);
+  // Gate read from the server, so this screen and create_project() can never
+  // disagree about who is allowed to organise (0137).
+  const cupo = cupoQ.data;
+  if (profile && cupoQ.isLoading) return <Skeleton className="h-64 w-full" />;
+  if (profile && cupo && cupo.libres <= 0) {
+    const periodo = 'este período';
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={80} mood="neutral" />
-        <h1 className="font-display text-h2 font-bold">{t('createGated', { rank: needed?.name_es ?? 'Arbusto' })}</h1>
+        <h1 className="font-display text-h2 font-bold">
+          {cupo.cupo > 0 ? `Ya estás organizando lo que da ${cupo.efectivo_nombre}` : t('createGated', { rank: cupo.min_nombre })}
+        </h1>
         <p className="max-w-xs text-small text-muted-foreground">
-          Organizar un proyecto significa coordinar gente en persona y repartir puntos, así que se
-          habilita un poco más adelante. Te faltan{' '}
-          <span className="font-semibold text-foreground tnum">{missing.toLocaleString('es-AR')}</span> puntos.
+          {cupo.cupo > 0
+            ? `Como ${cupo.efectivo_nombre} podés tener ${cupo.cupo === 1 ? '1 proyecto' : `${cupo.cupo} proyectos`} a la vez. Cuando termine uno, o si subís de rango, podés abrir otro.`
+            : `Organizar significa coordinar gente en persona, así que depende de lo que venís haciendo: ${periodo} sos ${cupo.efectivo_nombre}, y hace falta llegar a ${cupo.min_nombre}.`}
         </p>
         <div className="flex gap-2">
           <Button variant="primary" asChild>
-            <Link href="/acciones">Ver acciones</Link>
+            <Link href="/ranking">Ver mi rango</Link>
           </Button>
           <Button variant="secondary" asChild>
-            <Link href="/feed">{tc('back')}</Link>
+            <Link href="/acciones?tab=proyectos">{tc('back')}</Link>
           </Button>
         </div>
       </div>
@@ -121,7 +123,7 @@ export default function NuevoProyectoPage() {
         eventDate: eventDate ? new Date(eventDate).toISOString() : null,
         maxParticipants: maxParticipants ? Number(maxParticipants) : null,
         imageUrl,
-        minRank,
+        minRango,
         contactInfo: contactInfo.trim() || null,
         contactKind: contactInfo.trim() ? contactKind : null,
       });
@@ -219,13 +221,16 @@ export default function NuevoProyectoPage() {
         </Field>
       </div>
 
-      <Field label="Rango mínimo para sumarse" help="Podés crear un proyecto exclusivo para rangos altos.">
-        <Select value={minRank} onChange={(e) => setMinRank(e.target.value)}>
-          {RANKS.map((r) => (
-            <option key={r.slug} value={r.slug}>
-              {r.name_es}
-            </option>
-          ))}
+      <Field label="Quién se puede sumar" help="Se mira al sumarse: si alguien baja de rango después, no pierde su lugar.">
+        <Select value={minRango} onChange={(e) => setMinRango(Number(e.target.value))}>
+          <option value={1}>Cualquier persona</option>
+          {[2, 3, 4, 5, 6, 7]
+            .filter((t) => t <= (cupo?.efectivo ?? 1))
+            .map((t) => (
+              <option key={t} value={t}>
+                Desde {nombreRango(t)}
+              </option>
+            ))}
         </Select>
       </Field>
 

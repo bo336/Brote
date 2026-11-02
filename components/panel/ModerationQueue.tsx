@@ -53,7 +53,6 @@ export function ModerationQueue({ pass }: { pass: string }) {
 
   return (
     <section>
-      <h2 className="mb-2 font-display text-h3 font-bold">{t('queue')}</h2>
 
       {/* This is not a moderation decision and never becomes one. It sits above
           the queue so the person working it reads it before the first case. */}

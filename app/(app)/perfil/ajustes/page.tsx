@@ -24,6 +24,7 @@ import { exportMyData, deleteMyAccount } from '@/lib/api/profile';
 import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, pushSupported } from '@/lib/api/push';
 import { setMyUsername } from '@/lib/api/perfil-publico';
 import { AvisosAjustes } from '@/components/perfil/AvisosAjustes';
+import { PublicidadAjustes } from '@/components/perfil/PublicidadAjustes';
 import { toast } from '@/stores/toast';
 
 
@@ -43,7 +44,7 @@ const SOCIAL_NOTIF_KEYS = [
 
 /** Milestones Brote may publish for you. Both default to OFF. */
 const AUTOPOST_KEYS = [
-  { key: 'rank_up', label: 'Publicar cuando subo de rango' },
+  { key: 'rank_up', label: 'Publicar cuando subo de nivel' },
   { key: 'title', label: 'Publicar cuando gano un título' },
 ] as const;
 
@@ -385,6 +386,13 @@ export default function AjustesPage() {
         />
       </Section>
 
+      {/* Lo que promete la política de privacidad §5: se revoca desde acá. */}
+      {!isKid && (
+        <Section title="Publicidad">
+          <PublicidadAjustes />
+        </Section>
+      )}
+
       {/* Kids have no social surface, so none of these would control anything
           for them. */}
       {!isKid && (
@@ -418,7 +426,7 @@ export default function AjustesPage() {
               ))}
             </Card>
             <p className="mt-1.5 text-caption leading-relaxed text-muted-foreground">
-              Vienen apagados. Si los prendés, tu subida de rango o tu título nuevo aparecen como una
+              Vienen apagados. Si los prendés, tu subida de nivel o tu título nuevo aparecen como una
               publicación tuya en la Plaza.
             </p>
           </Section>

@@ -3,13 +3,12 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, Trophy, Flag } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Pill } from '@/components/ui/pill';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DomainIcon } from '@/components/icons/DomainIcon';
@@ -18,18 +17,17 @@ import { useSession } from '@/stores/session';
 import { DOMAINS } from '@/lib/domains';
 import {
   fetchGlobalLeaderboard,
-  fetchWeeklyLeaderboard,
   fetchCityLeaderboard,
-  fetchCityLeaderboardWeekly,
   fetchFriendLeaderboard,
-  fetchFriendLeaderboardWeekly,
-  fetchWeeklyLeague,
   fetchMyPositionFor,
   metricFor,
   addFriendByCode,
   type Period,
 } from '@/lib/api/ranking';
 import { PeriodToggle } from '@/components/ranking/PeriodToggle';
+import { TuRango } from '@/components/ranking/TuRango';
+import { useNombreRango } from '@/hooks/use-rango';
+import { fetchRankingPeriodo, type AmbitoRanking, type FilaRanking } from '@/lib/api/rangos';
 import { FriendInvite } from '@/components/ranking/FriendInvite';
 import { fetchMyCompetitions } from '@/lib/api/competencias';
 
@@ -40,7 +38,6 @@ function compDaysLeft(endsAt: string): string {
   const d = Math.ceil(ms / 86_400_000);
   return d === 1 ? 'termina hoy' : `${d} días`;
 }
-import { PipAvatar } from '@/components/pip/PipAvatar';
 import { usePipStyles } from '@/hooks/use-pip-styles';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { cn } from '@/lib/utils/cn';
@@ -88,6 +85,71 @@ function List({
   );
 }
 
+/** The period's board. What decides your rank is the requirements, not the place. */
+function TablaPeriodo({
+  ambito,
+  myId,
+  emptyMessage,
+}: {
+  ambito: AmbitoRanking;
+  myId?: string;
+  emptyMessage: string;
+}) {
+  const nombreRango = useNombreRango();
+  const q = useQuery({
+    queryKey: ['ranking-periodo', ambito, myId],
+    queryFn: () => fetchRankingPeriodo(ambito),
+    enabled: !!myId,
+    staleTime: 60_000,
+  });
+  const filas: FilaRanking[] = q.data?.filas ?? [];
+  const pips = usePipStyles(filas.map((f) => f.user_id));
+  const yo = q.data?.yo;
+  const yaEsta = filas.some((f) => f.user_id === myId);
+
+  if (q.isLoading) {
+    return (
+      <div className="space-y-2">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-[60px] w-full" />
+        ))}
+      </div>
+    );
+  }
+  if (q.isError || (q.isFetched && !q.data)) return <EmptyState message="No pudimos cargar esta tabla. Probá de nuevo." />;
+  if (filas.length === 0) return <EmptyState message={emptyMessage} />;
+  return (
+    <div className="space-y-2">
+      {filas.map((f) => (
+        <LeaderboardRow
+          key={f.user_id}
+          entry={{
+            pos: f.pos,
+            user_id: f.user_id,
+            username: f.username,
+            display_name: f.display_name,
+            avatar_url: f.avatar_url,
+            neighborhood: null,
+            xp: f.puntos,
+            rank_slug: f.nivel,
+            division: 1,
+            title_es: null,
+          }}
+          isMe={f.user_id === myId}
+          metric="xp"
+          pipStyle={pips.data?.[f.user_id]?.pip_style ?? null}
+          detalle={nombreRango(f.tier)}
+        />
+      ))}
+      {yo && yo.pos && !yaEsta && (
+        <p className="pt-1 text-center text-small text-muted-foreground tnum">
+          Tu puesto: <span className="font-bold text-foreground">#{yo.pos}</span> con {yo.puntos} puntos
+        </p>
+      )}
+    </div>
+  );
+}
+
 // useSearchParams (for the ?amigo= invite link) needs a Suspense boundary.
 export default function RankingPage() {
   return (
@@ -109,37 +171,34 @@ function RankingInner() {
   const [period, setPeriod] = useState<Period>('semana');
   const metric = metricFor(period);
 
+  // The period boards load themselves; these are the lifetime ones ("De siempre").
+  const historico = period === 'historico';
   const globalQ = useQuery({
-    queryKey: ['lb-global', period],
-    queryFn: period === 'historico' ? fetchGlobalLeaderboard : fetchWeeklyLeaderboard,
+    queryKey: ['lb-global', 'historico'],
+    queryFn: fetchGlobalLeaderboard,
+    enabled: historico,
   });
   const cityQ = useQuery({
-    queryKey: ['lb-city', profile?.city, period],
-    queryFn: () =>
-      period === 'semana' ? fetchCityLeaderboardWeekly(profile!.city!) : fetchCityLeaderboard(profile!.city!),
-    enabled: !!profile?.city,
+    queryKey: ['lb-city', profile?.city, 'historico'],
+    queryFn: () => fetchCityLeaderboard(profile!.city!),
+    enabled: historico && !!profile?.city,
   });
   const friendsQ = useQuery({
-    queryKey: ['lb-friends', myId, period],
-    queryFn: () => (period === 'semana' ? fetchFriendLeaderboardWeekly(myId!) : fetchFriendLeaderboard(myId!)),
-    enabled: !!myId,
+    queryKey: ['lb-friends', myId, 'historico'],
+    queryFn: () => fetchFriendLeaderboard(myId!),
+    enabled: historico && !!myId,
   });
-  // Keyed on `period` so the number actually changes with the toggle.
   const myComps = useQuery({ queryKey: ['my-competitions'], queryFn: fetchMyCompetitions, enabled: !!myId });
   const myPosQ = useQuery({
-    queryKey: ['my-pos', myId, period],
-    queryFn: () => fetchMyPositionFor(myId!, period),
-    enabled: !!myId,
+    queryKey: ['my-pos', myId, 'historico'],
+    queryFn: () => fetchMyPositionFor(myId!, 'historico'),
+    enabled: historico && !!myId,
   });
-  const leagueQ = useQuery({
-    queryKey: ['weekly-league', myId],
-    queryFn: () => fetchWeeklyLeague(myId!),
-    enabled: !!myId,
-    refetchInterval: 60_000,
-  });
-  // weekly_league does not return pip_style either; one batched lookup covers
-  // the whole cohort of 20.
-  const leaguePips = usePipStyles((leagueQ.data?.rows ?? []).map((r) => r.user_id));
+  const qc = useQueryClient();
+  const refrescarAmigos = () => {
+    void friendsQ.refetch();
+    void qc.invalidateQueries({ queryKey: ['ranking-periodo', 'amigos'] });
+  };
 
   // Someone opening an invite link (?amigo=CODE) gets the code applied for
   // them — the point of a link is that it does the work.
@@ -152,7 +211,7 @@ function RankingInner() {
       if (cancelled) return;
       if (res.ok) {
         toast.success('¡Listo!', `Ahora sos amigo de ${res.name ?? 'esa persona'}`);
-        friendsQ.refetch();
+        refrescarAmigos();
       } else {
         toast.error('No se pudo agregar', res.error);
       }
@@ -168,10 +227,12 @@ function RankingInner() {
 
   return (
     <div className="space-y-4">
+      <TuRango />
+
       <Tabs defaultValue="liga">
         <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
           <TabsList>
-            <TabsTrigger value="liga">Liga</TabsTrigger>
+            <TabsTrigger value="liga">Tu liga</TabsTrigger>
             <TabsTrigger value="global">{t('global')}</TabsTrigger>
             <TabsTrigger value="ciudad">{t('ciudad')}</TabsTrigger>
             <TabsTrigger value="amigos">{t('amigos')}</TabsTrigger>
@@ -180,132 +241,47 @@ function RankingInner() {
           </TabsList>
         </div>
 
+        {/* Your league is everyone at your rank this period. */}
         <TabsContent value="liga" className="space-y-3">
-          {leagueQ.isLoading ? (
-            <div className="space-y-2">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-[56px] w-full" />
-              ))}
-            </div>
-          ) : leagueQ.data ? (
-            <>
-              <Card className="flex items-center justify-between gap-3 border-primary/25 bg-primary/5 p-4">
-                <div className="min-w-0">
-                  <span className="eyebrow block text-primary">Tu liga</span>
-                  <p className="mt-0.5 font-display text-h3 font-bold">{leagueQ.data.league}</p>
-                  <p className="mt-0.5 text-caption text-muted-foreground">
-                    Se renueva cada lunes · Top 5 suben de liga
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <span className="eyebrow block text-muted-foreground">Puesto</span>
-                  <span className="font-display text-display-l font-extrabold leading-none text-primary tnum">
-                    {leagueQ.data.my_pos}
-                  </span>
-                </div>
-              </Card>
-              <div className="space-y-1.5">
-                {leagueQ.data.rows.map((r) => {
-                  const isMe = r.user_id === myId;
-                  const promote = r.pos <= 5;
-                  const relegate = leagueQ.data!.rows.length >= 15 && r.pos > leagueQ.data!.rows.length - 3;
-                  const inner = (
-                    <>
-                      <span
-                        className={cn(
-                          'w-6 shrink-0 text-center text-small font-bold tnum',
-                          promote ? 'text-brote-green' : relegate ? 'text-brote-coral' : 'text-muted-foreground',
-                        )}
-                      >
-                        {r.pos}
-                      </span>
-                      <PipAvatar pipStyle={leaguePips.data?.[r.user_id]?.pip_style ?? null} avatarUrl={r.avatar_url} name={r.display_name} rankSlug={r.rank_slug} size={34} ring />
-                      <span className="min-w-0 flex-1 truncate text-small font-medium">
-                        <span className="link-underline">{r.display_name ?? r.username ?? 'Alguien'}</span>
-                        {isMe && <span className="text-muted-foreground"> (vos)</span>}
-                      </span>
-                      <span className="shrink-0 text-small font-bold text-brote-sun tnum">+{r.xp}</span>
-                      {/* Was the text "· visitar 🌍" inline in the name, which
-                          §0 forbids and which also truncated on narrow rows.
-                          A chevron that slides on hover says the same thing. */}
-                      {!isMe && r.username && (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
-                      )}
-                    </>
-                  );
-                  const cls = cn(
-                    'group flex items-center gap-3 rounded-card border border-border bg-surface px-3 py-2.5',
-                    promote && 'border-brote-green/40 bg-brote-green/5',
-                    relegate && 'border-brote-coral/30 bg-brote-coral/5',
-                    isMe && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
-                  );
-                  // Visiting worlds (F10.3): tap a rival to walk their island.
-                  return !isMe && r.username ? (
-                    <Link
-                      key={r.user_id}
-                      href={`/perfil/${r.username}`}
-                      title={`Visitar el mundo de ${r.display_name ?? r.username}`}
-                      className={cn(cls, 'press hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-soft')}
-                    >
-                      {inner}
-                    </Link>
-                  ) : (
-                    <div key={r.user_id} className={cls}>
-                      {inner}
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="text-center text-caption text-muted-foreground">
-                Sumá puntos esta semana para subir en tu liga 🌱
-              </p>
-              <Button variant="secondary" block asChild>
-                <Link href="/competencias">
-                  <Flag className="h-4 w-4" /> Crear o unirme a una competencia
-                </Link>
-              </Button>
-              <AdSlot placement="ranking-footer" className="pt-1" />
-            </>
-          ) : (
-            <EmptyState message="No pudimos cargar tu liga. Probá de nuevo." />
-          )}
+          <p className="text-caption leading-relaxed text-muted-foreground">
+            Quienes tienen tu mismo rango, por los puntos de este período. Se renueva con cada período.
+          </p>
+          <TablaPeriodo ambito="rango" myId={myId} emptyMessage="Todavía nadie de tu liga sumó puntos en este período. ¡Sé la primera persona!" />
+          <Button variant="secondary" block asChild>
+            <Link href="/competencias">
+              <Flag className="h-4 w-4" /> Crear o unirme a una competencia
+            </Link>
+          </Button>
+          {/* Lejos del botón de arriba: AdSense pide no poner anuncios pegados
+              a botones o navegación (clics accidentales). */}
+          <AdSlot placement="ranking-footer" className="mt-8 border-t border-hairline pt-6" />
         </TabsContent>
 
         <TabsContent value="global" className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-global" />
-            {myPosQ.data ? (
+            {historico && myPosQ.data ? (
               <span className="text-small text-muted-foreground tnum">
                 {t('yourPosition')}: <span className="font-bold text-foreground">#{myPosQ.data}</span>
               </span>
             ) : null}
           </div>
-          <List
-            query={globalQ}
-            metric={metric}
-            myId={myId}
-            emptyMessage={
-              period === 'semana'
-                ? 'Todavía nadie sumó puntos esta semana. ¡Sé la primera persona!'
-                : 'Todavía no hay nadie en el ranking. ¡Sé el primero!'
-            }
-          />
+          {historico ? (
+            <List query={globalQ} metric={metric} myId={myId} emptyMessage="Todavía no hay nadie en el ranking. ¡Sé el primero!" />
+          ) : (
+            <TablaPeriodo ambito="global" myId={myId} emptyMessage="Todavía nadie sumó puntos en este período. ¡Sé la primera persona!" />
+          )}
         </TabsContent>
 
         <TabsContent value="ciudad" className="space-y-3">
           {profile?.city ? (
             <>
               <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-city" />
-              <List
-                query={cityQ}
-                metric={metric}
-                myId={myId}
-                emptyMessage={
-                  period === 'semana'
-                    ? 'Nadie de tu ciudad sumó puntos esta semana. ¡Empezá vos!'
-                    : 'Sé la primera persona de tu ciudad en sumar puntos.'
-                }
-              />
+              {historico ? (
+                <List query={cityQ} metric={metric} myId={myId} emptyMessage="Sé la primera persona de tu ciudad en sumar puntos." />
+              ) : (
+                <TablaPeriodo ambito="ciudad" myId={myId} emptyMessage="Nadie de tu ciudad sumó puntos en este período. ¡Empezá vos!" />
+              )}
             </>
           ) : (
             <EmptyState
@@ -320,9 +296,13 @@ function RankingInner() {
         </TabsContent>
 
         <TabsContent value="amigos" className="space-y-3">
-          <FriendInvite onAdded={() => friendsQ.refetch()} />
+          <FriendInvite onAdded={refrescarAmigos} />
           <PeriodToggle value={period} onChange={setPeriod} layoutId="pt-friends" />
-          <List query={friendsQ} metric={metric} myId={myId} emptyMessage={t('friendsEmpty')} />
+          {historico ? (
+            <List query={friendsQ} metric={metric} myId={myId} emptyMessage={t('friendsEmpty')} />
+          ) : (
+            <TablaPeriodo ambito="amigos" myId={myId} emptyMessage={t('friendsEmpty')} />
+          )}
         </TabsContent>
 
         {/* The competitions you are in belong beside the other boards — they

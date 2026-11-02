@@ -443,7 +443,7 @@ function AccionesInner() {
       )}
 
       {/* One unit at the very end of the catalogue, after all the content. */}
-      <AdSlot placement="catalog-footer" />
+      <AdSlot placement="catalog-footer" className="mt-8 border-t border-hairline pt-6" />
     </div>
   );
 }

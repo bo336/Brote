@@ -43,6 +43,11 @@ const PUBLIC_PREFIXES = [
   // Un certificado de Brote se verifica sin cuenta: lo abre un cliente, un
   // proveedor o un municipio desde el enlace o el código (LANZAMIENTO F6).
   '/certificados/',
+  // La guía pública de acciones: contenido para buscadores y para la revisión
+  // de AdSense, que no tiene cuenta (0134).
+  '/guia',
+  // El clic de un anuncio directo cuenta y redirige; puede venir de la guía.
+  '/api/anuncio/',
 ];
 
 function isPublic(pathname: string): boolean {

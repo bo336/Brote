@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import type { FeedItem } from '@/lib/api/feed';
+import { compressImage } from '@/lib/utils/image-compress';
 
 export interface AdminSetting {
   value: boolean | number | string;
@@ -15,21 +16,11 @@ export interface AdminDashboard {
   stats: Record<string, number>;
 }
 
-export async function adminIsConfigured(): Promise<boolean> {
-  const { data, error } = await createClient().rpc('admin_is_configured');
-  if (error) return false;
-  return Boolean(data);
-}
-
-/** First run sets the passphrase; later changes require the current one. */
-export async function adminSetPassword(next: string, current?: string): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await createClient().rpc('admin_set_password', {
-    p_new: next,
-    p_current: current ?? null,
-  });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string };
-}
+/**
+ * Lo que se le pasa a `p_pass`. El panel ya no usa contraseña: lo abre la sesión
+ * de la cuenta del dueño y la base lo verifica en cada llamada (0136).
+ */
+export const CUENTA = 'cuenta';
 
 export async function adminDashboard(pass: string): Promise<AdminDashboard> {
   const { data, error } = await createClient().rpc('admin_dashboard', { p_pass: pass });
@@ -220,55 +211,6 @@ export async function adminAccionesReglasGuardar(
 }
 
 // ── Cuentas del panel (0127) ────────────────────────────────────────────────
-
-export interface EstadoAcceso {
-  configurado: boolean;
-  con_cuentas: boolean;
-  soy_admin: boolean;
-  ingreso_reciente: boolean;
-}
-
-export async function adminEstadoAcceso(): Promise<EstadoAcceso | null> {
-  const { data, error } = await createClient().rpc('admin_estado_acceso');
-  if (error) return null;
-  return data as EstadoAcceso;
-}
-
-export async function adminRecuperarClave(nueva: string): Promise<{ ok: boolean; error?: string; reingresar?: boolean }> {
-  const { data, error } = await createClient().rpc('admin_recuperar_clave', { p_nueva: nueva });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string; reingresar?: boolean };
-}
-
-export interface CuentaPanel {
-  user_id: string;
-  email: string;
-  nombre: string | null;
-  username: string | null;
-  vinculado_at: string;
-  soy_yo: boolean;
-  avisos: boolean;
-}
-
-export async function adminCuentas(pass: string): Promise<{ ok: boolean; error?: string; cuentas?: CuentaPanel[] }> {
-  const { data, error } = await createClient().rpc('admin_cuentas', { p_pass: pass });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string; cuentas?: CuentaPanel[] };
-}
-
-export async function adminVincularCuenta(pass: string, email?: string): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await createClient().rpc('admin_vincular_cuenta', { p_pass: pass, p_email: email ?? null });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string };
-}
-
-export async function adminDesvincularCuenta(pass: string, userId: string): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await createClient().rpc('admin_desvincular_cuenta', { p_pass: pass, p_user: userId });
-  if (error) return { ok: false, error: error.message };
-  return data as { ok: boolean; error?: string };
-}
-
-// ── Bandeja y analítica (0128) ──────────────────────────────────────────────
 
 export async function adminPendientes(pass: string): Promise<Record<string, number> | null> {
   const { data, error } = await createClient().rpc('admin_pendientes', { p_pass: pass });
@@ -464,4 +406,215 @@ export async function adminSuscripciones(pass: string): Promise<PanelSuscripcion
   const { data, error } = await createClient().rpc('admin_suscripciones', { p_pass: pass });
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
   return data as PanelSuscripciones;
+}
+
+// ── Publicidad (0134) ───────────────────────────────────────────────────────
+
+export interface AnuncioPanel {
+  id: string;
+  nombre: string;
+  anunciante: string;
+  titulo: string;
+  texto: string | null;
+  imagen_url: string | null;
+  cta: string;
+  url_destino: string;
+  ubicaciones: string[];
+  provincias: string[];
+  publico: 'adultos' | 'todos';
+  desde: string;
+  hasta: string | null;
+  peso: number;
+  tope_impresiones: number | null;
+  activo: boolean;
+  notas: string | null;
+  vigente: boolean;
+  impresiones: number;
+  clics: number;
+  impresiones_7d: number;
+}
+
+export interface PanelPublicidad {
+  ok: true;
+  activa: boolean;
+  config: unknown;
+  metricas: {
+    ubicacion: string;
+    proveedor: 'adsense' | 'directo';
+    pedidos_hoy: number | null;
+    pedidos_30d: number;
+    llenos_30d: number;
+    vacios_30d: number;
+  }[];
+  serie: { dia: string; pedidos: number; llenos: number }[];
+  anuncios: AnuncioPanel[];
+}
+
+export async function adminPublicidad(pass: string): Promise<PanelPublicidad | null> {
+  const { data, error } = await createClient().rpc('admin_publicidad', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelPublicidad;
+}
+
+/** `activa` o `config` en null = no se tocan. */
+export async function adminPublicidadConfig(
+  pass: string,
+  activa: boolean | null,
+  config: unknown | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_publicidad_config', {
+    p_pass: pass,
+    p_activa: activa,
+    p_config: config,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function adminAnuncioGuardar(
+  pass: string,
+  anuncio: Partial<AnuncioPanel>,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_anuncio_guardar', { p_pass: pass, p_anuncio: anuncio });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; id?: string; error?: string };
+}
+
+/** Sube la imagen de un anuncio directo (sólo cuentas del panel, 0134). */
+export async function subirImagenAnuncio(archivo: File): Promise<string> {
+  const supabase = createClient();
+  const blob = await compressImage(archivo, 1200, 0.85);
+  const ruta = `${new Date().getFullYear()}/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage.from('anuncios').upload(ruta, blob, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  return supabase.storage.from('anuncios').getPublicUrl(ruta).data.publicUrl;
+}
+
+// ── Analítica ampliada, salud y personas (0138) ─────────────────────────────
+
+export interface AnaliticaExtra {
+  ok: true;
+  comparado: Record<
+    | 'activos_hoy' | 'activos_ayer' | 'activos_7d' | 'activos_7d_prev' | 'activos_30d' | 'activos_30d_prev'
+    | 'nuevos_7d' | 'nuevos_7d_prev' | 'nuevos_30d' | 'nuevos_30d_prev'
+    | 'acciones_hoy' | 'acciones_ayer' | 'acciones_7d' | 'acciones_7d_prev',
+    number
+  >;
+  pegajosidad: { dau_promedio: number; mau: number; porcentaje: number };
+  contabilidad: { semana: string; nuevos: number; retenidos: number; recuperados: number; perdidos: number }[];
+  retencion: Record<'d1' | 'd7' | 'd30', { base: number; vuelven: number }>;
+  horarios: { dow: number; hora: number; n: number }[];
+  profundidad: { vistas_por_persona_dia: number; secciones_por_persona_dia: number };
+  acciones_por_activo_7d: number | null;
+  academia: {
+    empezadas: number;
+    terminadas: number;
+    personas: number;
+    aciertos_pct: number | null;
+    por_tipo: { tipo: string; respuestas: number; aciertos_pct: number }[];
+    abandonos: { slug: string; titulo: string; empezadas: number; sin_terminar: number; respondidas_prom: number; ultimo_tipo: string | null }[];
+  };
+  avisos: { enviados_7d: number; abiertos_7d: number; activaron_30d: number; rechazaron_30d: number };
+  negocio: { plus_vieron_30d: number; plus_iniciaron_30d: number; plus_activas: number; mrr_ars: number };
+  comunidad: { proyectos_activos: number; proyectos_creados_30d: number; sumados_30d: number; publicaciones_30d: number; seguimientos_30d: number };
+  en_riesgo: { n: number; rachas_perdidas: number; lista: { id: string; nombre: string; usuario: string | null; ultimo: string; dias: number; racha: number }[] };
+  mas_activos: { id: string; nombre: string; usuario: string | null; dias: number; acciones: number; racha: number }[];
+}
+
+export async function adminAnaliticaExtra(pass: string, dias = 30): Promise<AnaliticaExtra | null> {
+  const { data, error } = await createClient().rpc('admin_analitica_extra', { p_pass: pass, p_dias: dias });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as AnaliticaExtra;
+}
+
+export interface PanelSalud {
+  ok: true;
+  base: { bytes: number; tope_bytes: number; tablas: { tabla: string; bytes: number; filas: number }[] };
+  crons: { nombre: string; horario: string; activo: boolean; ultimo_at: string | null; ultimo_estado: string | null; ultimo_error: string | null; fallos_24h: number }[];
+  llamadas_24h: { total?: number; fallidas?: number };
+  avisos: { claves: boolean; dispositivos: number; pendientes: number; vencidas: number; enviadas_24h: number; fallidas_24h: number };
+  noticias: { ultima_at: string | null; activas: number };
+  tipo_cambio: { venta: number; fecha: string } | null;
+  errores: { hoy: number; semana: number; lista: { mensaje: string; ruta: string | null; veces: number; ultimo_at: string }[] };
+  mundo_errores_24h: number;
+  accesos: { ultimo_tuyo: string | null; intentos_30d: number; intentos: { at: string; quien: string }[] };
+}
+
+export async function adminSalud(pass: string): Promise<PanelSalud | null> {
+  const { data, error } = await createClient().rpc('admin_salud', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelSalud;
+}
+
+export interface FichaPersona {
+  ok: true;
+  persona: {
+    id: string; usuario: string | null; nombre: string | null; email: string | null; tipo: string; ciudad: string | null; barrio: string | null;
+    alta_at: string; onboarding: boolean; plan: string; plan_hasta: string | null; es_plus: boolean; es_prueba: boolean;
+    suspendida_hasta: string | null; puntos: number; semillas: number; nivel: string; racha: number; racha_max: number; es_admin: boolean;
+  };
+  rango: { tier: number; nombre: string; color: string };
+  uso: { primera_vez: string; ultima_vez: string; plataforma: string | null; sistema: string | null; navegador: string | null; instalada: boolean } | null;
+  totales: { acciones: number; acciones_30d: number; dias_activos_30d: number; lecciones: number; publicaciones: number; proyectos: number; dispositivos: number; reportes_recibidos: number };
+  secciones_30d: Record<string, number>;
+  actividad_30d: { dia: string; activo: boolean; acciones: number }[];
+  ultimas_acciones: { titulo: string; tema: string; at: string; puntos: number }[];
+  negocios: { id: string; nombre: string; estado: string; rol: string }[];
+}
+
+export async function adminPersona(pass: string, id: string): Promise<FichaPersona | null> {
+  const { data, error } = await createClient().rpc('admin_persona', { p_pass: pass, p_user: id });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as FichaPersona;
+}
+
+export async function adminPersonaAccion(
+  pass: string,
+  id: string,
+  accion: 'suspender' | 'levantar' | 'dar_plus' | 'quitar_plus',
+  dias?: number,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_persona_accion', { p_pass: pass, p_user: id, p_accion: accion, p_dias: dias ?? null });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+// ── Proyectos (0137) ────────────────────────────────────────────────────────
+
+export interface ReglasProyectos {
+  cupos: Record<string, number>;
+  gracia_dias: number;
+}
+
+export interface ProyectoPanel {
+  id: string; title: string; status: string; city: string | null; neighborhood: string | null; domain_slug: string | null;
+  event_date: string | null; created_at: string; min_rango: number; pausado_at: string | null; organizador_bajo_desde: string | null;
+  max_participants: number | null; organizador: string | null; organizador_usuario: string | null; organizador_rango: string | null;
+  personas: number; jornadas: number;
+}
+
+export interface PanelProyectos {
+  ok: true;
+  reglas: ReglasProyectos;
+  rangos: { tier: number; nombre: string; color: string }[];
+  resumen: { activos: number; en_pausa: number; en_gracia: number; completados: number; participaciones: number; sumados_7d: number; jornadas_30d: number };
+  proyectos: ProyectoPanel[];
+}
+
+export async function adminProyectos(pass: string): Promise<PanelProyectos | null> {
+  const { data, error } = await createClient().rpc('admin_proyectos', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelProyectos;
+}
+
+export async function adminProyectoAccion(pass: string, id: string, accion: 'pausar' | 'reanudar' | 'cerrar' | 'cancelar'): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_proyecto_accion', { p_pass: pass, p_id: id, p_accion: accion });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function adminProyectosReglas(pass: string, reglas: ReglasProyectos): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_proyectos_reglas_guardar', { p_pass: pass, p_reglas: reglas });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
 }

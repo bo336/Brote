@@ -7,9 +7,13 @@
  * request NON-personalized ads, so declining (or ignoring this entirely) is
  * always the safe default rather than something the user must fight for.
  *
- * Note for EEA/UK traffic: Google requires a certified CMP there. This banner
- * is the honest baseline for Argentina/LatAm; see PUBLICIDAD.html before
- * advertising to European users.
+ * Only where it means something: personalization is an AdSense setting, so
+ * the question waits until AdSense is configured and the person is on a
+ * screen that can carry an ad — never over Inicio on someone's first visit.
+ *
+ * Note for EEA/UK traffic: Google requires a certified CMP there. AdSense's
+ * own "European regulations" message covers it (docs/PUBLICIDAD.md §5); this
+ * banner is the baseline for Argentina/LatAm.
  */
 
 import { useEffect, useState } from 'react';
@@ -17,23 +21,24 @@ import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAds } from './AdsProvider';
+import { ADSENSE_CLIENT, useAds } from './AdsProvider';
 import { setAdsConsent } from '@/lib/api/monetizacion';
 
 export function AdsConsentBanner() {
-  const { monetization, decision } = useAds();
+  const { monetization, decision, canRenderHere } = useAds();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [visible, setVisible] = useState(false);
 
   // Only ask people who will actually see advertising, and only once.
   useEffect(() => {
-    if (!monetization) return;
-    const eligible = decision.show && monetization.ads_consent === null && monetization.account_type === 'adult';
-    // Give the app a beat before interrupting.
-    const t = setTimeout(() => setVisible(eligible), 2500);
+    if (!monetization || !ADSENSE_CLIENT) return;
+    const eligible = decision.show && canRenderHere && monetization.ads_consent === null && monetization.account_type === 'adult';
+    if (!eligible) return;
+    // Give the screen a beat before asking. Once shown it stays until answered.
+    const t = setTimeout(() => setVisible(true), 2500);
     return () => clearTimeout(t);
-  }, [monetization, decision.show]);
+  }, [monetization, decision.show, canRenderHere]);
 
   if (!visible) return null;
 

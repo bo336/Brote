@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { RewardLayer } from '@/components/rewards/RewardLayer';
 import { ServiceWorker } from '@/components/pwa/ServiceWorker';
 import { AdsProvider } from '@/components/ads/AdsProvider';
+import { ErrorReporter } from '@/components/ErrorReporter';
 
 /**
  * Global client providers: theme (light/dark/system), server-state cache,
@@ -41,6 +42,7 @@ export function Providers({ children }: { children: ReactNode }) {
             {children}
             <RewardLayer />
             <ServiceWorker />
+            <ErrorReporter />
           </AdsProvider>
         </ToastProvider>
       </QueryClientProvider>

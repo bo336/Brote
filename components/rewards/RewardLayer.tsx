@@ -86,7 +86,7 @@ function RewardContent({ event }: { event: RewardEvent }) {
       >
         <Pip size={140} mood="celebrating" aura golden={event.rankSlug === 'gaia'} />
         <p className="mt-4 text-small font-semibold uppercase tracking-widest text-brote-sun">
-          ¡Nuevo rango!
+          ¡Nuevo nivel!
         </p>
         <h2 className="mt-1 font-display text-display-xl font-extrabold text-white" style={{ color: rank?.color }}>
           {rank?.name_es ?? event.rankSlug}

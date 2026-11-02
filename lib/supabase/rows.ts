@@ -93,6 +93,9 @@ export interface ProjectRow {
   event_date: string | null;
   status: ProjectStatus;
   min_rank_slug: string;
+  min_rango: number;
+  pausado_at: string | null;
+  organizador_bajo_desde: string | null;
   max_participants: number | null;
   reward_points: number;
   upvotes: number;

@@ -25,7 +25,7 @@ export interface ProfileBrief {
  * people who joined.
  */
 const PROJECT_COLS =
-  'id, creator_id, title, description, type, domain_slug, image_url, neighborhood, city, lat, lng, location_text, event_date, status, min_rank_slug, max_participants, reward_points, upvotes, created_at, session_points';
+  'id, creator_id, title, description, type, domain_slug, image_url, neighborhood, city, lat, lng, location_text, event_date, status, min_rank_slug, min_rango, pausado_at, organizador_bajo_desde, max_participants, reward_points, upvotes, created_at, session_points';
 
 /** Project feed with participant counts + the user's joined/upvoted state. */
 export async function fetchProjects(userId?: string): Promise<ProjectWithMeta[]> {
@@ -47,7 +47,9 @@ export async function fetchProjects(userId?: string): Promise<ProjectWithMeta[]>
   const joined = new Set((mine ?? []).map((p: { project_id: string }) => p.project_id));
   const upvoted = new Set((ups ?? []).map((p: { project_id: string }) => p.project_id));
 
-  return ((projects ?? []) as ProjectRow[]).map((p) => ({
+  // Un proyecto en pausa no se ofrece a nadie nuevo; quien ya está lo sigue viendo.
+  const visibles = ((projects ?? []) as ProjectRow[]).filter((p) => !p.pausado_at || joined.has(p.id) || p.creator_id === userId);
+  return visibles.map((p) => ({
     ...p,
     participant_count: counts.get(p.id) ?? 0,
     joined: joined.has(p.id),
@@ -129,16 +131,6 @@ export async function completeProjectSession(
   return data as { ok: boolean; error?: string; attendees?: number; points_each?: number; multiplier?: number };
 }
 
-/**
- * Minimum rank tier required to create a project, read from the server so the
- * UI gate and the server rule can never drift apart. Owner-tunable from /panel.
- */
-export async function fetchProjectMinRankTier(): Promise<number> {
-  const { data, error } = await createClient().rpc('project_min_rank_tier');
-  if (error) return 4;
-  return Number(data ?? 4);
-}
-
 /** Leave a project you joined. Organisers cannot abandon their own (F15.10). */
 export async function leaveProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
   const { data, error } = await createClient().rpc('leave_project', { p_project_id: projectId });
@@ -183,7 +175,8 @@ export interface CreateProjectInput {
   eventDate: string | null;
   maxParticipants: number | null;
   imageUrl: string | null;
-  minRank: string;
+  /** Rango del período que hace falta para sumarse. 1 = cualquiera. */
+  minRango: number;
   /** How people reach the organiser to coordinate (F14.8). */
   contactInfo?: string | null;
   contactKind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
@@ -203,7 +196,7 @@ export async function createProject(input: CreateProjectInput): Promise<string> 
     p_event_date: input.eventDate,
     p_max_participants: input.maxParticipants,
     p_image_url: input.imageUrl,
-    p_min_rank: input.minRank,
+    p_min_rango: input.minRango,
     p_contact_info: input.contactInfo ?? null,
     p_contact_kind: input.contactKind ?? null,
   });

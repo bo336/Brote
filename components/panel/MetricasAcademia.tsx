@@ -48,7 +48,7 @@ export function MetricasAcademia({ pass }: { pass: string }) {
   if (!m) {
     return (
       <section>
-        <h2 className="mb-2 font-display text-h3 font-bold">Academia · números</h2>
+        <h2 className="mb-2 font-display text-h3 font-bold">Números</h2>
         <Skeleton className="h-32 w-full" />
       </section>
     );
@@ -62,7 +62,7 @@ export function MetricasAcademia({ pass }: { pass: string }) {
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-h3 font-bold">
-          Academia · números <span className="text-caption text-muted-foreground">({m.ventana_dias} días)</span>
+          Números <span className="text-caption text-muted-foreground">({m.ventana_dias} días)</span>
         </h2>
         <Button size="sm" variant="secondary" onClick={cargar} loading={cargando}>
           <RefreshCw className="h-4 w-4" /> Actualizar

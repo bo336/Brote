@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { Settings, Target, Award, BarChart3, Layers, Wand2, Sparkles, ChevronRight, Bookmark, Heart, Store } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { RankBadge } from '@/components/brand/RankBadge';
+import { ChipRango } from '@/components/ranking/ChipRango';
 import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
 import { MundoPoster } from '@/components/mundo3d/poster/MundoPoster';
@@ -80,7 +81,7 @@ export default function PerfilPage() {
         {/* Faint rank-coloured wash so the identity card is not a plain box. */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
         <div className="relative flex items-center justify-between gap-3">
-          <Link href="/perfil/rangos" aria-label="Ver todos los rangos" className="transition-transform hover:-translate-y-0.5">
+          <Link href="/perfil/rangos" aria-label="Ver todos los niveles" className="transition-transform hover:-translate-y-0.5">
             <RankBadge totalXp={xp} variant="full" size={56} />
           </Link>
           <div className="flex flex-col items-end gap-1">
@@ -88,7 +89,10 @@ export default function PerfilPage() {
             <StreakFlame count={profile?.currentStreak ?? 0} size="sm" />
           </div>
         </div>
-        <AccountTypeBadge type={profile?.accountType} className="relative mt-3" />
+        <div className="relative mt-3 flex flex-wrap items-center gap-2">
+          <AccountTypeBadge type={profile?.accountType} />
+          {profile?.id && <ChipRango userId={profile.id} />}
+        </div>
         {/* These were text buttons carrying an ASCII "→" and a 🌱, with no
             hover beyond a colour change. Icons + a real press state instead. */}
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -97,7 +101,7 @@ export default function PerfilPage() {
             className="press group flex items-center justify-center gap-1.5 rounded-button border border-border bg-surface-2 px-3 py-2.5 text-small font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
           >
             <Layers className="h-4 w-4" />
-            Los rangos
+            Los niveles
             <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
           <Link
