@@ -5,8 +5,7 @@ import type { Period } from '@/lib/api/ranking';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * Este período / De siempre switch, shared by every leaderboard (F14.1). The
- * period is a week or a month, whichever the panel has set.
+ * Semana / Histórico switch, shared by every leaderboard (F14.1).
  *
  * Weekly is the default everywhere: a lifetime board permanently favours
  * whoever joined first, so a newcomer has nothing to play for. `layoutId` must
@@ -25,8 +24,8 @@ export function PeriodToggle({
   className?: string;
 }) {
   const options: { value: Period; label: string }[] = [
-    { value: 'semana', label: 'Este período' },
-    { value: 'historico', label: 'De siempre' },
+    { value: 'semana', label: 'Semana' },
+    { value: 'historico', label: 'Histórico' },
   ];
 
   return (

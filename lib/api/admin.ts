@@ -116,6 +116,7 @@ export interface CuentaPrueba {
   tipo: 'kid' | 'teen' | 'adult';
   rango: string;
   tier: number;
+  liga: number;
   negocios: { nombre: string; objetivo: string }[];
 }
 
@@ -128,6 +129,7 @@ export async function adminCuentaPrueba(
   tipo: 'kid' | 'teen' | 'adult',
   tier: number,
   negocio: 'ninguno' | 'vender' | 'mejorar' | 'ambos',
+  liga?: number,
 ): Promise<Res<{ usuario: string | null; rango: string }>> {
   const { data, error } = await createClient().rpc('admin_cuenta_prueba', {
     p_pass: pass,
@@ -135,9 +137,24 @@ export async function adminCuentaPrueba(
     p_tipo: tipo,
     p_tier: tier,
     p_negocio: negocio,
+    ...(liga ? { p_liga: liga } : {}),
   });
   if (error) return { ok: false, error: error.message };
   return data as Res<{ usuario: string | null; rango: string }>;
+}
+
+export interface DemoResumen {
+  visible: boolean;
+  jugadores: number;
+  tiendas: number;
+  productos: number;
+  proyectos: number;
+}
+
+export async function adminDemoResumen(pass: string): Promise<Res<DemoResumen>> {
+  const { data, error } = await createClient().rpc('admin_demo_resumen', { p_pass: pass });
+  if (error) return { ok: false, error: error.message };
+  return data as Res<DemoResumen>;
 }
 
 export async function adminCuentasPrueba(pass: string): Promise<Res<{ cuentas: CuentaPrueba[] }>> {
@@ -584,6 +601,7 @@ export async function adminPersonaAccion(
 export interface ReglasProyectos {
   cupos: Record<string, number>;
   gracia_dias: number;
+  jornadas_semana?: number;
 }
 
 export interface ProyectoPanel {

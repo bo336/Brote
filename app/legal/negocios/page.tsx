@@ -83,6 +83,7 @@ export default function NegociosLegalPage() {
         <Bullets
           items={[
             'completar los datos de la tienda y al menos un canal de contacto que funcione;',
+            'enviar una solicitud con datos reales y que el equipo de Brote la apruebe;',
             'declarar su compromiso ambiental (cláusula 4) y aprobar la prueba verde sobre cómo comunicar lo ambiental;',
             'vincular una cuenta de Mercado Pago de Argentina, activa y con la identidad cargada: es como confirmamos quién vende;',
             'suscribirse (cláusula 10).',

@@ -31,6 +31,8 @@ export default async function ResumenPage() {
   if (objetivo === 'mejorar' || activo.modelo === 'empresa') {
     const [mejora, liga] = await Promise.all([getMejoraEstado(activo.id), getMiPuestoLiga(activo.id)]);
     if (!mejora) redirect('/negocio/contexto');
+    // Recién aprobada: lo primero es contar cómo trabajan.
+    if (activo.role === 'owner' && !mejora.dossier?.completitud && mejora.objetivos.length === 0) redirect('/negocio/mejora/dossier');
     return <InicioEmpresa estado={mejora} liga={liga} esOwner={activo.role === 'owner'} />;
   }
 

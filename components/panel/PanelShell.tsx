@@ -48,7 +48,7 @@ const GRUPOS: { titulo?: string; items: Item[] }[] = [
     items: [
       { href: '/panel/analitica', label: 'Analítica', Icon: BarChart3 },
       { href: '/panel/personas', label: 'Personas', Icon: Users },
-      { href: '/panel/rangos', label: 'Rangos y ligas', Icon: Trophy },
+      { href: '/panel/ligas', label: 'Ligas', Icon: Trophy },
     ],
   },
   {

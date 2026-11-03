@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Actualizar, Cargando, ErrorCarga, FilaInterruptor, PageHeader, Section, Stat, StatGrid, num } from '@/components/panel/ui';
-import { CUENTA, adminDashboard, adminSetSetting, adminSetSimulatedCount } from '@/lib/api/admin';
+import { CUENTA, adminDashboard, adminDemoResumen, adminSetSetting, adminSetSimulatedCount } from '@/lib/api/admin';
 import { toast } from '@/stores/toast';
 
 /**
@@ -14,6 +14,7 @@ import { toast } from '@/stores/toast';
  */
 
 const EN_OTRA_SECCION = new Set([
+  'simulated_players_enabled',
   'ads_enabled',
   'plus_venta_activa',
   'plus_usd_mes',
@@ -40,6 +41,7 @@ const CONTENIDO: Record<string, string> = {
 
 export default function AjustesPanelPage() {
   const q = useQuery({ queryKey: ['panel', 'ajustes'], queryFn: () => adminDashboard(CUENTA) });
+  const demo = useQuery({ queryKey: ['panel', 'demo'], queryFn: () => adminDemoResumen(CUENTA) });
   const [simulados, setSimulados] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
@@ -55,6 +57,7 @@ export default function AjustesPanelPage() {
     }
     toast.success('Guardado');
     void q.refetch();
+    void demo.refetch();
   }
 
   const cabecera = (
@@ -82,6 +85,24 @@ export default function AjustesPanelPage() {
           )}
         </StatGrid>
 
+        <Section
+          title="Datos de demostración"
+          description="Lo que no es real: sirve para que la app no se vea vacía. Apagado, desaparece todo de una; prendido, vuelve igual. Nada se borra."
+        >
+          <div className="-my-3.5">
+            <FilaInterruptor
+              titulo={q.data.settings.simulated_players_enabled?.value === true ? 'Se está mostrando' : 'No se está mostrando'}
+              detalle={
+                demo.data?.ok
+                  ? `${num(demo.data.jugadores)} jugadores simulados · ${num(demo.data.tiendas)} tiendas y ${num(demo.data.productos)} productos DEMO · ${num(demo.data.proyectos)} proyectos de ejemplo`
+                  : undefined
+              }
+              valor={q.data.settings.simulated_players_enabled?.value === true}
+              onCambiar={(v) => void guardar('simulated_players_enabled', v)}
+            />
+          </div>
+        </Section>
+
         <div className="grid items-start gap-6 lg:grid-cols-2">
           <Section title="Interruptores">
             {si.length === 0 ? (
@@ -104,7 +125,7 @@ export default function AjustesPanelPage() {
               </div>
             </Section>
 
-            <Section title="Jugadores simulados" description="Llenan los rankings públicos para que no se vean vacíos. Nunca aparecen en amigos ni en competencias, y no cuentan en ningún número de este panel. 0 los elimina.">
+            <Section title="Cuántos jugadores simulados" description="Llenan los rankings públicos para que no se vean vacíos. Nunca aparecen en amigos, competencias ni ligas, y no cuentan en ningún número de este panel. 0 los elimina.">
               <div className="flex max-w-xs gap-2">
                 <Input type="number" min={0} max={500} value={simulados} onChange={(e) => setSimulados(e.target.value)} className="tnum" aria-label="Cantidad de jugadores simulados" />
                 <Button

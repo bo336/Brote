@@ -8,7 +8,7 @@ import { visualCategoria } from '@/components/mercado/categoria-visual';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { CATEGORIAS, type Categoria } from '@/lib/mercado/categorias';
-import { crearTienda, guardarTienda, type DatosTienda } from '@/lib/negocio/vendedor-acciones';
+import { guardarTienda, type DatosTienda } from '@/lib/negocio/vendedor-acciones';
 import { formatearWhatsapp, normalizarWhatsappAR, type EstadoVendedor } from '@/lib/negocio/vendedor';
 import { normalizarInstagram, normalizarSitio } from '@/lib/negocio/normalizar';
 import { PROVINCES } from '@/lib/data/cities';
@@ -23,24 +23,24 @@ type Canal = 'whatsapp' | 'instagram' | 'web';
  * un sitio). Nada de CUIT obligatorio ni de descripciones largas: quien vende
  * como empresa puede cargar sus datos, quien vende por su cuenta no los necesita.
  */
-export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | null; alGuardar?: () => void }) {
+export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor; alGuardar?: () => void }) {
   const t = useTranslations('negocio.vendedor.tienda');
   const te = useTranslations('negocio.vendedor.errores');
   const tc = useTranslations('mercado.categorias');
   const router = useRouter();
-  const d = estado?.tienda;
-  const [nombre, setNombre] = useState(d?.nombre_comercial ?? '');
-  const [tipo, setTipo] = useState<'persona' | 'empresa'>(d?.tipo_vendedor ?? 'persona');
-  const [categoria, setCategoria] = useState<Categoria | null>(d?.categoria_principal ?? null);
-  const [provincia, setProvincia] = useState(d?.provincia ?? '');
-  const [ciudad, setCiudad] = useState(d?.ciudad ?? '');
-  const [whatsapp, setWhatsapp] = useState(d?.whatsapp ? formatearWhatsapp(d.whatsapp) : '');
-  const [instagram, setInstagram] = useState(d?.instagram ? `@${d.instagram}` : '');
-  const [sitio, setSitio] = useState(d?.sitio_web ?? '');
-  const [preferido, setPreferido] = useState<Canal | null>(d?.contacto_preferido ?? null);
-  const [descripcion, setDescripcion] = useState(d?.descripcion ?? '');
-  const [cuit, setCuit] = useState(d?.cuit ?? '');
-  const [razon, setRazon] = useState(d?.razon_social ?? '');
+  const d = estado.tienda;
+  const [nombre, setNombre] = useState(d.nombre_comercial);
+  const [tipo, setTipo] = useState<'persona' | 'empresa'>(d.tipo_vendedor ?? 'persona');
+  const [categoria, setCategoria] = useState<Categoria | null>(d.categoria_principal ?? null);
+  const [provincia, setProvincia] = useState(d.provincia ?? '');
+  const [ciudad, setCiudad] = useState(d.ciudad ?? '');
+  const [whatsapp, setWhatsapp] = useState(d.whatsapp ? formatearWhatsapp(d.whatsapp) : '');
+  const [instagram, setInstagram] = useState(d.instagram ? `@${d.instagram}` : '');
+  const [sitio, setSitio] = useState(d.sitio_web ?? '');
+  const [preferido, setPreferido] = useState<Canal | null>(d.contacto_preferido ?? null);
+  const [descripcion, setDescripcion] = useState(d.descripcion ?? '');
+  const [cuit, setCuit] = useState(d.cuit ?? '');
+  const [razon, setRazon] = useState(d.razon_social ?? '');
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [ocupado, setOcupado] = useState(false);
 
@@ -73,16 +73,6 @@ export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | nul
       return;
     }
     setOcupado(true);
-    let id = estado?.id ?? null;
-    if (!id) {
-      const r = await crearTienda(nombre);
-      if (!r.ok) {
-        setOcupado(false);
-        useToastStore.getState().push({ variant: 'error', title: te.has(r.error) ? te(r.error) : te('error') });
-        return;
-      }
-      id = r.id;
-    }
     const datos: DatosTienda = {
       nombre_comercial: nombre.trim(),
       tipo_vendedor: tipo,
@@ -96,7 +86,7 @@ export function PasoTienda({ estado, alGuardar }: { estado: EstadoVendedor | nul
       descripcion: descripcion.trim(),
       ...(tipo === 'empresa' ? { cuit: cuit.trim(), razon_social: razon.trim() } : {}),
     };
-    const r = await guardarTienda(id, datos);
+    const r = await guardarTienda(estado.id, datos);
     setOcupado(false);
     if (!r.ok) {
       if (r.campo) setErrores({ [r.campo]: r.error === 'termino_sin_afirmacion' ? 'descripcion_verde' : r.campo });

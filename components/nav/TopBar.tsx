@@ -74,7 +74,7 @@ export function TopBar() {
           <Link href="/perfil" prefetch={false} aria-label={`${tn('streakLabel')} · ${totalXp}`} className="hidden xs:flex">
             <PointsBadge value={totalXp} size="sm" animate />
           </Link>
-          <Link href="/perfil" prefetch={false} aria-label="Nivel" className="ml-0.5">
+          <Link href="/perfil" prefetch={false} aria-label="Rango" className="ml-0.5">
             <RankBadge totalXp={totalXp} size={36} />
           </Link>
           {/* Tu cuenta o tus negocios. A un menor ni se le ofrece la puerta (D7). */}

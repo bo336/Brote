@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ProjectCard } from '@/components/plaza/ProjectCard';
 import { useSession } from '@/stores/session';
 import { fetchProjects } from '@/lib/api/plaza';
-import { useCupoProyectos } from '@/hooks/use-rango';
+import { useCupoProyectos } from '@/hooks/use-liga';
 import { DOMAINS } from '@/lib/domains';
 
 type ProjectSort = 'cerca' | 'proximos' | 'populares';
@@ -37,7 +37,7 @@ export function ProjectsSection() {
   const profile = useSession((s) => s.profile);
 
   // Adults only (0120): a project is a meeting in person, with a place and a
-  // contact. How many at once comes from this period's rank (0137), read from
+  // contact. How many at once comes from this week's league (0142), read from
   // the server so this screen and create_project() can never disagree.
   const adulto = (profile?.accountType ?? 'adult') === 'adult';
   const cupo = useCupoProyectos().data;

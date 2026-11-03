@@ -58,8 +58,8 @@ export const NOMBRE_NAVEGADOR: Record<string, string> = {
 export const NOMBRE_AVISO: Record<string, string> = {
   streak_risk: 'Racha en riesgo',
   streak_lost: 'Racha perdida',
-  rank_up: 'Subió de nivel',
-  rango: 'Rango de la semana',
+  rank_up: 'Subió de rango',
+  rango: 'Liga de la semana',
   plaza: 'Novedades de la Plaza',
   reenganche: 'Te extrañamos',
   system: 'Sistema / resumen',

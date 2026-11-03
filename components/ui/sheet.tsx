@@ -38,15 +38,17 @@ export function Sheet({ open, onOpenChange, children, side = 'bottom', title, de
               onOpenAutoFocus={(e) => side === 'bottom' && e.preventDefault()}
             >
               <motion.div
-                initial={side === 'bottom' ? { y: '100%' } : { opacity: 0, scale: 0.95 }}
-                animate={side === 'bottom' ? { y: 0 } : { opacity: 1, scale: 1 }}
-                exit={side === 'bottom' ? { y: '100%' } : { opacity: 0, scale: 0.95 }}
+                initial={side === 'bottom' ? { y: '100%' } : { opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
+                animate={side === 'bottom' ? { y: 0 } : { opacity: 1, scale: 1, x: '-50%', y: '-50%' }}
+                exit={side === 'bottom' ? { y: '100%' } : { opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
                 transition={{ type: 'spring', stiffness: 360, damping: 34 }}
+                // Centrado con x/y de framer-motion: su transform pisa cualquier
+                // translate de Tailwind, y la ventana quedaba corrida abajo a la derecha.
                 className={cn(
                   'fixed z-50 border border-border bg-surface shadow-soft-lg',
                   side === 'bottom'
                     ? 'pb-safe inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-sheet px-4 pb-6 pt-3'
-                    : 'left-1/2 top-1/2 w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 rounded-card p-5',
+                    : 'left-1/2 top-1/2 w-[min(92vw,30rem)] rounded-card p-5',
                   className,
                 )}
               >

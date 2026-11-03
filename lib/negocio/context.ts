@@ -14,6 +14,7 @@ import type {
   NegocioDetalle,
   LigaEmpresas,
   MiPuestoLiga,
+  SolicitudNegocio,
 } from '@/lib/supabase/rows-negocio';
 
 export type ActiveBusiness = {
@@ -133,4 +134,11 @@ export const getMiPuestoLiga = cache(async (id: string): Promise<MiPuestoLiga | 
   const { data, error } = await createClient().rpc('liga_mi_puesto', { p_business: id });
   if (error) return null;
   return (data ?? null) as MiPuestoLiga | null;
+});
+
+/** En qué está la solicitud de un negocio y lo que se mandó (0143). */
+export const getSolicitud = cache(async (negocioId: string): Promise<SolicitudNegocio | null> => {
+  const { data, error } = await createClient().rpc('negocio_solicitud', { p_business: negocioId });
+  if (error || !data) return null;
+  return data as SolicitudNegocio;
 });

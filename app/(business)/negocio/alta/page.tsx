@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ElegirNegocio } from '@/components/negocio/alta/AltaNegocio';
 import { AltaVendedor } from '@/components/negocio/vendedor/AltaVendedor';
-import { AltaEmpresa, ElegirTipoNegocio } from '@/components/negocio/alta/AltaEmpresa';
-import { getActiveBusiness, getMisNegocios } from '@/lib/negocio/context';
+import { ElegirTipoNegocio } from '@/components/negocio/alta/AltaEmpresa';
+import { EstadoSolicitud, NuevaSolicitud } from '@/components/negocio/alta/Solicitud';
+import { getActiveBusiness, getMisNegocios, getSolicitud } from '@/lib/negocio/context';
 import { estadoConfigMp, getEstadoVendedor } from '@/lib/negocio/vendedor-acciones';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,9 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
 const MAX_TIENDAS_OWNER = 3;
 
 /**
- * `/negocio/alta` — abrir una tienda (Mercado v2). Cuatro pasos, cada uno se
- * guarda; el estado viene del servidor en cada visita, así que volver otro
- * día, desde otro teléfono, retoma exactamente donde quedó.
+ * `/negocio/alta` — entrar a Brote como negocio. Primero la solicitud, igual
+ * para los dos planes (0143): hasta que el equipo la aprueba no se arma nada.
+ * Una vez aprobada, la tienda sigue acá con sus pasos (cada uno se guarda: volver
+ * otro día, desde otro teléfono, retoma donde quedó); la empresa va a su plan.
  *
  * `?mp=` es la vuelta de Mercado Pago (vincular o pagar); `?listo=1`, la
  * pantalla de "tu tienda está abierta" justo después de abrirla.
@@ -41,10 +43,17 @@ export default async function AltaPage({
       return <ElegirNegocio negocios={negocios} puedeCrear={propios < MAX_TIENDAS_OWNER} />;
     }
     if (propios >= MAX_TIENDAS_OWNER) return <ElegirNegocio negocios={negocios} puedeCrear={false} />;
-    // Two different business accounts (0121): first, what it is for.
-    if (searchParams.tipo === 'mejorar') return <AltaEmpresa />;
-    if (searchParams.tipo !== 'vender') return <ElegirTipoNegocio />;
-    return <AltaVendedor estado={null} mp={mp} aviso={{ mp: null, motivo: null }} />;
+    // Two different business accounts (0121): first, what it is for. Then the
+    // same request for both (0143).
+    if (searchParams.tipo === 'mejorar' || searchParams.tipo === 'vender') return <NuevaSolicitud objetivo={searchParams.tipo} />;
+    return <ElegirTipoNegocio />;
+  }
+
+  // Sin aprobar (o suspendida), lo único que hay es el estado de la solicitud.
+  if (activo.status !== 'approved' && activo.modelo !== 'legacy') {
+    const solicitud = await getSolicitud(activo.id);
+    if (!solicitud) redirect('/negocio/contexto');
+    return <EstadoSolicitud s={solicitud} nombre={activo.nombre} />;
   }
 
   const estado = await getEstadoVendedor(activo.id);

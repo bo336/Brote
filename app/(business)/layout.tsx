@@ -39,6 +39,9 @@ export default async function BusinessLayout({ children }: { children: ReactNode
 
   const enfocado = pathname === '/negocio/alta';
   if (!activo && !enfocado) redirect('/negocio/alta');
+  // Primero la aprobación (0143): sin ella, sólo la pantalla de la solicitud.
+  const sinAprobar = !!activo && activo.status !== 'approved' && activo.modelo !== 'legacy';
+  if (sinAprobar && !enfocado) redirect('/negocio/alta');
 
   return (
     <ShellNegocio perfil={perfil} negocios={negocios} activo={activo} enfocado={enfocado}>

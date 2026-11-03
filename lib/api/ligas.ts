@@ -1,26 +1,24 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import type { ClaveRequisito, Requisitos } from '@/lib/rangos';
+import type { ReglasLiga } from '@/lib/ligas';
 
 /**
- * Los rangos del período (0133): lo que le corresponde a cada persona, los
- * tableros de esta semana o este mes, y el cupo de proyectos que da (0137).
+ * Las ligas de la semana (0142): en cuál estás, tu grupo, los tableros de esta
+ * semana y lo que la liga deja organizar en proyectos.
  */
 
-export interface RangoCompleto {
+export interface LigaCompleta {
   tier: number;
   slug: string;
   nombre: string;
   descripcion: string;
   color: string;
-  previo: number | null;
-  /** Lo que pide en ESTE período (ya prorrateado). */
-  requisitos: Requisitos;
-  por_semana: Requisitos;
+  mantener: number;
+  subir: number | null;
 }
 
-export interface PeriodoRango {
+export interface PeriodoLiga {
   id: number;
   tipo: 'semana' | 'mes';
   inicio: string;
@@ -30,25 +28,41 @@ export interface PeriodoRango {
   proximo_tipo: 'semana' | 'mes';
 }
 
-export interface MiRango {
+export interface FilaGrupo {
+  pos: number;
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  rank_slug: string;
+  division: number;
+  puntos: number;
+}
+
+export interface MiLiga {
   ok: true;
-  periodo: PeriodoRango;
+  periodo: PeriodoLiga;
   tier: number;
-  margen_usado: boolean;
-  /** El rango que ya cumple con lo que lleva hecho este período. */
-  camino: number;
-  metricas: Record<ClaveRequisito | 'puntos', number>;
-  rangos: RangoCompleto[];
-  historial: { inicio: string; fin: string; tipo: string; previo: number; nuevo: number; resultado: 'sube' | 'mantiene' | 'margen' | 'baja' }[];
+  puntos: number;
+  /** Lo que sumó hoy, antes del tope. */
+  hoy: number;
+  grupo: number;
+  en_grupo: boolean;
+  pos: number | null;
+  tam: number;
+  filas: FilaGrupo[];
+  reglas: ReglasLiga;
+  ligas: LigaCompleta[];
+  historial: { inicio: string; fin: string; tipo: string; previo: number; nuevo: number; resultado: 'sube' | 'mantiene' | 'margen' | 'baja'; puntos: number | null }[];
 }
 
-export async function fetchMiRango(): Promise<MiRango | null> {
-  const { data, error } = await createClient().rpc('mi_rango');
+export async function fetchMiLiga(): Promise<MiLiga | null> {
+  const { data, error } = await createClient().rpc('mi_liga');
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
-  return data as MiRango;
+  return data as MiLiga;
 }
 
-export type AmbitoRanking = 'global' | 'ciudad' | 'amigos' | 'rango';
+export type AmbitoRanking = 'global' | 'ciudad' | 'amigos';
 
 export interface FilaRanking {
   pos: number;
@@ -57,8 +71,10 @@ export interface FilaRanking {
   display_name: string | null;
   avatar_url: string | null;
   puntos: number;
-  tier: number;
+  /** La liga. Null en un jugador simulado. */
+  tier: number | null;
   nivel: string;
+  division: number | null;
 }
 
 export interface TableroPeriodo {
@@ -75,14 +91,14 @@ export async function fetchRankingPeriodo(ambito: AmbitoRanking, limite = 50): P
   return data as TableroPeriodo;
 }
 
-/** El rango de otra persona, para su perfil. */
-export async function fetchRangoDe(userId: string): Promise<number | null> {
+/** La liga de otra persona, para su perfil. */
+export async function fetchLigaDe(userId: string): Promise<number | null> {
   const { data, error } = await createClient().rpc('rangos_de', { p_usuarios: [userId] });
   if (error || !data) return null;
   return Number((data as Record<string, number>)[userId] ?? 1);
 }
 
-// ── Proyectos: lo que cada rango deja organizar (0137) ──────────────────────
+// ── Proyectos: lo que cada liga deja organizar (0137, 0142) ─────────────────
 
 export interface CupoProyectos {
   ok: true;
@@ -129,42 +145,63 @@ export async function cederProyecto(id: string, usuario: string): Promise<{ ok: 
 
 // ── El panel ────────────────────────────────────────────────────────────────
 
-export interface PanelRangos {
+export interface PanelLigas {
   ok: true;
   tipo: 'semana' | 'mes';
+  reglas: ReglasLiga;
   periodo: { id: number; tipo: 'semana' | 'mes'; inicio: string; fin: string };
-  rangos: { tier: number; slug: string; nombre: string; descripcion: string; color: string; requisitos: Requisitos; previo: number | null }[];
+  ligas: LigaCompleta[];
   distribucion: Record<string, number>;
-  cierres: { inicio: string; fin: string; tipo: string; suben: number; mantienen: number; margen: number; bajan: number }[];
+  cierres: { inicio: string; fin: string; tipo: string; suben: number; mantienen: number; bajan: number; promedio: number }[];
   activos_periodo: number;
 }
 
-export async function adminRangos(pass: string): Promise<PanelRangos | null> {
-  const { data, error } = await createClient().rpc('admin_rangos', { p_pass: pass });
+export async function adminLigas(pass: string): Promise<PanelLigas | null> {
+  const { data, error } = await createClient().rpc('admin_ligas', { p_pass: pass });
   if (error || !data || (data as { ok?: boolean }).ok === false) return null;
-  return data as PanelRangos;
+  return data as PanelLigas;
 }
 
-export async function adminRangoGuardar(
+export async function adminLigaGuardar(
   pass: string,
   tier: number,
   nombre: string,
   descripcion: string,
-  requisitos: Requisitos,
+  mantener: number,
+  subir: number | null,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await createClient().rpc('admin_rango_guardar', {
+  const { data, error } = await createClient().rpc('admin_liga_guardar', {
     p_pass: pass,
     p_tier: tier,
     p_nombre: nombre,
     p_descripcion: descripcion,
-    p_requisitos: requisitos,
+    p_mantener: mantener,
+    p_subir: subir,
   });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string };
 }
 
-export async function adminRangoPeriodo(pass: string, tipo: 'semana' | 'mes'): Promise<{ ok: boolean; error?: string; desde?: string }> {
+export async function adminLigaReglas(pass: string, r: ReglasLiga): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_liga_reglas_guardar', {
+    p_pass: pass,
+    p_tope: r.tope_diario,
+    p_tamano: r.tamano_grupo,
+    p_top: r.top_suben,
+    p_minimo: r.grupo_minimo,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}
+
+export async function adminLigaPeriodo(pass: string, tipo: 'semana' | 'mes'): Promise<{ ok: boolean; error?: string; desde?: string }> {
   const { data, error } = await createClient().rpc('admin_rango_periodo', { p_pass: pass, p_tipo: tipo });
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string; desde?: string };
+}
+
+export async function adminPersonaLiga(pass: string, usuario: string, tier: number): Promise<{ ok: boolean; error?: string; nombre?: string }> {
+  const { data, error } = await createClient().rpc('admin_persona_liga', { p_pass: pass, p_user: usuario, p_tier: tier });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string; nombre?: string };
 }

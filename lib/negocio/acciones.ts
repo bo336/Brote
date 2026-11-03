@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { CTX_COOKIE } from '@/lib/negocio/catalogo';
 import { esquemaPaso1, payloadDePaso } from '@/lib/negocio/esquemas';
+import { limpiarCuit, normalizarInstagram, normalizarSitio } from '@/lib/negocio/normalizar';
+import { normalizarWhatsappAR } from '@/lib/negocio/vendedor';
 import type { MiNegocio, VerificationMethod } from '@/lib/supabase/rows-negocio';
 
 /**
@@ -162,30 +164,54 @@ export async function aceptarTerminos(negocioId: string): Promise<{ ok: boolean;
   return r?.ok ? { ok: true } : { ok: false, error: r?.error ?? 'error' };
 }
 
-// ── Empresa que mejora (0121) ───────────────────────────────────────────────
+// ── La solicitud, igual para tiendas y empresas (0143) ──────────────────────
 
-export interface ValoresEmpresa {
+export interface DatosSolicitud {
   nombre_comercial: string;
+  tipo_vendedor: 'persona' | 'empresa';
   rubro: string;
   tamano: string;
   provincia: string;
-  ciudad?: string;
-  sitio_web?: string;
+  ciudad: string;
+  descripcion: string;
+  instagram: string;
+  sitio_web: string;
+  whatsapp: string;
+  cuit: string;
+  rol: string;
+  extra: string;
+  acepta: boolean;
 }
 
 /**
- * Da de alta una EMPRESA QUE MEJORA y la deja activa. Corta a propósito: el
- * trabajo de verdad (contar cómo opera, recibir objetivos) pasa en el
- * programa, no en un formulario de alta.
+ * El primer paso de todo negocio, tienda o empresa (0143): manda la solicitud al
+ * equipo. Con `negocioId`, la vuelve a mandar corregida. Hasta que la aprueben no
+ * se arma nada; cada RPC lo vuelve a frenar en la base.
  */
-export async function crearEmpresa(v: ValoresEmpresa): Promise<Resultado<{ id: string }>> {
-  const { data, error } = await createClient().rpc('empresa_crear', {
-    p_nombre: (v.nombre_comercial ?? '').trim(),
-    p_rubro: v.rubro,
-    p_tamano: v.tamano,
-    p_provincia: v.provincia || null,
-    p_ciudad: (v.ciudad ?? '').trim() || null,
-    p_sitio_web: (v.sitio_web ?? '').trim() || null,
+export async function mandarSolicitud(
+  negocioId: string | null,
+  objetivo: 'vender' | 'mejorar',
+  v: DatosSolicitud,
+): Promise<Resultado<{ id: string }>> {
+  const { data, error } = await createClient().rpc('negocio_solicitud_enviar', {
+    p_business: negocioId,
+    p_objetivo: objetivo,
+    p_datos: {
+      nombre_comercial: v.nombre_comercial.trim(),
+      tipo_vendedor: v.tipo_vendedor,
+      rubro: v.rubro,
+      tamano: v.tamano,
+      provincia: v.provincia,
+      ciudad: v.ciudad.trim(),
+      descripcion: v.descripcion.trim(),
+      instagram: normalizarInstagram(v.instagram) ?? '',
+      sitio_web: normalizarSitio(v.sitio_web) ?? '',
+      whatsapp: normalizarWhatsappAR(v.whatsapp) ?? '',
+      cuit: limpiarCuit(v.cuit) ?? '',
+      rol: v.rol,
+      extra: v.extra.trim(),
+      acepta: v.acepta,
+    },
   });
   if (error) return { ok: false, error: 'error' };
   const r = data as { ok?: boolean; id?: string; error?: string; campo?: string } | null;

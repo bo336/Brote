@@ -59,6 +59,7 @@ export function TablaCola({ items, filtro, ahora }: { items: FilaColaNegocio[]; 
                   <span className="link-underline">{f.nombre}</span>
                 </Link>
                 <span className="mt-0.5 block text-caption text-muted-foreground">
+                  {f.objetivo && <span className="font-semibold text-foreground">{t(`panel.cola.plan_${f.objetivo}`)} · </span>}
                   {t(`rubros.${f.rubro}`)} · {f.provincia ?? '—'} · {t(`tamanos.${claveTamano(f.tamano)}`)}
                 </span>
                 {f.observada && (

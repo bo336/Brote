@@ -133,6 +133,8 @@ export interface FilaColaNegocio {
   enviado_at: string | null;
   revisado_at: string | null;
   observada: boolean;
+  objetivo?: 'vender' | 'mejorar' | 'ambos';
+  modelo?: 'vendedor' | 'legacy' | 'empresa';
   verificacion: { method: VerificationMethod; status: VerificationStatus; verified_at: string | null } | null;
   riesgos: RiesgoNegocio[];
 }
@@ -163,6 +165,10 @@ export interface RevisionNegocio {
     instagram: string | null;
     whatsapp: string | null;
     email_contacto: string | null;
+    objetivo?: 'vender' | 'mejorar' | 'ambos';
+    modelo?: 'vendedor' | 'legacy' | 'empresa';
+    tipo_vendedor?: 'persona' | 'empresa' | null;
+    solicitud?: { rol?: 'dueno' | 'socio' | 'empleado' | 'otro' | null; extra?: string | null } | null;
     status: BusinessStatus;
     tier: EvidenceTier;
     intereses: Interes[];
@@ -175,7 +181,16 @@ export interface RevisionNegocio {
     sitio_estado: 'ok' | 'caido' | null;
     sitio_chequeado_at: string | null;
   };
-  creador: { display_name: string | null; username: string | null; desde: string } | null;
+  creador: {
+    id?: string;
+    display_name: string | null;
+    username: string | null;
+    desde: string;
+    email?: string | null;
+    puntos?: number;
+    rango?: string;
+    otras?: number;
+  } | null;
   verificaciones: {
     method: VerificationMethod;
     status: VerificationStatus;
@@ -190,6 +205,32 @@ export interface RevisionNegocio {
   riesgos: RiesgoNegocio[];
   anterior: string | null;
   siguiente: string | null;
+}
+
+/** `negocio_solicitud(p_business)`: lo que ve quien pidió entrar. */
+export interface SolicitudNegocio {
+  id: string;
+  status: BusinessStatus;
+  objetivo: 'vender' | 'mejorar' | 'ambos';
+  revision_note: string | null;
+  revisado_at: string | null;
+  enviado_at: string | null;
+  puede_reenviar_desde: string | null;
+  datos: {
+    nombre_comercial: string;
+    tipo_vendedor: 'persona' | 'empresa' | null;
+    rubro: string;
+    tamano: BusinessSize;
+    provincia: string | null;
+    ciudad: string | null;
+    descripcion: string | null;
+    sitio_web: string | null;
+    instagram: string | null;
+    whatsapp: string | null;
+    cuit: string | null;
+    rol: 'dueno' | 'socio' | 'empleado' | 'otro' | null;
+    extra: string | null;
+  };
 }
 
 // ── Mejora (fase 2) ─────────────────────────────────────────────────────────

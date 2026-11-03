@@ -14,10 +14,8 @@ import {
   ExternalLink,
   Image as ImageIcon,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/input';
 import { etiquetaVerificacion, hace } from '@/components/panel/negocios/etiquetas';
 import { claveTamano } from '@/lib/negocio/catalogo';
@@ -111,13 +109,40 @@ export function FichaRevision({
         </p>
       </header>
 
-      {/* El bloque de IA: vacío en la fase 1, y lo dice en lugar de inventar. */}
-      <Card flat className="border-dashed p-4">
-        <span className="eyebrow flex items-center gap-1.5 text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" /> {t('panel.detalle.ia')}
-        </span>
-        <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">{t('panel.detalle.iaVacia')}</p>
-      </Card>
+      {/* Qué pide y quién lo pide: lo primero para decidir si es real. */}
+      <section className="grid gap-4 rounded-card border border-border bg-surface-2/50 p-4 sm:grid-cols-2">
+        <div>
+          <span className="eyebrow text-muted-foreground">{t('panel.detalle.pide')}</span>
+          <p className="mt-1 font-display text-h3 font-bold">{t(`panel.detalle.plan_${n.objetivo === 'vender' ? 'vender' : n.objetivo === 'mejorar' ? 'mejorar' : 'ambos'}`)}</p>
+          {n.tipo_vendedor && <p className="mt-0.5 text-small text-muted-foreground">{t(`solicitud.tipo_${n.tipo_vendedor}`)}</p>}
+        </div>
+        {datos.creador && (
+          <div className="min-w-0">
+            <span className="eyebrow text-muted-foreground">{t('panel.detalle.quienPide')}</span>
+            <p className="mt-1 truncate text-small font-semibold">
+              {datos.creador.id ? (
+                <Link href={`/panel/personas/${datos.creador.id}`} className="text-primary">
+                  <span className="link-underline">{datos.creador.display_name ?? (datos.creador.username ? `@${datos.creador.username}` : '—')}</span>
+                </Link>
+              ) : (
+                (datos.creador.display_name ?? '—')
+              )}
+              {n.solicitud?.rol ? ` · ${t(`solicitud.rol_${n.solicitud.rol}`)}` : ''}
+            </p>
+            {datos.creador.email && <p className="truncate text-caption text-muted-foreground">{datos.creador.email}</p>}
+            <p className="text-caption text-muted-foreground">
+              {t('panel.detalle.cuentaDesde', { fecha: fecha(datos.creador.desde) })}
+              {datos.creador.otras ? ` · ${t('panel.detalle.otrasCuentas', { n: datos.creador.otras })}` : ''}
+            </p>
+          </div>
+        )}
+        {n.solicitud?.extra && (
+          <div className="sm:col-span-2">
+            <span className="eyebrow text-muted-foreground">{t('panel.detalle.extra')}</span>
+            <p className="mt-1 whitespace-pre-line text-small leading-relaxed">{n.solicitud.extra}</p>
+          </div>
+        )}
+      </section>
 
       {datos.riesgos.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -256,27 +281,21 @@ export function FichaRevision({
               </li>
             )}
             {n.email_contacto && <li className="break-all">{n.email_contacto}</li>}
-            {n.whatsapp && <li className="tnum">{n.whatsapp}</li>}
+            {n.whatsapp && (
+              <li>
+                <a
+                  href={`https://wa.me/${n.whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="inline-flex items-center gap-1 font-medium text-primary tnum"
+                >
+                  <span className="link-underline">{n.whatsapp}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </li>
+            )}
             {n.razon_social && <li className="text-muted-foreground">{n.razon_social}</li>}
           </ul>
-        </div>
-        <div>
-          <span className="eyebrow text-muted-foreground">{t('panel.detalle.intereses')}</span>
-          <p className="mt-1.5 text-small">
-            {n.intereses.length
-              ? n.intereses
-                  .map((i) => t(i === 'mejora' ? 'resumen.approved.mejoraTitulo' : 'resumen.approved.mercadoTitulo'))
-                  .join(' · ')
-              : '—'}
-          </p>
-          {datos.creador && (
-            <p className="mt-3 text-caption text-muted-foreground">
-              {t('panel.detalle.quien', {
-                nombre: datos.creador.display_name ?? (datos.creador.username ? `@${datos.creador.username}` : '—'),
-                fecha: fecha(datos.creador.desde),
-              })}
-            </p>
-          )}
         </div>
       </section>
 

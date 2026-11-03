@@ -49,7 +49,7 @@ const SLIDES: Slide[] = [
   {
     emoji: '🏆',
     title: 'Ligas y competencias',
-    body: 'Cada semana tu rango dice qué tipo de persona que cuida el ambiente fuiste, y competís con quienes tienen el mismo. También podés crear competencias privadas con amigos.',
+    body: 'Cada semana competís en tu liga: si sumás lo que pide, subís; si no llegás, bajás. También podés crear competencias privadas con amigos.',
   },
   {
     emoji: '📰',
