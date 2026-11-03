@@ -12,8 +12,9 @@ import { PASOS_ALTA, pasoActual, type EstadoVendedor, type PasoAlta } from '@/li
 import { cn } from '@/lib/utils/cn';
 
 /**
- * El alta de una tienda: cuatro pasos cortos, y en cada uno se guarda lo hecho
- * (se puede cerrar la pestaña y volver otro día desde otro teléfono).
+ * El armado de una tienda ya aprobada (0143): cuatro pasos cortos, y en cada uno
+ * se guarda lo hecho (se puede cerrar la pestaña y volver otro día desde otro
+ * teléfono).
  *
  *   1. Tu tienda — nombre, qué vendés, dónde, por dónde te contactan.
  *   2. Tu compromiso — dos prácticas concretas que ya hacés, y una foto.
@@ -29,12 +30,12 @@ export function AltaVendedor({
   mp,
   aviso,
 }: {
-  estado: EstadoVendedor | null;
+  estado: EstadoVendedor;
   mp: { vincular: boolean; cobrar: boolean };
   aviso: { mp: string | null; motivo: string | null };
 }) {
   const t = useTranslations('negocio.vendedor');
-  const siguiente = estado ? pasoActual(estado) : 'tienda';
+  const siguiente = pasoActual(estado);
   const [paso, setPaso] = useState<PasoAlta>(aviso.mp ? 'mercado_pago' : siguiente);
 
   // Cuando el servidor dice que se completó un paso, avanzar al que sigue.
@@ -47,7 +48,7 @@ export function AltaVendedor({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [paso]);
 
-  if (estado?.abierta) return <TiendaAbierta estado={estado} />;
+  if (estado.abierta) return <TiendaAbierta estado={estado} />;
 
   const indiceSiguiente = PASOS_ALTA.indexOf(siguiente);
 
@@ -96,9 +97,9 @@ export function AltaVendedor({
 
       <div className="mt-7">
         {paso === 'tienda' && <PasoTienda estado={estado} />}
-        {paso === 'compromiso' && estado && <PasoCompromiso estado={estado} />}
-        {paso === 'prueba' && estado && <PasoPrueba estado={estado} />}
-        {paso === 'mercado_pago' && estado && <PasoMercadoPago estado={estado} mp={mp} aviso={aviso} />}
+        {paso === 'compromiso' && <PasoCompromiso estado={estado} />}
+        {paso === 'prueba' && <PasoPrueba estado={estado} />}
+        {paso === 'mercado_pago' && <PasoMercadoPago estado={estado} mp={mp} aviso={aviso} />}
       </div>
     </div>
   );

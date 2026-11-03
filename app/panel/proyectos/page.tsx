@@ -12,7 +12,7 @@ import { toast } from '@/stores/toast';
 
 /**
  * `/panel/proyectos` — quién puede organizar y qué está pasando con cada uno.
- * El cupo sale del rango de la semana (0137): se sostiene o se pierde.
+ * Sumarse es libre; crear y manejar sale de la liga de la semana (0142).
  */
 
 type Filtro = 'abiertos' | 'atencion' | 'cerrados';
@@ -55,7 +55,7 @@ export default function ProyectosPanelPage() {
     <PageHeader
       eyebrow="Comunidad"
       title="Proyectos"
-      description="Organizar depende del rango de la semana: se sostiene o se pierde. Un proyecto nunca se corta de golpe."
+      description="Sumarse es libre. Crear y manejar depende de la liga de la semana: se sostiene o se pierde. Un proyecto nunca se corta de golpe."
       actions={<Actualizar onClick={() => void q.refetch()} cargando={q.isFetching} />}
     />
   );
@@ -70,8 +70,8 @@ export default function ProyectosPanelPage() {
       <div className="space-y-6">
         <StatGrid>
           <Stat label="Abiertos" value={num(r.activos)} hint={`${num(r.participaciones)} personas sumadas`} />
-          <Stat label="En gracia" value={num(r.en_gracia)} hint="El organizador bajó de rango" tone={r.en_gracia > 0 ? 'atencion' : undefined} />
-          <Stat label="En pausa" value={num(r.en_pausa)} hint="Vuelven solos si recupera el rango" tone={r.en_pausa > 0 ? 'mal' : undefined} />
+          <Stat label="En gracia" value={num(r.en_gracia)} hint="El organizador bajó de liga" tone={r.en_gracia > 0 ? 'atencion' : undefined} />
+          <Stat label="En pausa" value={num(r.en_pausa)} hint="Vuelven solos si recupera la liga" tone={r.en_pausa > 0 ? 'mal' : undefined} />
           <Stat label="Se sumaron en 7 días" value={num(r.sumados_7d)} hint={`${num(r.jornadas_30d)} jornadas en 30 días`} />
         </StatGrid>
 
@@ -181,18 +181,20 @@ function Reglas({
 }) {
   const [cupos, setCupos] = useState<Record<string, number>>(reglas.cupos);
   const [gracia, setGracia] = useState(reglas.gracia_dias);
+  const [jornadas, setJornadas] = useState(reglas.jornadas_semana ?? 3);
   const [ocupado, setOcupado] = useState(false);
 
   useEffect(() => {
     setCupos(reglas.cupos);
     setGracia(reglas.gracia_dias);
+    setJornadas(reglas.jornadas_semana ?? 3);
   }, [reglas]);
 
-  const sucio = gracia !== reglas.gracia_dias || rangos.some((r) => Number(cupos[r.tier]) !== Number(reglas.cupos[r.tier]));
+  const sucio = gracia !== reglas.gracia_dias || jornadas !== (reglas.jornadas_semana ?? 3) || rangos.some((r) => Number(cupos[r.tier]) !== Number(reglas.cupos[r.tier]));
 
   async function guardar() {
     setOcupado(true);
-    const r = await adminProyectosReglas(CUENTA, { cupos, gracia_dias: gracia });
+    const r = await adminProyectosReglas(CUENTA, { cupos, gracia_dias: gracia, jornadas_semana: jornadas });
     setOcupado(false);
     if (!r.ok) return toast.error('No se pudo guardar', r.error);
     toast.success('Reglas guardadas');
@@ -201,7 +203,7 @@ function Reglas({
 
   return (
     <Section
-      title="Cuántos puede organizar cada rango"
+      title="Cuántos puede organizar cada liga"
       description="A la vez. Si alguien baja y le sobran proyectos, siguen en regla los más próximos; a los otros les corre la gracia, y después quedan en pausa."
       actions={
         <Button size="sm" disabled={!sucio} loading={ocupado} onClick={() => void guardar()}>
@@ -227,11 +229,18 @@ function Reglas({
           </label>
         ))}
       </div>
-      <label className="mt-4 flex max-w-sm flex-col text-caption font-medium">
-        Días de gracia al bajar de rango
-        <Input type="number" min={0} max={180} value={gracia} onChange={(e) => setGracia(Math.max(0, Math.min(180, Number(e.target.value) || 0)))} className="mt-1.5 tnum" />
-        <span className="mt-1.5 font-normal text-muted-foreground">Un proyecto con fecha en los próximos 14 días nunca se pausa: esa reunión ya está armada.</span>
-      </label>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col text-caption font-medium">
+          Días de gracia al bajar de liga
+          <Input type="number" min={0} max={180} value={gracia} onChange={(e) => setGracia(Math.max(0, Math.min(180, Number(e.target.value) || 0)))} className="mt-1.5 tnum" />
+          <span className="mt-1.5 font-normal text-muted-foreground">Un proyecto con fecha en los próximos 14 días nunca se pausa: esa reunión ya está armada.</span>
+        </label>
+        <label className="flex flex-col text-caption font-medium">
+          Jornadas por semana, por organizador
+          <Input type="number" min={1} max={21} value={jornadas} onChange={(e) => setJornadas(Math.max(1, Math.min(21, Number(e.target.value) || 1)))} className="mt-1.5 tnum" />
+          <span className="mt-1.5 font-normal text-muted-foreground">Cerrar una jornada reparte puntos. Con este tope, y una por proyecto por día, un proyecto no sirve para farmear.</span>
+        </label>
+      </div>
     </Section>
   );
 }

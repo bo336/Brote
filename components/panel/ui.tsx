@@ -21,7 +21,9 @@ const fmt = new Intl.NumberFormat('es-AR');
 export const num = (v: number | string | null | undefined) => fmt.format(Math.round(Number(v ?? 0)));
 export const pesos = (v: number | null | undefined) =>
   v == null ? '—' : new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v);
-export const fecha = (v: string | null | undefined) => (v ? new Date(v).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '—');
+export const fecha = (v: string | null | undefined) =>
+  // Sin hora, `new Date` lee medianoche UTC: en Argentina sería el día anterior.
+  v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T12:00:00` : v).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '—';
 export const fechaHora = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
 export const hace = (v: string | null | undefined) => {

@@ -49,6 +49,9 @@
 
 ## 2. Decisiones (las que cambian el producto)
 
+> **Corrección del dueño, 2026-11-02.** D1, D2, D3 y D5 quedaron reemplazadas por §2a: el rango es el de
+> los puntos totales, y las ligas semanales vuelven y son lo más importante.
+
 - **D1 · Dos escaleras, una por cosa.** El **Nivel** (Semilla→Gaia, por XP de por vida) queda como
   está: mueve tu mundo y nunca baja — perder mundo por una semana floja sería castigar lo que la
   gente construyó. El **Rango** pasa a ser por período (semana o mes) y dice qué tipo de persona
@@ -86,21 +89,65 @@
 - **D11 · Cobro**: un solo webhook (Next) y credenciales en un solo lugar (Vercel). Brote+ deja de
   depender de `mp-subscribe`. Precios en el panel; cada producto con su interruptor de venta.
 
+## 2a. Rango y liga (0142, reemplaza D1, D2, D3 y D5)
+
+- **Rango** (Semilla → Gaia): por puntos totales, nunca baja, mueve el mundo. Se llama rango en toda la app.
+- **Liga**: un ranking que se mide cada semana. Son siete, con los nombres de "tipo de persona" que pidió el
+  dueño en octubre (se editan en `/panel/ligas`). El dueño pidió que mantenerse o subir no sea difícil ni
+  regalado, y que lo pueda lograr cualquiera con esfuerzo: por eso la regla principal son metas de puntos, y
+  que suba otra persona nunca te impide subir a vos.
+
+| Liga | Para seguir | Para subir | En acciones (unos 70 puntos cada una) |
+|---|---|---|---|
+| Aprendiz | no se baja | 150 | 2 o 3 |
+| Practicante | 100 | 300 | 2 para seguir, 5 para subir |
+| Ambientalista | 200 | 500 | 3 y 7 |
+| Referente | 350 | 750 | 5 y 11 |
+| Agente de cambio | 500 | 1.000 | 7 y 15 |
+| Guía | 700 | 1.300 | 10 y 19 |
+| Faro | 900 | es la última | 13 |
+
+- **Al cerrar** (domingo a medianoche): con la meta, subís una; con menos que el piso, bajás una; en el medio,
+  seguís. De a una por semana: nadie llega arriba de un salto.
+- **Los primeros:** en un grupo de 10 o más, los 3 primeros también suben si llegaron a su piso.
+- **Puntos:** todo lo que suma a `total_xp`, hasta 400 por día. Un solo día de empujón no alcanza.
+- **Grupos:** de hasta 30, se entra al sumar el primer punto de la semana. Chicos y cuentas de prueba se miden
+  contra sus metas y no aparecen en ninguna tabla. Los jugadores simulados no entran: la liga mueve algo real.
+- **Arranque:** todos en Aprendiz. El dueño puede poner a alguien en una liga desde su ficha.
+
 ## 2b. Proyectos por liga — las reglas
 
-"Liga" es el rango del período (Aprendiz → Faro), semanal o mensual según el panel. "Tu liga" en
-`/ranking` es la tabla de quienes tienen tu mismo rango. La liga vieja de 20 personas no se usa más:
-su cambio de semana nunca estuvo programado, así que nadie subía ni bajaba de verdad.
+Sumarse es libre, sea cual sea tu liga (sólo los chicos no, porque son encuentros en persona). Crear y manejar
+uno pide una liga alta, para que nadie arme proyectos para farmear puntos.
 
 - **Cupo:** Aprendiz, Practicante y Ambientalista 0 · Referente 1 · Agente de cambio 2 · Guía 3 · Faro 5.
-  Vale el rango cerrado o el que ya cumpliste en el período en curso.
+  Mira la liga en la que estás: subir se gana al cierre.
+- **Jornadas:** cerrar una es lo que reparte puntos. Una por proyecto por día, 3 por organizador por semana,
+  ninguna con el proyecto en pausa; y los puntos cuentan con el tope diario de la liga.
 - **Si bajás:** nada se corta. Quien se sumó conserva su lugar. No podés abrir otro hasta tener cupo.
   Siguen en regla los más próximos; los que sobran tienen 28 días de gracia, con un aviso.
 - **Pasada la gracia:** en pausa (fuera de las listas, sin gente nueva, con aviso a quienes están), salvo
   que tenga fecha dentro de 14 días. Volver al rango lo reabre solo. Nada se borra.
 - **En cualquier momento:** se le puede pasar a una persona adulta que se sumó y tiene cupo.
-- **Arranque:** la revisión de la noche empieza el 9 de noviembre, con el primer cierre de verdad. Hoy
-  todos son Aprendiz, y el aviso de "tu rango no alcanza" no tendría sentido antes de eso.
+- **Arranque:** la revisión de la noche empieza el 23 de noviembre: lo más rápido que se llega a Referente son
+  tres cierres (9, 16 y 23). Antes de eso nadie podría cumplir.
+
+## 2c. Empresas: primero la solicitud (0143)
+
+Antes ninguna solicitud llegaba al panel, porque ninguna empresa pasaba por `submitted`: la que mejora nacía
+aprobada y la tienda se abría sola al pagar. Ahora las dos hacen lo mismo:
+
+1. Elige qué quiere y manda un formulario corto con lo necesario para ver que es real.
+2. Queda `submitted`: el dueño recibe el aviso y la solicitud aparece en `/panel/negocios`. Quien pide ve "en
+   revisión" y nada más; cada RPC lo vuelve a frenar en la base.
+3. El dueño aprueba, pide datos o rechaza. Con datos pedidos se corrige y se reenvía; rechazada, a los 30 días.
+4. Recién aprobada se arma: la tienda con compromiso, prueba verde y Mercado Pago (abrir sigue siendo
+   `activa_at`, con el primer cobro); la empresa con su diagnóstico y objetivos.
+
+## 2d. Datos de demostración (0141)
+
+`simulated_players_enabled` manda sobre todo lo que no es real: jugadores simulados, tiendas y productos DEMO,
+proyectos de ejemplo. Apagado desaparece de una, prendido vuelve igual, nada se borra. Está en `/panel/ajustes`.
 
 ## 3. Fases y casillas
 
@@ -193,6 +240,17 @@ su cambio de semana nunca estuvo programado, así que nadie subía ni bajaba de 
 - [x] Cliente: `proyecto_cupo`, formulario y bloqueos por `min_rango`, aviso de gracia o pausa y
       pasarle la organización a alguien (`components/plaza/OrganizarProyecto.tsx`).
 
+### F13 · Ligas, solicitudes y demo (pedido del 2026-11-02)
+- [x] 0142: vuelve el rango por puntos totales y las ligas semanales (§2a). `/ranking` con tu liga y tu grupo,
+      `/panel/ligas`, la liga en `/panel/personas/[id]` y `/panel/pruebas`.
+- [x] 0142: sumarse a proyectos es libre; crear y manejar pide liga; las jornadas tienen tope (§2b).
+- [x] 0143: la solicitud primero, igual para los dos planes, con aviso al dueño (§2c).
+- [x] 0141: las tiendas DEMO no se borran: quedan bajo el interruptor de demostración (§2d).
+- [x] La ventana centrada (`components/ui/sheet.tsx`) quedaba corrida: framer-motion pisa el `translate` de
+      Tailwind. Afectaba al editor de desafíos y a la salida del Mercado.
+- [x] Las fechas sin hora del panel mostraban el día anterior (`fecha` en `components/panel/ui.tsx`).
+- [ ] 0144 limpia lo que quedó sin uso: se aplica después del deploy.
+
 ### F12 · Lecciones en blanco (pedido del 2026-11-01)
 - [x] Causa: `AnimatePresence mode="wait"` en `components/academia/Jugador.tsx`. Las fichas con
       `layoutId` (clasificar, ordenar, cadena, ranking) registran su salida y a veces nunca la cierran:
@@ -217,27 +275,9 @@ su cambio de semana nunca estuvo programado, así que nadie subía ni bajaba de 
       anuncios directos con imagen y vista previa. Ajustes → Publicidad (consentimiento).
 - [x] Privacidad §5 y Términos §10 al día (Google, directos, cómo desactivar la personalización).
 
-## 4. Rangos — la tabla (fuente: `lib/rangos.ts`, espejo en SQL)
+## 4. Ligas — la tabla
 
-Requisitos **por semana**. En un período de N días se piden `ceil(valor × N / 7)`; los días
-activos nunca más que N, y los temas no crecen con un mes (son amplitud: hay 13) — sólo se achican
-en un período de menos de 7 días.
-
-| # | Rango | Qué tipo de persona es | días | acciones | temas | medidas | comunidad | aprendizaje | previo |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | Aprendiz | Empieza a mirar su huella. | – | – | – | – | – | – | – |
-| 2 | Practicante | Hace algo por el ambiente varias veces por semana. | 2 | 3 | – | – | – | – | – |
-| 3 | Ambientalista | Cuidar ya es parte de su semana, en varios temas. | 4 | 8 | 3 | 1 | – | – | – |
-| 4 | Referente | Su forma de vivir se nota y se mide. | 5 | 12 | 4 | 3 | – | 1 | – |
-| 5 | Agente de cambio | Mueve a otros, no sólo a sí. | 6 | 16 | 5 | 5 | 1 | 1 | – |
-| 6 | Guía | Sostiene a su comunidad, período tras período. | 6 | 20 | 6 | 7 | 2 | 2 | 5 |
-| 7 | Faro | Lo más alto de Brote, y hay que sostenerlo. | 7 | 25 | 7 | 10 | 3 | 3 | 6 |
-
-- **acciones**: completadas `honor`/`verified`, máximo 6 por día.
-- **medidas**: acciones con impacto medido (agua, CO₂, residuos, energía > 0).
-- **comunidad**: asistir a una jornada de proyecto, sumarse a un proyecto, publicar en la Plaza una
-  acción hecha, regalar en el mundo a un amigo (máx. 1 por día).
-- **aprendizaje**: sesiones de la Academia aprobadas.
+En §2a. Fuente: `lib/ligas.ts`, con espejo en `0142_ligas_semanales.sql` y un test que los compara.
 
 ## 5. Notificaciones — qué llega, cuándo y por qué
 
@@ -341,6 +381,9 @@ los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prende
   `ads_enabled` estaba prendido en vivo: lo apagué, como dice `docs/PUBLICIDAD.md`. Al releer 0137 antes
   de aplicarla aparecieron tres agujeros: la revisión de la noche miraba sólo el rango cerrado (quien
   ya cumplió Referente creaba un proyecto y esa noche recibía "tu rango no alcanza"), un proyecto en pausa
-  liberaba cupo, y `proyecto_organizacion` calculaba el cupo de todos en cada visita. **Sigue pendiente:**
-  el merge de PR #38 a `main`, sin el cual el dominio no tiene ni el arreglo de las lecciones ni el panel
-  nuevo; y recorrer con una sesión real lo que pide estar logueado.
+  liberaba cupo, y `proyecto_organizacion` calculaba el cupo de todos en cada visita. PR #38 se mergeó el
+  2026-11-02 (57c88e1).
+- 2026-11-02 — El dueño probó en vivo y corrigió cuatro cosas: las ligas (§2a), los proyectos (§2b), las
+  empresas (§2c) y el demo (§2d). **Error mío:** escribí que el cambio de semana de la liga vieja nunca había
+  estado programado; el cron existía y corrió hasta el 26 de octubre, y lo apagué yo en 0133. La regla vieja
+  (los 4 primeros suben) tampoco servía con pocos usuarios: en grupos chicos subían todos sin hacer nada.

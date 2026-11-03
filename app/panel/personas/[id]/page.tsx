@@ -6,12 +6,15 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { Barras } from '@/components/panel/analitica/piezas';
 import { Cargando, ErrorCarga, Etiqueta, PageHeader, Section, Stat, StatGrid, Tabla, Td, Th, Vacio, fecha, fechaHora, hace, num } from '@/components/panel/ui';
 import { getDomainName } from '@/lib/domains';
 import { RANK_BY_SLUG } from '@/lib/ranks';
+import { LIGAS } from '@/lib/ligas';
 import { CUENTA, adminPersona, adminPersonaAccion } from '@/lib/api/admin';
+import { adminPersonaLiga } from '@/lib/api/ligas';
 import { NOMBRE_NAVEGADOR, NOMBRE_PLATAFORMA, NOMBRE_SECCION, NOMBRE_SISTEMA } from '@/lib/panel/nombres';
 import { toast } from '@/stores/toast';
 
@@ -26,6 +29,8 @@ export default function PersonaPage() {
   const q = useQuery({ queryKey: ['panel', 'persona', id], queryFn: () => adminPersona(CUENTA, id), enabled: !!id });
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [liga, setLiga] = useState<number | null>(null);
+  const [guardandoLiga, setGuardandoLiga] = useState(false);
 
   async function confirmar() {
     if (!pedido) return;
@@ -79,9 +84,9 @@ export default function PersonaPage() {
       <div className="mb-6 flex flex-wrap items-center gap-1.5">
         <Etiqueta>{TIPO[p.tipo] ?? p.tipo}</Etiqueta>
         <span className="inline-flex items-center gap-1.5 rounded-pill border border-border px-2.5 py-0.5 text-caption font-semibold">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: rango.color }} aria-hidden /> {rango.nombre}
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: rango.color }} aria-hidden /> Liga {rango.nombre}
         </span>
-        <Etiqueta>Nivel {RANK_BY_SLUG[p.nivel]?.name_es ?? p.nivel}</Etiqueta>
+        <Etiqueta>Rango {RANK_BY_SLUG[p.nivel]?.name_es ?? p.nivel}</Etiqueta>
         {p.es_plus && <Etiqueta tono="ok">Brote+{p.plan_hasta ? ` hasta ${fecha(p.plan_hasta)}` : ''}</Etiqueta>}
         {p.es_prueba && <Etiqueta tono="info">Cuenta de prueba</Etiqueta>}
         {p.es_admin && <Etiqueta tono="info">Dueño del panel</Etiqueta>}
@@ -132,6 +137,37 @@ export default function PersonaPage() {
             </dl>
           </Section>
         </div>
+
+        <Section
+          title="Liga"
+          description="La liga se gana sola cada semana. Ponerla a mano sirve para arrancar, por ejemplo con alguien que ya sabés que organiza bien: desde Referente puede crear proyectos. El cierre del lunes la sigue moviendo."
+        >
+          <div className="flex max-w-sm gap-2">
+            <Select aria-label="Liga de esta persona" value={liga ?? rango.tier} onChange={(e) => setLiga(Number(e.target.value))} className="flex-1">
+              {LIGAS.map((l) => (
+                <option key={l.tier} value={l.tier}>
+                  {l.nombre}
+                </option>
+              ))}
+            </Select>
+            <Button
+              variant="secondary"
+              disabled={liga == null || liga === rango.tier}
+              loading={guardandoLiga}
+              onClick={async () => {
+                setGuardandoLiga(true);
+                const r = await adminPersonaLiga(CUENTA, p.id, liga ?? rango.tier);
+                setGuardandoLiga(false);
+                if (!r.ok) return toast.error('No se pudo', r.error);
+                toast.success(`Ahora está en ${r.nombre ?? 'esa liga'}`);
+                setLiga(null);
+                void q.refetch();
+              }}
+            >
+              Guardar
+            </Button>
+          </div>
+        </Section>
 
         <Section title="Últimas acciones" sinPadding>
           {ultimas_acciones.length === 0 ? (

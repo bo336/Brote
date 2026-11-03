@@ -16,7 +16,7 @@ const CATEGORIA: Record<string, string> = {
   social: 'Seguidores y respuestas',
   reacciones: 'Reacciones',
   plaza: 'Novedades de la Plaza',
-  rango: 'Rango y nivel',
+  rango: 'Liga de la semana',
   recap: 'Resumen semanal',
   reenganche: 'Te extrañamos',
   academia: 'Academia',

@@ -16,6 +16,7 @@ import {
   type CuentaPrueba,
   type ErrorMundo,
 } from '@/lib/api/admin';
+import { LIGAS, LIGA_POR_TIER } from '@/lib/ligas';
 import { RANK_BY_TIER } from '@/lib/ranks';
 import { toast } from '@/stores/toast';
 
@@ -30,19 +31,19 @@ const TIPOS: { v: Tipo; label: string }[] = [
 
 const NEGOCIOS: { v: Negocio; label: string }[] = [
   { v: 'ninguno', label: 'Sin negocio' },
-  { v: 'vender', label: 'Tienda (vende en el Mercado)' },
-  { v: 'mejorar', label: 'Empresa que mejora (objetivos y liga)' },
+  { v: 'vender', label: 'Tienda abierta (vende en el Mercado)' },
+  { v: 'mejorar', label: 'Empresa aprobada (objetivos y liga)' },
   { v: 'ambos', label: 'Las dos' },
 ];
 
 /** One tap fills the form with a case worth checking. */
-const ATAJOS: { label: string; tipo: Tipo; tier: number; negocio: Negocio; alias: string }[] = [
-  { label: 'Chico nuevo', tipo: 'kid', tier: 1, negocio: 'ninguno', alias: 'chico' },
-  { label: 'Adolescente · Retoño', tipo: 'teen', tier: 4, negocio: 'ninguno', alias: 'adolescente' },
-  { label: 'Adulto · Arbusto (crea proyectos)', tipo: 'adult', tier: 5, negocio: 'ninguno', alias: 'adulto' },
-  { label: 'Adulto · Gaia (isla completa)', tipo: 'adult', tier: 11, negocio: 'ninguno', alias: 'gaia' },
-  { label: 'Tienda', tipo: 'adult', tier: 3, negocio: 'vender', alias: 'tienda' },
-  { label: 'Empresa que mejora', tipo: 'adult', tier: 3, negocio: 'mejorar', alias: 'empresa' },
+const ATAJOS: { label: string; tipo: Tipo; tier: number; negocio: Negocio; alias: string; liga: number }[] = [
+  { label: 'Chico nuevo', tipo: 'kid', tier: 1, negocio: 'ninguno', alias: 'chico', liga: 1 },
+  { label: 'Adolescente · Retoño', tipo: 'teen', tier: 4, negocio: 'ninguno', alias: 'adolescente', liga: 2 },
+  { label: 'Adulto · Liga Referente (crea proyectos)', tipo: 'adult', tier: 5, negocio: 'ninguno', alias: 'adulto', liga: 4 },
+  { label: 'Adulto · Gaia (isla completa)', tipo: 'adult', tier: 11, negocio: 'ninguno', alias: 'gaia', liga: 7 },
+  { label: 'Tienda ya abierta', tipo: 'adult', tier: 3, negocio: 'vender', alias: 'tienda', liga: 1 },
+  { label: 'Empresa ya aprobada', tipo: 'adult', tier: 3, negocio: 'mejorar', alias: 'empresa', liga: 1 },
 ];
 
 /**
@@ -58,6 +59,7 @@ export default function PruebasPage() {
   const [email, setEmail] = useState('');
   const [tipo, setTipo] = useState<Tipo>('adult');
   const [tier, setTier] = useState(5);
+  const [liga, setLiga] = useState(1);
   const [negocio, setNegocio] = useState<Negocio>('ninguno');
   const [aplicando, setAplicando] = useState(false);
   const [cuentas, setCuentas] = useState<CuentaPrueba[] | null>(null);
@@ -80,19 +82,20 @@ export default function PruebasPage() {
     setTipo(a.tipo);
     setTier(a.tier);
     setNegocio(a.negocio);
+    setLiga(a.liga);
     if (base) setEmail(`${base[0]!.split('+')[0]}+${a.alias}@${base[1]}`);
   }
 
   async function aplicar() {
     if (!email.trim() || aplicando) return;
     setAplicando(true);
-    const r = await adminCuentaPrueba(pass, email.trim(), tipo, tier, tipo === 'adult' ? negocio : 'ninguno');
+    const r = await adminCuentaPrueba(pass, email.trim(), tipo, tier, tipo === 'adult' ? negocio : 'ninguno', liga);
     setAplicando(false);
     if (!r.ok) {
       toast.error('No se pudo', r.error);
       return;
     }
-    toast.success('Listo', `@${r.usuario ?? 'cuenta'} ahora es ${TIPOS.find((x) => x.v === tipo)?.label} · ${RANK_BY_TIER[tier]?.name_es}`);
+    toast.success('Listo', `@${r.usuario ?? 'cuenta'} ahora es ${TIPOS.find((x) => x.v === tipo)?.label} · ${RANK_BY_TIER[tier]?.name_es} · Liga ${LIGA_POR_TIER[liga]?.nombre}`);
     void cargar();
   }
 
@@ -154,7 +157,7 @@ export default function PruebasPage() {
         <Field label="Mail de la cuenta" htmlFor="prueba-mail" help="Con un + : tucorreo+chico@gmail.com">
           <Input id="prueba-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo+chico@gmail.com" />
         </Field>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Tipo de cuenta" htmlFor="prueba-tipo">
             <Select id="prueba-tipo" value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
               {TIPOS.map((x) => (
@@ -173,7 +176,16 @@ export default function PruebasPage() {
               ))}
             </Select>
           </Field>
-          <Field label="Negocio" htmlFor="prueba-negocio" help={tipo !== 'adult' ? 'Sólo cuentas adultas' : undefined}>
+          <Field label="Liga (da proyectos desde Referente)" htmlFor="prueba-liga">
+            <Select id="prueba-liga" value={liga} onChange={(e) => setLiga(Number(e.target.value))}>
+              {LIGAS.map((l) => (
+                <option key={l.tier} value={l.tier}>
+                  {l.nombre}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Negocio" htmlFor="prueba-negocio" help={tipo !== 'adult' ? 'Sólo cuentas adultas' : 'Ya aprobado. Para probar la solicitud, dejá “Sin negocio” y pedilo desde esa cuenta.'}>
             <Select id="prueba-negocio" value={tipo === 'adult' ? negocio : 'ninguno'} disabled={tipo !== 'adult'} onChange={(e) => setNegocio(e.target.value as Negocio)}>
               {NEGOCIOS.map((x) => (
                 <option key={x.v} value={x.v}>
@@ -206,7 +218,7 @@ export default function PruebasPage() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-small font-medium">{c.email}</span>
                   <span className="block truncate text-caption text-muted-foreground">
-                    {TIPOS.find((x) => x.v === c.tipo)?.label} · {c.tier} {RANK_BY_TIER[c.tier]?.name_es}
+                    {TIPOS.find((x) => x.v === c.tipo)?.label} · {c.tier} {RANK_BY_TIER[c.tier]?.name_es} · Liga {LIGA_POR_TIER[c.liga]?.nombre}
                     {c.negocios.length ? ` · ${c.negocios.map((n) => n.nombre).join(', ')}` : ''}
                   </span>
                 </span>
@@ -216,6 +228,7 @@ export default function PruebasPage() {
                     setEmail(c.email);
                     setTipo(c.tipo);
                     setTier(c.tier);
+                    setLiga(c.liga ?? 1);
                   }}
                   className="text-caption font-semibold text-primary"
                 >

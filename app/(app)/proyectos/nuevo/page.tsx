@@ -12,7 +12,7 @@ import { Input, Textarea, Select, Field } from '@/components/ui/input';
 import { Pip } from '@/components/pip/Pip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/stores/session';
-import { useCupoProyectos, useNombreRango } from '@/hooks/use-rango';
+import { useCupoProyectos } from '@/hooks/use-liga';
 import { DOMAINS } from '@/lib/domains';
 import { BARRIOS } from '@/lib/data/barrios';
 import { createProject, uploadProjectImage } from '@/lib/api/plaza';
@@ -38,7 +38,6 @@ export default function NuevoProyectoPage() {
   const profile = useSession((s) => s.profile);
   const fileRef = useRef<HTMLInputElement>(null);
   const cupoQ = useCupoProyectos();
-  const nombreRango = useNombreRango();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,7 +47,6 @@ export default function NuevoProyectoPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [eventDate, setEventDate] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
-  const [minRango, setMinRango] = useState(1);
   const [contactInfo, setContactInfo] = useState('');
   const [contactKind, setContactKind] = useState<'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro'>('whatsapp');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -73,7 +71,6 @@ export default function NuevoProyectoPage() {
   const cupo = cupoQ.data;
   if (profile && cupoQ.isLoading) return <Skeleton className="h-64 w-full" />;
   if (profile && cupo && cupo.libres <= 0) {
-    const periodo = 'este período';
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <Pip size={80} mood="neutral" />
@@ -82,12 +79,12 @@ export default function NuevoProyectoPage() {
         </h1>
         <p className="max-w-xs text-small text-muted-foreground">
           {cupo.cupo > 0
-            ? `Como ${cupo.efectivo_nombre} podés tener ${cupo.cupo === 1 ? '1 proyecto' : `${cupo.cupo} proyectos`} a la vez. Cuando termine uno, o si subís de rango, podés abrir otro.`
-            : `Organizar significa coordinar gente en persona, así que depende de lo que venís haciendo: ${periodo} sos ${cupo.efectivo_nombre}, y hace falta llegar a ${cupo.min_nombre}.`}
+            ? `Como ${cupo.efectivo_nombre} podés tener ${cupo.cupo === 1 ? '1 proyecto' : `${cupo.cupo} proyectos`} a la vez. Cuando termine uno, o si subís de liga, podés abrir otro.`
+            : `Organizar es coordinar gente en persona, así que depende de lo que venís haciendo: esta semana estás en ${cupo.efectivo_nombre}, y hace falta llegar a ${cupo.min_nombre}. Sumarte a un proyecto ya armado es libre.`}
         </p>
         <div className="flex gap-2">
           <Button variant="primary" asChild>
-            <Link href="/ranking">Ver mi rango</Link>
+            <Link href="/ranking">Ver mi liga</Link>
           </Button>
           <Button variant="secondary" asChild>
             <Link href="/acciones?tab=proyectos">{tc('back')}</Link>
@@ -123,7 +120,6 @@ export default function NuevoProyectoPage() {
         eventDate: eventDate ? new Date(eventDate).toISOString() : null,
         maxParticipants: maxParticipants ? Number(maxParticipants) : null,
         imageUrl,
-        minRango,
         contactInfo: contactInfo.trim() || null,
         contactKind: contactInfo.trim() ? contactKind : null,
       });
@@ -220,19 +216,6 @@ export default function NuevoProyectoPage() {
           />
         </Field>
       </div>
-
-      <Field label="Quién se puede sumar" help="Se mira al sumarse: si alguien baja de rango después, no pierde su lugar.">
-        <Select value={minRango} onChange={(e) => setMinRango(Number(e.target.value))}>
-          <option value={1}>Cualquier persona</option>
-          {[2, 3, 4, 5, 6, 7]
-            .filter((t) => t <= (cupo?.efectivo ?? 1))
-            .map((t) => (
-              <option key={t} value={t}>
-                Desde {nombreRango(t)}
-              </option>
-            ))}
-        </Select>
-      </Field>
 
       <Field label="Imagen (opcional)">
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />

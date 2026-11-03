@@ -25,9 +25,8 @@ import {
   type Period,
 } from '@/lib/api/ranking';
 import { PeriodToggle } from '@/components/ranking/PeriodToggle';
-import { TuRango } from '@/components/ranking/TuRango';
-import { useNombreRango } from '@/hooks/use-rango';
-import { fetchRankingPeriodo, type AmbitoRanking, type FilaRanking } from '@/lib/api/rangos';
+import { TablaLiga, TuLiga } from '@/components/ranking/TuLiga';
+import { fetchRankingPeriodo, type AmbitoRanking, type FilaRanking } from '@/lib/api/ligas';
 import { FriendInvite } from '@/components/ranking/FriendInvite';
 import { fetchMyCompetitions } from '@/lib/api/competencias';
 
@@ -85,7 +84,7 @@ function List({
   );
 }
 
-/** The period's board. What decides your rank is the requirements, not the place. */
+/** This week's board, beyond your own league. */
 function TablaPeriodo({
   ambito,
   myId,
@@ -95,7 +94,6 @@ function TablaPeriodo({
   myId?: string;
   emptyMessage: string;
 }) {
-  const nombreRango = useNombreRango();
   const q = useQuery({
     queryKey: ['ranking-periodo', ambito, myId],
     queryFn: () => fetchRankingPeriodo(ambito),
@@ -132,13 +130,12 @@ function TablaPeriodo({
             neighborhood: null,
             xp: f.puntos,
             rank_slug: f.nivel,
-            division: 1,
+            division: f.division ?? 1,
             title_es: null,
           }}
           isMe={f.user_id === myId}
           metric="xp"
           pipStyle={pips.data?.[f.user_id]?.pip_style ?? null}
-          detalle={nombreRango(f.tier)}
         />
       ))}
       {yo && yo.pos && !yaEsta && (
@@ -171,7 +168,7 @@ function RankingInner() {
   const [period, setPeriod] = useState<Period>('semana');
   const metric = metricFor(period);
 
-  // The period boards load themselves; these are the lifetime ones ("De siempre").
+  // The weekly boards load themselves; these are the lifetime ones.
   const historico = period === 'historico';
   const globalQ = useQuery({
     queryKey: ['lb-global', 'historico'],
@@ -227,7 +224,7 @@ function RankingInner() {
 
   return (
     <div className="space-y-4">
-      <TuRango />
+      <TuLiga />
 
       <Tabs defaultValue="liga">
         <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
@@ -241,12 +238,9 @@ function RankingInner() {
           </TabsList>
         </div>
 
-        {/* Your league is everyone at your rank this period. */}
+        {/* Your group this week: the table that decides who goes up. */}
         <TabsContent value="liga" className="space-y-3">
-          <p className="text-caption leading-relaxed text-muted-foreground">
-            Quienes tienen tu mismo rango, por los puntos de este período. Se renueva con cada período.
-          </p>
-          <TablaPeriodo ambito="rango" myId={myId} emptyMessage="Todavía nadie de tu liga sumó puntos en este período. ¡Sé la primera persona!" />
+          <TablaLiga myId={myId} />
           <Button variant="secondary" block asChild>
             <Link href="/competencias">
               <Flag className="h-4 w-4" /> Crear o unirme a una competencia
@@ -269,7 +263,7 @@ function RankingInner() {
           {historico ? (
             <List query={globalQ} metric={metric} myId={myId} emptyMessage="Todavía no hay nadie en el ranking. ¡Sé el primero!" />
           ) : (
-            <TablaPeriodo ambito="global" myId={myId} emptyMessage="Todavía nadie sumó puntos en este período. ¡Sé la primera persona!" />
+            <TablaPeriodo ambito="global" myId={myId} emptyMessage="Todavía nadie sumó puntos esta semana. ¡Sé la primera persona!" />
           )}
         </TabsContent>
 
@@ -280,7 +274,7 @@ function RankingInner() {
               {historico ? (
                 <List query={cityQ} metric={metric} myId={myId} emptyMessage="Sé la primera persona de tu ciudad en sumar puntos." />
               ) : (
-                <TablaPeriodo ambito="ciudad" myId={myId} emptyMessage="Nadie de tu ciudad sumó puntos en este período. ¡Empezá vos!" />
+                <TablaPeriodo ambito="ciudad" myId={myId} emptyMessage="Nadie de tu ciudad sumó puntos esta semana. ¡Empezá vos!" />
               )}
             </>
           ) : (

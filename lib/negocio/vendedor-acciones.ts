@@ -39,21 +39,6 @@ export async function getEstadoVendedor(negocioId: string): Promise<EstadoVended
   return (data ?? null) as EstadoVendedor | null;
 }
 
-/** Crea la tienda con su nombre y la deja activa en el selector de contexto. */
-export async function crearTienda(nombre: string): Promise<Resultado<{ id: string }>> {
-  const { data, error } = await createClient().rpc('vendedor_crear', { p_nombre: nombre.trim() });
-  const x = r(data, error);
-  if (!x.ok) return fallo(x);
-  cookies().set(CTX_COOKIE, `biz:${String(x.id)}`, {
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
-  });
-  return { ok: true, id: String(x.id) };
-}
-
 export interface DatosTienda {
   nombre_comercial?: string;
   tipo_vendedor?: 'persona' | 'empresa';

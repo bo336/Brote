@@ -176,7 +176,6 @@ export interface CreateProjectInput {
   maxParticipants: number | null;
   imageUrl: string | null;
   /** Rango del período que hace falta para sumarse. 1 = cualquiera. */
-  minRango: number;
   /** How people reach the organiser to coordinate (F14.8). */
   contactInfo?: string | null;
   contactKind?: 'whatsapp' | 'email' | 'instagram' | 'telegram' | 'otro' | null;
@@ -196,7 +195,6 @@ export async function createProject(input: CreateProjectInput): Promise<string> 
     p_event_date: input.eventDate,
     p_max_participants: input.maxParticipants,
     p_image_url: input.imageUrl,
-    p_min_rango: input.minRango,
     p_contact_info: input.contactInfo ?? null,
     p_contact_kind: input.contactKind ?? null,
   });

@@ -115,10 +115,10 @@ export default function NegociosPage() {
         <section className="mt-12">
           <h2 className="font-display text-h2 font-bold">Cómo se entra</h2>
           <ol className="mt-4 space-y-3 text-body leading-relaxed">
-            <Paso n={1} texto="Nos escribís y charlamos. En esta etapa damos de alta a las empresas a mano, de a una." />
-            <Paso n={2} texto="Cargás tu negocio en cinco pasos y verificás que el sitio es tuyo (una etiqueta, un registro DNS o un archivo)." />
+            <Paso n={1} texto="Elegís qué querés hacer: vender en el Mercado o mejorar el impacto de tu empresa." />
+            <Paso n={2} texto="Nos mandás un formulario corto con lo necesario para ver que tu negocio es real." />
             <Paso n={3} texto="Lo revisamos a mano. Si falta algo, te decimos qué." />
-            <Paso n={4} texto="Completás el dossier y recibís tus objetivos. Publicás tus primeros listados." />
+            <Paso n={4} texto="Con la aprobación armás todo: tu tienda y tus productos, o tu diagnóstico y tus objetivos." />
           </ol>
         </section>
 

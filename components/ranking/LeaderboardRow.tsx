@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import Link from 'next/link';
 import { PipAvatar } from '@/components/pip/PipAvatar';
 import { RANK_BY_SLUG, formatRank } from '@/lib/ranks';
@@ -19,13 +20,13 @@ interface LeaderboardRowProps {
    * neutral Pip rather than borrowing somebody else's.
    */
   pipStyle?: PipStyle | null;
-  /** What to show under the name instead of the lifetime level. */
-  detalle?: string;
+  /** In a league table: whether this score goes up or down at the weekly close. */
+  zona?: 'sube' | 'baja' | null;
 }
 
 const MEDAL = ['🥇', '🥈', '🥉'];
 
-export function LeaderboardRow({ entry, isMe, metric = 'total_xp', pipStyle, detalle }: LeaderboardRowProps) {
+export function LeaderboardRow({ entry, isMe, metric = 'total_xp', pipStyle, zona }: LeaderboardRowProps) {
   const rank = RANK_BY_SLUG[entry.rank_slug];
   const value = (entry[metric] ?? entry.total_xp ?? entry.points ?? entry.xp ?? 0) as number;
   const name = entry.display_name || entry.username || 'Anónimo';
@@ -52,15 +53,13 @@ export function LeaderboardRow({ entry, isMe, metric = 'total_xp', pipStyle, det
         <p className="truncate text-small font-semibold">
           {name} {isMe && <span className="text-primary">· vos</span>}
         </p>
-        {detalle ? (
-          <p className="truncate text-caption text-muted-foreground">{detalle}</p>
-        ) : (
-          <p className="truncate text-caption" style={{ color: rank?.color }}>
-            {entry.title_es ? `${entry.title_es} · ` : ''}
-            {rank ? formatRank(rank.name_es, entry.division) : ''}
-          </p>
-        )}
+        <p className="truncate text-caption" style={{ color: rank?.color }}>
+          {entry.title_es ? `${entry.title_es} · ` : ''}
+          {rank ? formatRank(rank.name_es, entry.division) : ''}
+        </p>
       </div>
+      {zona === 'sube' && <ArrowUp className="h-4 w-4 shrink-0 text-brote-green" aria-label="Sube de liga" />}
+      {zona === 'baja' && <ArrowDown className="h-4 w-4 shrink-0 text-brote-coral" aria-label="Baja de liga" />}
       <span className="shrink-0 font-display text-body font-bold text-brote-sun tnum">{formatPoints(value)}</span>
     </div>
   );

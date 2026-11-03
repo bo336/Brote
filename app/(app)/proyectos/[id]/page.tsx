@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Users, ThumbsUp, Lock, MapPin, Calendar, Check, MessageSquare, LogOut, PauseCircle } from 'lucide-react';
+import { ArrowLeft, Users, ThumbsUp, MapPin, Calendar, Check, MessageSquare, LogOut, PauseCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -21,7 +21,6 @@ import { fetchProject, fetchProjectContact, fetchProjectParticipants, joinProjec
 import { ProjectSessions } from '@/components/plaza/ProjectSessions';
 import { getDomain } from '@/lib/domains';
 import { OrganizarProyecto } from '@/components/plaza/OrganizarProyecto';
-import { useCupoProyectos, useNombreRango } from '@/hooks/use-rango';
 import { toast } from '@/stores/toast';
 import { haptic } from '@/lib/utils/haptics';
 
@@ -37,8 +36,6 @@ export default function ProjectDetailPage() {
   const tc = useTranslations('common');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
-  const cupo = useCupoProyectos().data;
-  const nombreRango = useNombreRango();
 
   const projectQ = useQuery({
     queryKey: ['project', params.id, profile?.id],
@@ -53,8 +50,6 @@ export default function ProjectDetailPage() {
 
   const pips = usePipStyles((participantsQ.data ?? []).map((u) => u.id));
   const p = projectQ.data;
-  // Se mira al sumarse (0137): quien ya está no queda afuera si baja de rango.
-  const locked = p && cupo ? !p.joined && (p.min_rango ?? 1) > cupo.efectivo : false;
   const esOrganizador = !!p && p.creator_id === profile?.id;
   // A project is a meeting in person: a kid account cannot join one (0120).
   const esKid = profile?.accountType === 'kid';
@@ -208,10 +203,6 @@ export default function ProjectDetailPage() {
         ) : p.pausado_at && !p.joined ? (
           <Button block variant="secondary" size="lg" disabled>
             <PauseCircle className="h-4 w-4" /> En pausa
-          </Button>
-        ) : locked ? (
-          <Button block variant="secondary" size="lg" disabled>
-            <Lock className="h-4 w-4" /> {t('createGated', { rank: nombreRango(p.min_rango) })}
           </Button>
         ) : p.joined && p.creator_id === profile?.id ? (
           // Organisers can't leave their own project (enforced server-side too).

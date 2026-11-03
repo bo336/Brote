@@ -32,7 +32,7 @@
     "today": "Hoy",
     "you": "Vos",
     "level": "Nivel",
-    "rank": "Nivel",
+    "rank": "Rango",
     "comingSoon": "Próximamente",
     "optional": "opcional",
     "filters": "Filtros",
@@ -698,7 +698,7 @@
     "proyectos": "Proyectos",
     "projectsEmpty": "Todavía no hay proyectos por acá. ¿Creás el primero?",
     "createProject": "Crear proyecto",
-    "createGated": "Disponible desde {rank}",
+    "createGated": "Podés organizar desde la liga {rank}",
     "joinProject": "Sumarme",
     "interested": "Me interesa",
     "joined": "Ya te sumaste",
@@ -920,7 +920,7 @@
         "residuos": "Los residuos",
         "transporte": "Cómo me muevo"
       },
-      "promise": "Esto aparece cuando subas de nivel.",
+      "promise": "Esto aparece cuando subas de rango.",
       "ask": "Registrá tu primera acción real y guardá tu isla."
     },
     "verb": {
@@ -1839,7 +1839,11 @@
       "falta_captura": "Todavía no subiste la captura.",
       "ruta_invalida": "No pudimos guardar la captura. Probá subirla de nuevo.",
       "archivo_grande": "La captura pesa demasiado. Probá con una de menos de 5 MB.",
-      "error": "Algo no salió como esperábamos. Probá de nuevo en un momento."
+      "error": "Algo no salió como esperábamos. Probá de nuevo en un momento.",
+      "no_aprobada": "Tu solicitud todavía no está aprobada.",
+      "usar_solicitud": "Primero mandá la solicitud: la revisamos y te avisamos.",
+      "demasiados_intentos": "Hiciste muchos intentos hoy. Probá de nuevo mañana.",
+      "objetivo_invalido": "Elegí para qué vas a usar Brote."
     },
     "faltan": {
       "sitio_o_instagram": "el sitio web o el Instagram",
@@ -2100,7 +2104,10 @@
         },
         "vacia": "No hay solicitudes en esta lista.",
         "actualizar": "Actualizar",
-        "error": "No se pudo leer la cola"
+        "error": "No se pudo leer la cola",
+        "plan_vender": "Tienda",
+        "plan_mejorar": "Empresa que mejora",
+        "plan_ambos": "Las dos"
       },
       "riesgos": {
         "sin_verificar": "sin verificar",
@@ -2161,7 +2168,15 @@
         "rechazado": "Rechazado",
         "noPendiente": "Esta solicitud ya no está pendiente.",
         "error": "No se pudo",
-        "noExiste": "Esa solicitud no existe."
+        "noExiste": "Esa solicitud no existe.",
+        "pide": "Qué pide",
+        "plan_vender": "Vender en el Mercado",
+        "plan_mejorar": "Mejorar su impacto",
+        "plan_ambos": "Vender y mejorar",
+        "quienPide": "Quién lo pide",
+        "cuentaDesde": "Cuenta desde el {fecha}",
+        "otrasCuentas": "{n, plural, one {# negocio más} other {# negocios más}}",
+        "extra": "Algo más que contó"
       }
     },
     "mejora": {
@@ -3014,7 +3029,7 @@
     "tipo": {
       "eyebrow": "Tu negocio en Brote",
       "titulo": "¿Para qué vas a usar Brote?",
-      "bajada": "Son dos cuentas distintas, cada una con lo que necesita.",
+      "bajada": "Son dos cuentas distintas, cada una con lo que necesita. Las dos empiezan igual: nos contás de tu negocio y lo aprobamos.",
       "venderTitulo": "Vender en el Mercado",
       "venderCuerpo": "Para quien hace o vende productos y servicios con compromiso ambiental.",
       "vender1": "Tu tienda, tus productos y las preguntas de quien compra",
@@ -3025,7 +3040,7 @@
       "mejorar1": "Objetivos y acciones a tu medida, siempre alcanzables",
       "mejorar2": "Seguimiento con evidencia y un nivel que sube",
       "mejorar3": "La Liga de empresas: el tamaño no cuenta, cuenta cumplir tu plan",
-      "ambas": "¿Las dos cosas? Empezá por una y sumá la otra desde el resumen."
+      "ambas": "¿Las dos cosas? Empezá por una y sumá la otra una vez aprobada."
     },
     "empresa": {
       "eyebrow": "Empresa que mejora",
@@ -3093,6 +3108,65 @@
       "mejorarCuerpo": "Sumá el programa Mejora: objetivos a tu medida y la Liga de empresas.",
       "sumar": "Sumar",
       "error": "No se pudo. Probá de nuevo."
+    },
+    "solicitud": {
+      "eyebrowVender": "Vender en el Mercado",
+      "eyebrowMejorar": "Mejorar el impacto de mi empresa",
+      "titulo": "Contanos de tu negocio",
+      "bajada": "Lo miramos a mano para que en Brote haya sólo negocios reales. En cuanto lo aprobamos, te avisamos y armás todo.",
+      "linea1": "Nos contás de tu negocio en este formulario.",
+      "linea2": "Lo revisamos y te avisamos acá mismo.",
+      "linea3Vender": "Con la aprobación armás tu tienda y publicás.",
+      "linea3Mejorar": "Con la aprobación armás tu plan: diagnóstico y objetivos.",
+      "nombre": "Nombre del negocio",
+      "faltaNombre": "Escribí el nombre.",
+      "faltaElegir": "Elegí una opción.",
+      "tipo": "¿Qué tipo de negocio es?",
+      "tipo_persona": "Emprendimiento o persona",
+      "tipo_empresa": "Empresa",
+      "descVender": "¿Qué hacen y qué quieren vender?",
+      "descMejorar": "¿Qué hacen y qué quieren mejorar?",
+      "descAyuda": "{n} de {max}. Concreto: qué hacen, desde cuándo, dónde.",
+      "faltaDesc": "Contanos un poco más: {n} caracteres como mínimo.",
+      "dondeTitulo": "¿Dónde los podemos ver?",
+      "dondeAyuda": "Al menos uno: es como comprobamos que el negocio existe.",
+      "sitio": "Sitio web",
+      "rol": "Tu relación con el negocio",
+      "rol_dueno": "Soy dueño o dueña",
+      "rol_socio": "Soy socio o socia",
+      "rol_empleado": "Trabajo ahí",
+      "rol_otro": "Otra",
+      "cuit": "CUIT (opcional)",
+      "cuitAyuda": "Si lo tenés, la revisión va más rápido.",
+      "cuitMal": "Ese CUIT no es válido.",
+      "extra": "¿Algo más que nos ayude? (opcional)",
+      "extraAyuda": "Una nota de prensa, dónde venden, una feria, alguien que los conozca.",
+      "acepta": "Los datos son reales y acepto los",
+      "terminos": "términos para negocios",
+      "revisar": "Revisá los datos marcados.",
+      "errorGeneral": "No se pudo enviar. Probá de nuevo en un momento.",
+      "enviar": "Enviar solicitud",
+      "reenviar": "Volver a enviar",
+      "esperaTitulo": "Recibimos tu solicitud",
+      "revisandoTitulo": "La estamos revisando",
+      "esperaVender": "Apenas la aprobemos vas a poder armar tu tienda y publicar.",
+      "esperaMejorar": "Apenas la aprobemos vas a poder armar tu plan: tu diagnóstico y tus objetivos.",
+      "esperaAviso": "Te avisamos con una notificación. Si falta algo, te decimos qué. Mientras tanto seguís usando Brote como siempre.",
+      "resumenEnviada": "Enviada",
+      "resumenPlan": "Qué pediste",
+      "resumenDonde": "Dónde verlos",
+      "volver": "Volver a Brote",
+      "corregirTitulo": "Nos falta algo",
+      "corregirCuerpo": "Corregí lo que te pedimos y volvé a enviarla.",
+      "borradorTitulo": "Terminá tu solicitud",
+      "borradorCuerpo": "Completá estos datos y mandala: la revisamos a mano.",
+      "notaEquipo": "Del equipo de Brote",
+      "rechazadaTitulo": "No pudimos aprobarla",
+      "rechazadaPuede": "Si algo cambió, podés volver a enviarla.",
+      "rechazadaEspera": "Podés volver a enviarla desde el {fecha}.",
+      "suspendidaTitulo": "Esta cuenta está suspendida",
+      "cerradaTitulo": "Esta cuenta está cerrada",
+      "suspendidaCuerpo": "Por ahora no se puede usar. Si creés que es un error, escribinos."
     }
   },
   "mercado": {

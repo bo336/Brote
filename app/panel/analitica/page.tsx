@@ -507,7 +507,7 @@ function Audiencia({ a, x }: { a: Analitica; x: AnaliticaExtra }) {
         <Section title="Navegador">
           <Barras filas={aFilas(s.navegador, NOMBRE_NAVEGADOR)} />
         </Section>
-        <Section title="Nivel" description="La escalera de por vida (Semilla → Gaia).">
+        <Section title="Rango" description="Por puntos totales (Semilla → Gaia). Nunca baja.">
           <Barras filas={niveles} />
         </Section>
         <Section title="Avisos por tipo" description="Últimos 7 días.">

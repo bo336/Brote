@@ -11,7 +11,7 @@ export const PASOS_ALTA = ['tienda', 'compromiso', 'prueba', 'mercado_pago'] as 
 export type PasoAlta = (typeof PASOS_ALTA)[number];
 
 /** Lo que le puede faltar a una tienda para abrir (`brote_vendedor_faltantes`). */
-export type Faltante = 'tienda' | 'compromiso' | 'prueba' | 'mercado_pago' | 'terminos' | 'suscripcion';
+export type Faltante = 'revision' | 'tienda' | 'compromiso' | 'prueba' | 'mercado_pago' | 'terminos' | 'suscripcion';
 
 export interface PrecioVendedor {
   usd: number;
@@ -27,7 +27,7 @@ export interface EstadoVendedor {
   id: string;
   slug: string;
   status: 'draft' | 'submitted' | 'in_review' | 'approved' | 'suspended' | 'rejected' | 'closed';
-  modelo: 'vendedor' | 'legacy';
+  modelo: 'vendedor' | 'legacy' | 'empresa';
   rol: 'owner' | 'admin' | 'editor' | null;
   abierta: boolean;
   activa_at: string | null;
