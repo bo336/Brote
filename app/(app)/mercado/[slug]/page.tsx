@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 /**
  * `/mercado/[slug]`. La base decide qué ve cada cuenta: un `kid` no ve nada,
- * un `teen` no ve precios ni categorías sensibles, y los miembros de la tienda
+ * un `teen` no ve precios ni categorías sensibles ni contacta a la tienda (0145), y los miembros de la tienda
  * ven su producto sin publicar como vista previa.
  */
 const ORIGENES = ['accion', 'plaza', 'perfil_negocio', 'catalogo', 'busqueda'] as const;
@@ -41,5 +41,5 @@ export default async function FichaPage({
   // De dónde venía quien llegó acá: el clic de salida lo registra con ese
   // origen, que es lo que después arma "de dónde vinieron" en la analítica.
   const de = (ORIGENES as readonly string[]).includes(searchParams.de ?? '') ? searchParams.de! : 'ficha';
-  return <FichaListado f={f} origen={de} propia={!!f.propia} />;
+  return <FichaListado f={f} origen={de} propia={!!f.propia} soloMirar={cuenta.tipo === 'teen'} />;
 }

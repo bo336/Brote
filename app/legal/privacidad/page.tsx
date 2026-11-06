@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Cómo ${BRAND.name} trata tus datos personales.`,
 };
 
-const UPDATED = '16 de octubre de 2026';
+const UPDATED = '5 de noviembre de 2026';
 
 export default function PrivacidadPage() {
   return (
@@ -25,8 +25,9 @@ export default function PrivacidadPage() {
           Guardamos lo mínimo: tu correo, tu perfil y las acciones que registrás. No vendemos tus datos a nadie.
         </p>
         <p>
-          Si tenés cuenta infantil, no mostramos publicidad ni hacemos ningún tipo de perfilado publicitario. Podés
-          pedir una copia de tus datos o borrar tu cuenta cuando quieras.
+          Si tenés cuenta infantil, no mostramos publicidad ni hacemos ningún tipo de perfilado publicitario, y una
+          persona adulta autoriza la cuenta. Ningún dato de una persona menor de 18 años se envía a servicios de
+          inteligencia artificial. Podés pedir una copia de tus datos o borrar tu cuenta cuando quieras.
         </p>
       </PlainSummary>
 
@@ -101,19 +102,29 @@ export default function PrivacidadPage() {
         />
       </Section>
 
-      <Section n="4" title="Cuentas de niñas y niños">
+      <Section n="4" title="Cuentas de niñas, niños y adolescentes">
         <p>
-          Las cuentas infantiles (menores de 13 años) requieren autorización de una persona adulta responsable y reciben
-          un tratamiento reforzado:
+          Las cuentas infantiles (menores de 13 años) no se pueden empezar a usar sin la autorización de una persona
+          adulta responsable: al crearla, esa persona indica su nombre y su vínculo (madre, padre, tutor o tutora, u
+          otro familiar a cargo) y declara haber leído cómo funciona la cuenta, estos Términos y esta Política.
+          Guardamos ese nombre, el vínculo y la fecha, solo como constancia de la autorización. A la niña o el niño le
+          pedimos un apodo, nunca su nombre completo ni su provincia. Estas cuentas reciben un tratamiento reforzado:
         </p>
         <Bullets
           items={[
             'No se muestra publicidad de ningún tipo.',
             'No se realiza perfilado con fines publicitarios ni se comparten datos con redes de anuncios.',
             'No pueden contratar suscripciones ni realizar pagos.',
-            'Los contenidos, acciones y novedades se limitan a los adecuados para su edad.',
+            'No tienen funciones sociales: no publican, no siguen a nadie y no aparecen en búsquedas.',
+            'Las novedades son de fuentes elegidas y sobre temas adecuados a su edad (animales, plantas, ciencia, cuidado del ambiente), y se leen dentro de la Aplicación, sin enlaces hacia otros sitios.',
+            'No usan funciones de inteligencia artificial.',
           ]}
         />
+        <p>
+          Las cuentas adolescentes (de 13 a 17 años) usan las funciones sociales con cuidados adicionales: reciben solo
+          anuncios no personalizados, en el Mercado no ven precios ni categorías para mayores y no contactan a las
+          tiendas, no organizan encuentros ni contratan servicios, y no usan funciones de inteligencia artificial.
+        </p>
         <p>
           Si detectamos una cuenta infantil creada sin la debida autorización, procederemos a su eliminación. Las
           personas adultas responsables pueden solicitar el acceso, la rectificación o la supresión de los datos
@@ -137,7 +148,9 @@ export default function PrivacidadPage() {
         <p>
           Por defecto la publicidad es <strong>no personalizada</strong>: solo se personaliza si prestás tu
           consentimiento expreso, y podés revocarlo en cualquier momento desde Perfil → Ajustes → Publicidad. Las
-          cuentas de 13 a 17 años reciben siempre anuncios no personalizados. Aun así, Google puede usar cookies para
+          cuentas de 13 a 17 años reciben siempre anuncios no personalizados, y le indicamos a Google que se trata de
+          una persona menor de edad para que aplique sus protecciones. Los anuncios directos se muestran a esas cuentas
+          solo cuando el anunciante es apto para todo público. Aun así, Google puede usar cookies para
           limitar la frecuencia, medir y prevenir el fraude. Podés administrar la personalización de Google en{' '}
           <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">adssettings.google.com</a>,
           ver cómo usa Google los datos en{' '}
@@ -281,7 +294,9 @@ export default function PrivacidadPage() {
           listado usamos un modelo de Google (Gemini). Le enviamos únicamente el contenido operativo necesario: rubro,
           tamaño, los datos del dossier y el texto del listado. <strong>Nunca</strong> le enviamos el CUIT, datos de
           contacto personales ni el nombre de quien administra la cuenta. Si el servicio no está disponible, el
-          programa sigue funcionando por reglas propias y nada se interrumpe.
+          programa sigue funcionando por reglas propias y nada se interrumpe. La charla con {BRAND.mascot} y las
+          recomendaciones de acciones con inteligencia artificial están disponibles solo para cuentas adultas: no
+          enviamos a ningún modelo datos de cuentas infantiles ni adolescentes.
         </p>
       </Section>
 

@@ -29,7 +29,18 @@ import { cn } from '@/lib/utils/cn';
  * harina no tiñe el envase), las preguntas con sus respuestas, y dos filas
  * para seguir mirando: más de esta tienda y parecidos.
  */
-export function FichaListado({ f, origen = 'ficha', propia = false }: { f: FichaMercado; origen?: string; propia?: boolean }) {
+export function FichaListado({
+  f,
+  origen = 'ficha',
+  propia = false,
+  soloMirar = false,
+}: {
+  f: FichaMercado;
+  origen?: string;
+  propia?: boolean;
+  /** Una cuenta adolescente: mira y guarda, pero no contacta ni pregunta (0145). */
+  soloMirar?: boolean;
+}) {
   const t = useTranslations('mercado.ficha');
   const t2 = useTranslations('mercado.ficha2');
   const tn = useTranslations('mercado.nivel');
@@ -123,7 +134,11 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
 
           {/* En escritorio el botón vive acá; en el teléfono, fijo abajo. */}
           <div className="mt-5 hidden gap-2 lg:flex">
-            {f.vista_previa ? (
+            {soloMirar ? (
+              <p className="flex-1 rounded-card border border-border bg-surface-2 p-3 text-small leading-relaxed text-muted-foreground">
+                Para contactar a la tienda, pedile a una persona adulta de tu familia. Mientras, podés guardarlo.
+              </p>
+            ) : f.vista_previa ? (
               <span className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'pointer-events-none flex-1 rounded-pill opacity-50')}>{cta}</span>
             ) : (
               <Link href={salida} prefetch={false} className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'flex-1 rounded-pill')}>
@@ -185,6 +200,7 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
             total={f.preguntas_total ?? 0}
             tienda={f.negocio.nombre}
             propia={propia}
+            soloLectura={soloMirar}
           />
         )}
       </div>
@@ -220,7 +236,7 @@ export function FichaListado({ f, origen = 'ficha', propia = false }: { f: Ficha
       </footer>
 
       {/* El botón del teléfono: fijo, arriba de la barra de pestañas. */}
-      {!f.vista_previa && (
+      {!f.vista_previa && !soloMirar && (
         <div className="fixed inset-x-0 bottom-[calc(4.4rem+env(safe-area-inset-bottom))] z-30 border-t border-border bg-surface/95 px-4 py-2.5 backdrop-blur-lg lg:hidden">
           <div className="mx-auto flex max-w-2xl items-center gap-3">
             {f.precio !== null && (

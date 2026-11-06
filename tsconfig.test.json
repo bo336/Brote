@@ -41,7 +41,8 @@
     "lib/ligas.ts",
     "lib/ligas/__tests__/**/*.ts",
     "lib/ads/**/*.ts",
-    "lib/panel/__tests__/**/*.ts"
+    "lib/panel/__tests__/**/*.ts",
+    "lib/onboarding/**/*.ts"
   ],
   "exclude": [
     "node_modules"

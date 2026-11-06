@@ -198,7 +198,8 @@ function Uso({ a, x }: { a: Analitica; x: AnaliticaExtra }) {
         .sort((p, q) => q.valor - p.valor),
     [a.contenido.dominios],
   );
-  const eventos = a.eventos.filter((e) => !/onb_\d/.test(e.clave));
+  // Los pasos del onboarding (onb_1… antes, onb_vos… desde 0145) no son eventos sueltos.
+  const eventos = a.eventos.filter((e) => !/onb_(\d|vos|adulto|tiempo|temas|casa|seguir|mundo|dia)/.test(e.clave));
   return (
     <>
       <StatGrid>

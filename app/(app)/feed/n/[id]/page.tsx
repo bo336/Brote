@@ -129,6 +129,7 @@ export default function NewsDetailPage() {
     );
   }
 
+  const esChico = profile?.accountType === 'kid';
   const when = item.published_at
     ? new Date(item.published_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
@@ -140,13 +141,13 @@ export default function NewsDetailPage() {
         <button onClick={() => router.back()} className="inline-flex items-center gap-1.5 text-small text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> {tc('back')}
         </button>
-        <button
+        {!esChico && (<button
           onClick={share}
           aria-label={tf('share')}
           className="press rounded-full border border-border p-2 text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
         >
           <Share2 className="h-4 w-4" />
-        </button>
+        </button>)}
       </div>
 
       {/* Hot-linked from the publisher on purpose — re-uploading press images
@@ -174,12 +175,21 @@ export default function NewsDetailPage() {
 
       {item.summary_es && <p className="text-body leading-relaxed">{item.summary_es}</p>}
 
-      {/* Copyright: only the stored summary is shown; link out to the original. */}
-      <Button variant="primary" asChild>
-        <a href={item.source_url} target="_blank" rel="noopener nofollow">
-          {t('openOriginal')} <ExternalLink className="h-4 w-4" />
-        </a>
-      </Button>
+      {/* Copyright: only the stored summary is shown; link out to the original.
+          A kid account reads here and never leaves for the publisher's site (its
+          ads, its comments): the source is named, which is what Ley 11.723
+          art. 28 asks for news of general interest. */}
+      {esChico ? (
+        <p className="rounded-card border border-border bg-surface-2 p-3 text-caption leading-relaxed text-muted-foreground">
+          Esta noticia la contó {item.source ?? 'un medio'}. Si querés saber más, pedile a una persona grande que la busque con vos.
+        </p>
+      ) : (
+        <Button variant="primary" asChild>
+          <a href={item.source_url} target="_blank" rel="noopener nofollow">
+            {t('openOriginal')} <ExternalLink className="h-4 w-4" />
+          </a>
+        </Button>
+      )}
 
       {/* ── Hacer algo ─────────────────────────────────────────────────────── */}
       {hasSomething && (

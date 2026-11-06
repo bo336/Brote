@@ -19,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function SalirPage({ params, searchParams }: { params: { listingId: string }; searchParams: { o?: string } }) {
   const cuenta = await getCuentaMercado();
-  if (!cuenta || cuenta.tipo === 'kid') notFound();
+  // Salir a contactar una tienda es para comprar o contratar: sólo adultos (0145).
+  if (!cuenta || cuenta.tipo !== 'adult') notFound();
   if (!UUID.test(params.listingId)) notFound();
   const salida = await getSalida(params.listingId);
   if (!salida) notFound();

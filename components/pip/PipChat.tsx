@@ -81,6 +81,10 @@ export function PipChat() {
    */
   if (!isPro) return null;
 
+  // Charlar con una IA es sólo para cuentas adultas (las condiciones de Gemini
+  // no permiten menores de 18, y `pip-chat` también lo frena).
+  if (profile && (profile.accountType ?? 'adult') !== 'adult') return null;
+
   return (
     <>
       {/* Floating Pip button */}
