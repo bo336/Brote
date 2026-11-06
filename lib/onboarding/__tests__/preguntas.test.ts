@@ -148,4 +148,10 @@ test('teen ads carry Google age treatment; kid news stays inside the app', () =>
   assert.match(noticia, /esChico \?/);
   const s = SQL();
   assert.match(s, /create trigger news_al_guardar/);
+  // 0146: "ministr" missed "ministerio" and "accidente" missed "accidentado"; money and death words are out.
+  const finas = leer('supabase/migrations/0146_noticias_chicos_mas_finas.sql');
+  for (const w of ['minister', 'accident', 'presupuest', 'dinero', 'cementerio', 'obituario', 'fracking']) {
+    assert.match(finas, new RegExp(`\\|${w}`), w);
+  }
+  assert.match(finas, /select public\.brote_tag_kid_safe_news\(\);/);
 });

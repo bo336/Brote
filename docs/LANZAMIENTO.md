@@ -271,7 +271,10 @@ proyectos de ejemplo. Apagado desaparece de una, prendido vuelve igual, nada se 
       respuesta, seguir, mundo, su día. Se fue «¿dónde comprás la comida?» (no cambiaba nada). El tiempo
       por día (`context.ritmo`) arma el día en `brote_armar_dia`; también se cambia en Ajustes.
 - [x] La primera acción ya no es fija para todos: es el día de verdad, con el porqué de cada acción.
-- [ ] Aplicar 0145 y desplegar `pip-chat` y `recommend-activities`.
+- [x] Aplicar 0145 y desplegar `pip-chat` y `recommend-activities` (2026-11-06, PR #40, 22c91f5).
+- [ ] 0146: revisadas a mano las 170 noticias que 0145 marcó para chicos en vivo; 17 no iban (presupuestos,
+      ministerios, plata, un cementerio, un obituario, «el accidentado arranque», fracking). Se suman esas
+      palabras: quedan 153.
 
 ### F12 · Lecciones en blanco (pedido del 2026-11-01)
 - [x] Causa: `AnimatePresence mode="wait"` en `components/academia/Jugador.tsx`. Las fichas con
