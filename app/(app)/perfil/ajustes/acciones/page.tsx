@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Eye } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Eye } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,8 @@ import { ContextoChips, contextoRespondido } from '@/components/acciones/Context
 import { fetchOcultas, guardarContexto, mostrarDeNuevo } from '@/lib/api/acciones';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
+import { RITMOS } from '@/lib/onboarding/preguntas';
+import { cn } from '@/lib/utils/cn';
 
 const MOTIVO: Record<string, string> = {
   no_aplica: 'No aplica a vos',
@@ -83,6 +85,45 @@ export default function AjustesAccionesPage() {
           </Button>
         </Card>
       </section>
+
+      {cuenta !== 'kid' && (
+        <section>
+          <h2 className="font-display text-h3 font-bold leading-tight">Tiempo por día</h2>
+          <p className="mt-1 text-small leading-relaxed text-muted-foreground">
+            Cuántas acciones rápidas y cuántas más largas te armo cada día. Lo usás desde el día siguiente.
+          </p>
+          <div className="mt-3 grid gap-2" role="radiogroup" aria-label="Tiempo por día">
+            {RITMOS.map((r) => {
+              const on = (valor.ritmo ?? 'normal') === r.v;
+              return (
+                <button
+                  key={r.v}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setValor((v) => ({ ...v, ritmo: r.v }))}
+                  className={cn(
+                    'press flex items-center gap-3 rounded-card border p-3 text-left transition-[border-color,background-color] duration-150',
+                    on ? 'border-primary bg-primary/10 ring-2 ring-primary/25' : 'border-border bg-surface hover:border-primary/40',
+                  )}
+                >
+                  <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]', on ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-muted-foreground')}>
+                    <Clock className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-small font-semibold">{r.titulo}</span>
+                    <span className="block text-caption leading-snug text-muted-foreground">{r.detalle}</span>
+                  </span>
+                  {on && <Check className="h-4 w-4 shrink-0 text-primary" strokeWidth={3} />}
+                </button>
+              );
+            })}
+          </div>
+          <Button block variant="secondary" className="mt-3" loading={guardando} onClick={guardar}>
+            Guardar tiempo
+          </Button>
+        </section>
+      )}
 
       <section>
         <h2 className="font-display text-h3 font-bold leading-tight">Acciones que sacaste</h2>

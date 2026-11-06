@@ -64,7 +64,7 @@ export function AdSlot({
   /** Ads must be labelled so they are never mistaken for our own content. */
   label?: boolean;
 }) {
-  const { canRenderHere, decision, estado, anonymous } = useAds();
+  const { canRenderHere, decision, estado, anonymous, monetization } = useAds();
   const contenedor = useRef<HTMLDivElement>(null);
   const [cerca, setCerca] = useState(false);
   const [plegado, setPlegado] = useState(false);
@@ -127,7 +127,7 @@ export function AdSlot({
         </div>
       )}
       {proveedor === 'adsense' ? (
-        <UnidadAdsense placement={placement} cerca={cerca} personalizado={decision.personalized} onVacio={plegar} />
+        <UnidadAdsense placement={placement} cerca={cerca} personalizado={decision.personalized} adolescente={monetization?.account_type === 'teen'} onVacio={plegar} />
       ) : directo.data ? (
         <AnuncioDirecto anuncio={directo.data} placement={placement} />
       ) : (
@@ -142,11 +142,13 @@ function UnidadAdsense({
   cerca,
   personalizado,
   onVacio,
+  adolescente,
 }: {
   placement: Placement;
   cerca: boolean;
   personalizado: boolean;
   onVacio: () => void;
+  adolescente?: boolean;
 }) {
   const ins = useRef<HTMLModElement>(null);
   const pedido = useRef(false);
@@ -205,6 +207,8 @@ function UnidadAdsense({
         ? { 'data-ad-layout-key': process.env.NEXT_PUBLIC_ADSLOT_NEWS_FEED_LAYOUT_KEY }
         : {})}
       data-full-width-responsive="true"
+      // Google's age treatment (TFAT): 2 = teen. Kids never reach this code.
+      {...(adolescente ? { 'data-tag-for-age-treatment': '2' } : {})}
     />
   );
 }

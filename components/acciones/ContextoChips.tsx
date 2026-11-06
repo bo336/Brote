@@ -65,6 +65,7 @@ export function contextoRespondido(valor: Record<string, unknown>, cuenta: TipoC
     if (c.derivada || (cuenta === 'kid' && c.adultos)) continue;
     out[c.clave] = valor[c.clave] === true;
   }
-  if (typeof valor.compra === 'string') out.compra = valor.compra;
+  // Cuánto tiempo por día (0145): un chico no lo elige.
+  if (cuenta !== 'kid' && (valor.ritmo === 'corto' || valor.ritmo === 'normal' || valor.ritmo === 'mas')) out.ritmo = valor.ritmo;
   return out;
 }

@@ -53,9 +53,13 @@ Deno.serve(async (req) => {
     // Real user context makes Pip feel alive.
     const { data: prof } = await admin
       .from('profiles')
-      .select('display_name, city, interests, total_xp, current_rank_slug, current_streak, longest_streak, mundo_state, context')
+      .select('display_name, city, interests, total_xp, current_rank_slug, current_streak, longest_streak, mundo_state, context, account_type')
       .eq('id', user.id)
       .maybeSingle();
+    // Charlar con una IA es sólo para cuentas adultas: las condiciones de la API
+    // de Gemini no permiten usarla con menores de 18, y un chat libre con un
+    // chico o un adolescente no es algo que se pueda cuidar bien.
+    if ((prof?.account_type ?? 'adult') !== 'adult') return json({ error: 'solo_adultos' }, 403);
     const mundo = (prof?.mundo_state ?? {}) as Record<string, unknown>;
 
     const apiKey = Deno.env.get('GEMINI_API_KEY');

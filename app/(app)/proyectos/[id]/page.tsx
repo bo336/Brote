@@ -235,6 +235,12 @@ export default function ProjectDetailPage() {
           </Button>
         )}
       </div>
+      {/* Un encuentro en persona, organizado por una persona adulta. */}
+      {profile?.accountType === 'teen' && !p.joined && (
+        <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
+          Es un encuentro en persona: si tenés menos de 18, andá con una persona adulta de tu familia o con su permiso.
+        </p>
+      )}
 
       {/* How to reach the organiser — a project nobody can coordinate with
           never actually happens (F14.8). */}

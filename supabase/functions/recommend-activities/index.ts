@@ -27,9 +27,13 @@ Deno.serve(async (req) => {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('interests, context, total_xp')
+      .select('interests, context, total_xp, account_type')
       .eq('id', userId)
       .single();
+
+    // Las condiciones de la API de Gemini no permiten usarla con menores de 18:
+    // a un chico o un adolescente lo recomiendan las reglas del día, sin IA.
+    if ((profile?.account_type ?? 'adult') !== 'adult') return json({ ok: true, fallback: true, count: 0, motivo: 'menor' });
 
     const { data: catalog } = await admin
       .from('activities')

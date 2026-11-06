@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Términos y Condiciones de uso de ${BRAND.name}.`,
 };
 
-const UPDATED = '16 de octubre de 2026';
+const UPDATED = '5 de noviembre de 2026';
 
 export default function TerminosPage() {
   return (
@@ -60,7 +60,9 @@ export default function TerminosPage() {
             'Para utilizar el Servicio debés crear una cuenta mediante correo electrónico o un proveedor de identidad externo (por ejemplo, Google).',
             'Te comprometés a brindar información veraz y a mantenerla actualizada.',
             'Sos responsable de la confidencialidad de tus credenciales y de toda actividad realizada desde tu cuenta.',
-            'Las cuentas identificadas como infantiles (menores de 13 años) requieren la autorización y supervisión de una persona adulta responsable, cuentan con contenidos y acciones adaptados, y no reciben publicidad ni pueden contratar suscripciones.',
+            'Las cuentas identificadas como infantiles (menores de 13 años) requieren la autorización y supervisión de una persona adulta responsable, que la presta al crear la cuenta; cuentan con contenidos, novedades y acciones adaptados, y no reciben publicidad ni pueden contratar suscripciones.',
+            'Las cuentas adolescentes (de 13 a 17 años) no pueden organizar encuentros, contratar suscripciones, abrir tiendas ni contactar a las tiendas del Mercado, y no acceden a funciones de inteligencia artificial.',
+            'El tipo de cuenta se elige al empezar según tu edad y no se puede cambiar desde la Aplicación. Declarar una edad falsa es un incumplimiento de estos Términos.',
             'Podemos suspender o cancelar cuentas que incumplan estos Términos, que registren actividad fraudulenta o que comprometan la seguridad de otras personas usuarias.',
           ]}
         />

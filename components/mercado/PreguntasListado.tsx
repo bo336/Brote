@@ -18,6 +18,7 @@ export function PreguntasListado({
   total,
   tienda,
   propia,
+  soloLectura = false,
 }: {
   listingId: string;
   inicial: PreguntaPublica[];
@@ -25,6 +26,8 @@ export function PreguntasListado({
   tienda: string;
   /** Es la tienda mirando su propio producto: no se pregunta a sí misma. */
   propia: boolean;
+  /** Una cuenta adolescente lee las preguntas pero no escribe (0145). */
+  soloLectura?: boolean;
 }) {
   const t = useTranslations('mercado.preguntas');
   const formato = useFormatter();
@@ -70,7 +73,7 @@ export function PreguntasListado({
         {t('titulo')}
       </h2>
 
-      {!propia && (
+      {!propia && !soloLectura && (
         <form onSubmit={enviar} className="mt-3">
           <label htmlFor="pregunta" className="sr-only">
             {t('placeholder', { tienda })}

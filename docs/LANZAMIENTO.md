@@ -249,7 +249,29 @@ proyectos de ejemplo. Apagado desaparece de una, prendido vuelve igual, nada se 
 - [x] La ventana centrada (`components/ui/sheet.tsx`) quedaba corrida: framer-motion pisa el `translate` de
       Tailwind. Afectaba al editor de desafíos y a la salida del Mercado.
 - [x] Las fechas sin hora del panel mostraban el día anterior (`fecha` en `components/panel/ui.tsx`).
-- [ ] 0144 limpia lo que quedó sin uso: se aplica después del deploy.
+- [x] 0144 limpia lo que quedó sin uso: aplicada después del deploy (2026-11-03).
+
+### F14 · Menores y onboarding (pedido del 2026-11-05)
+- [x] Noticias para chicos (0145): sólo fuentes elegidas (`app_state.news_feeds.chicos`) y temas de
+      naturaleza y ciencia en positivo; nada de muertes, enfermedades, política, economía ni clima extremo.
+      Un trigger decide al guardar, y la regla de lectura (RLS) no deja que un chico abra otra por id.
+      Un chico lee la noticia en Brote, con la fuente nombrada (Ley 11.723, art. 28), sin salir al sitio del
+      medio ni compartir el enlace. Se limpió el «Elige a … como fuente preferida en Google» de los resúmenes.
+- [x] Cuenta de chico: una persona adulta la autoriza (nombre, vínculo, fecha en `autorizaciones_adultas`);
+      sin eso `brote_finish_onboarding` no termina. Antes la política lo decía y nada lo pedía.
+- [x] IA sólo para adultos: las condiciones de la API de Gemini (marzo de 2026) piden 18+ y prohíben usarla
+      en servicios a los que probablemente entren menores. `pip-chat` y `recommend-activities` rechazan
+      cuentas de chico y adolescente; la charla con Pip no aparece para ellas.
+- [x] Adolescentes: miran y guardan en el Mercado, pero no contactan tiendas ni preguntan (`mercado_salir`,
+      `mercado_salida`, `mercado_preguntar`). Los anuncios de AdSense van con `data-tag-for-age-treatment="2"`.
+      En un proyecto ven «andá con una persona adulta o con su permiso».
+- [x] Onboarding nuevo por edad (`lib/onboarding/preguntas.ts`): chicos = edad y apodo, autorización,
+      temas en sus palabras, su casa, mundo, su día; adolescentes y adultos = edad, nombre y provincia,
+      tiempo por día, temas (hasta 3, opcional), su casa y su día con el número de acciones que suma cada
+      respuesta, seguir, mundo, su día. Se fue «¿dónde comprás la comida?» (no cambiaba nada). El tiempo
+      por día (`context.ritmo`) arma el día en `brote_armar_dia`; también se cambia en Ajustes.
+- [x] La primera acción ya no es fija para todos: es el día de verdad, con el porqué de cada acción.
+- [ ] Aplicar 0145 y desplegar `pip-chat` y `recommend-activities`.
 
 ### F12 · Lecciones en blanco (pedido del 2026-11-01)
 - [x] Causa: `AnimatePresence mode="wait"` en `components/academia/Jugador.tsx`. Las fichas con
@@ -387,3 +409,8 @@ los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prende
   empresas (§2c) y el demo (§2d). **Error mío:** escribí que el cambio de semana de la liga vieja nunca había
   estado programado; el cron existía y corrió hasta el 26 de octubre, y lo apagué yo en 0133. La regla vieja
   (los 4 primeros suben) tampoco servía con pocos usuarios: en grupos chicos subían todos sin hacer nada.
+- 2026-11-05 — Pedido nuevo: menores y onboarding (F14). Lo que encontré: las noticias de chicos eran las de
+  todos menos las que tenían palabras feas, y el enlace los mandaba al sitio del medio (con su publicidad);
+  la autorización adulta estaba escrita en la política pero nadie la pedía; las condiciones de Gemini no
+  permiten menores; un adolescente podía contactar una tienda. 0145 probada en PGlite (noticias marcadas,
+  chico con RLS ve 2 de 5, autorización, Mercado adolescente, ritmo corto = día de 5 acciones rápidas).

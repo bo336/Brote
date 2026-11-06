@@ -20,7 +20,7 @@ export interface ProfileSummary {
   worldSnapshotUrl?: string | null;
   /** Lifetime scoring completions — drives per-completion world micro-growth. */
   completionsCount?: number;
-  /** Onboarding personal context (balcon/jardin/auto/bici/mascota/compra). */
+  /** Lo de la casa y el día (balcon/jardin/auto/bici/estudio…) y el ritmo (corto/normal/mas), 0145. */
   context?: Record<string, unknown> | null;
   /** Pip avatar customization (body palette + hat). */
   pipStyle?: { body?: string; hat?: string } | null;
