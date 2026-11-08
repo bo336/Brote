@@ -554,6 +554,11 @@ function EditorAnuncio({
           <Input value={a.notas ?? ''} onChange={(e) => set('notas', e.target.value)} placeholder="Pagó $… hasta …" />
         </Campo>
       </div>
+      {/* 0148: la base no guarda estos rubros, para nadie. */}
+      <p className="rounded-button border border-border bg-surface-2 p-3 text-caption leading-relaxed text-muted-foreground">
+        Brote tiene cuentas de menores: no se publican apuestas ni juegos de azar, alcohol, tabaco o vapeo, citas o contenido para adultos,
+        adelgazantes ni energizantes (la base no los guarda). «Adultos y 13 a 17» sólo para lo que le podés mostrar a un chico de 13.
+      </p>
 
       <div>
         <p className="mb-1 text-caption text-muted-foreground">Así se ve</p>

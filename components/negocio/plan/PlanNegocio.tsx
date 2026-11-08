@@ -10,6 +10,7 @@ import { cancelarSuscripcion, iniciarSuscripcion } from '@/lib/negocio/plan-acci
 import { LIMITES, PLANES_LEGACY, diasHasta, situacion, textoTope, type BizPlan, type EstadoPlan } from '@/lib/negocio/plan';
 import { toast } from '@/stores/toast';
 import { cn } from '@/lib/utils/cn';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 /**
  * `/negocio/plan` (09 §2 y §4.3).
@@ -169,6 +170,7 @@ export function PlanNegocio({ estado, negocioId }: { estado: EstadoPlan; negocio
           {t('comoFuncionanNiveles')}
         </Link>
       </p>
+      <BotonesConsumidor className="border-t border-hairline pt-4" />
     </div>
   );
 }

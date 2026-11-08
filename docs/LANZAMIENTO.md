@@ -272,9 +272,33 @@ proyectos de ejemplo. Apagado desaparece de una, prendido vuelve igual, nada se 
       por día (`context.ritmo`) arma el día en `brote_armar_dia`; también se cambia en Ajustes.
 - [x] La primera acción ya no es fija para todos: es el día de verdad, con el porqué de cada acción.
 - [x] Aplicar 0145 y desplegar `pip-chat` y `recommend-activities` (2026-11-06, PR #40, 22c91f5).
-- [ ] 0146: revisadas a mano las 170 noticias que 0145 marcó para chicos en vivo; 17 no iban (presupuestos,
+- [x] 0146: revisadas a mano las 170 noticias que 0145 marcó para chicos en vivo; 17 no iban (presupuestos,
       ministerios, plata, un cementerio, un obituario, «el accidentado arranque», fracking). Se suman esas
       palabras: quedan 153.
+
+### F15 · Botón de arrepentimiento, baja y lo que faltaba (pedido del 2026-11-07)
+- [x] La norma vigente es la Disposición 954/2025 (BO 04/09/2025, derogó las Res. 424/2020 y 316/2018), con la
+      Disposición 3/2026 (BO 06/02/2026). Pide dos links, «Botón de arrepentimiento» y «Botón de baja de servicio», a
+      simple vista y en el primer acceso, que se usan sin registración; el código del pedido dentro de las 24 h por el
+      mismo medio; y el área y el horario de atención a la vista (art. 6). Más el link de reclamos de la Res. SCI 274/2021.
+- [x] `/legal/arrepentimiento` y `/legal/baja` (atajos `/arrepentimiento`, `/baja`): sin cuenta, nombre + correo + qué
+      servicio, y el código ARR-/BAJ- sale en el momento. Con sesión: la baja de Brote+ o del plan de una tienda o
+      empresa se hace ahí mismo; el arrepentimiento de Brote+ dentro de los 10 días da de baja y devuelve lo cobrado
+      por Mercado Pago (una vez por persona; interruptor en el panel). `/legal/atencion` con el área y el horario.
+- [x] Los links están en la entrada, Inicio, Perfil, Ajustes, Brote+, los planes de tienda y empresa, la guía, /negocios,
+      /vender y al pie de los textos legales. La baja de la pantalla de Brote+ pasa por el mismo camino y deja código.
+- [x] `/panel/consumidor`: cada pedido con la cuenta con la que coincide, su Brote+ y sus negocios, y un botón por caso
+      (devolver y terminar Brote+, dar de baja, dar de baja el plan de un negocio) o cerrarlo escribiendo qué se hizo.
+- [x] 0148: la base no guarda anuncios directos de apuestas, alcohol, tabaco o vapeo, citas, adelgazantes ni
+      energizantes (hay cuentas de menores; Res. SIyC 446/2025 y 271/2026 para apuestas en línea).
+- [x] 0149: `friend_leaderboard_weekly` y `friend_leaderboard` devolvían los amigos (con barrio) de cualquier id, la
+      semanal incluso sin sesión; `get_profiles_brief` mostraba cuentas de chicos por id. Ahora responden sólo por
+      quien pregunta y sin chicos.
+- [x] `NEXT_PUBLIC_APP_URL` en producción tenía la URL de Supabase: el sitemap, robots.txt, la vuelta de Mercado Pago y
+      el kit de marca apuntaban ahí. `lib/url-app.ts` la descarta y usa la URL de producción de Vercel. Igual hay que
+      corregir la variable.
+- [x] Correos de acceso en castellano listos para pegar (`supabase/templates/`).
+- [ ] Aplicar 0147, 0148 y 0149.
 
 ### F12 · Lecciones en blanco (pedido del 2026-11-01)
 - [x] Causa: `AnimatePresence mode="wait"` en `components/academia/Jugador.tsx`. Las fichas con
@@ -353,6 +377,14 @@ los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prende
 
 - (el resto, al cierre)
 
+### 8.3 · Arrepentimiento y bajas
+- Cada pedido te llega como aviso del panel. La persona ya tiene su código: hacé lo que pidió en `/panel/consumidor`
+  lo antes posible (la norma pide el código en 24 h, y eso ya sale solo).
+- Brote+ dentro de los 10 días: «Devolver lo cobrado y terminar Brote+». Fuera de los 10 días, una baja común alcanza.
+- Si Mercado Pago falla, la devolución se hace a mano en Mercado Pago → Actividad → el pago → Devolver dinero, y
+  después «Marcar resuelto» escribiendo qué se hizo (la persona lo lee).
+- El horario que dice la página de atención es lunes a viernes de 9 a 17 h (`lib/consumidor/reglas.ts`, `ATENCION`).
+
 ## 9. Diario
 
 - 2026-10-14 — Relevamiento (§1), decisiones (§2), plan. Rama creada.
@@ -417,3 +449,8 @@ los bloques y cargar `NEXT_PUBLIC_ADSLOT_*`; (6) mensaje para Europa; (7) prende
   la autorización adulta estaba escrita en la política pero nadie la pedía; las condiciones de Gemini no
   permiten menores; un adolescente podía contactar una tienda. 0145 probada en PGlite (noticias marcadas,
   chico con RLS ve 2 de 5, autorización, Mercado adolescente, ritmo corto = día de 5 acciones rápidas).
+- 2026-11-07 — Pedido: botón de arrepentimiento, baja de Brote+ y lo que falte (F15). La Res. 424/2020 ya no rige: la
+  reemplazó la Disposición 954/2025. Encontrado de paso: `NEXT_PUBLIC_APP_URL` de producción con la URL de Supabase
+  (sitemap y vuelta de Mercado Pago rotos), dos funciones que mostraban los amigos de cualquiera con su barrio, y
+  `get_profiles_brief` con chicos. 0147–0149 probadas en PGlite (pedido sin cuenta y con cuenta, código, freno por
+  correo, panel, permisos; 9 rubros prohibidos detectados y 9 textos sanos que pasan; amigos sólo propios).

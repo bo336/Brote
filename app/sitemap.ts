@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { leerGuia } from '@/lib/guia';
+import { urlAppEntorno } from '@/lib/url-app';
 
 export const revalidate = 3600;
 
@@ -9,13 +10,13 @@ export const revalidate = 3600;
  * los buscadores redirecciones a /auth/login.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://brote.vercel.app';
+  const base = urlAppEntorno();
   const ahora = new Date();
   const fijas: MetadataRoute.Sitemap = [
     { url: base, lastModified: ahora, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/guia`, lastModified: ahora, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${base}/instalar`, lastModified: ahora, changeFrequency: 'monthly', priority: 0.5 },
-    ...['terminos', 'privacidad', 'fuentes', 'normas', 'niveles', 'negocios'].map((p) => ({
+    ...['terminos', 'privacidad', 'fuentes', 'normas', 'niveles', 'negocios', 'arrepentimiento', 'baja', 'atencion'].map((p) => ({
       url: `${base}/legal/${p}`,
       lastModified: ahora,
       changeFrequency: 'monthly' as const,

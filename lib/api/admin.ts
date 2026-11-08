@@ -636,3 +636,57 @@ export async function adminProyectosReglas(pass: string, reglas: ReglasProyectos
   if (error) return { ok: false, error: error.message };
   return data as { ok: boolean; error?: string };
 }
+
+// ── Arrepentimiento y baja (0147) ───────────────────────────────────────────
+
+export interface PedidoConsumidorPanel {
+  id: string;
+  codigo: string;
+  tipo: 'arrepentimiento' | 'baja';
+  servicio: 'brote_plus' | 'tienda' | 'empresa' | 'anuncio' | 'otro';
+  nombre: string;
+  email: string;
+  referencia: string | null;
+  mensaje: string | null;
+  estado: 'recibida' | 'en_proceso' | 'resuelta' | 'rechazada';
+  resolucion: string | null;
+  detalle: Record<string, unknown>;
+  creada: string;
+  resuelta: string | null;
+  abierta: boolean;
+  con_sesion: boolean;
+  cuenta_id: string | null;
+  cuenta_nombre: string | null;
+  cuenta_tipo: string | null;
+  plus: { estado: string; alta: string; monto: number | null; dias: number } | null;
+  negocios: { id: string; nombre: string; plan: string; estado: string }[];
+}
+
+export interface PanelConsumidor {
+  ok: boolean;
+  reembolso_auto: boolean;
+  abiertas: number;
+  filas: PedidoConsumidorPanel[];
+}
+
+export async function adminConsumidor(pass: string): Promise<PanelConsumidor | null> {
+  const { data, error } = await createClient().rpc('admin_consumidor', { p_pass: pass });
+  if (error || !data || (data as { ok?: boolean }).ok === false) return null;
+  return data as PanelConsumidor;
+}
+
+export async function adminConsumidorResolver(
+  pass: string,
+  codigo: string,
+  estado: 'en_proceso' | 'resuelta' | 'rechazada',
+  resolucion: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await createClient().rpc('admin_consumidor_resolver', {
+    p_pass: pass,
+    p_codigo: codigo,
+    p_estado: estado,
+    p_resolucion: resolucion,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data as { ok: boolean; error?: string };
+}

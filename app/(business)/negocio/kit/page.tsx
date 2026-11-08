@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { KitDeMarca } from '@/components/negocio/KitDeMarca';
 import { getActiveBusiness } from '@/lib/negocio/context';
 import { getDatosSugerencias } from '@/lib/negocio/plan-servidor';
+import { urlAppEntorno } from '@/lib/url-app';
 
 export const metadata: Metadata = { title: 'Kit de marca' };
 
@@ -20,7 +21,7 @@ export default async function KitPage() {
   const t = await getTranslations('negocio.kit');
   const datos = await getDatosSugerencias(activo.id);
   const cerrados = datos?.ciclos.length ?? 0;
-  const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://brote-ft7m.vercel.app';
+  const base = urlAppEntorno();
 
   return (
     <div className="space-y-6">

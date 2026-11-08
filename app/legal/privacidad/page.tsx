@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Cómo ${BRAND.name} trata tus datos personales.`,
 };
 
-const UPDATED = '5 de noviembre de 2026';
+const UPDATED = '7 de noviembre de 2026';
 
 export default function PrivacidadPage() {
   return (
@@ -49,6 +49,7 @@ export default function PrivacidadPage() {
             'Tipo de cuenta (infantil, adolescente o adulta) y, opcionalmente, ciudad o barrio.',
             'Intereses ambientales seleccionados durante la configuración inicial.',
             'Contenidos que publiques: proyectos comunitarios, comentarios y participaciones.',
+            'Si usás el botón de arrepentimiento o de baja: tu nombre, tu correo y, si lo indicás, el número de operación, sólo para procesar el pedido y dejar constancia de él.',
           ]}
         />
         <p>

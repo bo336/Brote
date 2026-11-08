@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { LIMITES } from '@/lib/negocio/plan';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 export const metadata: Metadata = {
   title: 'Vendé en Brote',
@@ -200,6 +201,7 @@ export default function VenderPage() {
             . Hace falta una cuenta de {BRAND.name} de una persona mayor de edad.
           </p>
         </div>
+        <BotonesConsumidor className="mt-10 border-t border-hairline pt-6" />
       </main>
     </div>
   );

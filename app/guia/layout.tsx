@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { LogoMark } from '@/components/brand/Logo';
 import { BRAND } from '@/lib/brand';
 import { buttonVariants } from '@/components/ui/button-variants';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 /**
  * El marco de la guía pública: liviano, sin la barra de la app (quien llega
@@ -29,6 +30,7 @@ export default function GuiaLayout({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">{children}</main>
       <footer className="border-t border-hairline">
+        <BotonesConsumidor className="mx-auto max-w-3xl px-4 pt-6" />
         <div className="mx-auto flex max-w-3xl flex-wrap gap-x-4 gap-y-2 px-4 py-6 text-caption text-muted-foreground">
           <span>© {new Date().getFullYear()} {BRAND.name}</span>
           <Link href="/legal/terminos" className="hover:text-foreground">Términos</Link>

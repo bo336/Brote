@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { urlAppEntorno } from '@/lib/url-app';
 
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://brote.vercel.app';
+  const base = urlAppEntorno();
   return {
     rules: [
       { userAgent: '*', allow: '/', disallow: ['/api/', '/auth/'] },

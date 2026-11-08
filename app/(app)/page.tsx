@@ -29,6 +29,7 @@ import type { AccionConRazon } from '@/lib/api/acciones';
 import type { CompleteActivityResult } from '@/lib/types';
 import type { MotivoCambio } from '@/lib/acciones/reglas';
 import { cn } from '@/lib/utils/cn';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 type Accion = AccionConRazon & ConImpacto;
 
@@ -252,6 +253,9 @@ export default function InicioPage() {
         title={tpr('nearbyTitle')}
         description={openProjects > 0 ? tpr('nearbyBody', { n: openProjects }) : 'Sumate a algo que ya está pasando'}
       />
+
+      {/* Disposición 954/2025: a simple vista en el primer acceso, también con sesión. */}
+      <BotonesConsumidor className="border-t border-hairline pt-4" centrado />
     </div>
   );
 }

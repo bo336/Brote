@@ -2,6 +2,7 @@ import 'server-only';
 
 import { headers } from 'next/headers';
 import { MP_API, type UsuarioMp } from '@/lib/pagos/mercadopago';
+import { urlAppEntorno } from '@/lib/url-app';
 
 /**
  * Las llamadas a Mercado Pago que hace el servidor de Brote, sin SDK. Todo lo
@@ -36,14 +37,16 @@ export function configMp(): ConfigMp {
   };
 }
 
-/** La URL pública de la app: la variable si está, si no, la del pedido. */
+/**
+ * La URL pública de la app: la variable si sirve, si no la de producción de
+ * Vercel, si no la del pedido (`lib/url-app.ts`). Una variable con la URL de
+ * Supabase mandaba la vuelta de Mercado Pago a un sitio que no es Brote.
+ */
 export function urlApp(): string {
-  const env = process.env.NEXT_PUBLIC_APP_URL;
-  if (env && /^https?:\/\//.test(env)) return env.replace(/\/+$/, '');
   const h = headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
-  return `${proto}://${host}`;
+  const host = h.get('x-forwarded-host') ?? h.get('host');
+  const proto = h.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https');
+  return urlAppEntorno(host ? `${proto}://${host}` : null);
 }
 
 export const RUTA_VUELTA = '/api/pagos/mercadopago/vincular/vuelta';
@@ -123,4 +126,60 @@ export async function cambiarPreapproval(id: string, cuerpo: Record<string, unkn
     cache: 'no-store',
   });
   return r.ok;
+}
+
+export interface PagoDeSuscripcion {
+  id: string;
+  estado: string;
+  monto: number | null;
+  fecha: string | null;
+}
+
+/**
+ * Los cobros de una suscripción (las "facturas" de Mercado Pago), con el id
+ * del pago que hay detrás de cada una: es lo que se devuelve cuando alguien se
+ * arrepiente. Null si Mercado Pago no respondió.
+ */
+export async function pagosDeSuscripcion(preapprovalId: string): Promise<PagoDeSuscripcion[] | null> {
+  const token = configMp().accessToken;
+  if (!token) return null;
+  const r = await fetch(`${MP_API}/authorized_payments/search?preapproval_id=${encodeURIComponent(preapprovalId)}&limit=50`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  if (!r.ok) return null;
+  const d = await json<{ results?: Record<string, unknown>[] }>(r);
+  return (d?.results ?? [])
+    .map((f) => {
+      const pago = (f.payment ?? {}) as { id?: number | string; status?: string };
+      return {
+        id: pago.id != null ? String(pago.id) : '',
+        estado: String(pago.status ?? f.status ?? ''),
+        monto: typeof f.transaction_amount === 'number' ? f.transaction_amount : null,
+        fecha: (f.debit_date ?? f.date_created ?? null) as string | null,
+      };
+    })
+    .filter((p) => p.id);
+}
+
+/**
+ * Devuelve un pago completo. La llave de idempotencia sale del id del pago:
+ * reintentar nunca devuelve dos veces.
+ */
+export async function reembolsarPago(pagoId: string): Promise<{ ok: true; id: string; monto: number | null } | { ok: false; error: string }> {
+  const token = configMp().accessToken;
+  if (!token) return { ok: false, error: 'no_configurado' };
+  const r = await fetch(`${MP_API}/v1/payments/${encodeURIComponent(pagoId)}/refunds`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'X-Idempotency-Key': `brote-reembolso-${pagoId}`,
+    },
+    body: '{}',
+    cache: 'no-store',
+  });
+  const d = await json<{ id?: number | string; amount?: number; message?: string }>(r);
+  if (!r.ok || d?.id == null) return { ok: false, error: d?.message ? `mp: ${d.message}` : `mp_${r.status}` };
+  return { ok: true, id: String(d.id), monto: typeof d.amount === 'number' ? d.amount : null };
 }

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 /**
  * Shell for the public legal documents. Deliberately plain and readable —
@@ -26,6 +27,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-3xl px-5 py-8 pb-20">{children}</main>
 
       <footer className="border-t border-border">
+        <BotonesConsumidor className="mx-auto max-w-3xl px-5 pt-6" />
         <div className="mx-auto flex max-w-3xl flex-wrap gap-x-5 gap-y-2 px-5 py-6 text-caption text-muted-foreground">
           <Link href="/legal/terminos" className="hover:text-foreground">
             Términos y Condiciones

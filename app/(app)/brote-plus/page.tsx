@@ -22,7 +22,9 @@ import { Pip } from '@/components/pip/Pip';
 import { Sheet } from '@/components/ui/sheet';
 import { useAds } from '@/components/ads/AdsProvider';
 import { fetchEstadoPlus, type EstadoPlus } from '@/lib/api/plus';
-import { cancelarBrotePlus, iniciarBrotePlus } from '@/lib/pagos/plus-acciones';
+import { iniciarBrotePlus } from '@/lib/pagos/plus-acciones';
+import { bajaAhora } from '@/lib/consumidor/acciones';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 import { registrarEvento } from '@/lib/analitica';
 import { useSession } from '@/stores/session';
 import { toast } from '@/stores/toast';
@@ -132,13 +134,15 @@ function BrotePlus() {
     toast.error('No se pudo iniciar', ERRORES[r.ok ? 'mp_error' : r.error] ?? 'Probá de nuevo en un rato.');
   }
 
+  // La misma baja que el botón de baja de servicio (0147): queda con su código.
   async function darDeBaja() {
     setBusy(true);
-    const r = await cancelarBrotePlus();
+    const r = await bajaAhora('brote_plus').catch(() => ({ ok: false as const, error: 'mp_error' }));
     setBusy(false);
     setConfirmarBaja(false);
     if (!r.ok) return toast.error('No se pudo', ERRORES[r.error] ?? 'Probá de nuevo en un rato.');
-    toast.success('Listo', 'No se te va a cobrar de nuevo. Seguís con Brote+ hasta el final de lo pagado.');
+    if (r.hecho) toast.success('Listo', `No se te va a cobrar de nuevo. Seguís con Brote+ hasta el final de lo pagado. Código: ${r.codigo}`);
+    else toast.warning('Recibimos tu baja', `${r.mensaje ?? 'La terminamos dentro de las 24 h.'} Código: ${r.codigo}`);
     await cargar();
   }
 
@@ -204,9 +208,14 @@ function BrotePlus() {
             </div>
           </dl>
           {activa ? (
-            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setConfirmarBaja(true)}>
-              Darme de baja
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button variant="secondary" size="sm" onClick={() => setConfirmarBaja(true)}>
+                Darme de baja
+              </Button>
+              <Link href="/legal/arrepentimiento" className="text-caption text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                ¿Te arrepentiste? En los primeros 10 días te devolvemos todo
+              </Link>
+            </div>
           ) : (
             <p className="text-caption text-muted-foreground">
               Te diste de baja: no se te vuelve a cobrar y seguís con todo hasta esa fecha.
@@ -302,12 +311,18 @@ function BrotePlus() {
                 {elegido?.ars
                   ? `${dolares(elegido.usd)} al dólar oficial de hoy. Se renueva solo y te das de baja cuando quieras, desde acá.`
                   : 'No pudimos calcular el precio de hoy. Probá en un rato.'}{' '}
-                El pago lo procesa Mercado Pago.
+                El pago lo procesa Mercado Pago. Tenés 10 días corridos para arrepentirte y te devolvemos todo, con el{' '}
+                <Link href="/legal/arrepentimiento" className="underline underline-offset-2">
+                  botón de arrepentimiento
+                </Link>
+                .
               </p>
             </>
           )}
         </>
       )}
+
+      <BotonesConsumidor className="border-t border-hairline pt-4" centrado />
 
       <Sheet open={confirmarBaja} onOpenChange={setConfirmarBaja} title="¿Darte de baja de Brote+?">
         <p className="text-small leading-relaxed text-muted-foreground">

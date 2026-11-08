@@ -42,7 +42,10 @@
     "lib/ligas/__tests__/**/*.ts",
     "lib/ads/**/*.ts",
     "lib/panel/__tests__/**/*.ts",
-    "lib/onboarding/**/*.ts"
+    "lib/onboarding/**/*.ts",
+    "lib/consumidor/reglas.ts",
+    "lib/consumidor/__tests__/**/*.ts",
+    "lib/url-app.ts"
   ],
   "exclude": [
     "node_modules"
