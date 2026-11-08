@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Términos y Condiciones de uso de ${BRAND.name}.`,
 };
 
-const UPDATED = '5 de noviembre de 2026';
+const UPDATED = '7 de noviembre de 2026';
 
 export default function TerminosPage() {
   return (
@@ -179,8 +179,10 @@ export default function TerminosPage() {
         <Bullets
           items={[
             'Los pagos se procesan a través de un proveedor externo de medios de pago. No almacenamos datos de tarjetas ni credenciales bancarias.',
-            'La suscripción se renueva automáticamente por períodos mensuales hasta su cancelación.',
-            'Podés cancelar en cualquier momento; la cancelación surte efecto al finalizar el período ya abonado, conservando el acceso hasta esa fecha.',
+            'La suscripción se renueva automáticamente por períodos mensuales o anuales, según el plan elegido, hasta su cancelación.',
+            'Podés darla de baja en cualquier momento, sin costo y sin registración previa, con el «Botón de baja de servicio» (/legal/baja) o desde la pantalla de Brote+; la baja surte efecto al finalizar el período ya abonado, conservando el acceso hasta esa fecha.',
+            'Derecho de arrepentimiento: dentro de los 10 días corridos desde la contratación podés revocarla sin costo y sin dar motivos con el «Botón de arrepentimiento» (/legal/arrepentimiento), conforme al artículo 34 de la Ley 24.240 y al artículo 1110 del Código Civil y Comercial; te devolvemos lo cobrado por el mismo medio de pago.',
+            'En los dos casos te informamos el código de tu pedido en el momento y por el mismo medio.',
             'Los precios pueden modificarse, notificándolo con antelación razonable. Las modificaciones no afectan períodos ya abonados.',
             'Las funcionalidades esenciales del Servicio permanecen disponibles en la modalidad gratuita.',
           ]}
@@ -254,7 +256,8 @@ export default function TerminosPage() {
       <Section n="16" title="Contacto">
         <p>
           Ante cualquier consulta sobre estos Términos podés escribirnos a{' '}
-          <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a>.
+          <a href={`mailto:${BRAND.contactEmail}`}>{BRAND.contactEmail}</a>. El área responsable, el horario y la vía de reclamo ante
+          Defensa del Consumidor están en <Link href="/legal/atencion">Atención al cliente</Link>.
         </p>
       </Section>
     </article>

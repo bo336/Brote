@@ -11,6 +11,7 @@ import type { EstadoPlan } from '@/lib/negocio/plan';
 import { cancelarSuscripcionVendedor, suscribirVendedor } from '@/lib/negocio/vendedor-acciones';
 import { useToastStore } from '@/stores/toast';
 import { cn } from '@/lib/utils/cn';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 /**
  * `/negocio/plan` para una tienda nueva: un solo plan, dicho completo. El
@@ -165,6 +166,7 @@ export function PlanVendedor({ estado, negocioId }: { estado: EstadoPlan; negoci
           ),
         })}
       </p>
+      <BotonesConsumidor className="border-t border-hairline pt-4" />
     </div>
   );
 }

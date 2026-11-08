@@ -23,8 +23,12 @@ export const BRAND = {
   themeColor: '#0C1A13',
   /** Default locale. */
   defaultLocale: 'es',
-  /** Support / contact handle shown in settings + about. */
-  contactEmail: 'aiaureum@gmail.com',
+  /**
+   * Support / contact handle shown in settings, legal pages and the consumer
+   * buttons. `NEXT_PUBLIC_CONTACT_EMAIL` in Vercel replaces it without a code
+   * change (for example hola@<your domain>, once there is one).
+   */
+  contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'aiaureum@gmail.com').trim(),
 } as const;
 
 export type Brand = typeof BRAND;

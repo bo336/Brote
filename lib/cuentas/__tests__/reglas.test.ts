@@ -80,3 +80,15 @@ test('only adults open a store or a company', () => {
   const empresa = s.slice(s.indexOf('create or replace function public.empresa_crear'));
   assert.match(empresa, /account_type is distinct from 'adult'/);
 });
+
+test('0149: nobody reads another person\'s friends, and kid profiles never show up by id', () => {
+  const s = sql('0149_privacidad_funciones.sql');
+  for (const f of ['friend_leaderboard_weekly', 'friend_leaderboard']) {
+    const cuerpo = s.slice(s.indexOf(`create or replace function public.${f}(`));
+    assert.match(cuerpo.slice(0, 1200), /where p_uid = \(select auth\.uid\(\)\)/, f);
+    assert.ok(s.includes(`revoke all on function public.${f}(uuid) from public, anon;`), f);
+  }
+  assert.match(s, /p\.account_type is distinct from 'kid' or p\.id = \(select auth\.uid\(\)\)/);
+  assert.match(s, /revoke all on function public\.get_profiles_brief\(uuid\[\]\) from public, anon;/);
+  assert.match(s, /revoke all on function public\.activity_available_at\(uuid, uuid\) from public, anon, authenticated;/);
+});

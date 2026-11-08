@@ -43,6 +43,11 @@ const nextConfig = {
       { source: '/explorar/novedades/:id', destination: '/feed/n/:id', permanent: true },
       { source: '/explorar/proyectos', destination: '/acciones?tab=proyectos', permanent: true },
       { source: '/explorar/proyectos/:path*', destination: '/proyectos/:path*', permanent: true },
+      // Los botones de la Disposición 954/2025, con direcciones cortas para
+      // compartir. Los redirects corren antes que el middleware: no piden sesión.
+      { source: '/arrepentimiento', destination: '/legal/arrepentimiento', permanent: false },
+      { source: '/baja', destination: '/legal/baja', permanent: false },
+      { source: '/atencion', destination: '/legal/atencion', permanent: false },
     ];
   },
 };

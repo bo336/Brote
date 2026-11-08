@@ -12,6 +12,7 @@ import {
   Bell,
   Building2,
   CreditCard,
+  RotateCcw,
   FileWarning,
   FlaskConical,
   GraduationCap,
@@ -80,6 +81,7 @@ const GRUPOS: { titulo?: string; items: Item[] }[] = [
     titulo: 'Ingresos',
     items: [
       { href: '/panel/suscripciones', label: 'Suscripciones', Icon: CreditCard, pendientes: ['pagos_fallidos'] },
+      { href: '/panel/consumidor', label: 'Arrepentimiento y bajas', Icon: RotateCcw, pendientes: ['consumidor'] },
       { href: '/panel/publicidad', label: 'Publicidad', Icon: Megaphone },
     ],
   },

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, BadgeCheck, LineChart, Store, Target } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { LIMITES } from '@/lib/negocio/plan';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 export const metadata: Metadata = {
   title: 'Brote para negocios',
@@ -192,6 +193,7 @@ export default function NegociosPage() {
       </main>
 
       <footer className="border-t border-border">
+        <BotonesConsumidor className="mx-auto max-w-3xl px-5 pt-6" />
         <div className="mx-auto flex max-w-3xl flex-wrap gap-x-5 gap-y-2 px-5 py-6 text-caption text-muted-foreground">
           <Link href="/legal/negocios" className="hover:text-foreground">Términos para tiendas y empresas</Link>
           <Link href="/legal/privacidad" className="hover:text-foreground">Privacidad</Link>

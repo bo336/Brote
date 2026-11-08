@@ -35,6 +35,7 @@ import {
   signUpWithPassword,
   type AuthActionState,
 } from '@/app/(auth)/auth/actions';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 export type ModoAcceso = 'entrar' | 'crear' | 'enlace' | 'recuperar';
 
@@ -224,6 +225,7 @@ export function PantallaAcceso({
             </Link>
             .
           </p>
+          <BotonesConsumidor className="mt-5" />
         </div>
       </main>
     </div>

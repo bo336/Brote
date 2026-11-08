@@ -26,6 +26,7 @@ import { setMyUsername } from '@/lib/api/perfil-publico';
 import { AvisosAjustes } from '@/components/perfil/AvisosAjustes';
 import { PublicidadAjustes } from '@/components/perfil/PublicidadAjustes';
 import { toast } from '@/stores/toast';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 
 /**
@@ -493,6 +494,8 @@ export default function AjustesPage() {
       <p className="text-center text-caption text-muted-foreground">
         {BRAND.name} · {BRAND.tagline}
       </p>
+
+      <BotonesConsumidor className="border-t border-hairline pt-4" />
 
       <Sheet open={confirmDelete} onOpenChange={setConfirmDelete} title={t('deleteAccount')} description={t('deleteConfirm')}>
         <div className="flex gap-3">

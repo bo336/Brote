@@ -24,6 +24,7 @@ import { fetchImpact } from '@/lib/api/profile';
 import { fetchPublicProfileV2 } from '@/lib/api/perfil-publico';
 import { formatPoints } from '@/lib/points';
 import { getRank } from '@/lib/ranks';
+import { BotonesConsumidor } from '@/components/legal/BotonesConsumidor';
 
 const ImpactGlobe = dynamic(() => import('@/components/perfil/ImpactGlobe'), { ssr: false, loading: () => null });
 
@@ -228,6 +229,8 @@ export default function PerfilPage() {
       {!isKid && profile?.id && (
         <ProfileTabs userId={profile.id} isMe displayName={profile.displayName ?? null} />
       )}
+
+      <BotonesConsumidor className="border-t border-hairline pt-4" centrado />
     </div>
   );
 }
