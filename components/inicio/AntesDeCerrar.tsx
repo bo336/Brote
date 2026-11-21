@@ -17,7 +17,7 @@ import {
   useMercadoDestacado,
   useMundoAbierto,
 } from './datos';
-import { CEIBO_MAX_FLORES } from './SeguiEnBrote';
+import { CEIBO_MAX_FLORES } from '@/components/explorar/TarjetasLugar';
 import { elegirPuentes, type Destino } from '@/lib/inicio/puentes';
 import { impactoDeAccion, pistaDeImpacto, pistasDeImpacto, type ConImpacto } from '@/lib/inicio/impacto';
 import { leerVisitasDeHoy, marcarVisita } from '@/lib/inicio/visitas';

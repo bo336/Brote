@@ -1,27 +1,27 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Users } from 'lucide-react';
+import { ArrowRight, PenLine } from 'lucide-react';
 import { ImpactoReal } from '@/components/inicio/ImpactoReal';
 import { AccionesDeHoy } from '@/components/inicio/AccionesDeHoy';
 import { AntesDeCerrar } from '@/components/inicio/AntesDeCerrar';
 import { InvitacionAvisos } from '@/components/avisos/InvitacionAvisos';
 import { MiRutina } from '@/components/inicio/MiRutina';
-import { SeguiEnBrote } from '@/components/inicio/SeguiEnBrote';
 import { RetoDelDia } from '@/components/inicio/RetoDelDia';
 import { ParaVos } from '@/components/inicio/ParaVos';
 import { ContanosDeTuCasa } from '@/components/inicio/ContanosDeTuCasa';
+import { FilaLugares } from '@/components/inicio/FilaLugares';
+import { LigaEnVivo } from '@/components/inicio/LigaEnVivo';
 import { HojaAccion } from '@/components/acciones/HojaAccion';
-import { LinkRow } from '@/components/ui/link-row';
 import { Pip } from '@/components/pip/Pip';
 import { useSession } from '@/stores/session';
+import { useSumar } from '@/stores/sumar';
 import { greetingKey } from '@/lib/utils/dates';
 import { isStreakAtRisk } from '@/lib/streak';
 import { useTodayCompletions, useCompleteActivity } from '@/hooks/use-daily-set';
 import { useAccionesDeHoy, useCambiarAccion, useSugeridas } from '@/hooks/use-acciones';
-import { fetchProjects } from '@/lib/api/plaza';
 import { parseImpact } from '@/lib/impact';
 import type { ConImpacto } from '@/lib/inicio/impacto';
 import type { Habit } from '@/lib/api/competencias';
@@ -37,31 +37,28 @@ type Accion = AccionConRazon & ConImpacto;
 const EXTRAS = 6;
 
 /**
- * Inicio — the hub.
+ * Hoy — el día (docs/REESTRUCTURA.md D4).
  *
- * Top to bottom, in the order someone needs it:
- *   1. who and when, and one sentence on where the day stands;
- *   2. **Tu impacto real** — what they saved in the real world, the reason the
- *      app exists, as the one hero of the page;
- *   3. today's actions (a checklist) and, the moment one is marked, "Antes de
- *      cerrar": what it added and one door picked for it;
- *   4. the routine (pills), one tap per habit;
- *   5. "Seguí en Brote": the Academia, their island, the Plaza and the Mercado
- *      with something real of theirs in each;
- *   6. the day's challenge and bigger actions picked for them.
+ * De arriba a abajo, en el orden en que alguien lo necesita:
+ *   1. quién y cuándo, y una frase sobre cómo viene el día;
+ *   2. los lugares de Brote en una fila, con un punto donde hay algo esperando;
+ *   3. las acciones de hoy y, apenas se marca una, "Antes de cerrar": lo que
+ *      sumó y una puerta elegida para eso; y "¿hiciste otra cosa?";
+ *   4. la liga de la semana en vivo — lo más importante, ahora a la vista;
+ *   5. tu impacto real dicho en una frase (cuánto dura un hábito diario);
+ *   6. la rutina, el reto del día y acciones más grandes para vos.
  *
- * The world used to open the page as a 320 px picture and the impact sat at
- * the bottom; every block was the same bordered card. Now each block has its
- * own shape (see each component), and the impact panel only moves when an
- * action from the day, the routine or Acciones is marked (0117).
+ * "Seguí en Brote" (las tarjetas de Academia, Mundo, Plaza y Mercado) se mudó a
+ * Explorar: Hoy es el día, Explorar es el pueblo. El panel de impacto sólo se
+ * mueve con acciones medidas (0117); las propias suman puntos, no impacto.
  */
 export default function InicioPage() {
   const t = useTranslations('inicio');
   const th = useTranslations('home');
   const tp = useTranslations('pip');
-  const tpr = useTranslations('proyectos');
   const qc = useQueryClient();
   const profile = useSession((s) => s.profile);
+  const abrirSumar = useSumar((s) => s.abrir);
 
   const dia = useAccionesDeHoy();
   const completions = useTodayCompletions();
@@ -72,14 +69,6 @@ export default function InicioPage() {
   const [ultima, setUltima] = useState<Accion | null>(null);
   const [pendiente, setPendiente] = useState<string | null>(null);
   const [abierta, setAbierta] = useState<Accion | null>(null);
-
-  // Real count, so the row never claims projects that are not there.
-  const projectsQ = useQuery({
-    queryKey: ['projects', profile?.id],
-    queryFn: () => fetchProjects(profile?.id),
-    staleTime: 5 * 60_000,
-  });
-  const openProjects = (projectsQ.data ?? []).filter((p) => p.status === 'active').length;
 
   const greeting = useMemo(() => {
     const key = greetingKey();
@@ -205,7 +194,7 @@ export default function InicioPage() {
         />
       </header>
 
-      <ImpactoReal />
+      <FilaLugares />
 
       <div className="space-y-3">
         <AccionesDeHoy
@@ -218,6 +207,21 @@ export default function InicioPage() {
           efemeride={dia.data?.efemeride ?? null}
         />
         <AntesDeCerrar ultima={contexto} reciente={!!ultima} hechasHoy={done.size} completo={completo} />
+        {/* Lo que no está en la lista también cuenta (D6): siempre los mismos puntos. */}
+        <button
+          type="button"
+          onClick={() => abrirSumar('propia')}
+          className="press group flex w-full items-center gap-3 rounded-card border border-dashed border-border px-3.5 py-3 text-left hover:border-hecho/50"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-hecho/12 text-hecho">
+            <PenLine className="h-4 w-4" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-small font-semibold">{t('otraCosa.titulo')}</span>
+            <span className="block text-caption text-muted-foreground">{t('otraCosa.bajada')}</span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+        </button>
         {/* Sólo cuando ya hay algo que cuidar: una racha o una acción de hoy. */}
         {(racha > 0 || hechas > 0) && <InvitacionAvisos motivo={racha > 0 ? 'racha' : 'hoy'} />}
         <ContanosDeTuCasa />
@@ -237,22 +241,15 @@ export default function InicioPage() {
         onCambiar={(a, motivo, ctx) => cambiar(a as Accion, motivo, ctx)}
       />
 
-      <MiRutina onDo={completarHabito} pendingId={pendiente} />
+      <LigaEnVivo />
 
-      <SeguiEnBrote />
+      <ImpactoReal />
+
+      <MiRutina onDo={completarHabito} pendingId={pendiente} />
 
       <RetoDelDia />
 
       <ParaVos />
-
-      {/* Projects live under Acciones; this is their door from Inicio. */}
-      <LinkRow
-        href="/acciones?tab=proyectos"
-        icon={<Users className="h-5 w-5" />}
-        accent="#FF8A3D"
-        title={tpr('nearbyTitle')}
-        description={openProjects > 0 ? tpr('nearbyBody', { n: openProjects }) : 'Sumate a algo que ya está pasando'}
-      />
 
       {/* Disposición 954/2025: a simple vista en el primer acceso, también con sesión. */}
       <BotonesConsumidor className="border-t border-hairline pt-4" centrado />

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePanelPass } from '@/components/panel/PanelPass';
 import { Actualizar, ErrorCarga, PageHeader } from '@/components/panel/ui';
+import { AccionesPropiasPanel } from '@/components/panel/AccionesPropiasPanel';
 import { adminAcciones, adminAccionesReglasGuardar, adminDashboard, type FilaAccionPanel, type PanelAcciones } from '@/lib/api/admin';
 import { getDomainName } from '@/lib/domains';
 import { CONTEXTO_POR_CLAVE, REGLAS, type ContextoClave, type Pesos, type Reglas } from '@/lib/acciones/reglas';
@@ -230,6 +231,9 @@ export default function PanelAccionesPage() {
           </section>
         </>
       )}
+
+      {/* Lo que la gente carga por su cuenta (0150). */}
+      {pass && <AccionesPropiasPanel pass={pass} />}
     </div>
   );
 }

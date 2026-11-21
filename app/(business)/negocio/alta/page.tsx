@@ -5,6 +5,7 @@ import { ElegirNegocio } from '@/components/negocio/alta/AltaNegocio';
 import { AltaVendedor } from '@/components/negocio/vendedor/AltaVendedor';
 import { ElegirTipoNegocio } from '@/components/negocio/alta/AltaEmpresa';
 import { EstadoSolicitud, NuevaSolicitud } from '@/components/negocio/alta/Solicitud';
+import { EliminarNegocio } from '@/components/negocio/EliminarNegocio';
 import { getActiveBusiness, getMisNegocios, getSolicitud } from '@/lib/negocio/context';
 import { estadoConfigMp, getEstadoVendedor } from '@/lib/negocio/vendedor-acciones';
 
@@ -53,7 +54,13 @@ export default async function AltaPage({
   if (activo.status !== 'approved' && activo.modelo !== 'legacy') {
     const solicitud = await getSolicitud(activo.id);
     if (!solicitud) redirect('/negocio/contexto');
-    return <EstadoSolicitud s={solicitud} nombre={activo.nombre} />;
+    return (
+      <>
+        <EstadoSolicitud s={solicitud} nombre={activo.nombre} />
+        {/* Una solicitud que ya no quiere seguir también se puede borrar (D7). */}
+        {activo.role === 'owner' && <EliminarNegocio negocioId={activo.id} nombre={activo.nombre} />}
+      </>
+    );
   }
 
   const estado = await getEstadoVendedor(activo.id);
@@ -64,5 +71,10 @@ export default async function AltaPage({
   // Abierta: la pantalla de festejo solo justo después; si no, al panel.
   if (estado.abierta && searchParams.listo !== '1' && searchParams.mp !== 'volvio') redirect('/negocio');
 
-  return <AltaVendedor estado={estado} mp={mp} aviso={aviso} />;
+  return (
+    <>
+      <AltaVendedor estado={estado} mp={mp} aviso={aviso} />
+      {estado.rol === 'owner' && <EliminarNegocio negocioId={activo.id} nombre={activo.nombre} />}
+    </>
+  );
 }

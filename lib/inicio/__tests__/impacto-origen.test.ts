@@ -120,6 +120,10 @@ test('complete_activity is only reached from real-action screens', () => {
     'app/(app)/acciones/', // the Acciones section
     'components/inicio/', // Inicio's own pieces
     'components/onboarding/', // the first daily action
+    // Sumar (the centre button, docs/REESTRUCTURA.md D3): the same day's set
+    // as Inicio, reachable from any screen. Custom actions there never call
+    // complete_activity — they go through accion_propia_registrar (0150).
+    'components/sumar/',
   ].map((p) => p.split('/').join(path.sep));
   const needles = [
     `rpc('${['complete', '_activity'].join('')}'`,

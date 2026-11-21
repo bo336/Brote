@@ -5,6 +5,7 @@ import { ResumenNegocio } from '@/components/negocio/ResumenNegocio';
 import { InicioTienda } from '@/components/negocio/vendedor/InicioTienda';
 import { InicioEmpresa } from '@/components/negocio/empresa/InicioEmpresa';
 import { SumarObjetivo } from '@/components/negocio/empresa/SumarObjetivo';
+import { EliminarNegocio } from '@/components/negocio/EliminarNegocio';
 import { getMisListados } from '@/lib/mercado/servidor';
 import { getActiveBusiness, getMejoraEstado, getMiPuestoLiga, getNegocioDetalle } from '@/lib/negocio/context';
 import { normalizarObjetivo } from '@/lib/negocio/objetivo';
@@ -26,6 +27,8 @@ export default async function ResumenPage() {
   const activo = await getActiveBusiness();
   if (!activo) redirect('/negocio/alta');
   const objetivo = normalizarObjetivo(activo.objetivo, activo.modelo);
+  // Sólo la dueña o el dueño ve cómo eliminarlo (0150, docs/REESTRUCTURA.md D7).
+  const zona = activo.role === 'owner' ? <EliminarNegocio negocioId={activo.id} nombre={activo.nombre} /> : null;
 
   // A company that came to improve (0121) starts on its programme and its league.
   if (objetivo === 'mejorar' || activo.modelo === 'empresa') {
@@ -33,7 +36,12 @@ export default async function ResumenPage() {
     if (!mejora) redirect('/negocio/contexto');
     // Recién aprobada: lo primero es contar cómo trabajan.
     if (activo.role === 'owner' && !mejora.dossier?.completitud && mejora.objetivos.length === 0) redirect('/negocio/mejora/dossier');
-    return <InicioEmpresa estado={mejora} liga={liga} esOwner={activo.role === 'owner'} />;
+    return (
+      <>
+        <InicioEmpresa estado={mejora} liga={liga} esOwner={activo.role === 'owner'} />
+        {zona}
+      </>
+    );
   }
 
   const estado = await getEstadoVendedor(activo.id);
@@ -50,10 +58,16 @@ export default async function ResumenPage() {
             <SumarObjetivo negocioId={activo.id} sumar="mejorar" />
           </div>
         )}
+        {zona}
       </>
     );
   }
   const negocio = await getNegocioDetalle(activo.id);
   if (!negocio) redirect('/negocio/contexto');
-  return <ResumenNegocio negocio={negocio} />;
+  return (
+    <>
+      <ResumenNegocio negocio={negocio} />
+      {zona}
+    </>
+  );
 }

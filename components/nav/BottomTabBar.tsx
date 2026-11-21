@@ -4,14 +4,25 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { NAV_ITEMS, isNavActive } from './nav-items';
+import { FONDO_LUGAR, NAV_ITEMS, TEXTO_LUGAR, isNavActive } from './nav-items';
+import { useSumar } from '@/stores/sumar';
 import { haptic } from '@/lib/utils/haptics';
 import { cn } from '@/lib/utils/cn';
 
-/** Mobile bottom tab bar with an elevated center action (BUILD_SPEC §3.1). */
+/**
+ * La barra del celular: Hoy · Explorar · (+) · Plaza · Liga
+ * (docs/REESTRUCTURA.md D3).
+ *
+ * Cada pestaña activa se prende con el color de su lugar —la Plaza en coral,
+ * la Liga en índigo—, así la barra misma dice que Brote es un pueblo de
+ * lugares distintos. El centro es el único verde fuerte: Sumar, el verbo de la
+ * app, abre una hoja desde cualquier pantalla en vez de llevar a otra.
+ */
 export function BottomTabBar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const abrir = useSumar((s) => s.abrir);
+  const abierta = useSumar((s) => s.abierta);
 
   return (
     <nav
@@ -20,36 +31,37 @@ export function BottomTabBar() {
     >
       <ul className="mx-auto flex max-w-md items-end justify-around px-2 pt-1.5">
         {NAV_ITEMS.map((item) => {
-          const active = isNavActive(item.href, pathname);
           const Icon = item.icon;
 
           if (item.elevated) {
             return (
               <li key={item.key} className="relative -mt-6">
-                <Link
-                  href={item.href}
-                  prefetch={false}
-                  onClick={() => haptic('light')}
-                  aria-label={t(item.key)}
-                  aria-current={active ? 'page' : undefined}
-                  className="flex flex-col items-center"
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic('light');
+                    abrir('dia');
+                  }}
+                  aria-label={t('sumarAria')}
+                  aria-haspopup="dialog"
+                  aria-expanded={abierta}
+                  className="group flex flex-col items-center"
                 >
                   <span
                     className={cn(
-                      'flex h-14 w-14 items-center justify-center rounded-full shadow-soft-lg ring-4 ring-surface transition-all duration-200 active:scale-95',
-                      active ? 'bg-brote-green-deep shadow-glow' : 'bg-primary hover:-translate-y-0.5',
+                      'flex h-14 w-14 items-center justify-center rounded-full bg-hecho text-hecho-foreground shadow-soft-lg ring-4 ring-surface transition-all duration-200 group-hover:-translate-y-0.5 group-active:scale-95',
+                      abierta && 'rotate-45',
                     )}
                   >
-                    <Icon className="h-7 w-7 text-primary-foreground" strokeWidth={2.4} />
+                    <Icon className="h-7 w-7" strokeWidth={2.6} />
                   </span>
-                  <span className={cn('mt-0.5 text-caption font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                    {t(item.key)}
-                  </span>
-                </Link>
+                  <span className="mt-0.5 text-caption font-semibold text-foreground">{t(item.key)}</span>
+                </button>
               </li>
             );
           }
 
+          const active = isNavActive(item.href, pathname, item.incluye);
           return (
             <li key={item.key}>
               <Link
@@ -59,29 +71,24 @@ export function BottomTabBar() {
                 aria-current={active ? 'page' : undefined}
                 className="group relative flex min-w-14 flex-col items-center gap-0.5 px-2 py-2"
               >
-                {/*
-                  A tinted pill that glides between tabs, rather than a 4px dot
-                  pinned above the icon — the dot was easy to miss and sat half
-                  outside the tap target.
-                */}
                 {active && (
                   <motion.span
                     layoutId="tab-pill"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                    className="absolute inset-x-1 top-1 h-8 rounded-pill bg-primary/12"
+                    className={cn('absolute inset-x-1 top-1 h-8 rounded-pill', FONDO_LUGAR[item.lugar])}
                   />
                 )}
                 <Icon
                   className={cn(
                     'relative h-6 w-6 transition-all duration-200',
-                    active ? 'scale-105 text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                    active ? cn('scale-105', TEXTO_LUGAR[item.lugar]) : 'text-muted-foreground group-hover:text-foreground',
                   )}
                   strokeWidth={active ? 2.4 : 2}
                 />
                 <span
                   className={cn(
                     'relative text-caption font-medium transition-colors duration-200',
-                    active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                    active ? TEXTO_LUGAR[item.lugar] : 'text-muted-foreground group-hover:text-foreground',
                   )}
                 >
                   {t(item.key)}

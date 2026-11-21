@@ -8,6 +8,7 @@ import { RewardLayer } from '@/components/rewards/RewardLayer';
 import { ServiceWorker } from '@/components/pwa/ServiceWorker';
 import { AdsProvider } from '@/components/ads/AdsProvider';
 import { ErrorReporter } from '@/components/ErrorReporter';
+import { LugarActual } from '@/components/nav/LugarActual';
 
 /**
  * Global client providers: theme (light/dark/system), server-state cache,
@@ -43,6 +44,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <RewardLayer />
             <ServiceWorker />
             <ErrorReporter />
+            <LugarActual />
           </AdsProvider>
         </ToastProvider>
       </QueryClientProvider>

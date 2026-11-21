@@ -495,7 +495,7 @@ function FormularioCorreo({
               <button
                 type="button"
                 onClick={() => onModo('recuperar')}
-                className="rounded-sm text-small font-medium text-primary transition-colors duration-150 hover:text-brote-green-deep"
+                className="rounded-sm text-small font-medium text-primary transition-colors duration-150 hover:text-primary/80"
               >
                 <span className="link-underline">{t('forgot')}</span>
               </button>

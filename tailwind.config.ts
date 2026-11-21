@@ -53,9 +53,27 @@ const config: Config = {
         'muted-foreground': 'rgb(var(--muted-fg) / <alpha-value>)',
         border: 'rgb(var(--border) / <alpha-value>)',
         ring: 'rgb(var(--ring) / <alpha-value>)',
+        // El color del lugar donde estás (lib/lugares.ts): tinta en Hoy y en
+        // tu perfil, coral en la Plaza, índigo en la Liga… NO es el verde.
         primary: {
           DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
           foreground: 'rgb(var(--primary-fg) / <alpha-value>)',
+        },
+        // Lo hecho: siempre verde (tildes, +puntos), no depende del lugar.
+        hecho: {
+          DEFAULT: 'rgb(var(--hecho) / <alpha-value>)',
+          foreground: 'rgb(var(--hecho-fg) / <alpha-value>)',
+        },
+        // Cada lugar con su color propio, para lo que muestra varios a la vez
+        // (la barra, Explorar, la fila de lugares de Hoy). Cambian con el tema.
+        lugar: {
+          acciones: 'rgb(var(--l-acciones) / <alpha-value>)',
+          plaza: 'rgb(var(--l-plaza) / <alpha-value>)',
+          liga: 'rgb(var(--l-liga) / <alpha-value>)',
+          academia: 'rgb(var(--l-academia) / <alpha-value>)',
+          mundo: 'rgb(var(--l-mundo) / <alpha-value>)',
+          mercado: 'rgb(var(--l-mercado) / <alpha-value>)',
+          proyectos: 'rgb(var(--l-proyectos) / <alpha-value>)',
         },
         // Domain accents (BUILD_SPEC §2.3 / §3.4) — identity colors
         domain: {
@@ -105,6 +123,13 @@ const config: Config = {
         body: ['1rem', { lineHeight: '1.5' }],
         small: ['0.875rem', { lineHeight: '1.45' }],
         caption: ['0.75rem', { lineHeight: '1.4' }],
+      },
+      // `bg-primary/12` (28 usos) y `/8` no están en la escala de Tailwind 3.4:
+      // sin esto esas clases no se generaban y la píldora activa de la barra,
+      // la de la barra lateral y varios fondos tenues no se veían.
+      opacity: {
+        8: '0.08',
+        12: '0.12',
       },
       borderRadius: {
         card: '20px',
