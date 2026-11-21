@@ -30,6 +30,28 @@ paragraph text.
 
 ## 1. Color
 
+### 1.0 Places, not one green (2026-11-20, docs/REESTRUCTURA.md D1–D2)
+
+Brote is a town of **places** — Hoy, Acciones, la Plaza, la Liga, la Academia, Tu mundo, el Mercado,
+Proyectos — and each place has its own color. **`--primary` is the color of the place you are in**,
+set by `<html data-lugar>` (`lib/lugares.ts` maps routes to places; `app/globals.css` holds the
+values; a pre-paint script avoids a flash). So `bg-primary` / `text-primary` in the Plaza are coral,
+in the Liga indigo, in the Academia violet, in Tu mundo sea-teal, in the Mercado amber, in Proyectos
+orange, and in Acciones the brand green. Hoy, the profile, Explorar (`/lugares`) and `/impacto` are
+**ink** (cream in dark mode): yours, without noise.
+
+- Use `text-primary` / `bg-primary` for "this place's accent". Use `lugar-<place>` (e.g.
+  `text-lugar-plaza`) only where several places appear at once (the tab bar, Explorar, the places
+  row on Hoy).
+- **Done is always green**: ticks, completed rows, the full-day ring → `hecho` / `hecho-foreground`,
+  never `primary`.
+- The brand green (`brote-green`) is for the logo, the center **Sumar** button (via `hecho`) and the
+  brand gradient — not for generic buttons, eyebrows or tabs.
+- Never hard-code `hover:bg-brote-green-deep` on a `bg-primary` element: it turns a coral button
+  green on hover. Use `hover:bg-primary/90`.
+- All place colors pass 4.5:1 for small text on the cream (light) and on the ink (dark); light fills
+  carry white text, dark fills carry ink text.
+
 One brand gradient, used sparingly — canopy green to dawn amber, always the same direction:
 
 ```
@@ -274,6 +296,19 @@ user-visible, elements that only change on `:active`.
     from old uploads: it filters non-pictures before the request (`lib/imagen-segura.ts`), catches
     load errors (including ones that fire before hydration), and falls back to a tile in the
     topic's colour — never the browser's broken-image icon.
+- **La reestructura (lugares)** — 2026-11-20 (`docs/REESTRUCTURA.md`). The app as a town of places:
+  - **Place colors** replace the single green (§1.0). The tab bar lights each tab in its place's
+    color; the center tab is **Sumar**, a sheet (`components/sumar/HojaSumar.tsx`) that opens from
+    any screen — not a page.
+  - **Tabs: Hoy · Explorar · (+) · Plaza · Liga.** The profile moved to the rank avatar in the top
+    bar. Explorar lives at **`/lugares`** because `/explorar` has been a cached 308 to the Plaza
+    since 2026-08 (a test now forbids nav destinations that are redirect sources).
+  - **Hoy** is shorter: a places row (colored circles with a coral dot when something waits), the
+    day's checklist, "¿hiciste otra cosa?", the live league card, the impact sentence, the routine.
+    The "Seguí en Brote" cards moved to Explorar (`components/explorar/TarjetasLugar.tsx`).
+  - **Impact is a sentence** (`lib/impacto/historias.ts`): how long a daily habit lasts with what
+    was saved, the duration highlighted in the metric color, two household comparisons as chips.
+    `/impacto` is the full page. No pools, trucks, flights or trees.
 
 ### Primitives added in the Academia pass
 

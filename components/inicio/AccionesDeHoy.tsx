@@ -92,7 +92,7 @@ export function AccionesDeHoy({
 
   return (
     <section aria-labelledby="acciones-de-hoy" className="overflow-hidden rounded-card border border-border bg-surface shadow-soft">
-      <header className={cn('flex items-center gap-3.5 p-4', completo && 'bg-primary/[0.06]')}>
+      <header className={cn('flex items-center gap-3.5 p-4', completo && 'bg-hecho/[0.07]')}>
         <Anillo hechas={hechas} total={total} />
         <div className="min-w-0 flex-1">
           <span className="eyebrow block text-primary">{t('eyebrow')}</span>
@@ -266,7 +266,7 @@ function FilaContenido({ a, hecha, onComplete, onAbrir, efemeride }: FilaProps) 
           aria-hidden
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-200',
-            hecha ? 'border-primary bg-primary text-primary-foreground' : 'border-border group-hover:border-primary/60',
+            hecha ? 'border-hecho bg-hecho text-hecho-foreground' : 'border-border group-hover:border-primary/60',
           )}
         >
           {hecha && (
@@ -297,7 +297,7 @@ function Anillo({ hechas, total }: { hechas: number; total: number }) {
           fill="none"
           strokeWidth="4.5"
           strokeLinecap="round"
-          className="stroke-primary"
+          className={completo ? 'stroke-hecho' : 'stroke-primary'}
           strokeDasharray={c}
           initial={false}
           animate={{ strokeDashoffset: c * (1 - p) }}
@@ -305,7 +305,7 @@ function Anillo({ hechas, total }: { hechas: number; total: number }) {
         />
       </svg>
       {completo ? (
-        <Check className="h-5 w-5 text-primary" strokeWidth={3} />
+        <Check className="h-5 w-5 text-hecho" strokeWidth={3} />
       ) : (
         <span className="font-display text-small font-bold tnum">
           {hechas}/{total}

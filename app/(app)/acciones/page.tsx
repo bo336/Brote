@@ -315,7 +315,7 @@ function AccionesInner() {
                   setAhorran(false);
                   setLugar(null);
                 }}
-                className="text-small font-medium text-primary transition-colors hover:text-brote-green-deep"
+                className="text-small font-medium text-primary transition-colors hover:text-primary/80"
               >
                 Limpiar
               </button>

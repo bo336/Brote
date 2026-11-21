@@ -114,7 +114,7 @@ export function FollowButton({
           ? hovering
             ? 'border border-brote-coral/50 bg-brote-coral/10 text-brote-coral'
             : 'border border-border bg-surface-2 text-muted-foreground'
-          : 'bg-primary text-primary-foreground shadow-crisp hover:bg-brote-green-deep',
+          : 'bg-primary text-primary-foreground shadow-crisp hover:bg-primary/90',
         busy && 'opacity-60',
         className,
       )}

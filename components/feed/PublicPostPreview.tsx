@@ -53,7 +53,7 @@ export function PublicPostPreview({
         </p>
         <Link
           href={`/auth/login?next=${encodeURIComponent(`/feed/p/${id}`)}`}
-          className="press inline-flex h-11 items-center justify-center rounded-pill bg-primary px-6 text-small font-semibold text-primary-foreground shadow-crisp hover:bg-brote-green-deep"
+          className="press inline-flex h-11 items-center justify-center rounded-pill bg-primary px-6 text-small font-semibold text-primary-foreground shadow-crisp hover:bg-primary/90"
         >
           Entrar
         </Link>

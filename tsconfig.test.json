@@ -45,7 +45,9 @@
     "lib/onboarding/**/*.ts",
     "lib/consumidor/reglas.ts",
     "lib/consumidor/__tests__/**/*.ts",
-    "lib/url-app.ts"
+    "lib/url-app.ts",
+    "lib/impacto/**/*.ts",
+    "lib/lugares.ts"
   ],
   "exclude": [
     "node_modules"

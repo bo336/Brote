@@ -10,7 +10,14 @@
     "perfil": "Profile",
     "aprender": "Learn",
     "mercado": "Market",
-    "mundo": "Your world"
+    "mundo": "Your world",
+    "explorar": "Explore",
+    "sumar": "Add",
+    "sumarAria": "Add what you did",
+    "sumarLargo": "Add what you did",
+    "liga": "League",
+    "impacto": "Your impact",
+    "proyectos": "Projects"
   },
   "common": {
     "loading": "Loading…",
@@ -193,7 +200,7 @@
     },
     "impacto": {
       "eyebrow": "Your real impact",
-      "detalle": "See details",
+      "detalle": "See your impact",
       "vacioTitulo": "Your impact starts today",
       "vacioCuerpo": "Every action you tick below adds real water, CO₂, waste and energy savings, and shows up here right away.",
       "sub_water": "of water not wasted, {n, plural, one {from # real action} other {from # real actions}}",
@@ -201,7 +208,9 @@
       "sub_waste": "of waste kept out of the bin, {n, plural, one {from # real action} other {from # real actions}}",
       "sub_energy": "of energy not used, {n, plural, one {from # real action} other {from # real actions}}",
       "hoyMas": "+{v} today",
-      "regla": "Only your real-life actions move this: today's, your routine and the ones in Actions. The game and other sections never touch it."
+      "regla": "Only measured actions move it: today's, your routine and the ones in Actions. What you add on your own earns points, not impact.",
+      "conLoQue": "That is {valor} {de} not used, {n, plural, one {from # measured action} other {from # measured actions}}.",
+      "otrasPalabras": "In other words"
     },
     "hoy": {
       "eyebrow": "Today",
@@ -300,6 +309,10 @@
       "eyebrow": "For you",
       "titulo": "Bigger actions, picked for you",
       "verTodas": "See all"
+    },
+    "otraCosa": {
+      "titulo": "Did something else?",
+      "bajada": "Add it even if it is not on the list: it adds points to your week."
     }
   },
   "acciones": {
@@ -334,7 +347,40 @@
     "novedades": "News",
     "newsEmpty": "We're gathering the best news. Check back soon.",
     "source": "Source",
-    "openOriginal": "Read the original"
+    "openOriginal": "Read the original",
+    "eyebrow": "The places in Brote",
+    "titulo": "Every place has something of yours waiting",
+    "bajada": "Learn, look after your island, organise with others and choose better what to buy. It all adds to your week.",
+    "acciones": {
+      "eyebrow": "Actions",
+      "titulo": "More than 400 actions to choose from",
+      "pasos": "{hechos} of {total} steps done",
+      "proximo": "Next step:"
+    },
+    "proyectos": {
+      "eyebrow": "Projects",
+      "abiertos": "{n, plural, one {# open project} other {# open projects}}",
+      "ninguno": "Start something with your neighbourhood",
+      "mios": "{n, plural, one {You are in # project} other {You are in # projects}}",
+      "bajada": "Clean-ups, gardens and planting together"
+    },
+    "impacto": {
+      "eyebrow": "Your real impact",
+      "vacio": "Your first measured action already counts: here you will see what you saved, in everyday things.",
+      "ver": "See your impact"
+    },
+    "retos": {
+      "titulo": "Competitions",
+      "bajada": "Challenges with friends, your school or your work"
+    },
+    "noticias": {
+      "titulo": "Environment news",
+      "bajada": "What is happening today, from real outlets"
+    },
+    "plus": {
+      "titulo": "Brote+",
+      "bajada": "No ads, with extras"
+    }
   },
   "academia": {
     "accionCta": "See the action",

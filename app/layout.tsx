@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { BRAND } from '@/lib/brand';
 import { Providers } from '@/components/providers';
+import { scriptLugar } from '@/lib/lugares';
 import './globals.css';
 
 const inter = Inter({
@@ -74,6 +75,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${bricolage.variable}`}>
+      <head>
+        {/* El color del lugar antes del primer cuadro (lib/lugares.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: scriptLugar() }} />
+      </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>

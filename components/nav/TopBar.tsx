@@ -7,13 +7,13 @@ import { useTranslations } from 'next-intl';
 import { Bell, Search } from 'lucide-react';
 import { useSession } from '@/stores/session';
 import { RankBadge } from '@/components/brand/RankBadge';
-import { PointsBadge } from '@/components/brand/PointsBadge';
 import { StreakFlame } from '@/components/brand/StreakFlame';
 import { Logo } from '@/components/brand/Logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { isStreakAtRisk } from '@/lib/streak';
 import { ContextSwitcher } from '@/components/negocio/ContextSwitcher';
 import { AvisoNegocioMenor } from '@/components/negocio/AvisoNegocioMenor';
+import { cn } from '@/lib/utils/cn';
 
 /**
  * Contextual top bar (BUILD_SPEC §3.3). Always shows the user's rank badge +
@@ -41,9 +41,11 @@ export function TopBar() {
     // /feed shows no title either: its SectionTabs ARE the title, and stacking
     // a heading on top of them just eats a row of a phone screen.
     if (pathname.startsWith('/feed')) return null;
+    if (pathname === '/lugares') return t('explorar');
     if (pathname.startsWith('/acciones')) return t('acciones');
     if (pathname.startsWith('/proyectos')) return tp('title');
-    if (pathname.startsWith('/ranking')) return t('ranking');
+    if (pathname.startsWith('/ranking')) return t('liga');
+    if (pathname.startsWith('/impacto')) return t('impacto');
     if (pathname.startsWith('/perfil')) return t('perfil');
     return null;
   })();
@@ -53,7 +55,7 @@ export function TopBar() {
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between gap-2 px-4">
         <div className="flex min-w-0 items-center gap-2">
           {title ? (
-            <h1 className="truncate font-display text-h2 font-bold">{title}</h1>
+            <h1 className="truncate font-display text-h2 font-bold text-primary">{title}</h1>
           ) : (
             <Logo size={26} />
           )}
@@ -71,12 +73,6 @@ export function TopBar() {
             </Link>
           )}
           <StreakFlame count={streak} atRisk={atRisk} size="sm" />
-          <Link href="/perfil" prefetch={false} aria-label={`${tn('streakLabel')} · ${totalXp}`} className="hidden xs:flex">
-            <PointsBadge value={totalXp} size="sm" animate />
-          </Link>
-          <Link href="/perfil" prefetch={false} aria-label="Rango" className="ml-0.5">
-            <RankBadge totalXp={totalXp} size={36} />
-          </Link>
           {/* Tu cuenta o tus negocios. A un menor ni se le ofrece la puerta (D7). */}
           {profile?.accountType === 'adult' && <ContextSwitcher variante="persona" userId={profile.id} />}
           <Link
@@ -95,6 +91,20 @@ export function TopBar() {
             )}
           </Link>
           <ThemeToggle className="hidden sm:inline-flex" />
+          {/* Vos: el perfil salió de la barra de abajo y vive acá, en tu rango
+              (docs/REESTRUCTURA.md D3). Los puntos están en tu perfil y en la Liga. */}
+          <Link
+            href="/perfil"
+            prefetch={false}
+            aria-label={`${t('perfil')} · ${totalXp} pts`}
+            aria-current={pathname === '/perfil' ? 'page' : undefined}
+            className={cn(
+              'ml-0.5 rounded-full transition-transform duration-200 hover:-translate-y-0.5',
+              pathname === '/perfil' && 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
+            )}
+          >
+            <RankBadge totalXp={totalXp} size={36} />
+          </Link>
         </div>
         <Suspense fallback={null}>
           <AvisoNegocioMenor />

@@ -1,8 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Clock, Flower2, MessagesSquare, Play, RotateCcw, Store, TreeDeciduous, TrendingUp } from 'lucide-react';
+import {
+  ArrowRight,
+  Clock,
+  Flower2,
+  Leaf,
+  MessagesSquare,
+  Play,
+  RotateCcw,
+  Sprout,
+  Store,
+  TreeDeciduous,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import { DomainIcon } from '@/components/icons/DomainIcon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CountUp } from '@/components/ui/count-up';
 import { SafeImage, ImagenFallback } from '@/components/ui/safe-image';
@@ -13,10 +28,12 @@ import {
   useImpactoTotal,
   useMapaAcademia,
   useMercadoDestacado,
-  useMundoAbierto,
   usePulsoPlaza,
-} from './datos';
+} from '@/components/inicio/datos';
 import { useEmpezar } from '@/lib/academia/usar-empezar';
+import { useMisCaminos, useSugeridas } from '@/hooks/use-acciones';
+import { fetchProjects } from '@/lib/api/plaza';
+import { historiaPrincipal } from '@/lib/impacto/historias';
 import { marcarVisita } from '@/lib/inicio/visitas';
 import { getDomain, getDomainColor } from '@/lib/domains';
 import { formatoPrecio, urlImagen } from '@/lib/mercado/imagenes';
@@ -35,49 +52,20 @@ export const LUGAR_POR_NIVEL = [
 export const CEIBO_MAX_FLORES = 240;
 
 /**
- * "Seguí en Brote": the four places on a phone that are not in the tab bar
- * (Academia, Tu mundo, Mercado) or deserve a nudge (the Plaza), each with
- * something REAL of this person's in it — the next lesson, their island and
- * its ceibo, today's stories, products picked for them.
+ * Las tarjetas de los lugares (docs/REESTRUCTURA.md D1, D3): Academia, Tu
+ * mundo, la Plaza y el Mercado, cada una con algo REAL de esta persona — la
+ * próxima lección, su isla y su ceibo, las historias de hoy, productos para
+ * ella — y con el color de su lugar. Vivían al fondo de Hoy ("Seguí en
+ * Brote"); ahora son el mapa de Explorar.
  *
- * Four different shapes on purpose, one per section, so the page stops being
- * the same bordered row repeated: an editorial card with the branch colour on
- * top (Academia), a picture (Tu mundo), a live counter (Plaza), a strip of
- * products (Mercado). The Academia card is the dominant one — a lesson is the
- * thing that fits in the five minutes after marking an action.
+ * Cuatro formas distintas a propósito, una por lugar: una tarjeta editorial
+ * (Academia), una imagen (Tu mundo), un contador en vivo (Plaza) y una tira de
+ * productos (Mercado).
  */
-export function SeguiEnBrote() {
-  const t = useTranslations('inicio.seguir');
-  const mundo = useMundoAbierto();
-  const tipo = useSession((s) => s.profile?.accountType);
-  const mercado = useMercadoDestacado();
-  const conMercado = tipo !== 'kid' && (mercado.data?.length ?? 0) >= 2;
-  const conMundo = mundo.data === true;
-
-  return (
-    <section aria-labelledby="segui-en-brote" className="space-y-3">
-      <div>
-        <span className="eyebrow block text-muted-foreground">{t('eyebrow')}</span>
-        <h2 id="segui-en-brote" className="mt-1 font-display text-h2 font-bold leading-tight">
-          {t('titulo')}
-        </h2>
-      </div>
-
-      <TarjetaAcademia />
-
-      <div className={cn('grid gap-3', conMundo ? 'grid-cols-2' : 'grid-cols-1')}>
-        {conMundo && <TarjetaMundo />}
-        <TarjetaPlaza compacta={conMundo} />
-      </div>
-
-      {conMercado && <TarjetaMercado />}
-    </section>
-  );
-}
 
 // ── Academia ────────────────────────────────────────────────────────────────
 
-function TarjetaAcademia() {
+export function TarjetaAcademia() {
   const t = useTranslations('inicio.seguir');
   const ta = useTranslations('arbol');
   const q = useMapaAcademia();
@@ -99,10 +87,10 @@ function TarjetaAcademia() {
   return (
     <article
       className="relative overflow-hidden rounded-card border border-border bg-surface p-4 shadow-soft transition-shadow duration-200 hover:shadow-lift"
-      style={{ borderTopColor: color, borderTopWidth: 4 }}
+      style={{ borderTopColor: 'rgb(var(--l-academia))', borderTopWidth: 4 }}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="eyebrow flex items-center gap-1.5" style={{ color }}>
+        <span className="eyebrow flex items-center gap-1.5 text-lugar-academia">
           <TreeDeciduous className="h-3.5 w-3.5" aria-hidden />
           {t('academia')}
         </span>
@@ -132,7 +120,7 @@ function TarjetaAcademia() {
               <Link
                 href="/aprender/repaso"
                 onClick={() => marcarVisita('academia')}
-                className="press inline-flex h-11 items-center gap-2 rounded-pill border border-border bg-surface-2 px-4 text-small font-semibold hover:border-primary/30"
+                className="press inline-flex h-11 items-center gap-2 rounded-pill border border-border bg-surface-2 px-4 text-small font-semibold hover:border-lugar-academia/40"
               >
                 <RotateCcw className="h-4 w-4" aria-hidden />
                 {t('repasarMientras')}
@@ -145,7 +133,7 @@ function TarjetaAcademia() {
                   marcarVisita('academia');
                   void empezar(sig.leccion.id);
                 }}
-                className="press inline-flex h-11 items-center gap-2 rounded-pill bg-primary px-5 text-small font-bold text-primary-foreground shadow-crisp disabled:opacity-60"
+                className="press inline-flex h-11 items-center gap-2 rounded-pill bg-lugar-academia px-5 text-small font-bold text-white shadow-crisp disabled:opacity-60 dark:text-brote-ink"
               >
                 <Play className="h-4 w-4" fill="currentColor" aria-hidden />
                 {arrancando === sig.leccion.id ? t('abriendo') : t('empezar')}
@@ -162,7 +150,7 @@ function TarjetaAcademia() {
           <h3 className="font-display text-h2 font-extrabold leading-tight">
             <span className="link-underline">{mapa.repaso > 0 ? t('repasoTitulo', { n: mapa.repaso }) : t('arbolTitulo')}</span>
           </h3>
-          <p className="mt-1 inline-flex items-center gap-1 text-small font-semibold text-primary">
+          <p className="mt-1 inline-flex items-center gap-1 text-small font-semibold text-lugar-academia">
             {t('abrirArbol')} <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
           </p>
         </Link>
@@ -173,7 +161,7 @@ function TarjetaAcademia() {
 
 // ── Tu mundo ────────────────────────────────────────────────────────────────
 
-function TarjetaMundo() {
+export function TarjetaMundo() {
   const t = useTranslations('inicio.seguir');
   const profile = useSession((s) => s.profile);
   const impacto = useImpactoTotal();
@@ -211,7 +199,7 @@ function TarjetaMundo() {
 
 // ── La Plaza ────────────────────────────────────────────────────────────────
 
-function TarjetaPlaza({ compacta }: { compacta: boolean }) {
+export function TarjetaPlaza({ compacta }: { compacta: boolean }) {
   const t = useTranslations('inicio.seguir');
   const q = usePulsoPlaza();
   const tendencia = q.data?.trending ? getDomain(q.data.trending) : undefined;
@@ -222,13 +210,13 @@ function TarjetaPlaza({ compacta }: { compacta: boolean }) {
       href="/feed"
       onClick={() => marcarVisita('plaza')}
       className={cn(
-        'press group flex flex-col justify-between rounded-card border border-border bg-surface-2 p-3.5 shadow-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift',
+        'press group flex flex-col justify-between rounded-card border border-border bg-surface-2 p-3.5 shadow-soft hover:-translate-y-0.5 hover:border-lugar-plaza/40 hover:shadow-lift',
         compacta ? 'aspect-[4/5] sm:aspect-[5/4]' : 'min-h-[132px]',
       )}
     >
       <div>
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-live-pulse" aria-hidden />
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-lugar-plaza">
+          <span className="h-1.5 w-1.5 rounded-full bg-lugar-plaza animate-live-pulse" aria-hidden />
           {t('plazaEyebrow')}
         </span>
         <p className="mt-2 font-display leading-none">
@@ -251,7 +239,7 @@ function TarjetaPlaza({ compacta }: { compacta: boolean }) {
           </span>
         )}
         <span className="flex items-center gap-1 text-small font-semibold text-foreground">
-          <MessagesSquare className="h-4 w-4 text-primary" aria-hidden />
+          <MessagesSquare className="h-4 w-4 text-lugar-plaza" aria-hidden />
           {t('plazaEntrar')}
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </span>
@@ -262,7 +250,7 @@ function TarjetaPlaza({ compacta }: { compacta: boolean }) {
 
 // ── Mercado ─────────────────────────────────────────────────────────────────
 
-function TarjetaMercado() {
+export function TarjetaMercado() {
   const t = useTranslations('inicio.seguir');
   const q = useMercadoDestacado();
   const items = (q.data ?? []).slice(0, 4);
@@ -271,13 +259,13 @@ function TarjetaMercado() {
     <article className="rounded-card border border-border bg-surface p-3.5 shadow-soft">
       <Link href="/mercado" onClick={() => marcarVisita('mercado')} className="group flex items-center justify-between gap-2">
         <span className="min-w-0">
-          <span className="eyebrow flex items-center gap-1.5 text-brote-sun">
+          <span className="eyebrow flex items-center gap-1.5 text-lugar-mercado">
             <Store className="h-3.5 w-3.5" aria-hidden />
             {t('mercadoEyebrow')}
           </span>
           <span className="mt-0.5 block truncate font-display text-h3 font-bold">{t('mercadoTitulo')}</span>
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1 text-small font-semibold text-primary">
+        <span className="inline-flex shrink-0 items-center gap-1 text-small font-semibold text-lugar-mercado">
           {t('verTodo')}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </span>
@@ -304,5 +292,159 @@ function TarjetaMercado() {
         ))}
       </ul>
     </article>
+  );
+}
+
+// ── Acciones ────────────────────────────────────────────────────────────────
+
+/**
+ * El catálogo, con lo que la persona tiene empezado: el camino en curso (con
+ * su próximo paso) o, si no hay ninguno, tres acciones elegidas para hoy.
+ */
+export function TarjetaAcciones() {
+  const t = useTranslations('explorar');
+  const caminos = useMisCaminos();
+  const sugeridas = useSugeridas('catalog', 3);
+  const enCurso = (caminos.data ?? []).find((c) => !c.completado && c.pasos.some((p) => p.hecho));
+  const proximo = enCurso?.pasos.find((p) => !p.hecho);
+  const hechos = enCurso ? enCurso.pasos.filter((p) => p.hecho).length : 0;
+
+  return (
+    <article className="overflow-hidden rounded-card border border-border bg-surface shadow-soft">
+      <Link href="/acciones" className="group flex items-start justify-between gap-3 p-4 pb-3">
+        <span className="min-w-0">
+          <span className="eyebrow flex items-center gap-1.5 text-lugar-acciones">
+            <Leaf className="h-3.5 w-3.5" aria-hidden />
+            {t('acciones.eyebrow')}
+          </span>
+          <span className="mt-1 block font-display text-h2 font-extrabold leading-tight">
+            <span className="link-underline">{enCurso ? enCurso.titulo_es : t('acciones.titulo')}</span>
+          </span>
+        </span>
+        <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-lugar-acciones transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+      </Link>
+      {enCurso ? (
+        <div className="px-4 pb-4">
+          <div className="flex items-center gap-2" aria-label={t('acciones.pasos', { hechos, total: enCurso.pasos.length })}>
+            {enCurso.pasos.map((p) => (
+              <span key={p.id} className={cn('h-1.5 flex-1 rounded-pill', p.hecho ? 'bg-hecho' : 'bg-border')} />
+            ))}
+          </div>
+          {proximo && (
+            <Link
+              href={`/acciones/${proximo.slug}`}
+              className="press mt-3 flex items-center justify-between gap-2 rounded-button bg-lugar-acciones/[0.08] px-3 py-2.5 text-small font-semibold hover:bg-lugar-acciones/[0.14]"
+            >
+              <span className="min-w-0 truncate">
+                <span className="text-lugar-acciones">{t('acciones.proximo')}</span> {proximo.title_es}
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-lugar-acciones" aria-hidden />
+            </Link>
+          )}
+        </div>
+      ) : (
+        <ul className="divide-hairline border-t border-hairline">
+          {sugeridas.isLoading
+            ? [0, 1, 2].map((i) => (
+                <li key={i} className="px-4 py-3">
+                  <Skeleton className="h-5 w-3/4" />
+                </li>
+              ))
+            : (sugeridas.data ?? []).slice(0, 3).map((a) => (
+                <li key={a.id}>
+                  <Link
+                    href={`/acciones/${a.slug}`}
+                    className="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-2"
+                  >
+                    <DomainIcon domain={a.domain_slug} size={32} />
+                    <span className="min-w-0 flex-1 truncate text-small font-medium">{a.title_es}</span>
+                    <span className="shrink-0 text-caption font-bold text-brote-sun tnum">+{a.base_points}</span>
+                  </Link>
+                </li>
+              ))}
+        </ul>
+      )}
+    </article>
+  );
+}
+
+// ── Proyectos ───────────────────────────────────────────────────────────────
+
+/** Lo que se hace en grupo: el próximo encuentro y cuántos proyectos hay abiertos. */
+export function TarjetaProyectos() {
+  const t = useTranslations('explorar');
+  const userId = useSession((s) => s.profile?.id);
+  const q = useQuery({
+    queryKey: ['projects', userId],
+    queryFn: () => fetchProjects(userId),
+    staleTime: 5 * 60_000,
+  });
+  const abiertos = (q.data ?? []).filter((p) => p.status === 'active');
+  const ahora = Date.now();
+  const proximo = abiertos
+    .filter((p) => p.event_date && new Date(p.event_date).getTime() > ahora)
+    .sort((a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime())[0];
+  const mios = abiertos.filter((p) => p.joined).length;
+
+  return (
+    <Link
+      href="/acciones?tab=proyectos"
+      className="press group flex items-center gap-3.5 rounded-card border border-border bg-surface p-4 shadow-soft hover:-translate-y-0.5 hover:border-lugar-proyectos/40 hover:shadow-lift"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lugar-proyectos/12 text-lugar-proyectos">
+        <Users className="h-6 w-6" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="eyebrow block text-lugar-proyectos">{t('proyectos.eyebrow')}</span>
+        {q.isLoading ? (
+          <Skeleton className="mt-1 h-5 w-40" />
+        ) : (
+          <>
+            <span className="mt-0.5 block truncate font-display text-h3 font-bold leading-tight">
+              {proximo ? proximo.title : abiertos.length > 0 ? t('proyectos.abiertos', { n: abiertos.length }) : t('proyectos.ninguno')}
+            </span>
+            <span className="mt-0.5 block truncate text-caption text-muted-foreground">
+              {proximo
+                ? `${new Date(proximo.event_date!).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}${proximo.city ? ` · ${proximo.city}` : ''}`
+                : mios > 0
+                  ? t('proyectos.mios', { n: mios })
+                  : t('proyectos.bajada')}
+            </span>
+          </>
+        )}
+      </span>
+      <ArrowRight className="h-5 w-5 shrink-0 text-lugar-proyectos transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+    </Link>
+  );
+}
+
+// ── Tu impacto ──────────────────────────────────────────────────────────────
+
+/** La frase de tu impacto, como puerta a `/impacto`. */
+export function TarjetaImpacto() {
+  const t = useTranslations('explorar');
+  const q = useImpactoTotal();
+  const h = q.data ? historiaPrincipal(q.data) : null;
+
+  return (
+    <Link
+      href="/impacto"
+      className="press group relative block overflow-hidden rounded-card bg-brote-ink p-4 text-brote-cream shadow-soft-lg hover:-translate-y-0.5"
+    >
+      <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-domain-agua/20 blur-3xl" />
+      <span className="eyebrow relative flex items-center gap-1.5 text-brote-cream/70">
+        <Sprout className="h-3.5 w-3.5" aria-hidden />
+        {t('impacto.eyebrow')}
+      </span>
+      {q.isLoading ? (
+        <Skeleton className="relative mt-2 h-12 w-full !bg-white/10" />
+      ) : (
+        <p className="relative mt-1.5 text-balance font-display text-h2 font-bold leading-snug">{h ? h.frase : t('impacto.vacio')}</p>
+      )}
+      <span className="relative mt-3 inline-flex items-center gap-1 text-small font-semibold text-brote-cream/85">
+        {t('impacto.ver')}
+        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+      </span>
+    </Link>
   );
 }

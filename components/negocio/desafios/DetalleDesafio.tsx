@@ -248,7 +248,7 @@ function Certificado({ c, titulo }: { c: NonNullable<DetalleDesafio['certificado
           href={`/certificados/${c.codigo}`}
           target="_blank"
           rel="noopener"
-          className="inline-flex h-9 items-center gap-1.5 rounded-button bg-primary px-3.5 text-small font-semibold text-primary-foreground shadow-crisp transition-colors hover:bg-brote-green-deep"
+          className="inline-flex h-9 items-center gap-1.5 rounded-button bg-primary px-3.5 text-small font-semibold text-primary-foreground shadow-crisp transition-colors hover:bg-primary/90"
         >
           <ExternalLink className="h-4 w-4" /> Ver la página pública
         </a>

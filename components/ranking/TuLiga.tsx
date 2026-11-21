@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils/cn';
 const fechaCorta = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
 
-function quedanTexto(n: number) {
+export function quedanTexto(n: number) {
   return n <= 1 ? 'Termina hoy' : `Quedan ${n} días`;
 }
 
@@ -30,7 +30,8 @@ function topeBarra(l: LigaCompleta, puntos: number) {
   return Math.max(l.subir ?? Math.round(l.mantener * 1.4), puntos, 1);
 }
 
-function Frase({ liga, siguiente, puntos, cuando }: { liga: LigaCompleta; siguiente: LigaCompleta | null; puntos: number; cuando: string }) {
+/** Lo que te falta esta semana, en una frase (la usa también la tarjeta de Hoy). */
+export function FraseLiga({ liga, siguiente, puntos, cuando }: { liga: LigaCompleta; siguiente: LigaCompleta | null; puntos: number; cuando: string }) {
   const e = estadoSemana(liga, puntos);
   const f = formatPoints(e.faltan);
   if (e.caso === 'por_mantener') {
@@ -111,7 +112,7 @@ export function TuLiga() {
         </div>
 
         <p className="text-small font-semibold leading-relaxed">
-          <Frase liga={liga} siguiente={siguiente} puntos={d.puntos} cuando={cuando} />
+          <FraseLiga liga={liga} siguiente={siguiente} puntos={d.puntos} cuando={cuando} />
         </p>
 
         {d.hoy >= d.reglas.tope_diario && (

@@ -214,7 +214,7 @@ function Pastilla({
       className={cn(
         'press relative inline-flex h-11 max-w-[15rem] items-center gap-2 overflow-hidden rounded-pill border pl-1.5 pr-3 text-small font-medium transition-colors duration-200',
         hecho
-          ? 'border-transparent bg-primary text-primary-foreground shadow-crisp'
+          ? 'border-transparent bg-hecho text-hecho-foreground shadow-crisp'
           : 'border-border bg-surface shadow-soft hover:border-primary/40',
       )}
     >
@@ -235,7 +235,7 @@ function Pastilla({
         <span
           className={cn(
             'inline-flex shrink-0 items-center gap-0.5 text-caption font-bold tnum',
-            hecho ? 'text-primary-foreground/90' : 'text-brote-coral',
+            hecho ? 'text-hecho-foreground/90' : 'text-brote-coral',
           )}
         >
           <Flame className="h-3.5 w-3.5" aria-hidden />

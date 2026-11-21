@@ -33,7 +33,7 @@ export function DailyActionRow({ title, domain, points, done, loading, onComplet
       className={cn(
         'press group flex w-full items-center gap-3 rounded-card border p-3 text-left',
         done
-          ? 'border-brote-green/30 bg-primary/5'
+          ? 'border-hecho/30 bg-hecho/5'
           : 'border-border bg-surface hover:-translate-y-0.5 hover:border-primary/30 hover:bg-surface-2 hover:shadow-soft',
       )}
     >
@@ -55,7 +55,7 @@ export function DailyActionRow({ title, domain, points, done, loading, onComplet
         className={cn(
           'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
           done
-            ? 'border-primary bg-primary text-primary-foreground'
+            ? 'border-hecho bg-hecho text-hecho-foreground'
             : 'border-border group-hover:border-primary/60 group-hover:bg-primary/5',
         )}
       >

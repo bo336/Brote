@@ -21,9 +21,29 @@
      small metadata text it is mostly used for. */
   --muted-fg: 82 94 86;
   --border: 226 223 213;
-  --ring: 31 181 122; /* brote-green */
-  --primary: 31 181 122;
-  --primary-fg: 255 255 255;
+  /*
+   * Lugares (docs/REESTRUCTURA.md D1). `--primary` ya no es el verde: es el
+   * color del lugar donde estás (`html[data-lugar]`, más abajo), y fuera de
+   * un lugar con color —Hoy, tu perfil, Explorar— es tinta. El verde de marca
+   * queda explícito en `--brand` / `brote-green` para el logo y lo hecho.
+   */
+  --primary: 12 26 19; /* tinta */
+  --primary-fg: 247 245 239;
+  --ring: var(--primary);
+  --brand: 31 181 122;
+  /* Lo hecho (tildes, +puntos, la jornada completa): siempre verde, en
+     cualquier lugar. Verde profundo con texto blanco en claro. */
+  --hecho: 14 122 82;
+  --hecho-fg: 255 255 255;
+
+  /* El color de cada lugar (lib/lugares.ts). Claros: ≥ 4,5:1 sobre la crema. */
+  --l-acciones: 14 122 82;
+  --l-plaza: 194 65 47;
+  --l-liga: 68 80 200;
+  --l-academia: 110 70 192;
+  --l-mundo: 10 116 135;
+  --l-mercado: 154 91 6;
+  --l-proyectos: 180 82 14;
 
   /* Hairline used for divider-first lists (§3): lighter than --border so a
      long list of rows does not read as a stack of boxes. */
@@ -41,14 +61,57 @@
   --muted: 34 53 43;
   --muted-fg: 165 182 172;
   --border: 37 56 45;
-  --ring: 31 181 122;
-  --primary: 31 181 122;
+  --primary: 247 245 239; /* crema */
   --primary-fg: 8 18 13;
+  --ring: var(--primary);
+  --hecho: 31 181 122;
+  --hecho-fg: 8 18 13;
+
+  /* Oscuros: ≥ 6:1 sobre la tinta, llevan texto tinta encima. */
+  --l-acciones: 63 212 154;
+  --l-plaza: 255 138 122;
+  --l-liga: 142 151 255;
+  --l-academia: 180 156 255;
+  --l-mundo: 79 209 230;
+  --l-mercado: 255 194 102;
+  --l-proyectos: 255 159 90;
 
   --hairline: 255 255 255 / 0.09;
 
   color-scheme: dark;
 }
+
+/*
+ * El lugar donde estás pinta la app (lib/lugares.ts). Va en <html> y no en el
+ * contenido para que las hojas y los diálogos —que Radix monta en <body>—
+ * hereden el mismo color que la pantalla que los abrió.
+ */
+html[data-lugar='acciones'],
+html[data-lugar='marca'] { --primary: var(--l-acciones); }
+html[data-lugar='plaza'] { --primary: var(--l-plaza); }
+html[data-lugar='liga'] { --primary: var(--l-liga); }
+html[data-lugar='academia'] { --primary: var(--l-academia); }
+html[data-lugar='mundo'] { --primary: var(--l-mundo); }
+html[data-lugar='mercado'] { --primary: var(--l-mercado); }
+html[data-lugar='proyectos'] { --primary: var(--l-proyectos); }
+
+html[data-lugar='acciones'],
+html[data-lugar='marca'],
+html[data-lugar='plaza'],
+html[data-lugar='liga'],
+html[data-lugar='academia'],
+html[data-lugar='mundo'],
+html[data-lugar='mercado'],
+html[data-lugar='proyectos'] { --primary-fg: 255 255 255; }
+
+html.dark[data-lugar='acciones'],
+html.dark[data-lugar='marca'],
+html.dark[data-lugar='plaza'],
+html.dark[data-lugar='liga'],
+html.dark[data-lugar='academia'],
+html.dark[data-lugar='mundo'],
+html.dark[data-lugar='mercado'],
+html.dark[data-lugar='proyectos'] { --primary-fg: 8 18 13; }
 
 @layer base {
   * {

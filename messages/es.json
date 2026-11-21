@@ -10,7 +10,14 @@
     "perfil": "Perfil",
     "aprender": "Aprendé",
     "mercado": "Mercado",
-    "mundo": "Tu mundo"
+    "mundo": "Tu mundo",
+    "explorar": "Explorar",
+    "sumar": "Sumar",
+    "sumarAria": "Sumar lo que hiciste",
+    "sumarLargo": "Sumar lo que hiciste",
+    "liga": "Liga",
+    "impacto": "Tu impacto",
+    "proyectos": "Proyectos"
   },
   "common": {
     "loading": "Cargando…",
@@ -193,7 +200,7 @@
     },
     "impacto": {
       "eyebrow": "Tu impacto real",
-      "detalle": "Ver detalle",
+      "detalle": "Ver tu impacto",
       "vacioTitulo": "Tu impacto empieza hoy",
       "vacioCuerpo": "Cada acción que marcás abajo suma agua, CO₂, residuos y energía de verdad, y aparece acá al instante.",
       "sub_water": "de agua que no se gastó, {n, plural, one {con # acción real} other {con # acciones reales}}",
@@ -201,7 +208,9 @@
       "sub_waste": "de residuos que no fueron a la basura, {n, plural, one {con # acción real} other {con # acciones reales}}",
       "sub_energy": "de energía que no se consumió, {n, plural, one {con # acción real} other {con # acciones reales}}",
       "hoyMas": "+{v} hoy",
-      "regla": "Sólo lo mueven tus acciones en la vida real: las del día, tu rutina y las de Acciones. El juego y las otras secciones no lo tocan."
+      "regla": "Sólo lo mueven acciones medidas: las del día, tu rutina y las de Acciones. Lo que cargás por tu cuenta suma puntos, no impacto.",
+      "conLoQue": "Son {valor} {de} que no se gastaron, {n, plural, one {con # acción medida} other {con # acciones medidas}}.",
+      "otrasPalabras": "En otras palabras"
     },
     "hoy": {
       "eyebrow": "Hoy",
@@ -300,6 +309,10 @@
       "eyebrow": "Para vos",
       "titulo": "Acciones más grandes, elegidas para vos",
       "verTodas": "Ver todas"
+    },
+    "otraCosa": {
+      "titulo": "¿Hiciste otra cosa?",
+      "bajada": "Cargala aunque no esté en la lista: suma puntos a tu semana."
     }
   },
   "acciones": {
@@ -334,7 +347,40 @@
     "novedades": "Novedades",
     "newsEmpty": "Estamos juntando las mejores novedades. Volvé en un rato.",
     "source": "Fuente",
-    "openOriginal": "Leer la nota original"
+    "openOriginal": "Leer la nota original",
+    "eyebrow": "Los lugares de Brote",
+    "titulo": "Cada lugar tiene algo tuyo esperando",
+    "bajada": "Aprendé, cuidá tu isla, organizá con otros y elegí mejor qué comprar. Todo suma a tu semana.",
+    "acciones": {
+      "eyebrow": "Acciones",
+      "titulo": "Más de 400 acciones para elegir",
+      "pasos": "{hechos} de {total} pasos hechos",
+      "proximo": "Próximo paso:"
+    },
+    "proyectos": {
+      "eyebrow": "Proyectos",
+      "abiertos": "{n, plural, one {# proyecto abierto} other {# proyectos abiertos}}",
+      "ninguno": "Arrancá algo con tu barrio",
+      "mios": "{n, plural, one {Estás en # proyecto} other {Estás en # proyectos}}",
+      "bajada": "Limpiezas, huertas y plantaciones en grupo"
+    },
+    "impacto": {
+      "eyebrow": "Tu impacto real",
+      "vacio": "Tu primera acción medida ya cuenta: acá vas a ver lo que ahorraste, en cosas de todos los días.",
+      "ver": "Ver tu impacto"
+    },
+    "retos": {
+      "titulo": "Competencias",
+      "bajada": "Retos con amigos, tu escuela o tu trabajo"
+    },
+    "noticias": {
+      "titulo": "Noticias del ambiente",
+      "bajada": "Lo que pasa hoy, de medios reales"
+    },
+    "plus": {
+      "titulo": "Brote+",
+      "bajada": "Sin anuncios y con extras"
+    }
   },
   "academia": {
     "accionCta": "Ver la acción",

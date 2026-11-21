@@ -41,3 +41,15 @@ export async function fetchMyWeeklyPoints(): Promise<WeeklyPoints> {
   const d = (data ?? {}) as Partial<WeeklyPoints>;
   return { points: Number(d.points ?? 0), actions: Number(d.actions ?? 0), since: String(d.since ?? '') };
 }
+
+/**
+ * Lo que la comunidad ya hizo de verdad (0126): sólo totales, sin cuentas de
+ * prueba ni lo del juego, recalculado como mucho cada 10 minutos.
+ */
+export async function fetchPulsoPublico(): Promise<{ personas: number; acciones: number; agua_l: number; co2_kg: number; residuos_kg: number } | null> {
+  const { data, error } = await createClient().rpc('brote_pulso_publico');
+  if (error || !data) return null;
+  const d = data as Record<string, unknown>;
+  const n = (v: unknown) => Number(v ?? 0) || 0;
+  return { personas: n(d.personas), acciones: n(d.acciones), agua_l: n(d.agua_l), co2_kg: n(d.co2_kg), residuos_kg: n(d.residuos_kg) };
+}

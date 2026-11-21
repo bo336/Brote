@@ -57,7 +57,7 @@ export function ThreadSheet({ item, onClose }: { item: FeedItem | null; onClose:
           {postId && (
             <Link
               href={`/feed/p/${postId}`}
-              className="inline-flex items-center gap-1 text-caption font-medium text-primary transition-colors hover:text-brote-green-deep"
+              className="inline-flex items-center gap-1 text-caption font-medium text-primary transition-colors hover:text-primary/80"
             >
               {t('thread')} <ArrowUpRight className="h-3 w-3" />
             </Link>

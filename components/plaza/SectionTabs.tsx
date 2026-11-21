@@ -34,7 +34,7 @@ export function SectionTabs({
             {active && (
               <motion.span
                 layoutId="explorar-tab-underline"
-                className="absolute inset-x-0 -bottom-px h-[3px] rounded-full bg-brote-green"
+                className="absolute inset-x-0 -bottom-px h-[3px] rounded-full bg-primary"
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}

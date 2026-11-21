@@ -69,14 +69,39 @@ export function formatEnergy(kwh: number): string {
   return kwh < 10 ? `${nf1.format(kwh)} kWh` : `${nf.format(kwh)} kWh`;
 }
 
-interface Equivalence {
+export interface Equivalence {
   /** How many units of the saved resource one item costs. */
   per: number;
   /** Singular / plural label, used as "≈ 3 remeras". */
   one: string;
   many: string;
   emoji: string;
+  /** Icon key for screens that draw the comparison (`components/impacto`). */
+  icono: IconoImpacto;
+  /** Where the figure comes from, said plainly (shown under "¿Cómo lo calculamos?"). */
+  base: string;
 }
+
+export type IconoImpacto =
+  | 'tanque'
+  | 'banera'
+  | 'lavado'
+  | 'ducha'
+  | 'bidon'
+  | 'balde'
+  | 'vaso'
+  | 'auto'
+  | 'ruta'
+  | 'celular'
+  | 'aire'
+  | 'bolsa'
+  | 'botella'
+  | 'basura'
+  | 'notebook'
+  | 'heladera'
+  | 'casa'
+  | 'lampara'
+  | 'persona';
 
 /*
  * Each table spans several orders of magnitude on purpose. A comparison is
@@ -84,62 +109,54 @@ interface Equivalence {
  * lands, "≈ 10.400 duchas" is noise. The ladders below give the selector a
  * bigger unit to climb to as someone's totals grow.
  * Ordered from largest to smallest cost per item.
- */
-
-/*
- * F15.16 — the units are deliberately SPECIFIC and local. "≈ 4 duchas" leaves
- * you wondering how long a shower is; "≈ 4 duchas de 8 minutos" is a picture.
- * Where possible the reference is something an Argentine actually does — a
- * mate, an asado, a trip to Mar del Plata — rather than a generic figure.
+ *
+ * docs/REESTRUCTURA.md D5 — everything here is something you have at home or
+ * do every week. Gone: olympic pools, garbage trucks, flights to Madrid and
+ * "years of a car" (nobody pictures them, and they dwarf the person), the
+ * water it takes to MAKE a jean (that is not water anyone saved at the tap),
+ * and the tree that absorbs a year (13-IMPACT-MIRROR §4: no tree-counting).
+ * Fixed: a washing-machine load is ~100 L, not 1.100; a fridge month is
+ * ~45 kWh, not 300. Each figure sits at the HIGH end of its range, so the
+ * resulting count errs low.
  */
 
 // ── Water (litres) ──────────────────────────────────────────────────────────
-const WATER_EQ: Equivalence[] = [
-  { per: 2_500_000, one: 'pileta olímpica llena', many: 'piletas olímpicas llenas', emoji: '🏊' },
-  { per: 15_000, one: 'kilo de carne vacuna producido', many: 'kilos de carne vacuna producidos', emoji: '🥩' },
-  { per: 10_000, one: 'jean nuevo fabricado', many: 'jeans nuevos fabricados', emoji: '👖' },
-  { per: 2_700, one: 'remera de algodón fabricada', many: 'remeras de algodón fabricadas', emoji: '👕' },
-  { per: 2_400, one: 'hamburguesa completa', many: 'hamburguesas completas', emoji: '🍔' },
-  { per: 1_100, one: 'lavarropas cargado', many: 'lavarropas cargados', emoji: '🌀' },
-  { per: 130, one: 'café de cafetería', many: 'cafés de cafetería', emoji: '☕' },
-  { per: 70, one: 'ducha de 8 minutos', many: 'duchas de 8 minutos', emoji: '🚿' },
-  { per: 22, one: 'termo de mate', many: 'termos de mate', emoji: '🧉' },
-  { per: 9, one: 'descarga de inodoro', many: 'descargas de inodoro', emoji: '🚽' },
-  { per: 1, one: 'litro de agua', many: 'litros de agua', emoji: '💧' },
+export const WATER_EQ: Equivalence[] = [
+  { per: 1_000, one: 'tanque de agua de 1.000 litros', many: 'tanques de agua de 1.000 litros', emoji: '🛢️', icono: 'tanque', base: 'el tanque típico de una casa' },
+  { per: 150, one: 'bañadera llena', many: 'bañaderas llenas', emoji: '🛁', icono: 'banera', base: 'una bañadera llena tiene unos 150 L' },
+  { per: 100, one: 'lavado de ropa', many: 'lavados de ropa', emoji: '🌀', icono: 'lavado', base: 'un lavarropas gasta hasta 100 L por lavado' },
+  { per: 80, one: 'ducha de 8 minutos', many: 'duchas de 8 minutos', emoji: '🚿', icono: 'ducha', base: 'una ducha común larga unos 10 L por minuto' },
+  { per: 20, one: 'bidón de 20 litros', many: 'bidones de 20 litros', emoji: '🫙', icono: 'bidon', base: 'el bidón de un dispenser' },
+  { per: 10, one: 'balde de 10 litros', many: 'baldes de 10 litros', emoji: '🪣', icono: 'balde', base: 'un balde común' },
+  { per: 0.25, one: 'vaso de agua', many: 'vasos de agua', emoji: '🥛', icono: 'vaso', base: 'un vaso de 250 ml' },
 ];
 
 // ── CO₂ (kg) ────────────────────────────────────────────────────────────────
-const CO2_EQ: Equivalence[] = [
-  { per: 4_600, one: 'año entero de un auto naftero', many: 'años enteros de un auto naftero', emoji: '🚙' },
-  { per: 1_800, one: 'vuelo ida y vuelta a Madrid', many: 'vuelos ida y vuelta a Madrid', emoji: '✈️' },
-  { per: 200, one: 'vuelo ida y vuelta a Bariloche', many: 'vuelos ida y vuelta a Bariloche', emoji: '🛫' },
-  { per: 55, one: 'viaje en auto a Mar del Plata', many: 'viajes en auto a Mar del Plata', emoji: '🛣️' },
-  { per: 27, one: 'kilo de asado', many: 'kilos de asado', emoji: '🥩' },
-  { per: 21, one: 'árbol absorbiendo todo un año', many: 'árboles absorbiendo todo un año', emoji: '🌳' },
-  { per: 2.5, one: 'carga de celular por un año', many: 'cargas de celular por un año', emoji: '🔌' },
-  { per: 0.12, one: 'kilómetro en auto', many: 'kilómetros en auto', emoji: '🚗' },
+export const CO2_EQ: Equivalence[] = [
+  { per: 105, one: 'viaje en auto de Buenos Aires a Córdoba', many: 'viajes en auto de Buenos Aires a Córdoba', emoji: '🛣️', icono: 'ruta', base: '700 km a 0,15 kg de CO₂ por km' },
+  { per: 60, one: 'viaje en auto de Buenos Aires a Mar del Plata', many: 'viajes en auto de Buenos Aires a Mar del Plata', emoji: '🛣️', icono: 'ruta', base: '400 km a 0,15 kg de CO₂ por km' },
+  { per: 9, one: 'viaje en auto de Buenos Aires a La Plata', many: 'viajes en auto de Buenos Aires a La Plata', emoji: '🚗', icono: 'auto', base: '60 km a 0,15 kg de CO₂ por km' },
+  { per: 0.4, one: 'hora de aire acondicionado', many: 'horas de aire acondicionado', emoji: '❄️', icono: 'aire', base: '1,2 kWh por hora de la red argentina' },
+  { per: 0.15, one: 'kilómetro en auto', many: 'kilómetros en auto', emoji: '🚗', icono: 'auto', base: 'un auto naftero emite unos 0,15 kg por km' },
+  { per: 0.007, one: 'carga completa de celular', many: 'cargas completas de celular', emoji: '🔌', icono: 'celular', base: '0,02 kWh por carga de la red argentina' },
 ];
 
 // ── Waste (kg) ──────────────────────────────────────────────────────────────
-const WASTE_EQ: Equivalence[] = [
-  { per: 5_000, one: 'camión de basura', many: 'camiones de basura', emoji: '🚛' },
-  { per: 500, one: 'contenedor de basura', many: 'contenedores de basura', emoji: '🗑️' },
-  { per: 5, one: 'bolsa de basura', many: 'bolsas de basura', emoji: '🛍️' },
-  // Bridges the wide gap between a bag (5 kg) and a bottle (30 g) — without
-  // this rung, a few kilos rendered as "≈ 100 botellas de plástico".
-  { per: 1, one: 'kilo de residuos', many: 'kilos de residuos', emoji: '⚖️' },
-  { per: 0.03, one: 'botella de plástico', many: 'botellas de plástico', emoji: '🧴' },
-  { per: 0.008, one: 'bolsita de plástico', many: 'bolsitas de plástico', emoji: '🛒' },
+export const WASTE_EQ: Equivalence[] = [
+  { per: 5, one: 'bolsa de basura llena', many: 'bolsas de basura llenas', emoji: '🗑️', icono: 'basura', base: 'una bolsa de consorcio llena pesa unos 5 kg' },
+  { per: 1.2, one: 'día de basura de una persona', many: 'días de basura de una persona', emoji: '🧍', icono: 'persona', base: 'en Argentina, una persona tira unos 1,2 kg por día' },
+  { per: 0.035, one: 'botella de plástico de 1,5 litros', many: 'botellas de plástico de 1,5 litros', emoji: '🧴', icono: 'botella', base: 'una botella de 1,5 L pesa unos 35 g' },
+  { per: 0.008, one: 'bolsita del súper', many: 'bolsitas del súper', emoji: '🛍️', icono: 'bolsa', base: 'una bolsita pesa unos 8 g' },
 ];
 
 // ── Energy (kWh) ────────────────────────────────────────────────────────────
-const ENERGY_EQ: Equivalence[] = [
-  { per: 3_000, one: 'año de luz de un hogar', many: 'años de luz de un hogar', emoji: '🏠' },
-  { per: 300, one: 'mes de heladera', many: 'meses de heladera', emoji: '🧊' },
-  { per: 50, one: 'mes de lavarropas', many: 'meses de lavarropas', emoji: '🌀' },
-  { per: 8, one: 'día de luz de un hogar', many: 'días de luz de un hogar', emoji: '💡' },
-  { per: 1, one: 'hora de aire acondicionado', many: 'horas de aire acondicionado', emoji: '❄️' },
-  { per: 0.15, one: 'hora de notebook', many: 'horas de notebook', emoji: '💻' },
+export const ENERGY_EQ: Equivalence[] = [
+  { per: 240, one: 'mes de luz de una casa', many: 'meses de luz de una casa', emoji: '🏠', icono: 'casa', base: 'una casa promedio usa unos 240 kWh por mes' },
+  { per: 45, one: 'mes de heladera', many: 'meses de heladera', emoji: '🧊', icono: 'heladera', base: 'una heladera gasta unos 1,5 kWh por día' },
+  { per: 8, one: 'día de luz de una casa', many: 'días de luz de una casa', emoji: '💡', icono: 'casa', base: 'unos 8 kWh por día' },
+  { per: 1.2, one: 'hora de aire acondicionado', many: 'horas de aire acondicionado', emoji: '❄️', icono: 'aire', base: 'un equipo de 3.000 frigorías' },
+  { per: 0.06, one: 'hora de notebook', many: 'horas de notebook', emoji: '💻', icono: 'notebook', base: 'unos 60 W enchufada' },
+  { per: 0.02, one: 'carga completa de celular', many: 'cargas completas de celular', emoji: '🔌', icono: 'celular', base: 'unos 20 Wh por carga' },
 ];
 
 /**
@@ -148,44 +165,57 @@ const ENERGY_EQ: Equivalence[] = [
  * Rather than "first unit that yields at least 1" — which stays stuck on tiny
  * units and produces things like "10.400 duchas" — this scores every rung of
  * the ladder by how close its count sits to ~6 in log space, and takes the
- * best. Small savings land on showers and bottles; large ones automatically
- * climb to jeans, flights and swimming pools.
+ * best. Small savings land on glasses and buckets; large ones climb to
+ * bathtubs and the house tank.
  */
 const IDEAL_COUNT = 6;
 
-function pickEquivalence(amount: number, table: Equivalence[]): { eq: Equivalence; count: number } | null {
-  if (amount <= 0) return null;
-  let best: { eq: Equivalence; count: number } | null = null;
-  let bestScore = Infinity;
-  for (const eq of table) {
-    const count = amount / eq.per;
+function puntaje(count: number): number {
+  return Math.abs(Math.log10(count) - Math.log10(IDEAL_COUNT));
+}
+
+export function pickEquivalence(amount: number, table: Equivalence[]): { eq: Equivalence; count: number } | null {
+  return rankEquivalences(amount, table, 1)[0] ?? null;
+}
+
+/**
+ * The rungs worth saying, best first: every rung whose count is at least ~1,
+ * ordered by how easy the count is to picture. Used for "en otras palabras"
+ * lists, which want two or three different things, not the same one twice.
+ */
+export function rankEquivalences(amount: number, table: Equivalence[], n = 3): { eq: Equivalence; count: number }[] {
+  if (!(amount > 0)) return [];
+  const ok = table
+    .map((eq) => ({ eq, count: amount / eq.per }))
     // Below ~1 the phrase stops meaning anything ("0,4 duchas").
-    if (count < 0.9) continue;
-    const score = Math.abs(Math.log10(count) - Math.log10(IDEAL_COUNT));
-    if (score < bestScore) {
-      bestScore = score;
-      best = { eq, count };
-    }
-  }
-  if (best) return best;
+    .filter((x) => x.count >= 0.95)
+    .sort((a, b) => puntaje(a.count) - puntaje(b.count));
+  if (ok.length > 0) return ok.slice(0, n);
   // Everything was below the threshold: fall back to the smallest unit.
   const last = table[table.length - 1]!;
   const count = amount / last.per;
-  return count >= 0.1 ? { eq: last, count } : null;
+  return count >= 0.1 ? [{ eq: last, count }] : [];
 }
 
-function formatCount(count: number): string {
-  if (count >= 100) return nf.format(Math.round(count));
-  if (count >= 10) return nf.format(Math.round(count));
-  return nf1.format(Math.round(count * 10) / 10);
+/**
+ * A count said without overstating it: whole numbers from 10 up, one decimal
+ * below, always rounded DOWN ("9,96 baldes" is "9,9", not "10").
+ */
+export function formatCount(count: number): string {
+  if (count >= 10) return nf.format(Math.floor(count));
+  return nf1.format(Math.floor(count * 10) / 10);
+}
+
+/** "1 bañadera llena" / "3 bañaderas llenas", with the count rounded down. */
+export function decirCosa(eq: Equivalence, count: number): string {
+  const n = count >= 10 ? Math.floor(count) : Math.floor(count * 10) / 10;
+  return `${formatCount(count)} ${n === 1 ? eq.one : eq.many}`;
 }
 
 function bestEquivalence(amount: number, table: Equivalence[]): string | null {
   const picked = pickEquivalence(amount, table);
   if (!picked) return null;
-  const rounded = picked.count >= 10 ? Math.round(picked.count) : Math.round(picked.count * 10) / 10;
-  const label = rounded === 1 ? picked.eq.one : picked.eq.many;
-  return `${picked.eq.emoji} ≈ ${formatCount(picked.count)} ${label}`;
+  return `${picked.eq.emoji} ≈ ${decirCosa(picked.eq, picked.count)}`;
 }
 
 export function waterEquivalence(l: number): string | null {

@@ -95,7 +95,7 @@ export function InvitacionAvisos({ motivo }: { motivo: 'racha' | 'hoy' }) {
                 {ios ? (
                   <Link
                     href="/instalar"
-                    className="inline-flex h-9 items-center rounded-pill bg-primary px-4 text-small font-semibold text-primary-foreground shadow-crisp transition-colors hover:bg-brote-green-deep"
+                    className="inline-flex h-9 items-center rounded-pill bg-primary px-4 text-small font-semibold text-primary-foreground shadow-crisp transition-colors hover:bg-primary/90"
                   >
                     Cómo instalarla
                   </Link>

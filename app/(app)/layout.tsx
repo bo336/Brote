@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/nav/Sidebar';
 import { TopBar } from '@/components/nav/TopBar';
 import { BottomTabBar } from '@/components/nav/BottomTabBar';
+import { HojaSumar } from '@/components/sumar/HojaSumar';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
 import { PipChat } from '@/components/pip/PipChat';
 import { FirstRunTour } from '@/components/tutorial/FirstRunTour';
@@ -39,6 +40,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-28 pt-4 lg:pb-10">{children}</main>
         <BottomTabBar />
       </div>
+      {/* Sumar: el botón del centro, desde cualquier pantalla (docs/REESTRUCTURA.md D3). */}
+      <HojaSumar />
       <PipChat />
       {/* One-time orientation, skippable from the first card (F15.18). */}
       <FirstRunTour />

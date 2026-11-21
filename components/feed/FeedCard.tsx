@@ -191,7 +191,7 @@ export const FeedCard = memo(function FeedCard({
               {clamped && (
                 <button
                   onClick={() => setExpanded((v) => !v)}
-                  className="mt-1 text-caption font-medium text-primary transition-colors hover:text-brote-green-deep"
+                  className="mt-1 text-caption font-medium text-primary transition-colors hover:text-primary/80"
                 >
                   {expanded ? t('seeLess') : t('seeMore')}
                 </button>
