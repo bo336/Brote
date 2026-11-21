@@ -138,11 +138,11 @@ Los tonos claros pasan 4,5:1 sobre la crema (texto chico) y llevan texto blanco 
 - [x] Capturas de Hoy, Explorar, Sumar (día y "otra cosa"), /impacto, Liga, Plaza, eliminar negocio
       (claro y oscuro, 390 px y escritorio), con el build de producción contra un mock local de Supabase.
 - [x] `0150` probada en PGlite sobre lo mínimo de la base viva: 43 chequeos (ver §9).
-- [ ] Un bloque QA que se deshace, en la base viva, antes de aplicar `0150` (necesita el sí del dueño).
+- [x] QA que se deshace en la base viva después de aplicar `0150` (`supabase/qa/reestructura.sql`): pasó.
 
 ### F8 · Del dueño (no se hace sin su sí)
-- [ ] Aplicar `0150` en la base viva.
-- [ ] Merge del PR a `main` (despliega).
+- [x] Aplicar `0150` en la base viva (2026-11-21, con el sí del dueño; grants verificados: nada para `anon`).
+- [x] Merge del PR #43 a `main` (27c5a4f), que despliega producción.
 
 ## 8. Diario
 
@@ -152,6 +152,11 @@ Los tonos claros pasan 4,5:1 sobre la crema (texto chico) y llevan texto blanco 
   Encontrado en el camino: `/explorar` es un 308 permanente a la Plaza desde agosto (los navegadores
   lo guardan), así que Explorar vive en `/lugares`; un test ahora prohíbe destinos de la barra que
   sean origen de un redirect.
+- 2026-11-21 (tarde) — El dueño pidió mergear, desplegar y aplicar todo, "perfecto". Antes de
+  mandar: tour nuevo (v2, "Brote se renovó" para quien ya lo vio) y perfil ordenado (grilla de
+  atajos, tu isla, tu impacto). Base viva en `0150`; QA con usuario temporal deshecho: +15, sin
+  tocar el impacto, repetida y basura rechazadas, borrar devuelve los puntos, negocio ajeno
+  rechazado, panel cerrado. PR #43 mergeado. Falta sólo un recorrido real con sesión.
 
 ## 9. Cómo se verificó (para repetirlo)
 
